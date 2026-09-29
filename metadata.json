@@ -1,0 +1,7 @@
+{
+  "name": "MARSHGO — Транспортний маркетплейс",
+  "description": "Один пошук. Усі способи доїхати. Попутки, таксі, автобуси, трансфери та розумна навігація з підбором попутників.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
