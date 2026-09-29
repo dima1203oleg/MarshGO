@@ -152,16 +152,40 @@
 
 ## Native iOS target and simulator smoke check
 
-**Status:** Partial; a Capacitor iOS app builds, installs, launches, and displays the production login screen in the iPhone 18 Pro / iOS 27 CoreSimulator. Interactive sign-in/booking is not verified.
+**Status:** Partial; a Capacitor iOS app builds, installs, launches, and displays the production welcome screen in the iPhone 18 Pro / iOS 27 CoreSimulator. Interactive sign-in/booking is not verified.
 
 **Completed:** Added Capacitor 8.5.2 core/CLI/iOS dependencies and an Xcode project for bundle ID `ua.marshgo.app`, native MARSHGO app icon, portrait orientation, and iOS 15 minimum target. Capacitor build uses relative bundled assets and points at a local API for simulator builds only. Added a safe startup/loading fallback and an iOS simulator build/install/launch/screenshot script. CORS preflight accepts `capacitor://localhost` with credentials.
 
 **Modified files:** `package.json`, `bun.lock`, `capacitor.config.ts`, `vite.config.ts`, `index.html`, `src/main.tsx`, `ios/App/App.xcodeproj/project.pbxproj`, `ios/App/App/Info.plist`, `ios/App/App/Assets.xcassets/AppIcon.appiconset/*`, `scripts/build-ios-simulator.sh`, `docs/IOS.md`, `README.md`, `docs/PRODUCTION_CHECKLIST.md`, `docs/PRODUCTION_PROGRESS.md`.
 
-**Tests:** Frozen Bun lockfile install, `npm run typecheck`, and `npm run lint` passed. Local PostGIS integration/unit suite passed 11/11 after starting the isolated API with development-only test identity bypass. `npm run ios:simulator` completed the Vite production build, Xcode simulator build, install, and launch on iPhone 18 Pro (iOS 27); the screenshot showed the production phone sign-in screen. From inside the booted simulator, `curl http://localhost:3002/healthz` returned 200; an OPTIONS preflight for `Origin: capacitor://localhost` returned 204 with credentialed CORS headers. The regular production PWA build and `git diff --check` passed. No real SMS was sent.
+**Tests:** Frozen Bun lockfile install, `npm run typecheck`, and `npm run lint` passed. Local PostGIS integration/unit suite passed 11/11 after starting the isolated API with development-only test identity bypass. `npm run ios:simulator` completed the Vite production build, Xcode simulator build, install, and launch on iPhone 18 Pro (iOS 27); the screenshot showed the production welcome screen. From inside the booted simulator, `curl http://localhost:3002/healthz` returned 200; an OPTIONS preflight for `Origin: capacitor://localhost` returned 204 with credentialed CORS headers. The regular production PWA build and `git diff --check` passed. No real SMS was sent.
 
-**Remaining issues:** The graphical `Simulator.app` is absent in this environment, so we could not tap/enter text or run a UI automation flow. The native client uses the current browser auth transport; refresh-cookie persistence needs physical-device validation. Driver flows, verified garage, demand negotiation, chat, navigation, passive matching, push, and payments are not wired in the production UI. iOS signing, archive, privacy declarations, and App Store submission are not done.
+**Remaining issues:** The graphical `Simulator.app` is absent in this environment, so we could not tap/enter text or run a UI automation flow. The native client uses the current browser auth transport; refresh-cookie persistence needs physical-device validation. Driver offer publishing, verified vehicle photos, demand negotiation, navigation, passive matching, push, booking lifecycle controls, and payments are not wired in the production UI. Booking chat and basic vehicle CRUD have since been connected in the reference-design slice below. iOS signing, archive, privacy declarations, and App Store submission are not done.
 
 **External blockers:** Graphical simulator/interactive device test runner for tap-level UI acceptance, physical iPhone for device permissions/session checks, production HTTPS API origin, real SMS credentials, routing service, and private photo bucket.
 
 **Next implementation step:** Automate the iOS OTP→server-search→booking journey on a full simulator UI runner, then continue production UI integration for driver vehicle/offer publishing and reverse demand.
+
+## iOS reference design pass — mobile marketplace shell
+
+**Phase:** 5 continuation / iOS presentation and partial API integration.
+
+**Status:** PARTIAL. The sign-in screen and authenticated shell were redesigned toward the supplied iPhone references. This is not a complete implementation of the reference screens or a production release.
+
+**Completed:** Added mobile-first home and exact-route results screens, Community offer details with server booking, booking history, booking-participant chat using persisted REST messages, profile/vehicle list, driver-role enablement, vehicle creation and active-vehicle selection. Added a five-item bottom navigation plus create action. Booking DTO now indicates whether the caller is the driver, so passenger/driver labels and chat counterpart resolve from server identity rather than display-name guesses. Nonconnected bus/taxi categories and unfinished demand/navigation/offer-publishing flows are explicitly shown as unavailable.
+
+**Modified files:** `src/views/ProductionMarketplace.tsx`, `src/services/productionApi.ts`, `server/index.ts`, `docs/IOS.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** None.
+
+**API endpoints used:** Existing `/api/v1/auth/otp/*`, `/users/me`, `/users/me/roles`, `/vehicles`, `/offers`, `/bookings`, `/bookings/:id/conversation`, and `/conversations/:id/messages`. `GET /bookings` now includes `current_user_is_driver` for participant-specific UI.
+
+**Tests:** `npm run typecheck`, `npm run lint`, `npm test` (11/11 with local PostGIS/API and development-only identity bypass; bypass disabled immediately after test), `npm run build`, and `git diff --check` passed. `npm run ios:simulator` built, installed, and launched `ua.marshgo.app` on iPhone 18 Pro / iOS 27; screenshot: `/tmp/marshgo-ios-design-simulator.png`. Simulator exercised app startup and welcome-screen rendering only; no interactive OTP/booking test was possible because this host lacks graphical `Simulator.app`/tap automation.
+
+**DEMO/TRUTH status:** offer search, booking, bookings list, account, vehicle records, and booking chat use the API. Search is exact city-name matching. No seeded data or fake route/results were added. Test OTP is development-only. Bus/taxi, passenger demand, offer publishing, photo upload in this screen, GPS navigation, passive matching, WebSocket/push, and notifications are not live in this UI.
+
+**Open issues:** No geocoder/place picker; no demand form, driver offer publisher, vehicle photos, booking lifecycle actions, proposal negotiation, or navigation screens connected to production API. No physical-device session test or tap-level simulator flow. UI is a visual direction match, not pixel-identical to the supplied composite image.
+
+**External dependencies:** SMS provider credentials and sender; production HTTPS API; geocoder/routing deployment; private photo storage; interactive simulator runner or physical iPhone.
+
+**Next implementation step:** Add place suggestion/geocoding and route selection, then build driver offer creation and passenger demand negotiation screens on the existing server contracts; add tap-driven simulator E2E on an interactive runner.

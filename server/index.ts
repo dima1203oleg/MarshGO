@@ -754,7 +754,8 @@ app.post('/api/v1/offers', requireAuth, requireRole('driver'), asyncHandler(asyn
 app.get('/api/v1/bookings', requireAuth, asyncHandler(async (req, res) => {
   const { rows } = await pool.query(
     `SELECT b.id, b.offer_id, b.seat_count, b.total_price_minor, b.currency, b.status, b.created_at,
-            o.origin_name, o.destination_name, o.departure_at, u.display_name AS driver_name, p.display_name AS passenger_name
+            o.origin_name, o.destination_name, o.departure_at, u.display_name AS driver_name, p.display_name AS passenger_name,
+            (o.driver_id=$1) AS current_user_is_driver
        FROM bookings b JOIN offers o ON o.id = b.offer_id JOIN users u ON u.id = o.driver_id
        JOIN users p ON p.id=b.passenger_id
       WHERE b.passenger_id = $1 OR o.driver_id=$1 ORDER BY b.created_at DESC LIMIT 100`, [req.userId],

@@ -21,6 +21,8 @@ export type ApiOffer = {
   available_seats: number;
   total_seats: number;
   driver_name: string;
+  average_rating: number | null;
+  review_count: number;
 };
 
 export type ApiBooking = {
@@ -35,7 +37,21 @@ export type ApiBooking = {
   departure_at: string;
   driver_name: string;
   passenger_name: string;
+  current_user_is_driver: boolean;
 };
+
+export type ApiVehicle = {
+  id: string;
+  make: string;
+  model: string;
+  model_year: number;
+  seat_count: number;
+  verification_status: string;
+  is_active: boolean;
+};
+
+export type ApiMessage = { id: string; sender_id: string; sender_name: string; body: string; created_at: string };
+export type ApiConversation = { id: string; booking_id: string; created_at: string };
 
 type ApiEnvelope<T> = { data: T };
 const apiBase = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '';
@@ -86,6 +102,20 @@ export const productionApi = {
     return request<ApiOffer[]>(`/offers?${query.toString()}`);
   },
   bookings() { return request<ApiBooking[]>('/bookings'); },
+  me() { return request<ApiUser>('/users/me'); },
+  vehicles() { return request<ApiVehicle[]>('/vehicles'); },
+  enableRole(role: 'passenger' | 'driver') {
+    return request<{ id: string; roles: string[] }>('/users/me/roles', { method: 'POST', body: JSON.stringify({ role }) });
+  },
+  createVehicle(input: { make: string; model: string; modelYear: number; seats: number }) {
+    return request<ApiVehicle>('/vehicles', { method: 'POST', body: JSON.stringify(input) });
+  },
+  activateVehicle(id: string) { return request<ApiVehicle>(`/vehicles/${id}/activate`, { method: 'POST' }); },
+  conversation(bookingId: string) { return request<ApiConversation>(`/bookings/${bookingId}/conversation`); },
+  messages(conversationId: string) { return request<ApiMessage[]>(`/conversations/${conversationId}/messages`); },
+  sendMessage(conversationId: string, body: string) {
+    return request<ApiMessage>(`/conversations/${conversationId}/messages`, { method: 'POST', body: JSON.stringify({ body }) });
+  },
   book(offerId: string, seats: number) {
     return request<ApiBooking>('/bookings', {
       method: 'POST',
