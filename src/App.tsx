@@ -25,8 +25,14 @@ const AdminView = React.lazy(() => import('./views/AdminView').then((module) => 
 import { TransportCategory, Booking } from './types';
 import { WifiOff } from 'lucide-react';
 import { themeService } from './services/theme';
+import { ProductionMarketplace } from './views/ProductionMarketplace';
 
 export function App() {
+  if (import.meta.env.PROD) return <ProductionMarketplace />;
+  return <DemoApp />;
+}
+
+function DemoApp() {
   const [, setTick] = useState(0);
 
   // Subscribe to storage and theme changes for reactive state across all components
@@ -42,15 +48,15 @@ export function App() {
   // Navigation State
   const [currentView, setCurrentView] = useState<string>('home');
   const [searchCategory, setSearchCategory] = useState<TransportCategory>('all');
-  const [selectedOfferId, setSelectedOfferId] = useState<string>('off_camry_odesa_kyiv');
-  const [selectedDemandId, setSelectedDemandId] = useState<string>('dmd_01');
+  const [selectedOfferId, setSelectedOfferId] = useState<string>('');
+  const [selectedDemandId, setSelectedDemandId] = useState<string>('');
   const [lastBooking, setLastBooking] = useState<Booking | null>(null);
 
   // Search parameters
   const [searchParams, setSearchParams] = useState({
     origin: 'Одеса',
     destination: 'Київ',
-    date: '2026-09-30',
+    date: new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Kyiv' }).format(new Date()),
     passengers: 2
   });
 
@@ -86,6 +92,8 @@ export function App() {
   const bookings = storage.getBookings();
   const navSession = storage.getActiveNavSession();
   const demoMode = storage.getDemoMode();
+  const selectedOffer = storage.getOfferById(selectedOfferId);
+  const selectedDemand = storage.getDemandById(selectedDemandId);
 
   // Handlers
   const handleSearchSubmit = (params: { origin: string; destination: string; date: string; passengers: number }) => {
@@ -142,23 +150,6 @@ export function App() {
 
   const isDriver = user.activeRole === 'driver';
 
-  // This build still contains browser-local seed workflows. Fail closed in production
-  // until the authenticated API-backed client is connected; never present seed records
-  // as real marketplace inventory to public users.
-  if (import.meta.env.PROD) {
-    return (
-      <main className="grid min-h-screen place-items-center bg-slate-950 px-6 text-white">
-        <section className="w-full max-w-lg rounded-3xl border border-white/15 bg-white/5 p-8 text-center shadow-2xl">
-          <div className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-2xl bg-blue-500 text-2xl font-black">M</div>
-          <p className="text-sm font-bold uppercase tracking-[0.28em] text-blue-300">MARSHGO</p>
-          <h1 className="mt-3 text-2xl font-bold">Сервіс готується до запуску</h1>
-          <p className="mt-3 text-sm leading-6 text-slate-300">Публічний маркетплейс тимчасово недоступний. Ми відкриємо бронювання після підключення перевіреної серверної авторизації та спільної бази даних.</p>
-          <p className="mt-6 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-xs text-slate-400">Ваші реальні поїздки та платежі не приймаються в цьому середовищі.</p>
-        </section>
-      </main>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-[#F5F8FD] flex flex-col font-sans selection:bg-[#1769F4] selection:text-white">
       {/* Offline Status Warning */}
@@ -208,14 +199,21 @@ export function App() {
           />
         )}
 
-        {currentView === 'offer-detail' && (
+        {currentView === 'offer-detail' && selectedOffer && (
           <OfferDetailView
-            offer={storage.getOfferById(selectedOfferId) || offers[0]}
+            offer={selectedOffer}
             onBack={() => setCurrentView('search')}
             onBook={handleBookOffer}
             bookingSuccess={lastBooking}
             onViewBooking={() => setCurrentView('trips')}
           />
+        )}
+        {currentView === 'offer-detail' && !selectedOffer && (
+          <div className="mx-auto max-w-xl rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+            <h2 className="text-lg font-bold text-slate-900">Поїздку не знайдено</h2>
+            <p className="mt-2 text-sm text-slate-500">Оголошення могло стати недоступним або посилання застаріло.</p>
+            <button onClick={() => setCurrentView('search')} className="mt-5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white">Повернутися до пошуку</button>
+          </div>
         )}
 
         {currentView === 'demand-new' && (
@@ -226,15 +224,22 @@ export function App() {
           />
         )}
 
-        {currentView === 'demand-detail' && (
+        {currentView === 'demand-detail' && selectedDemand && (
           <DemandDetailView
-            demand={storage.getDemandById(selectedDemandId) || demands[0]}
+            demand={selectedDemand}
             proposals={storage.getProposalsForDemand(selectedDemandId)}
             onBack={() => setCurrentView('home')}
             onAcceptProposal={handleAcceptProposal}
             onCounterOffer={handleCounterOffer}
             onOpenChat={() => setCurrentView('messages')}
           />
+        )}
+        {currentView === 'demand-detail' && !selectedDemand && (
+          <div className="mx-auto max-w-xl rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+            <h2 className="text-lg font-bold text-slate-900">Запит не знайдено</h2>
+            <p className="mt-2 text-sm text-slate-500">Він міг бути скасований або посилання застаріло.</p>
+            <button onClick={() => setCurrentView('home')} className="mt-5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white">На головну</button>
+          </div>
         )}
 
         {currentView === 'driver' && (

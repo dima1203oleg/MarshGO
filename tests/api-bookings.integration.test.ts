@@ -22,11 +22,15 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
   };
   const keys = [`api-test-${crypto.randomUUID()}`, `api-test-${crypto.randomUUID()}`];
   let apiCreatedVehicleId: string | null = null;
+  const extraVehicleIds: string[] = [];
+  let otpUserId: string | null = null;
 
   before(async () => {
     await pool.query(`INSERT INTO users(id,display_name,roles) VALUES
       ($1,'API test driver',ARRAY['driver']),($2,'API test passenger A',ARRAY['passenger']),($3,'API test passenger B',ARRAY['passenger'])`,
     [ids.driver, ids.passengerA, ids.passengerB]);
+    await pool.query(`INSERT INTO user_roles(user_id,role) VALUES
+      ($1,'driver'),($2,'passenger'),($3,'passenger')`, [ids.driver, ids.passengerA, ids.passengerB]);
     await pool.query(`INSERT INTO vehicles(id,owner_id,make,model,model_year,seat_count)
       VALUES ($1,$2,'Test','Vehicle',2024,4)`, [ids.vehicle, ids.driver]);
     await pool.query(`INSERT INTO offers(id,driver_id,vehicle_id,origin_name,destination_name,origin,destination,departure_at,price_per_seat_minor,total_seats,available_seats)
@@ -37,9 +41,14 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
   });
 
   after(async () => {
+    if (otpUserId) await pool.query('DELETE FROM audit_events WHERE actor_id=$1', [otpUserId]);
+    await pool.query('DELETE FROM vehicles WHERE owner_id IN (SELECT id FROM users WHERE phone_e164 LIKE $1)', [`+38099${process.pid}%`]);
+    await pool.query('DELETE FROM users WHERE phone_e164 LIKE $1', [`+38099${process.pid}%`]);
+    await pool.query('DELETE FROM sessions WHERE user_id = ANY($1::uuid[])', [[ids.driver, ids.passengerA, ids.passengerB]]);
+    await pool.query('DELETE FROM otp_challenges WHERE phone_e164 LIKE $1', [`+38099${process.pid}%`]);
     await pool.query("DELETE FROM audit_events WHERE actor_id = ANY($1::uuid[]) AND action IN ('vehicle.created','offer.created','demand.created','proposal.created','proposal.countered','proposal.accepted')", [[ids.driver, ids.passengerA]]);
     await pool.query('DELETE FROM audit_events WHERE entity_id IN (SELECT id FROM bookings WHERE offer_id IN (SELECT id FROM offers WHERE driver_id = $1)) OR entity_id = ANY($2::uuid[])',
-      [ids.driver, [ids.vehicle, ...(apiCreatedVehicleId ? [apiCreatedVehicleId] : [])]]);
+      [ids.driver, [ids.vehicle, ...(apiCreatedVehicleId ? [apiCreatedVehicleId] : []), ...extraVehicleIds]]);
     await pool.query('DELETE FROM conversations WHERE booking_id IN (SELECT id FROM bookings WHERE offer_id IN (SELECT id FROM offers WHERE driver_id = $1))', [ids.driver]);
     await pool.query('DELETE FROM bookings WHERE offer_id IN (SELECT id FROM offers WHERE driver_id = $1)', [ids.driver]);
     await pool.query('DELETE FROM proposals WHERE driver_id=$1 OR demand_id IN (SELECT id FROM passenger_demands WHERE passenger_id=$2)', [ids.driver, ids.passengerA]);
@@ -48,6 +57,77 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     await pool.query('DELETE FROM vehicles WHERE owner_id = $1', [ids.driver]);
     await pool.query('DELETE FROM users WHERE id = ANY($1::uuid[])', [[ids.driver, ids.passengerA, ids.passengerB]]);
     await pool.end();
+  });
+
+  it('registers with development OTP, persists profile, and rotates refresh sessions', async () => {
+    const phone = `+38099${process.pid}${crypto.randomInt(1000, 9999)}`;
+    const requested = await fetch(`${apiUrl}/api/v1/auth/otp/request`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ phone, displayName: 'OTP Integration User' }),
+    });
+    assert.equal(requested.status, 200);
+    const requestBody = await requested.json() as { developmentCode?: string };
+    assert.match(requestBody.developmentCode ?? '', /^\d{6}$/);
+    const verified = await fetch(`${apiUrl}/api/v1/auth/otp/verify`, {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ phone, code: requestBody.developmentCode }),
+    });
+    assert.equal(verified.status, 200);
+    const auth = await verified.json() as { data: { user: { id: string; roles: string[] }; accessToken: string } };
+    assert.ok(auth.data.user.id);
+    otpUserId = auth.data.user.id;
+    assert.deepEqual(auth.data.user.roles, ['passenger']);
+    const authHeaders = { authorization: `Bearer ${auth.data.accessToken}`, 'content-type': 'application/json' };
+    const unavailableRoute = await fetch(`${apiUrl}/api/v1/routing/route`, {
+      method: 'POST', headers: authHeaders,
+      body: JSON.stringify({ origin: [23.86, 49.25], destination: [24.03, 49.84] }),
+    });
+    assert.equal(unavailableRoute.status, 503);
+    const me = await fetch(`${apiUrl}/api/v1/users/me`, { headers: authHeaders });
+    assert.equal(me.status, 200);
+    const profile = await fetch(`${apiUrl}/api/v1/users/me`, {
+      method: 'PATCH', headers: authHeaders, body: JSON.stringify({ email: 'otp-user@example.test' }),
+    });
+    assert.equal((await profile.json() as { data: { email: string } }).data.email, 'otp-user@example.test');
+    const updatedName = await fetch(`${apiUrl}/api/v1/users/me`, {
+      method: 'PATCH', headers: authHeaders, body: JSON.stringify({ displayName: 'Updated OTP User' }),
+    });
+    const updatedProfile = await updatedName.json() as { data: { email: string; display_name: string } };
+    assert.equal(updatedProfile.data.email, 'otp-user@example.test');
+    assert.equal(updatedProfile.data.display_name, 'Updated OTP User');
+
+    const enabledDriver = await fetch(`${apiUrl}/api/v1/users/me/roles`, {
+      method: 'POST', headers: authHeaders, body: JSON.stringify({ role: 'driver' }),
+    });
+    const roleBody = await enabledDriver.json() as { data?: { roles: string[] }; error?: { message: string } };
+    assert.equal(enabledDriver.status, 200, roleBody.error?.message);
+    assert.deepEqual(roleBody.data?.roles, ['driver', 'passenger']);
+    const ownCar = await fetch(`${apiUrl}/api/v1/vehicles`, {
+      method: 'POST', headers: authHeaders, body: JSON.stringify({ make: 'Test', model: 'OTP Car', modelYear: 2022, seats: 4 }),
+    });
+    assert.equal(ownCar.status, 201);
+    const createdVehicle = await ownCar.json() as { data: { id: string } };
+    const blockedUpload = await fetch(`${apiUrl}/api/v1/vehicles/${createdVehicle.data.id}/photos/upload-url`, {
+      method: 'POST', headers: authHeaders, body: JSON.stringify({ contentType: 'image/jpeg' }),
+    });
+    assert.equal(blockedUpload.status, 503);
+
+    const verifyCookie = verified.headers.get('set-cookie');
+    assert.ok(verifyCookie?.includes('mg_refresh='));
+    const cookie = verifyCookie?.split(';')[0];
+    const refreshed = await fetch(`${apiUrl}/api/v1/auth/refresh`, { method: 'POST', headers: { cookie: cookie ?? '' } });
+    assert.equal(refreshed.status, 200);
+    const rotatedCookie = refreshed.headers.get('set-cookie')?.split(';')[0];
+    assert.ok(rotatedCookie && rotatedCookie !== cookie);
+    const refreshBody = await refreshed.json() as { data: { accessToken: string } };
+    const logout = await fetch(`${apiUrl}/api/v1/auth/logout-all`, {
+      method: 'POST', headers: { authorization: `Bearer ${refreshBody.data.accessToken}` },
+    });
+    assert.equal(logout.status, 200);
+    const oldRefresh = await fetch(`${apiUrl}/api/v1/auth/refresh`, { method: 'POST', headers: { cookie: rotatedCookie ?? '' } });
+    assert.equal(oldRefresh.status, 401);
+    const oldAccess = await fetch(`${apiUrl}/api/v1/users/me`, { headers: { authorization: `Bearer ${refreshBody.data.accessToken}` } });
+    assert.equal(oldAccess.status, 401);
   });
 
   it('rejects anonymous booking and allows only one user to book the last seat', async () => {
@@ -98,9 +178,35 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
       body: JSON.stringify({ make: 'Kia', model: 'Ceed', modelYear: 2022, seats: 3 }),
     });
     assert.equal(vehicleResponse.status, 201);
-    const vehicle = await vehicleResponse.json() as { data: { id: string; verification_status: string } };
+    const vehicle = await vehicleResponse.json() as { data: { id: string; verification_status: string; is_active: boolean } };
     apiCreatedVehicleId = vehicle.data.id;
     assert.equal(vehicle.data.verification_status, 'pending');
+    assert.equal(vehicle.data.is_active, true);
+
+    const forbiddenEdit = await fetch(`${apiUrl}/api/v1/vehicles/${apiCreatedVehicleId}`, {
+      method: 'PATCH', headers: { 'content-type': 'application/json', 'x-dev-user-id': ids.passengerA },
+      body: JSON.stringify({ model: 'Hijacked' }),
+    });
+    assert.equal(forbiddenEdit.status, 403);
+    const ownerEdit = await fetch(`${apiUrl}/api/v1/vehicles/${apiCreatedVehicleId}`, {
+      method: 'PATCH', headers: { 'content-type': 'application/json', 'x-dev-user-id': ids.driver },
+      body: JSON.stringify({ model: 'Ceed Updated' }),
+    });
+    assert.equal((await ownerEdit.json() as { data: { model: string } }).data.model, 'Ceed Updated');
+
+    const secondVehicle = await fetch(`${apiUrl}/api/v1/vehicles`, {
+      method: 'POST', headers: { 'content-type': 'application/json', 'x-dev-user-id': ids.driver },
+      body: JSON.stringify({ make: 'Skoda', model: 'Octavia', modelYear: 2023, seats: 4 }),
+    });
+    const second = await secondVehicle.json() as { data: { id: string; is_active: boolean } };
+    extraVehicleIds.push(second.data.id);
+    assert.equal(second.data.is_active, false);
+    const activated = await fetch(`${apiUrl}/api/v1/vehicles/${second.data.id}/activate`, {
+      method: 'POST', headers: { 'x-dev-user-id': ids.driver },
+    });
+    assert.equal((await activated.json() as { data: { is_active: boolean } }).data.is_active, true);
+    const vehicleCount = await pool.query('SELECT count(*)::int AS active_count FROM vehicles WHERE owner_id=$1 AND is_active', [ids.driver]);
+    assert.equal(vehicleCount.rows[0].active_count, 1);
 
     const offerPayload = {
       vehicleId: apiCreatedVehicleId,
@@ -121,8 +227,15 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
       body: JSON.stringify(offerPayload),
     });
     assert.equal(published.status, 201);
-    const response = await published.json() as { data: { id: string; available_seats: number } };
+    const response = await published.json() as { data: { id: string; available_seats: number; route_source: string } };
     assert.equal(response.data.available_seats, 2);
+    assert.equal(response.data.route_source, 'development_unrouted');
+    const localDepartureDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Kyiv' }).format(new Date(offerPayload.departureAt));
+    const found = await fetch(`${apiUrl}/api/v1/offers?origin=API%20Publish%20Origin&destination=API%20Publish%20Destination&date=${localDepartureDate}&seats=2`);
+    assert.equal(found.status, 200);
+    assert.equal((await found.json() as { data: Array<{ id: string }> }).data.some((offer) => offer.id === response.data.id), true);
+    const tooMany = await fetch(`${apiUrl}/api/v1/offers?origin=API%20Publish%20Origin&destination=API%20Publish%20Destination&date=${localDepartureDate}&seats=5`);
+    assert.equal((await tooMany.json() as { data: unknown[] }).data.length, 0);
   });
 
   it('keeps negotiation history and atomically converts an accepted proposal into a booking', async () => {
