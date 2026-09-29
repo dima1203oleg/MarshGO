@@ -8,6 +8,7 @@
 * Refresh credentials use HttpOnly, SameSite=Strict cookies and Secure in production. Access credentials remain in browser memory.
 * Vehicle, booking, proposal, and conversation mutations check authenticated ownership/role. Phone, plate, and verification evidence are not returned in public offer search.
 * Vehicle photos use short-lived presigned upload policies constrained to 10 MiB and JPEG/PNG/WebP; API finalization checks object metadata plus detected file signature. Read URLs are signed and time-limited.
+* Boarding tickets contain no PII and use HMAC signatures; the server checks ticket expiry, booking ID, driver ownership, and current booking state before marking boarding.
 * API requests have a JSON body limit, an allowlisted CORS policy, baseline security headers, request IDs, and per-process rate limits.
 * Errors return structured codes/messages/request IDs; server logs do not include request bodies or OTP values.
 

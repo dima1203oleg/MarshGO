@@ -49,6 +49,8 @@ Headers: `Idempotency-Key` (16–128 characters). JSON body: `{ "offerId": "<uui
 
 Cancels a confirmed booking owned by the caller and restores its seats exactly once. Other booking states cannot be cancelled through this endpoint.
 
+`GET /api/v1/bookings/:id/ticket` issues a short-lived HMAC-signed, PII-free ticket to a booking participant. The driver posts the token to `POST /api/v1/bookings/:id/boarding`; driver-only `POST /api/v1/bookings/:id/start` advances a boarded booking to `in_progress`. Driver and passenger must each confirm `POST /api/v1/bookings/:id/complete` before state becomes `completed`. `GET /api/v1/bookings/:id/events` returns the participant-scoped transition history. Reviews are accepted at `POST /api/v1/bookings/:id/reviews` only after both completion confirmations; one review per participant, rating 1–5. Offer search returns the server aggregate rating and count; new drivers have zero reviews rather than a seeded rating.
+
 ## Conversations
 
 `GET /api/v1/bookings/:id/conversation` returns the conversation only to a booking participant. `GET /api/v1/conversations/:id/messages` returns persisted participant-only history, and `POST /api/v1/conversations/:id/messages` stores a message after checking membership. Delivery is request/response only; WebSocket and push updates are not implemented.

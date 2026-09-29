@@ -17,7 +17,8 @@
 ## Required before staging
 
 - [ ] Configure/test real OTP provider, sender identity, secure session policy, and staging HTTPS same-site API routing.
-- [ ] Complete vehicle photo storage/verification, demand cancellation, reviews, and trip lifecycle APIs.
+- [ ] Configure private vehicle photo storage and complete verification review; implement demand cancellation API.
+- [x] Booking lifecycle API with signed boarding ticket, participant completion confirmations, and completed-trip reviews.
 - [ ] WebSocket/push delivery for messages, proposal changes, and booking events.
 - [ ] Connect production driver garage/publishing, demand, chat, navigation, and matching screens to authenticated APIs.
 - [ ] Configure production routing service and implement geocoded corridor/multi-stop search and rerouting.

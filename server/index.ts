@@ -54,6 +54,26 @@ type AuthenticatedRequest = Request & { userId?: string; sessionId?: string };
 function sha256(value: string) { return crypto.createHash('sha256').update(value).digest('hex'); }
 function otpHash(phone: string, code: string) { return crypto.createHmac('sha256', sessionSecret).update(`${phone}:${code}`).digest('hex'); }
 function token() { return crypto.randomBytes(32).toString('base64url'); }
+type BookingTicketClaims = { bookingId: string; expiresAt: number; nonce: string; version: 1 };
+function createBookingTicket(bookingId: string, departureAt: Date) {
+  const expiresAt = Math.floor((departureAt.getTime() + 24 * 60 * 60 * 1000) / 1000);
+  const claims: BookingTicketClaims = { bookingId, expiresAt, nonce: token(), version: 1 };
+  const payload = Buffer.from(JSON.stringify(claims)).toString('base64url');
+  const signature = crypto.createHmac('sha256', sessionSecret).update(payload).digest('base64url');
+  return { token: `${payload}.${signature}`, expiresAt: new Date(expiresAt * 1000).toISOString() };
+}
+function validBookingTicket(value: unknown, bookingId: string) {
+  if (typeof value !== 'string') return false;
+  const [payload, signature, extra] = value.split('.');
+  if (!payload || !signature || extra !== undefined) return false;
+  const expected = Buffer.from(crypto.createHmac('sha256', sessionSecret).update(payload).digest('base64url'));
+  const received = Buffer.from(signature);
+  if (expected.length !== received.length || !crypto.timingSafeEqual(expected, received)) return false;
+  try {
+    const claims = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as BookingTicketClaims;
+    return claims.version === 1 && claims.bookingId === bookingId && Number.isInteger(claims.expiresAt) && claims.expiresAt > Math.floor(Date.now() / 1000);
+  } catch { return false; }
+}
 function cookieValue(req: Request, name: string) {
   const value = req.get('cookie')?.split(';').map((part) => part.trim()).find((part) => part.startsWith(`${name}=`))?.slice(name.length + 1);
   return value ? decodeURIComponent(value) : undefined;
@@ -397,10 +417,12 @@ app.get('/api/v1/offers', asyncHandler(async (req, res) => {
   if (!Number.isInteger(seats) || seats < 1 || seats > 20 || (date !== null && !/^\d{4}-\d{2}-\d{2}$/.test(date))) {
     throw new ApiError(400, 'invalid date or passenger count');
   }
-  const { rows } = await pool.query(
+    const { rows } = await pool.query(
     `SELECT o.id, o.origin_name, o.destination_name, o.departure_at, o.arrival_at,o.distance_m,o.duration_s,o.route_source,o.price_per_seat_minor,
-            o.currency, o.available_seats, o.total_seats, u.display_name AS driver_name
+            o.currency, o.available_seats, o.total_seats, u.display_name AS driver_name,
+            ratings.average_rating,ratings.review_count
        FROM offers o JOIN users u ON u.id = o.driver_id
+       LEFT JOIN LATERAL (SELECT round(avg(r.rating)::numeric,2) AS average_rating,count(*)::int AS review_count FROM reviews r WHERE r.target_id=o.driver_id) ratings ON true
       WHERE o.status = 'published' AND o.departure_at > now() AND o.available_seats > 0
         AND o.available_seats >= $4
         AND lower(o.origin_name) = lower($1) AND lower(o.destination_name) = lower($2)
@@ -740,6 +762,19 @@ app.get('/api/v1/bookings', requireAuth, asyncHandler(async (req, res) => {
   res.json({ data: rows });
 }));
 
+app.get('/api/v1/bookings/:id/events', requireAuth, asyncHandler(async (req, res) => {
+  const { rows } = await pool.query(
+    `SELECT e.id,e.from_status,e.to_status,e.actor_id,e.reason,e.created_at
+       FROM booking_events e JOIN bookings b ON b.id=e.booking_id JOIN offers o ON o.id=b.offer_id
+      WHERE b.id=$1 AND (b.passenger_id=$2 OR o.driver_id=$2) ORDER BY e.created_at,e.id`, [req.params.id, req.userId],
+  );
+  if (!rows.length) {
+    const booking = await pool.query('SELECT 1 FROM bookings WHERE id=$1 AND passenger_id=$2', [req.params.id, req.userId]);
+    if (!booking.rows[0]) throw new ApiError(404, 'booking unavailable');
+  }
+  res.json({ data: rows });
+}));
+
 app.post('/api/v1/bookings', requireAuth, asyncHandler(async (req, res) => {
   const userId = req.userId!;
   const offerId = req.body?.offerId;
@@ -780,6 +815,7 @@ app.post('/api/v1/bookings', requireAuth, asyncHandler(async (req, res) => {
       [offerId, userId, seats, currentOffer.price_per_seat_minor, total, currentOffer.currency, key],
     );
     await client.query('INSERT INTO conversations(booking_id) VALUES ($1)', [booking.rows[0].id]);
+    await client.query("INSERT INTO booking_events(booking_id,from_status,to_status,actor_id) VALUES ($1,NULL,'confirmed',$2)", [booking.rows[0].id, userId]);
     await client.query('INSERT INTO conversation_members(conversation_id,user_id) SELECT id,$2 FROM conversations WHERE booking_id=$1', [booking.rows[0].id, currentOffer.driver_id]);
     await client.query('INSERT INTO conversation_members(conversation_id,user_id) SELECT id,$2 FROM conversations WHERE booking_id=$1', [booking.rows[0].id, userId]);
     await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [userId, 'booking.created', 'booking', booking.rows[0].id]);
@@ -809,6 +845,7 @@ app.post('/api/v1/bookings/:id/cancel', requireAuth, asyncHandler(async (req, re
     }
     if (booking.status !== 'confirmed') throw new ApiError(409, 'booking cannot be cancelled');
     await client.query("UPDATE bookings SET status='cancelled', cancelled_at=now() WHERE id=$1", [booking.id]);
+    await client.query("INSERT INTO booking_events(booking_id,from_status,to_status,actor_id) VALUES ($1,'confirmed','cancelled',$2)", [booking.id, req.userId]);
     await client.query("UPDATE offers SET available_seats=LEAST(total_seats,available_seats+$2) WHERE id=$1 AND status <> 'cancelled'", [booking.offer_id, booking.seat_count]);
     await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'booking.cancelled', 'booking', booking.id]);
     await client.query('COMMIT');
@@ -819,6 +856,129 @@ app.post('/api/v1/bookings/:id/cancel', requireAuth, asyncHandler(async (req, re
   } finally {
     client.release();
   }
+}));
+
+app.get('/api/v1/bookings/:id/ticket', requireAuth, asyncHandler(async (req, res) => {
+  const { rows } = await pool.query<{ id: string; status: string; departure_at: Date }>(
+    `SELECT b.id,b.status,o.departure_at FROM bookings b JOIN offers o ON o.id=b.offer_id
+      WHERE b.id=$1 AND (b.passenger_id=$2 OR o.driver_id=$2)`, [req.params.id, req.userId],
+  );
+  const booking = rows[0];
+  if (!booking) throw new ApiError(404, 'booking unavailable');
+  if (!['confirmed','boarding'].includes(booking.status)) throw new ApiError(409, 'ticket is no longer valid');
+  res.json({ data: { format: 'MARSHGO-HMAC-SHA256-V1', ...createBookingTicket(booking.id, new Date(booking.departure_at)) } });
+}));
+
+app.post('/api/v1/bookings/:id/boarding', requireAuth, asyncHandler(async (req, res) => {
+  if (!validBookingTicket(req.body?.ticket, req.params.id)) throw new ApiError(400, 'booking ticket is invalid or expired', 'ticket_invalid');
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query<{ id: string; driver_id: string; passenger_id: string; status: string }>(
+      `SELECT b.id,o.driver_id,b.passenger_id,b.status FROM bookings b JOIN offers o ON o.id=b.offer_id WHERE b.id=$1 FOR UPDATE OF b,o`, [req.params.id],
+    );
+    const booking = rows[0];
+    if (!booking || booking.driver_id !== req.userId) throw new ApiError(404, 'booking unavailable');
+    if (booking.status === 'boarding') {
+      await client.query('COMMIT');
+      res.json({ data: { id: booking.id, status: 'boarding' }, replayed: true });
+      return;
+    }
+    if (booking.status !== 'confirmed') throw new ApiError(409, 'booking cannot enter boarding');
+    await client.query("UPDATE bookings SET status='boarding' WHERE id=$1", [booking.id]);
+    await client.query("INSERT INTO booking_events(booking_id,from_status,to_status,actor_id) VALUES ($1,'confirmed','boarding',$2)", [booking.id, req.userId]);
+    await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'booking.boarding', 'booking', booking.id]);
+    await client.query('COMMIT');
+    res.json({ data: { id: booking.id, status: 'boarding' }, replayed: false });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally { client.release(); }
+}));
+
+app.post('/api/v1/bookings/:id/start', requireAuth, asyncHandler(async (req, res) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query<{ id: string; driver_id: string; status: string }>(
+      'SELECT b.id,o.driver_id,b.status FROM bookings b JOIN offers o ON o.id=b.offer_id WHERE b.id=$1 FOR UPDATE OF b,o', [req.params.id],
+    );
+    const booking = rows[0];
+    if (!booking || booking.driver_id !== req.userId) throw new ApiError(404, 'booking unavailable');
+    if (booking.status !== 'boarding') throw new ApiError(409, 'booking must be boarding before trip start');
+    await client.query("UPDATE bookings SET status='in_progress' WHERE id=$1", [booking.id]);
+    await client.query("INSERT INTO booking_events(booking_id,from_status,to_status,actor_id) VALUES ($1,'boarding','in_progress',$2)", [booking.id, req.userId]);
+    await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'booking.started', 'booking', booking.id]);
+    await client.query('COMMIT');
+    res.json({ data: { id: booking.id, status: 'in_progress' } });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally { client.release(); }
+}));
+
+app.post('/api/v1/bookings/:id/complete', requireAuth, asyncHandler(async (req, res) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query<{ id: string; driver_id: string; passenger_id: string; status: string }>(
+      `SELECT b.id,o.driver_id,b.passenger_id,b.status FROM bookings b JOIN offers o ON o.id=b.offer_id WHERE b.id=$1 FOR UPDATE OF b,o`, [req.params.id],
+    );
+    const booking = rows[0];
+    if (!booking || (booking.driver_id !== req.userId && booking.passenger_id !== req.userId)) throw new ApiError(404, 'booking unavailable');
+    if (booking.status === 'completed') {
+      await client.query('COMMIT');
+      res.json({ data: { id: booking.id, status: 'completed', confirmations: 2 }, replayed: true });
+      return;
+    }
+    if (booking.status !== 'in_progress') throw new ApiError(409, 'only an in-progress trip can be completed');
+    await client.query('INSERT INTO booking_completion_confirmations(booking_id,user_id) VALUES ($1,$2) ON CONFLICT DO NOTHING', [booking.id, req.userId]);
+    const confirmations = await client.query('SELECT count(*)::int AS count FROM booking_completion_confirmations WHERE booking_id=$1', [booking.id]);
+    const count = Number(confirmations.rows[0].count);
+    let status = 'in_progress';
+    if (count >= 2) {
+      status = 'completed';
+      await client.query("UPDATE bookings SET status='completed',completed_at=now() WHERE id=$1 AND status='in_progress'", [booking.id]);
+      await client.query("INSERT INTO booking_events(booking_id,from_status,to_status,actor_id) VALUES ($1,'in_progress','completed',$2)", [booking.id, req.userId]);
+      await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'booking.completed', 'booking', booking.id]);
+    }
+    await client.query('COMMIT');
+    res.json({ data: { id: booking.id, status, confirmations: count, requiredConfirmations: 2 } });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally { client.release(); }
+}));
+
+app.post('/api/v1/bookings/:id/reviews', requireAuth, asyncHandler(async (req, res) => {
+  const rating = req.body?.rating;
+  const comment = req.body?.comment;
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5 || (comment !== undefined && comment !== null && (typeof comment !== 'string' || comment.trim().length > 1000))) {
+    throw new ApiError(400, 'rating must be 1–5 and comment must be at most 1000 characters');
+  }
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows: bookings } = await client.query<{ status: string; passenger_id: string; driver_id: string }>(
+      `SELECT b.status,b.passenger_id,o.driver_id FROM bookings b JOIN offers o ON o.id=b.offer_id WHERE b.id=$1 FOR SHARE OF b`, [req.params.id],
+    );
+    const booking = bookings[0];
+    if (!booking || (booking.passenger_id !== req.userId && booking.driver_id !== req.userId)) throw new ApiError(404, 'booking unavailable');
+    if (booking.status !== 'completed') throw new ApiError(409, 'reviews are available only after both users confirm trip completion');
+    const targetId = booking.passenger_id === req.userId ? booking.driver_id : booking.passenger_id;
+    const { rows } = await client.query(
+      `INSERT INTO reviews(booking_id,author_id,target_id,rating,comment) VALUES ($1,$2,$3,$4,$5)
+       RETURNING id,booking_id,author_id,target_id,rating,comment,created_at`,
+      [req.params.id, req.userId, targetId, rating, typeof comment === 'string' ? comment.trim() || null : null],
+    );
+    await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'review.created', 'booking', req.params.id]);
+    await client.query('COMMIT');
+    res.status(201).json({ data: rows[0] });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === '23505') throw new ApiError(409, 'you already reviewed this trip', 'review_already_exists');
+    throw error;
+  } finally { client.release(); }
 }));
 
 app.post('/api/v1/demands', requireAuth, requireRole('passenger'), asyncHandler(async (req, res) => {
@@ -981,6 +1141,7 @@ app.post('/api/v1/proposals/:id/accept', requireAuth, asyncHandler(async (req, r
        RETURNING id,offer_id,seat_count,unit_price_minor,total_price_minor,currency,status,created_at`,
       [offers[0].id, req.userId, demand.passenger_count, Math.floor(agreedTotal / Number(demand.passenger_count)), agreedTotal, `proposal-accept:${proposal.id}`],
     );
+    await client.query("INSERT INTO booking_events(booking_id,from_status,to_status,actor_id) VALUES ($1,NULL,'confirmed',$2)", [bookings[0].id, req.userId]);
     await client.query('UPDATE offers SET available_seats=available_seats-$2 WHERE id=$1', [offers[0].id, demand.passenger_count]);
     await client.query("UPDATE proposals SET status='accepted' WHERE id=$1", [proposal.id]);
     await client.query("UPDATE proposals SET status='rejected' WHERE demand_id=$1 AND id<>$2 AND status='pending'", [demand.id, proposal.id]);

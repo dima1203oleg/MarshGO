@@ -49,6 +49,7 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     await pool.query("DELETE FROM audit_events WHERE actor_id = ANY($1::uuid[]) AND action IN ('vehicle.created','offer.created','demand.created','proposal.created','proposal.countered','proposal.accepted')", [[ids.driver, ids.passengerA]]);
     await pool.query('DELETE FROM audit_events WHERE entity_id IN (SELECT id FROM bookings WHERE offer_id IN (SELECT id FROM offers WHERE driver_id = $1)) OR entity_id = ANY($2::uuid[])',
       [ids.driver, [ids.vehicle, ...(apiCreatedVehicleId ? [apiCreatedVehicleId] : []), ...extraVehicleIds]]);
+    await pool.query('DELETE FROM reviews WHERE booking_id IN (SELECT id FROM bookings WHERE offer_id IN (SELECT id FROM offers WHERE driver_id=$1))', [ids.driver]);
     await pool.query('DELETE FROM conversations WHERE booking_id IN (SELECT id FROM bookings WHERE offer_id IN (SELECT id FROM offers WHERE driver_id = $1))', [ids.driver]);
     await pool.query('DELETE FROM bookings WHERE offer_id IN (SELECT id FROM offers WHERE driver_id = $1)', [ids.driver]);
     await pool.query('DELETE FROM proposals WHERE driver_id=$1 OR demand_id IN (SELECT id FROM passenger_demands WHERE passenger_id=$2)', [ids.driver, ids.passengerA]);
@@ -286,6 +287,66 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     assert.equal(booking.data.total_price_minor, 15000);
     assert.equal(booking.data.seat_count, 2);
     assert.equal(booking.agreedTotalMinor, 15000);
+
+    const ticketResponse = await fetch(`${apiUrl}/api/v1/bookings/${booking.data.id}/ticket`, { headers: headers(ids.driver) });
+    assert.equal(ticketResponse.status, 200);
+    const ticket = await ticketResponse.json() as { data: { token: string } };
+    const invalidTicket = await fetch(`${apiUrl}/api/v1/bookings/${booking.data.id}/boarding`, {
+      method: 'POST', headers: headers(ids.driver), body: JSON.stringify({ ticket: 'bad.signature' }),
+    });
+    assert.equal(invalidTicket.status, 400);
+    const wrongBoarding = await fetch(`${apiUrl}/api/v1/bookings/${booking.data.id}/boarding`, {
+      method: 'POST', headers: headers(ids.passengerA), body: JSON.stringify({ ticket: ticket.data.token }),
+    });
+    assert.equal(wrongBoarding.status, 404);
+    const boarding = await fetch(`${apiUrl}/api/v1/bookings/${booking.data.id}/boarding`, {
+      method: 'POST', headers: headers(ids.driver), body: JSON.stringify({ ticket: ticket.data.token }),
+    });
+    assert.equal((await boarding.json() as { data: { status: string } }).data.status, 'boarding');
+    const passengerStart = await fetch(`${apiUrl}/api/v1/bookings/${booking.data.id}/start`, {
+      method: 'POST', headers: headers(ids.passengerA),
+    });
+    assert.equal(passengerStart.status, 404);
+    const started = await fetch(`${apiUrl}/api/v1/bookings/${booking.data.id}/start`, {
+      method: 'POST', headers: headers(ids.driver),
+    });
+    assert.equal((await started.json() as { data: { status: string } }).data.status, 'in_progress');
+    const earlyReview = await fetch(`${apiUrl}/api/v1/bookings/${booking.data.id}/reviews`, {
+      method: 'POST', headers: headers(ids.passengerA), body: JSON.stringify({ rating: 5 }),
+    });
+    assert.equal(earlyReview.status, 409);
+    const firstCompletion = await fetch(`${apiUrl}/api/v1/bookings/${booking.data.id}/complete`, {
+      method: 'POST', headers: headers(ids.passengerA),
+    });
+    assert.deepEqual((await firstCompletion.json() as { data: { status: string; confirmations: number } }).data, {
+      id: booking.data.id, status: 'in_progress', confirmations: 1, requiredConfirmations: 2,
+    });
+    const secondCompletion = await fetch(`${apiUrl}/api/v1/bookings/${booking.data.id}/complete`, {
+      method: 'POST', headers: headers(ids.driver),
+    });
+    assert.equal((await secondCompletion.json() as { data: { status: string } }).data.status, 'completed');
+    const passengerReview = await fetch(`${apiUrl}/api/v1/bookings/${booking.data.id}/reviews`, {
+      method: 'POST', headers: headers(ids.passengerA), body: JSON.stringify({ rating: 5, comment: 'Доїхали вчасно.' }),
+    });
+    assert.equal(passengerReview.status, 201);
+    const driverReview = await fetch(`${apiUrl}/api/v1/bookings/${booking.data.id}/reviews`, {
+      method: 'POST', headers: headers(ids.driver), body: JSON.stringify({ rating: 4 }),
+    });
+    assert.equal(driverReview.status, 201);
+    const duplicateReview = await fetch(`${apiUrl}/api/v1/bookings/${booking.data.id}/reviews`, {
+      method: 'POST', headers: headers(ids.passengerA), body: JSON.stringify({ rating: 1 }),
+    });
+    assert.equal(duplicateReview.status, 409);
+    const offerDate = new Date(Date.now() + 10 * 86400_000);
+    const localOfferDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Kyiv' }).format(offerDate);
+    const ratedOffers = await fetch(`${apiUrl}/api/v1/offers?origin=API%20Publish%20Origin&destination=API%20Publish%20Destination&date=${localOfferDate}&seats=2`);
+    const rated = (await ratedOffers.json() as { data: Array<{ average_rating: string | number; review_count: number }> }).data[0];
+    assert.equal(Number(rated.average_rating), 5);
+    assert.equal(rated.review_count, 1);
+    const bookingEvents = await fetch(`${apiUrl}/api/v1/bookings/${booking.data.id}/events`, { headers: headers(ids.driver) });
+    assert.deepEqual((await bookingEvents.json() as { data: Array<{ to_status: string }> }).data.map((event) => event.to_status), [
+      'confirmed', 'boarding', 'in_progress', 'completed',
+    ]);
 
     const duplicateAccept = await fetch(`${apiUrl}/api/v1/proposals/${proposal.data.id}/accept`, {
       method: 'POST', headers: headers(ids.passengerA),
