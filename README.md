@@ -25,6 +25,8 @@ In another terminal run `npm run dev`. Vite proxies `/api`, `/healthz`, and `/re
 * `npm test` — unit tests; the API/PostGIS suite skips unless `API_TEST_URL` and a loopback `API_TEST_DATABASE_URL` are provided.
 * `npm run build` — production PWA build.
 * `npm run db:migrate` — apply additive SQL migrations.
+* `npm run ios:sync` — build the web bundle and sync it into the Capacitor iOS target.
+* `SIMULATOR_UDID=<device-udid> SIMULATOR_API_BASE_URL=http://localhost:3002 npm run ios:simulator` — build, install, launch, and capture the app on an iOS simulator (local API must be running).
 
 Local API transaction suite (requires started local API and database):
 
@@ -41,3 +43,5 @@ Never enable development OTP or identity bypass in production. Keep `.env` priva
 Production builds use the API-backed OTP sign-in, server offer search, transactional booking, and booking-history screen. The development build still includes the legacy demo UI. Production OTP requires a configured Twilio account and approved sender; without SMS configuration the login endpoint returns an unavailable error. Production offer creation requires a private or contracted OSRM-compatible endpoint configured through `ROUTING_ENGINE_URL`.
 
 The production PWA does not yet include driver offer creation/garage, configured vehicle photo storage, demand negotiation, chat, GPS navigation/passive matching, partner inventory, or payments. An S3-compatible signed photo adapter exists but fails closed until a private bucket, credentials/role, and bucket CORS are configured. No staging or public deployment exists. See [`docs/PRODUCTION_CHECKLIST.md`](docs/PRODUCTION_CHECKLIST.md) for release gates and [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for local setup.
+
+An iOS Capacitor target now packages the same API-backed production UI. See [`docs/IOS.md`](docs/IOS.md) for simulator setup and native release limitations; App Store signing and physical-device validation have not been completed.

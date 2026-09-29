@@ -4,7 +4,7 @@
 
 ## Summary
 
-The repository started as a React/Vite PWA prototype. Its browser workflows still use seed data and `localStorage`. An Express/PostgreSQL API foundation now supports database-backed offers, atomic booking/cancellation, reverse-marketplace negotiation, and persisted participant chat. OTP enrollment, opaque access sessions, refresh rotation/reuse revocation, profile updates, and normalized passenger/driver role authorization have been added and locally integration-tested. The frontend is not connected to this API, real SMS delivery is unconfigured, and the service remains unavailable for a real marketplace release.
+The repository started as a React/Vite PWA prototype. A production build now uses an Express/PostgreSQL API for phone enrollment, offer search, booking, and booking history; the legacy demo remains in development builds. The API also has locally tested vehicle, demand/proposal, persistent message, routing-adapter, booking lifecycle, and review slices, but most are not connected to production UI. An iOS Capacitor target builds and launches in CoreSimulator. Production SMS, routing, photo storage, hosting, staging, complete driver/passenger UI, interactive device acceptance, and release operations remain incomplete.
 
 ## Status by capability
 
@@ -14,13 +14,14 @@ The repository started as a React/Vite PWA prototype. Its browser workflows stil
 | DONE | Local demo ride booking, demand, proposal, profile, and trip flows | `src/services/storage.ts` implements browser-only state transitions over seed data. These are demo flows, not shared marketplace records. |
 | PARTIAL | Search and transport categories | Production PWA searches server inventory by exact city names, Europe/Kyiv date, and seat count. There are no geocoded corridor filters, multi-stop matching, or live external-provider feeds. |
 | PARTIAL | Booking safeguards | API booking uses row locking, fixed server-side price, per-user idempotency, transactional cancellation, HMAC tickets, boarding/start states, two-party completion, and post-completion reviews. Local API integration verified these core transitions and last-seat contention. API-backed driver lifecycle UI and staging/two-device test remain missing. |
-| PARTIAL | GPS and route UI | Browser geolocation can resolve a nearby city from a fixed city list. Navigation still uses hardcoded coordinates, candidate data, distance, and ETA. |
-| PARTIAL | Admin and roles | A role switch and admin view are present. The client now hides the admin screen unless `user.role === 'admin'`; this is UI gating, not authorization. Role switching still replaces the active user with seeded users. |
+| PARTIAL | GPS and route UI | Production UI has no navigation control. The development demo's GPS route, candidate, distance, and ETA are simulated; no production GPS sharing or passive matching engine exists. |
+| PARTIAL | Admin and roles | Backend persists passenger/driver role grants and checks those roles on protected routes. The legacy development UI still has demo identities and role switching; no protected admin API/panel or production role controls are complete. |
 | PARTIAL | External partner state | Seed data labels some partner results as demo. No provider adapters or live contracts are implemented. |
 | PARTIAL | API backend | Express API provides health/readiness, OTP enrollment/session lifecycle, profile/role APIs, vehicle create/edit/activate/archive and signed photo upload/list/delete, routing endpoint, road-route-backed production offer creation, booking, cancellation, demand/proposal/negotiation, participant chat history, booking lifecycle/ticket/reviews, request limits, and centralized errors. Bucket configuration, vehicle verification review, lifecycle UI, and realtime delivery remain missing. |
 | PARTIAL | PostgreSQL/PostGIS persistence | Local persistent Docker services and an initial migration now exist and were applied successfully. Redis is provisioned but unused. No managed/staging database exists. |
 | PARTIAL | Authentication, OTP, and server-side RBAC | Development OTP is no-network and production OTP has a Twilio adapter; access sessions, refresh rotation/revocation, logout, profile API, passenger/driver role checks, and phone/IP request limits exist. Real SMS provider credentials, broader RBAC administration, UI integration, and security review remain. |
 | PARTIAL | Multi-device state synchronization | Production PWA now signs in through the API and uses server search, booking, and booking-history routes. The broader legacy demo screens still use localStorage in development; driver publishing, negotiation, messaging, and navigation have not been integrated in production UI. |
+| PARTIAL | Native iOS app | Capacitor/Xcode target builds and launches on iOS 27 CoreSimulator and displays the API-backed sign-in screen. Interactive sign-in, session renewal, App Store signing, and physical-device behavior remain unverified. |
 | PARTIAL | Reverse marketplace and negotiations | Demand/proposal/counter/accept APIs and transaction tests exist. UI is not connected, and there is no route relevance/notification flow. |
 | PARTIAL | Chat delivery | Participant-scoped message history/read/send APIs persist messages. No WebSocket or push delivery; PWA still uses demo chat state. |
 | PARTIAL | Reviews | Server accepts one review per participant only after both trip completion confirmations and returns persisted driver rating aggregates. Production review UI, moderation, and abuse controls are missing. |
@@ -40,9 +41,9 @@ The repository started as a React/Vite PWA prototype. Its browser workflows stil
 - `npx bun@1.3.5 install --frozen-lockfile` — pass.
 - `npm run typecheck` — pass.
 - `npm run lint` — pass on the changed app entry points, backend, tests, and build config. It intentionally does not yet cover untouched legacy views/components, where the first repository-wide ESLint run found 204 unused-import/empty-catch issues.
-- `npm run build` — pass; largest generated JS chunk is 269.24 kB minified.
-- `npm test` — pass including opt-in local API/PostGIS transaction, role, publication, reverse-negotiation, and participant-chat integration tests (7 tests).
-- `API_TEST_URL=http://127.0.0.1:3002 API_TEST_DATABASE_URL=postgres://marshgo:local_only_change_me@127.0.0.1:5434/marshgo npm test` — pass (8 tests), including development OTP enrollment, profile persistence, refresh rotation, and logout/revocation.
+- `npm run build` — pass; latest simulator/PWA bundle built successfully.
+- Local PostGIS API/unit run `node node_modules/tsx/dist/cli.mjs --test tests/*.test.ts` with loopback API/database variables — pass (11/11), including OTP enrollment, refresh rotation, booking contention/cancellation, negotiation, chat privacy, routing contracts, and booking lifecycle/reviews.
+- `npm run ios:simulator` — pass: Xcode built, installed, and launched `ua.marshgo.app` on iPhone 18 Pro / iOS 27 CoreSimulator; screenshot showed production phone sign-in. Graphical tap automation is unavailable in this environment.
 - `DATABASE_URL=postgres://marshgo:local_only_change_me@127.0.0.1:5434/marshgo npm run db:migrate` — applied `003_identity_auth.sql` successfully.
 - `DATABASE_URL=postgres://marshgo:local_only_change_me@127.0.0.1:5434/marshgo npm run db:migrate` — applied `004_vehicle_garage.sql` successfully.
 - `DATABASE_URL=postgres://marshgo:local_only_change_me@127.0.0.1:5434/marshgo npm run db:migrate` — applied `005_offer_routes.sql` successfully.

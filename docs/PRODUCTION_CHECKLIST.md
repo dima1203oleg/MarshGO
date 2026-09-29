@@ -13,6 +13,7 @@
 - [x] Local PostGIS migrations and transaction concurrency tests, including OTP/session and last-seat contention.
 - [x] Node 24.21.0 LTS runtime pin, CI lint/typecheck/unit-test/build, OSRM-compatible adapter contract test.
 - [x] Production PWA OTP, server search, booking, and booking-history vertical slice.
+- [x] Capacitor iOS target builds, installs, and launches on an iOS simulator; production login screen confirmed in simulator screenshot.
 
 ## Required before staging
 
@@ -24,6 +25,7 @@
 - [ ] Configure production routing service and implement geocoded corridor/multi-stop search and rerouting.
 - [ ] Shared rate limiting, object storage, deletion/retention processing, and security review.
 - [ ] Browser E2E flows and physical-device tests with two independent accounts.
+- [ ] Interactive iOS simulator sign-in/booking run and physical-device session persistence check.
 - [ ] CI, TLS, deployment manifests, staging, backups/restore, monitoring, and rollback drill.
 
 ## External owner inputs

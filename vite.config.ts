@@ -8,6 +8,9 @@ const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(() => {
   return {
+    // Capacitor serves bundled files from its own scheme; relative assets keep
+    // the packaged entry point independent of an HTTP origin.
+    base: process.env.CAPACITOR_BUILD === 'true' ? './' : '/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
