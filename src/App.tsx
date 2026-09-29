@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { storage } from './services/storage';
 import { usePWA } from './services/pwa';
 import { AppHeader } from './components/AppHeader';
@@ -7,22 +7,22 @@ import { ActionDrawer } from './components/ActionDrawer';
 import { PWAInstallModal } from './components/PWAInstallModal';
 import { OnboardingTour } from './components/OnboardingTour';
 
-import { HomeView } from './views/HomeView';
-import { SearchView } from './views/SearchView';
-import { OfferDetailView } from './views/OfferDetailView';
-import { DemandNewView } from './views/DemandNewView';
-import { DemandDetailView } from './views/DemandDetailView';
-import { DriverDashboardView } from './views/DriverDashboardView';
-import { DriverRequestsView } from './views/DriverRequestsView';
-import { DriverOfferNewView } from './views/DriverOfferNewView';
-import { DriverVehicleView } from './views/DriverVehicleView';
-import { NavigationView } from './views/NavigationView';
-import { MyTripsView } from './views/MyTripsView';
-import { MessagesView } from './views/MessagesView';
-import { ProfileView } from './views/ProfileView';
-import { AdminView } from './views/AdminView';
+const HomeView = React.lazy(() => import('./views/HomeView').then((module) => ({ default: module.HomeView })));
+const SearchView = React.lazy(() => import('./views/SearchView').then((module) => ({ default: module.SearchView })));
+const OfferDetailView = React.lazy(() => import('./views/OfferDetailView').then((module) => ({ default: module.OfferDetailView })));
+const DemandNewView = React.lazy(() => import('./views/DemandNewView').then((module) => ({ default: module.DemandNewView })));
+const DemandDetailView = React.lazy(() => import('./views/DemandDetailView').then((module) => ({ default: module.DemandDetailView })));
+const DriverDashboardView = React.lazy(() => import('./views/DriverDashboardView').then((module) => ({ default: module.DriverDashboardView })));
+const DriverRequestsView = React.lazy(() => import('./views/DriverRequestsView').then((module) => ({ default: module.DriverRequestsView })));
+const DriverOfferNewView = React.lazy(() => import('./views/DriverOfferNewView').then((module) => ({ default: module.DriverOfferNewView })));
+const DriverVehicleView = React.lazy(() => import('./views/DriverVehicleView').then((module) => ({ default: module.DriverVehicleView })));
+const NavigationView = React.lazy(() => import('./views/NavigationView').then((module) => ({ default: module.NavigationView })));
+const MyTripsView = React.lazy(() => import('./views/MyTripsView').then((module) => ({ default: module.MyTripsView })));
+const MessagesView = React.lazy(() => import('./views/MessagesView').then((module) => ({ default: module.MessagesView })));
+const ProfileView = React.lazy(() => import('./views/ProfileView').then((module) => ({ default: module.ProfileView })));
+const AdminView = React.lazy(() => import('./views/AdminView').then((module) => ({ default: module.AdminView })));
 
-import { TransportCategory, Booking, PassengerDemand } from './types';
+import { TransportCategory, Booking } from './types';
 import { WifiOff } from 'lucide-react';
 import { themeService } from './services/theme';
 
@@ -41,6 +41,7 @@ export function App() {
 
   // Navigation State
   const [currentView, setCurrentView] = useState<string>('home');
+  const [searchCategory, setSearchCategory] = useState<TransportCategory>('all');
   const [selectedOfferId, setSelectedOfferId] = useState<string>('off_camry_odesa_kyiv');
   const [selectedDemandId, setSelectedDemandId] = useState<string>('dmd_01');
   const [lastBooking, setLastBooking] = useState<Booking | null>(null);
@@ -132,11 +133,31 @@ export function App() {
   };
 
   const handleResetData = () => {
-    localStorage.clear();
+    for (let index = localStorage.length - 1; index >= 0; index -= 1) {
+      const key = localStorage.key(index);
+      if (key?.startsWith('mg_')) localStorage.removeItem(key);
+    }
     window.location.reload();
   };
 
   const isDriver = user.activeRole === 'driver';
+
+  // This build still contains browser-local seed workflows. Fail closed in production
+  // until the authenticated API-backed client is connected; never present seed records
+  // as real marketplace inventory to public users.
+  if (import.meta.env.PROD) {
+    return (
+      <main className="grid min-h-screen place-items-center bg-slate-950 px-6 text-white">
+        <section className="w-full max-w-lg rounded-3xl border border-white/15 bg-white/5 p-8 text-center shadow-2xl">
+          <div className="mx-auto mb-5 grid h-14 w-14 place-items-center rounded-2xl bg-blue-500 text-2xl font-black">M</div>
+          <p className="text-sm font-bold uppercase tracking-[0.28em] text-blue-300">MARSHGO</p>
+          <h1 className="mt-3 text-2xl font-bold">Сервіс готується до запуску</h1>
+          <p className="mt-3 text-sm leading-6 text-slate-300">Публічний маркетплейс тимчасово недоступний. Ми відкриємо бронювання після підключення перевіреної серверної авторизації та спільної бази даних.</p>
+          <p className="mt-6 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-xs text-slate-400">Ваші реальні поїздки та платежі не приймаються в цьому середовищі.</p>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F5F8FD] flex flex-col font-sans selection:bg-[#1769F4] selection:text-white">
@@ -164,11 +185,15 @@ export function App() {
 
       {/* View Router */}
       <div className="flex-1">
+        <Suspense fallback={<div role="status" className="mx-auto flex min-h-[40vh] max-w-7xl items-center justify-center px-4 text-sm font-semibold text-slate-500">Завантажуємо розділ…</div>}>
         {currentView === 'home' && (
           <HomeView
             onSearch={handleSearchSubmit}
             onNavigate={(view) => setCurrentView(view)}
-            onCategoryClick={() => setCurrentView('search')}
+            onCategoryClick={(category) => {
+              setSearchCategory(category);
+              setCurrentView('search');
+            }}
           />
         )}
 
@@ -176,6 +201,7 @@ export function App() {
           <SearchView
             offers={offers}
             searchParams={searchParams}
+            initialCategory={searchCategory}
             onSelectOffer={handleSelectOffer}
             onCreateDemandFromSearch={handleCreateDemandFromSearch}
             onBack={() => setCurrentView('home')}
@@ -319,7 +345,7 @@ export function App() {
           />
         )}
 
-        {currentView === 'admin' && (
+        {currentView === 'admin' && user.role === 'admin' && (
           <AdminView
             user={user}
             vehicle={vehicle}
@@ -330,6 +356,7 @@ export function App() {
             onBack={() => setCurrentView('home')}
           />
         )}
+        </Suspense>
       </div>
 
       {/* Mobile 5-Tab Bottom Navigation Bar */}

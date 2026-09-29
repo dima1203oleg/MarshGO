@@ -1,16 +1,5 @@
 import React from 'react';
-import {
-  Car,
-  User as UserIcon,
-  Shield,
-  Download,
-  Bell,
-  Compass,
-  PlusCircle,
-  Menu,
-  X,
-  HelpCircle
-} from 'lucide-react';
+import { Car, Download, Bell, Compass, Menu, X, HelpCircle, Search, Clock3, Shield } from 'lucide-react';
 import { User } from '../types';
 import { UserAvatar } from './UserAvatar';
 import { ThemeToggle } from './ThemeToggle';
@@ -29,286 +18,56 @@ interface AppHeaderProps {
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
-  user,
-  onRoleSwitch,
-  currentView,
-  onNavigate,
-  onOpenInstall,
-  isInstallable,
-  isInstalled,
-  demoMode,
-  onToggleDemo,
-  onStartTour
+  user, onRoleSwitch, currentView, onNavigate, onOpenInstall,
+  isInstalled, demoMode, onToggleDemo, onStartTour
 }) => {
-  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
-
+  const [menuOpen, setMenuOpen] = React.useState(false);
   const isDriver = user.activeRole === 'driver';
+  const navigate = (view: string) => { onNavigate(view); setMenuOpen(false); };
 
   return (
-    <header className="sticky top-0 z-40 bg-[#081B35] border-b border-[#1E293B] text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-        {/* Zone 1: Brand Wordmark */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => onNavigate('home')}
-            className="flex items-center gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1769F4] rounded-lg text-left"
-          >
-            {/* SVG Logo mark */}
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#1769F4] to-[#0A47B8] flex items-center justify-center shadow-md shadow-[#1769F4]/20 border border-white/10 shrink-0">
-              <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 18V9l8 6 8-6v9" />
-                <path d="M9 15.5V20" />
-                <path d="M15 15.5V20" />
-              </svg>
-            </div>
-            <div className="flex items-baseline tracking-tight">
-              <span className="font-extrabold text-xl text-white font-display">MARSH</span>
-              <span className="font-extrabold text-xl text-[#38BDF8] font-display">GO</span>
-            </div>
-          </button>
+    <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 text-[#14243B] shadow-[0_4px_24px_rgba(20,36,59,.05)] backdrop-blur-xl">
+      <div className="mx-auto flex h-[4.25rem] max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
+        <button onClick={() => navigate('home')} className="flex shrink-0 items-center gap-2.5 rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500" aria-label="MARSHGO — головна">
+          <span className="flex h-10 w-10 items-center justify-center rounded-[14px] bg-gradient-to-br from-blue-500 to-blue-800 text-white shadow-lg shadow-blue-600/20"><svg viewBox="0 0 32 32" className="h-7 w-7" fill="none" aria-hidden="true"><path d="M4 24 11 7l5 12 5-12 7 17" stroke="currentColor" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M17 24 23 7" stroke="#7DD3FC" strokeWidth="4.5" strokeLinecap="round"/></svg></span>
+          <span className="font-display text-[1.35rem] font-extrabold tracking-[-.07em] text-[#0A1930]">MARSH<span className="text-blue-600">GO</span></span>
+        </button>
 
-          {/* Mode Switcher Pill */}
-          <div className="hidden sm:flex items-center p-0.5 bg-[#0F284E] rounded-full border border-[#1E3A8A]/50 text-xs">
-            <button
-              onClick={() => onRoleSwitch('passenger')}
-              className={`px-3 py-1 rounded-full font-medium transition-all ${
-                !isDriver ? 'bg-[#1769F4] text-white shadow-sm' : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              Пасажир
-            </button>
-            <button
-              onClick={() => onRoleSwitch('driver')}
-              className={`px-3 py-1 rounded-full font-medium transition-all ${
-                isDriver ? 'bg-[#1769F4] text-white shadow-sm' : 'text-slate-300 hover:text-white'
-              }`}
-            >
-              Водій
-            </button>
-          </div>
-        </div>
-
-        {/* Zone 2: Navigation Links (Desktop) */}
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
-          <button
-            onClick={() => onNavigate('home')}
-            className={`hover:text-white transition-colors ${currentView === 'home' ? 'text-white font-semibold border-b-2 border-[#1769F4] pb-0.5' : ''}`}
-          >
-            Пошук
-          </button>
-          <button
-            onClick={() => onNavigate('search')}
-            className={`hover:text-white transition-colors ${currentView === 'search' ? 'text-white font-semibold border-b-2 border-[#1769F4] pb-0.5' : ''}`}
-          >
-            Всі рейси
-          </button>
-          <button
-            onClick={() => onNavigate(isDriver ? 'driver-requests' : 'demand-new')}
-            className={`hover:text-white transition-colors flex items-center gap-1.5 ${
-              currentView === 'demand-new' || currentView === 'driver-requests' ? 'text-white font-semibold border-b-2 border-[#1769F4] pb-0.5' : ''
-            }`}
-          >
-            <span className="text-[#38BDF8]">Біржа попиту</span>
-          </button>
-          <button
-            onClick={() => onNavigate('navigation')}
-            className={`hover:text-white transition-colors flex items-center gap-1.5 ${
-              currentView === 'navigation' ? 'text-white font-semibold border-b-2 border-[#1769F4] pb-0.5' : ''
-            }`}
-          >
-            <Compass className="w-4 h-4 text-[#38BDF8]" />
-            <span>Навігація (Beta)</span>
-          </button>
-          <button
-            onClick={() => onNavigate('trips')}
-            className={`hover:text-white transition-colors ${currentView === 'trips' ? 'text-white font-semibold border-b-2 border-[#1769F4] pb-0.5' : ''}`}
-          >
-            Мої поїздки
-          </button>
+        <nav className="hidden items-center gap-7 text-[13px] font-semibold text-slate-600 lg:flex" aria-label="Основна навігація">
+          <button onClick={() => navigate('home')} className={`transition hover:text-blue-700 ${currentView === 'home' ? 'text-blue-700' : ''}`}>Пошук</button>
+          <button onClick={() => navigate('search')} className={`transition hover:text-blue-700 ${currentView === 'search' ? 'text-blue-700' : ''}`}>Усі рейси</button>
+          <button onClick={() => navigate(isDriver ? 'driver-requests' : 'demand-new')} className="transition hover:text-blue-700">Біржа попиту</button>
+          <button onClick={() => navigate('trips')} className={`transition hover:text-blue-700 ${currentView === 'trips' ? 'text-blue-700' : ''}`}>Мої поїздки</button>
+          <button onClick={() => navigate('navigation')} className="inline-flex items-center gap-1.5 transition hover:text-blue-700"><Compass className="h-4 w-4 text-blue-600"/>Навігація</button>
         </nav>
 
-        {/* Zone 3: Actions & Profile */}
-        <div className="flex items-center gap-2.5">
-          {/* DEMO mode indicator badge */}
-          <button
-            onClick={onToggleDemo}
-            title="Перемкнути Demo режим"
-            className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#0F284E] border border-[#1E3A8A]/60 text-[11px] font-medium text-amber-300 hover:bg-[#1E3A8A]/40 transition"
-          >
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            <span>DEMO ДАНІ</span>
-          </button>
-
-          {/* PWA Install Trigger */}
-          {!isInstalled && (
-            <button
-              onClick={onOpenInstall}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1769F4] hover:bg-[#1358CE] text-white text-xs font-semibold shadow-sm transition active:scale-95"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Встановити</span>
-              <span>PWA</span>
-            </button>
-          )}
-
-          {/* Messages */}
-          <button
-            onClick={() => onNavigate('messages')}
-            className="relative p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition"
-            aria-label="Повідомлення"
-          >
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#1769F4]" />
-          </button>
-
-          {/* Onboarding Tour Trigger */}
-          {onStartTour && (
-            <button
-              onClick={onStartTour}
-              title="Підказки та гід по можливостях платформи"
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-200 hover:text-white text-xs font-semibold border border-white/10 transition active:scale-95"
-            >
-              <HelpCircle className="w-4 h-4 text-[#38BDF8]" />
-              <span className="hidden sm:inline">Гід</span>
-            </button>
-          )}
-
-          {/* Theme Toggle Button (Light/Dark Night Mode) */}
-          <ThemeToggle />
-
-          {/* User Profile Avatar */}
-          <button
-            onClick={() => onNavigate(isDriver ? 'driver' : 'profile')}
-            className="flex items-center gap-2 p-1 rounded-full hover:ring-2 hover:ring-[#1769F4] transition focus:outline-none"
-            aria-label="Профіль користувача"
-          >
-            <UserAvatar
-              src={user.avatar}
-              name={user.name}
-              size="sm"
-              className="border border-white/20"
-            />
-          </button>
-
-          {/* Mobile hamburger menu toggle */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition"
-            aria-label="Меню"
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <button onClick={onToggleDemo} title="Перемкнути демонстраційний режим" className="hidden items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-[10px] font-extrabold tracking-wide text-amber-800 md:flex"><span className={`h-1.5 w-1.5 rounded-full ${demoMode ? 'bg-amber-500' : 'bg-emerald-500'}`}/>{demoMode ? 'ДЕМО' : 'ПРЕВ’Ю'}</button>
+          {!isInstalled && <button onClick={onOpenInstall} className="hidden items-center gap-2 rounded-full bg-[#101C30] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-blue-900 sm:inline-flex"><Download className="h-4 w-4"/>Завантажити додаток</button>}
+          <button onClick={() => navigate('messages')} aria-label="Повідомлення" className="relative hidden h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:border-blue-200 hover:text-blue-700 sm:flex"><Bell className="h-[18px] w-[18px]"/><span className="absolute right-2.5 top-2 h-1.5 w-1.5 rounded-full bg-blue-600"/></button>
+          <button onClick={() => navigate(isDriver ? 'driver' : 'profile')} aria-label="Профіль" className="rounded-full ring-offset-2 transition hover:ring-2 hover:ring-blue-500"><UserAvatar src={user.avatar} name={user.name} size="sm" className="border border-slate-200"/></button>
+          <button onClick={() => setMenuOpen((open) => !open)} className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-700 transition hover:bg-slate-50 lg:hidden" aria-label={menuOpen ? 'Закрити меню' : 'Відкрити меню'}>{menuOpen ? <X className="h-5 w-5"/> : <Menu className="h-5 w-5"/>}</button>
         </div>
       </div>
 
-      {/* Mobile Drawer Menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-t border-[#1E293B] bg-[#0A1D38] px-4 py-4 space-y-3">
-          <div className="flex items-center justify-between pb-3 border-b border-white/10">
-            <span className="text-xs text-slate-400">Режим користувача:</span>
-            <div className="flex items-center p-0.5 bg-[#081B35] rounded-full border border-[#1E3A8A]/50 text-xs">
-              <button
-                onClick={() => {
-                  onRoleSwitch('passenger');
-                  setMobileMenuOpen(false);
-                }}
-                className={`px-3 py-1 rounded-full font-medium transition ${
-                  !isDriver ? 'bg-[#1769F4] text-white' : 'text-slate-300'
-                }`}
-              >
-                Пасажир
-              </button>
-              <button
-                onClick={() => {
-                  onRoleSwitch('driver');
-                  setMobileMenuOpen(false);
-                }}
-                className={`px-3 py-1 rounded-full font-medium transition ${
-                  isDriver ? 'bg-[#1769F4] text-white' : 'text-slate-300'
-                }`}
-              >
-                Водій
-              </button>
-            </div>
-          </div>
-
-          {/* Theme switcher for mobile */}
-          <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
-            <span className="text-xs font-bold text-slate-200">Тема (Нічний режим):</span>
-            <ThemeToggle variant="segmented" />
-          </div>
-
+      {menuOpen && <div className="border-t border-slate-100 bg-white px-4 py-4 shadow-xl lg:hidden">
+        <div className="mx-auto max-w-7xl space-y-4">
+          <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-3"><span className="text-xs font-semibold text-slate-600">Перемкнути режим</span><div className="flex rounded-full border border-slate-200 bg-white p-1 text-xs"><button onClick={() => { onRoleSwitch('passenger'); setMenuOpen(false); }} className={`rounded-full px-3 py-1.5 font-bold ${!isDriver ? 'bg-blue-600 text-white' : 'text-slate-500'}`}>Пасажир</button><button onClick={() => { onRoleSwitch('driver'); setMenuOpen(false); }} className={`rounded-full px-3 py-1.5 font-bold ${isDriver ? 'bg-blue-600 text-white' : 'text-slate-500'}`}>Водій</button></div></div>
           <div className="grid grid-cols-2 gap-2 text-sm">
-            <button
-              onClick={() => {
-                onNavigate('home');
-                setMobileMenuOpen(false);
-              }}
-              className="p-2.5 rounded-lg bg-white/5 text-left font-medium hover:bg-white/10"
-            >
-              Головний пошук
-            </button>
-            <button
-              onClick={() => {
-                onNavigate('search');
-                setMobileMenuOpen(false);
-              }}
-              className="p-2.5 rounded-lg bg-white/5 text-left font-medium hover:bg-white/10"
-            >
-              Всі пропозиції
-            </button>
-            <button
-              onClick={() => {
-                onNavigate('demand-new');
-                setMobileMenuOpen(false);
-              }}
-              className="p-2.5 rounded-lg bg-white/5 text-left font-medium hover:bg-white/10 text-[#38BDF8]"
-            >
-              Шукаю поїздку (Бюджет)
-            </button>
-            <button
-              onClick={() => {
-                onNavigate('navigation');
-                setMobileMenuOpen(false);
-              }}
-              className="p-2.5 rounded-lg bg-white/5 text-left font-medium hover:bg-white/10 text-emerald-400"
-            >
-              Навігація (Beta)
-            </button>
-            <button
-              onClick={() => {
-                onNavigate('driver-vehicle');
-                setMobileMenuOpen(false);
-              }}
-              className="p-2.5 rounded-lg bg-white/5 text-left font-medium hover:bg-white/10"
-            >
-              Мій автомобіль
-            </button>
-            <button
-              onClick={() => {
-                onNavigate('admin');
-                setMobileMenuOpen(false);
-              }}
-              className="p-2.5 rounded-lg bg-white/5 text-left font-medium hover:bg-white/10"
-            >
-              Адмін панель
-            </button>
-
-            {onStartTour && (
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onStartTour();
-                }}
-                className="col-span-2 p-2.5 rounded-lg bg-[#1769F4]/20 border border-[#1769F4]/40 text-left font-bold text-white flex items-center gap-2"
-              >
-                <HelpCircle className="w-4 h-4 text-[#38BDF8]" />
-                <span>Гід по додатку (Підказки)</span>
-              </button>
-            )}
+            <button onClick={() => navigate('home')} className="flex items-center gap-2 rounded-xl bg-slate-50 p-3 font-semibold"><Search className="h-4 w-4 text-blue-600"/>Пошук маршрутів</button>
+            <button onClick={() => navigate('search')} className="flex items-center gap-2 rounded-xl bg-slate-50 p-3 font-semibold"><Car className="h-4 w-4 text-blue-600"/>Усі рейси</button>
+            <button onClick={() => navigate(isDriver ? 'driver-requests' : 'demand-new')} className="flex items-center gap-2 rounded-xl bg-slate-50 p-3 font-semibold"><Compass className="h-4 w-4 text-blue-600"/>Біржа попиту</button>
+            <button onClick={() => navigate('trips')} className="flex items-center gap-2 rounded-xl bg-slate-50 p-3 font-semibold"><Clock3 className="h-4 w-4 text-blue-600"/>Мої поїздки</button>
+            <button onClick={() => navigate('driver-vehicle')} className="flex items-center gap-2 rounded-xl bg-slate-50 p-3 font-semibold"><Car className="h-4 w-4 text-blue-600"/>Мій автомобіль</button>
+            <button onClick={() => navigate('messages')} className="flex items-center gap-2 rounded-xl bg-slate-50 p-3 font-semibold"><Bell className="h-4 w-4 text-blue-600"/>Повідомлення</button>
+            {user.role === 'admin' && <button onClick={() => navigate('admin')} className="flex items-center gap-2 rounded-xl bg-slate-50 p-3 font-semibold"><Shield className="h-4 w-4 text-blue-600"/>Адмін панель</button>}
+            <button onClick={onOpenInstall} className="flex items-center gap-2 rounded-xl bg-blue-50 p-3 font-semibold text-blue-800"><Download className="h-4 w-4"/>Встановити додаток</button>
           </div>
+          <div className="flex items-center justify-between rounded-2xl border border-slate-100 p-3"><span className="text-xs font-semibold text-slate-600">Зовнішній вигляд</span><ThemeToggle variant="segmented"/></div>
+          {onStartTour && <button onClick={() => { setMenuOpen(false); onStartTour(); }} className="flex w-full items-center gap-2 rounded-xl bg-blue-50 p-3 text-sm font-bold text-blue-800"><HelpCircle className="h-4 w-4"/>Підказки по застосунку</button>}
+          <p className="px-1 text-[10px] font-semibold text-slate-400">{demoMode ? 'Демонстраційні дані' : 'Попередній перегляд'}</p>
         </div>
-      )}
+      </div>}
     </header>
   );
 };

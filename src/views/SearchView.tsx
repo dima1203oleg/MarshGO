@@ -2,10 +2,6 @@ import React, { useState, useMemo, useEffect } from 'react';
 import {
   ArrowLeft,
   SlidersHorizontal,
-  MapPin,
-  Calendar,
-  Users,
-  Car,
   Sparkles,
   Map,
   List,
@@ -14,7 +10,6 @@ import {
   Check,
   Clock,
   DollarSign,
-  X,
   RotateCcw,
   ChevronDown,
   ChevronUp,
@@ -31,7 +26,7 @@ import { RouteSubscriptionModal, RouteSubscription } from '../components/RouteSu
 import { calculateEstimatedTravelTime } from '../services/travelTime';
 import { WeeklyPriceComparisonChart } from '../components/WeeklyPriceComparisonChart';
 import { BlacklistModal } from '../components/BlacklistModal';
-import { isUserInBlacklist, blockUser, subscribeToBlacklistChanges } from '../services/blacklist';
+import { isUserInBlacklist, subscribeToBlacklistChanges } from '../services/blacklist';
 
 interface SearchViewProps {
   offers: TransportOffer[];
@@ -41,6 +36,7 @@ interface SearchViewProps {
     date: string;
     passengers: number;
   };
+  initialCategory?: TransportCategory;
   onSelectOffer: (offerId: string) => void;
   onCreateDemandFromSearch: (params: { origin: string; destination: string; date: string; passengers: number }) => void;
   onBack: () => void;
@@ -49,6 +45,7 @@ interface SearchViewProps {
 export const SearchView: React.FC<SearchViewProps> = ({
   offers,
   searchParams,
+  initialCategory = 'all',
   onSelectOffer,
   onCreateDemandFromSearch,
   onBack
@@ -58,7 +55,7 @@ export const SearchView: React.FC<SearchViewProps> = ({
     try {
       const saved = localStorage.getItem('mg_favorites');
       if (saved) return JSON.parse(saved);
-    } catch {}
+    } catch { /* Storage can be unavailable in private browsing. */ }
     return [];
   });
   const [showOnlyFavorites, setShowOnlyFavorites] = useState<boolean>(false);
@@ -69,7 +66,7 @@ export const SearchView: React.FC<SearchViewProps> = ({
     try {
       const saved = localStorage.getItem('mg_route_subscriptions');
       if (saved) return JSON.parse(saved);
-    } catch {}
+    } catch { /* Storage can be unavailable in private browsing. */ }
     return [];
   });
   const [isSubscribeModalOpen, setIsSubscribeModalOpen] = useState<boolean>(false);
@@ -103,7 +100,7 @@ export const SearchView: React.FC<SearchViewProps> = ({
       const updated = [newSub, ...filtered];
       try {
         localStorage.setItem('mg_route_subscriptions', JSON.stringify(updated));
-      } catch {}
+      } catch { /* Keep the in-memory change when browser storage is unavailable. */ }
       return updated;
     });
     setFavoriteToast(`Підписку на маршрут ${searchParams.origin} → ${searchParams.destination} активовано! 🔔`);
@@ -115,7 +112,7 @@ export const SearchView: React.FC<SearchViewProps> = ({
       const updated = prev.filter((s) => s.id !== id);
       try {
         localStorage.setItem('mg_route_subscriptions', JSON.stringify(updated));
-      } catch {}
+      } catch { /* Keep the in-memory change when browser storage is unavailable. */ }
       return updated;
     });
     setFavoriteToast('Підписку на оновлення скасовано');
@@ -128,7 +125,7 @@ export const SearchView: React.FC<SearchViewProps> = ({
       const updated = isFav ? prev.filter((id) => id !== offerId) : [...prev, offerId];
       try {
         localStorage.setItem('mg_favorites', JSON.stringify(updated));
-      } catch {}
+      } catch { /* Keep the in-memory change when browser storage is unavailable. */ }
       setFavoriteToast(isFav ? 'Маршрут видалено з вибраного' : 'Маршрут додано до вибраного ⭐');
       setTimeout(() => setFavoriteToast(null), 2500);
       return updated;
@@ -136,13 +133,9 @@ export const SearchView: React.FC<SearchViewProps> = ({
   };
 
   // Transport Types Filter (multi-select)
-  const [selectedTypes, setSelectedTypes] = useState<string[]>([
-    'community',
-    'taxi_pro',
-    'bus',
-    'transfer',
-    'carsharing'
-  ]);
+  const [selectedTypes, setSelectedTypes] = useState<string[]>(initialCategory === 'all'
+    ? ['community', 'taxi_pro', 'bus', 'transfer', 'carsharing']
+    : [initialCategory]);
 
   // Departure Time Filter: 'all' | 'morning' (06:00-12:00) | 'day' (12:00-18:00) | 'evening' (18:00-24:00)
   const [timeFilter, setTimeFilter] = useState<'all' | 'morning' | 'day' | 'evening'>('all');
@@ -875,4 +868,3 @@ export const SearchView: React.FC<SearchViewProps> = ({
     </div>
   );
 };
-
