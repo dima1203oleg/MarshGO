@@ -1124,4 +1124,6 @@ The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max 
 
 **External dependencies:** SMS provider credentials, routing/geocoder/tile hosting, object storage, production Redis/database/monitoring/backup, partner agreements, Apple signing/release credentials, and real-device GPS testing.
 
-**Next implementation step:** Mirror the outbox decoder fix and new candidate-to-booking E2E contract into the split Server/Site repositories, run their CI, then continue release-hardening work without promoting/deploying production.
+**GitHub CI:** Umbrella push run [`36701646951`](https://github.com/dima1203oleg/MarshGO/actions/runs/36701646951), draft PR run [`36701652704`](https://github.com/dima1203oleg/MarshGO/actions/runs/36701652704), and Server run [`36701692148`](https://github.com/dima1203oleg/MarshGO-Server/actions/runs/36701692148) all passed, including CI migrations/integration and the umbrella Playwright suite.
+
+**Next implementation step:** Continue Gate A hardening for provider-backed maps/routing, physical-device location permissions, external SMS/storage and staging/backup; keep the split Server and Site repositories aligned when their respective code changes.
