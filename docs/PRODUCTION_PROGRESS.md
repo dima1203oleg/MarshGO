@@ -894,6 +894,30 @@ The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max 
 
 **Release status:** Source and CI are published across the three focused repositories (plus the umbrella repository). This is not a production deployment. The draft PR remains open; external service and interactive two-account/mobile acceptance blockers listed above remain unresolved.
 
+## Phase 6 continuation — map tile failure reporting
+
+**Phase:** 6 Navigation; 9 hardening.
+
+**Status:** PARTIAL. The foreground navigation screen now detects tile-provider load failures and reports missing, loading, degraded, or failed street-map layers while retaining the actual route geometry. No provider has been configured, so this change improves failure visibility; it does not supply production map tiles.
+
+**Completed:** Added a small tile-health state reducer and wired Leaflet `tileload` / `tileerror` events into the production navigation UI. A missing provider still has an explicit no-street-layer notice. A configured but unavailable provider now reports the failure instead of leaving a blank/partial map without explanation; a later successful tile load clears the failure/degraded notice.
+
+**Modified files:** `src/views/ProductionNavigation.tsx`, `src/services/mapTileStatus.ts`, `tests/map-tile-status.test.ts`, `e2e/marketplace.spec.ts`, `docs/PRODUCTION_PROGRESS.md`, `docs/PRODUCTION_AUDIT.md`.
+
+**Database changes:** None.
+
+**Endpoints:** None.
+
+**Tests:** `npm run typecheck` passed; `npm run lint` passed; `npm test` passed (15 passed, 1 opt-in API test skipped). `E2E_DATABASE_URL=postgres://marshgo:local_only_change_me@127.0.0.1:5434/marshgo_e2e REDIS_URL=redis://127.0.0.1:6380 npm run test:e2e` passed 2/2, including route geometry and mobile viewport checks for both iPhone 15 Pro Max and iPhone 16 Pro Max. Two interim E2E runs exposed that the test's later direct booking call reused a revoked bearer token after the UI had rotated its refresh session. Updated the test to track successful `/auth/refresh` responses and use the latest access token; the full suite then passed 2/2. One earlier reload assertion briefly saw the welcome screen, so session restoration still needs monitoring. The native Capacitor app was rebuilt from Site commit `de7652b`, installed and launched on iPhone 15 Pro Max and iPhone 16 Pro Max simulators, and screenshots after the first-render delay show the reference-aligned welcome view (`/tmp/marshgo-iphone15-maptiles-latest.png`, `/tmp/marshgo-iphone16-maptiles-latest.png`). This simulator run used `http://localhost:3002` but no API was running, so it verifies native rendering only. No live tile/routing provider or real-device GPS was available.
+
+**DEMO/TRUTH status:** Only map-provider health visibility changed. Route geometry in the browser acceptance test is supplied by the local OSRM fixture. Native device GPS, production tiles, voice guidance, and automatic rerouting remain unverified/unavailable.
+
+**Open issues:** Configure an approved map tile provider with required attribution and production routing/geocoding endpoints; add an E2E tile-error simulation against a configured provider; monitor session restoration across repeated reloads; implement reroute/turn guidance and physical-device GPS validation.
+
+**External dependencies:** Contracted/self-hosted tile, routing, and geocoding services; iOS test device or interactive simulator for actual location permission/GPS.
+
+**Next implementation step:** Publish the navigation screen health handling and refreshed-token E2E fix to the standalone Site repository, rebuild the standalone iOS app against that site revision, then add a configured tile-provider error simulation before proceeding with navigation rerouting and end-to-end confirmation.
+
 ## Phase 4 continuation — competing proposal acceptance race
 
 **Phase:** 4 Reverse Market; exclusive demand resolution.

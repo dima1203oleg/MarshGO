@@ -108,7 +108,16 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
   const driverPage = await driverContext.newPage();
 
   try {
-    const passengerAccessToken = await signIn(passengerPage, 'E2E Passenger', passengerPhone);
+    let passengerAccessToken = await signIn(passengerPage, 'E2E Passenger', passengerPhone);
+    let refreshTokenResponses = Promise.resolve();
+    passengerPage.on('response', (response) => {
+      if (response.url().endsWith('/api/v1/auth/refresh') && response.ok()) {
+        refreshTokenResponses = refreshTokenResponses.then(async () => {
+          const body = await response.json() as { data: { accessToken: string } };
+          passengerAccessToken = body.data.accessToken;
+        });
+      }
+    });
     const profileBeforeRoleSwitch = await passengerPage.evaluate(async token => fetch('/api/v1/users/me', { headers: { Authorization: `Bearer ${token}` } }).then(async response => ({ status: response.status, body: await response.json() })), passengerAccessToken);
     expect(profileBeforeRoleSwitch.status).toBe(200);
     const userIdBeforeRoleSwitch = profileBeforeRoleSwitch.body.data.id;
@@ -163,7 +172,9 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     expect((await passengerContext.cookies('http://127.0.0.1:3300/api/v1/auth/refresh')).some((cookie) => cookie.name === 'mg_refresh')).toBe(true);
     const refreshResponse = passengerPage.waitForResponse((response) => response.url().endsWith('/api/v1/auth/refresh'));
     await passengerPage.reload();
-    expect((await refreshResponse).status(), 'refresh should restore the session after a page reload').toBe(200);
+    const restoredSession = await refreshResponse;
+    expect(restoredSession.status(), 'refresh should restore the session after a page reload').toBe(200);
+    await refreshTokenResponses;
     await expect(passengerPage.getByText('Привіт, E2E!')).toBeVisible();
     await passengerPage.getByRole('button', { name: 'Поїздки', exact: true }).click();
     await expect(passengerPage.getByText(/2 місця/).first()).toBeVisible();
@@ -304,16 +315,15 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     await passengerPage.getByRole('button', { name: /Написати/ }).last().click();
     await expect(passengerPage.getByText(deniedMessage)).toBeVisible();
 
-    const cancelledBooking = await passengerPage.evaluate(async targetOfferId => {
-      const sessionResponse = await fetch('/api/v1/auth/refresh', { method: 'POST' });
-      const session = await sessionResponse.json();
+    await refreshTokenResponses;
+    const cancelledBooking = await passengerPage.evaluate(async ({ targetOfferId, accessToken }) => {
       const response = await fetch('/api/v1/bookings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.data.accessToken}`, 'Idempotency-Key': `e2e-rescue-${crypto.randomUUID()}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}`, 'Idempotency-Key': `e2e-rescue-${crypto.randomUUID()}` },
         body: JSON.stringify({ offerId: targetOfferId, seats: 1 }),
       });
       return { status: response.status, body: await response.json() };
-    }, offerId);
+    }, { targetOfferId: offerId, accessToken: passengerAccessToken });
     expect(cancelledBooking.status).toBe(201);
     await passengerPage.reload();
     await expect(passengerPage.getByText('Привіт, E2E!')).toBeVisible();
