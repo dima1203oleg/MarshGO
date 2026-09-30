@@ -603,6 +603,7 @@ test('Journey Planner ranks a persisted Community route and opens its current of
     await page.getByPlaceholder('Місто призначення').fill('Львів');
     await page.getByRole('button', { name: 'Знайти', exact: true }).nth(1).click();
     await page.getByRole('button', { name: /Львів, Львівська область, Україна/ }).click();
+    await page.getByText('Який маршрут обрати?').click();
     await page.getByLabel('Час відправлення для плану').fill(`${tomorrowInKyiv()}T08:00`);
     await page.getByLabel('Пріоритет маршруту').selectOption('CHEAPEST');
 
