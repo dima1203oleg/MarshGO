@@ -591,3 +591,27 @@
 **External dependencies:** Owner must provision and verify the initial staff roles and establish safety-response procedures. No external service credentials required for the local report flow.
 
 **Next implementation step:** Extend transactional outbox coverage to booking/proposal events, then continue remaining Gate A infrastructure and physical-device acceptance blockers.
+
+## Phase 5 continuation — iOS home date localization
+
+**Phase:** 5 UI replacement and mobile presentation.
+
+**Status:** PARTIAL. Home/search UI follows the supplied light mobile reference; this visual pass fixed the device-locale-dependent date display. iOS authenticated interactions remain unverified.
+
+**Completed:** Kept the native date picker but separated its invisible interactive input from the visible date label, formatting the displayed date in Ukrainian (`uk-UA`, Europe/Kyiv). This removes `09/30/2026` on English-locale browsers and shows the localized form such as `30 вересня 2026 р.` without changing the date API value or E2E form interaction.
+
+**Modified files:** `src/views/ProductionMarketplace.tsx`, `docs/IOS.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** None.
+
+**Endpoints:** None.
+
+**Tests:** `npm run typecheck`, `npm run lint`, `npm run build` passed. `E2E_DATABASE_URL=postgres://marshgo:local_only_change_me@127.0.0.1:5434/marshgo_e2e REDIS_URL=redis://127.0.0.1:6380 E2E_SCREENSHOT_PATH=/tmp/marshgo-home-ukraine-date.png npm run test:e2e` passed 1/1. Visual inspection confirmed the localized date on the mobile viewport. Final `SIMULATOR_UDID=95D35F57-0F2F-467B-95C1-109C223D18F0 SIMULATOR_SCREENSHOT_PATH=/tmp/marshgo-ios-reference-update.png npm run ios:simulator` passed Vite build, Capacitor sync, Xcode build, install, launch and screenshot on iPhone 18 Pro / iOS 27.
+
+**DEMO/TRUTH status:** This changes only display formatting; date selection remains native, and bookings still use the server API. The screenshot is a signed-in browser E2E viewport, not a post-login native simulator screenshot.
+
+**Open issues:** No automated tap entry into the native simulator, so OTP and authenticated iOS interaction remain untested. The complete two-device, physical GPS, and production release gates remain blocked.
+
+**External dependencies:** None for the date display. Native interactive verification requires simulator UI automation or a physical device run.
+
+**Next implementation step:** Continue production blocker work; authenticated native screen interaction remains to be exercised with an available simulator UI automation or physical-device run.
