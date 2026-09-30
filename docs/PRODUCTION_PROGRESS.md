@@ -1153,3 +1153,17 @@ The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max 
 **GitHub:** Root commits `7d874df` and `9693c68` are pushed to the development branch; Server commits `51aa4b6` and `39c3c35` are pushed to Server `main`; Site commit `3e3e703` is pushed to Site `main`. Final code CI passed in Root [`36704443948`](https://github.com/dima1203oleg/MarshGO/actions/runs/36704443948) and Server [`36704465311`](https://github.com/dima1203oleg/MarshGO-Server/actions/runs/36704465311); Site CI [`36703831012`](https://github.com/dima1203oleg/MarshGO-Site/actions/runs/36703831012) passed for its DTO change. The primary PR remains a draft; no public deploy has occurred.
 
 **Next implementation step:** Continue Gate A security/reliability work. Live infrastructure and physical-device dependencies remain blockers; no production release claim is made.
+
+## Phase 9 continuation — Production startup guard
+
+**Phase:** 9 Hardening.
+
+**Status:** PARTIAL. Added a fail-closed startup validator so the API cannot enter production with development OTP/auth bypass, a weak or absent session secret, implicit/local HTTP web origins, wildcard CORS, or missing real SMS provider credentials.
+
+**Changed files:** `server/config.ts`, `server/index.ts`, `tests/config.test.ts`, `docs/SECURITY.md`, `docs/DEPLOYMENT.md`. Also made SIGTERM/SIGINT wait for the active outbox dispatch before closing the PostgreSQL pool, fixing a normal-shutdown race surfaced by integration logs.
+
+**Tests:** `npm run check:production` passed (22 tests passed, one opt-in DB test skipped; typecheck/lint/PWA build clean). `npm run test:integration` passed all booking 9/9, navigation 1/1, multi-instance realtime 1/1, restart 1/1, and rate-limit 1/1 suites after the shutdown change, with no pool-after-end shutdown error. Server repo typecheck/unit (15 passed, one DB-only skipped) and full integration suites passed. No SMS was sent; config test credentials are in-memory placeholders only.
+
+**External blockers:** A production web origin, Twilio account credentials, a secret manager, shared Redis, database, routing/geocoding/map tile and object-storage providers must be supplied before a production API can start.
+
+**Next step:** Publish this guard/shutdown slice to the Server repository, verify CI in both repositories, then continue P0 operational hardening.

@@ -2,7 +2,7 @@
 
 ## Implemented controls
 
-* Production requires a configured `SESSION_SECRET`; development identity bypass is accepted only when `NODE_ENV=development` and `AUTH_DEV_BYPASS=true`.
+* The API fails startup in production unless `SESSION_SECRET` has at least 32 bytes, `CORS_ORIGINS` explicitly lists HTTPS origins (and optionally `capacitor://localhost`), and a complete Twilio SMS configuration is present. Wildcard and default localhost web origins are rejected. `AUTH_DEV_BYPASS` and `AUTH_DEV_OTP` are rejected in production; the no-network OTP provider only operates in development.
 * OTP challenges are HMAC-hashed, expire after five minutes, allow at most five verification attempts, enforce resend cooldown and per-phone/per-IP request limits, and use a development provider that makes no outbound request.
 * Access/refresh credentials are opaque random values; only SHA-256 hashes are persisted. Refresh rotation revokes the token family if a previously consumed token is reused.
 * Refresh credentials use HttpOnly, SameSite=Strict cookies and Secure in production. Access credentials remain in browser memory.
