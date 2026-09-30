@@ -249,7 +249,11 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     const localDepartureDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Kyiv' }).format(new Date(offerPayload.departureAt));
     const found = await fetch(`${apiUrl}/api/v1/offers?origin=API%20Publish%20Origin&destination=API%20Publish%20Destination&date=${localDepartureDate}&seats=2`);
     assert.equal(found.status, 200);
-    assert.equal((await found.json() as { data: Array<{ id: string }> }).data.some((offer) => offer.id === response.data.id), true);
+    const foundOffers = (await found.json() as { data: Array<{ id: string; vehicle_photo_key?: string; vehicle_photo_url: string | null }> }).data;
+    assert.equal(foundOffers.some((offer) => offer.id === response.data.id), true);
+    const foundOffer = foundOffers.find((offer) => offer.id === response.data.id);
+    assert.equal(foundOffer?.vehicle_photo_key, undefined);
+    assert.equal(foundOffer?.vehicle_photo_url, null);
     const tooMany = await fetch(`${apiUrl}/api/v1/offers?origin=API%20Publish%20Origin&destination=API%20Publish%20Destination&date=${localDepartureDate}&seats=5`);
     assert.equal((await tooMany.json() as { data: unknown[] }).data.length, 0);
   });

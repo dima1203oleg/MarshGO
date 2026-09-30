@@ -24,6 +24,7 @@ export type ApiOffer = {
   average_rating: number | null;
   review_count: number;
   status?: string;
+  vehicle_photo_url?: string | null;
 };
 
 export type ApiBooking = {

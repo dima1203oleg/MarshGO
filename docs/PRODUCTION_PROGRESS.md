@@ -286,7 +286,7 @@
 
 **Status:** PARTIAL. The signed S3-compatible vehicle-photo endpoints are now connected to the production profile UI, and the backend requires a verified vehicle with at least one validated photo before publishing.
 
-**Completed:** Added upload-to-private-bucket flow for JPEG/PNG/WebP (10 MiB max), owner-only photo gallery with short-lived read URLs, primary-photo selection and deletion. The offer form only allows a verified vehicle with a recorded real photo; the server independently enforces this invariant. The API integration test verifies publication is denied without a photo and succeeds only after a photo record exists.
+**Completed:** Added upload-to-private-bucket flow for JPEG/PNG/WebP (10 MiB max), owner-only photo gallery with short-lived read URLs, primary-photo selection and deletion. The offer form only allows a verified vehicle with a recorded real photo; the server independently enforces this invariant. Search and own-offer results include a short-lived primary-photo URL when available, without exposing storage keys; result cards render the real photo. The API integration test verifies publication is denied without a photo and succeeds only after a photo record exists, and checks that raw object keys are absent from search results.
 
 **Modified files:** `server/index.ts`, `src/services/productionApi.ts`, `src/views/ProductionMarketplace.tsx`, `tests/api-bookings.integration.test.ts`, `docs/API.md`, `docs/PRODUCTION_PROGRESS.md`.
 
@@ -294,11 +294,11 @@
 
 **Endpoints:** Existing `/vehicles/:id/photos*` upload/list/primary/delete endpoints are now used by the iOS/PWA profile; `POST /offers` enforces photo presence.
 
-**Tests:** `npm test` passed 16/16 including photo-required offer creation; `npm run typecheck`, `npm run lint`, `npm run build`, and `git diff --check` passed. `npm run ios:simulator` rebuilt, installed and launched the app on iPhone 18 Pro / iOS 27; screenshot `/tmp/marshgo-ios-vehicle-photo.png` confirms native launch and welcome rendering. Tap-driven profile upload was not run because only headless `simctl` is available. Test photo metadata is an isolated DB fixture because no S3 bucket is configured and no real image was uploaded.
+**Tests:** `npm test` passed 16/16 including photo-required offer creation; `npm run typecheck`, `npm run lint`, `npm run build`, and `git diff --check` passed after the signed-photo response change. `npm run ios:simulator` then rebuilt, installed and launched the app on iPhone 18 Pro / iOS 27; screenshot `/tmp/marshgo-ios-search-photos.png` confirms native launch and welcome rendering. Tap-driven profile upload was not run because only headless `simctl` is available. Test photo metadata is an isolated DB fixture because no S3 bucket is configured and no real image was uploaded.
 
 **DEMO/TRUTH status:** No placeholder vehicle images are used. Uploads fail with an explicit storage-not-configured error until S3 settings and bucket CORS are supplied. Server publication checks the vehicle has a photo whose object passed the existing server-side content-signature verification before metadata was stored.
 
-**Remaining issues:** S3 bucket, credentials/workload identity, encryption, access logs, CORS, malware controls and retention are still external operational requirements. Offer photo is currently displayed only in the owner's profile; public search results do not yet include vehicle photos.
+**Remaining issues:** S3 bucket, credentials/workload identity, encryption, access logs, CORS, malware controls and retention are still external operational requirements. Public search can display a verified primary photo only when its bucket is configured; no real image has been uploaded in this environment.
 
 **External blockers:** Private S3-compatible photo/document storage and production geocoder/routing provider.
 

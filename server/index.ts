@@ -437,13 +437,16 @@ app.get('/api/v1/offers/mine', requireAuth, requireRole('driver'), asyncHandler(
   const { rows } = await pool.query(
     `SELECT o.id,o.origin_name,o.destination_name,o.departure_at,o.arrival_at,o.distance_m,o.duration_s,o.route_source,
             o.price_per_seat_minor,o.currency,o.available_seats,o.total_seats,u.display_name AS driver_name,
-            ratings.average_rating,ratings.review_count,o.status
+            ratings.average_rating,ratings.review_count,o.status,photo.object_key AS vehicle_photo_key
        FROM offers o JOIN users u ON u.id=o.driver_id
+       LEFT JOIN vehicle_photos photo ON photo.vehicle_id=o.vehicle_id AND photo.is_primary=true
        LEFT JOIN LATERAL (SELECT round(avg(r.rating)::numeric,2) AS average_rating,count(*)::int AS review_count
                             FROM reviews r WHERE r.target_id=o.driver_id) ratings ON true
       WHERE o.driver_id=$1 ORDER BY o.departure_at DESC LIMIT 100`, [req.userId],
   );
-  res.json({ data: rows });
+  res.json({ data: await Promise.all(rows.map(async ({ vehicle_photo_key, ...offer }) => ({
+    ...offer, vehicle_photo_url: vehicle_photo_key ? await getVehiclePhotoUrl(vehicle_photo_key).catch(() => null) : null,
+  }))) });
 }));
 
 app.get('/api/v1/offers', asyncHandler(async (req, res) => {
@@ -460,8 +463,9 @@ app.get('/api/v1/offers', asyncHandler(async (req, res) => {
     const { rows } = await pool.query(
     `SELECT o.id, o.origin_name, o.destination_name, o.departure_at, o.arrival_at,o.distance_m,o.duration_s,o.route_source,o.price_per_seat_minor,
             o.currency, o.available_seats, o.total_seats, u.display_name AS driver_name,
-            ratings.average_rating,ratings.review_count
+            ratings.average_rating,ratings.review_count,photo.object_key AS vehicle_photo_key
        FROM offers o JOIN users u ON u.id = o.driver_id
+       LEFT JOIN vehicle_photos photo ON photo.vehicle_id=o.vehicle_id AND photo.is_primary=true
        LEFT JOIN LATERAL (SELECT round(avg(r.rating)::numeric,2) AS average_rating,count(*)::int AS review_count FROM reviews r WHERE r.target_id=o.driver_id) ratings ON true
       WHERE o.status = 'published' AND o.departure_at > now() AND o.available_seats > 0
         AND o.available_seats >= $4
@@ -470,7 +474,9 @@ app.get('/api/v1/offers', asyncHandler(async (req, res) => {
       ORDER BY o.departure_at ASC LIMIT 100`,
     [origin, destination, date, seats],
   );
-  res.json({ data: rows });
+  res.json({ data: await Promise.all(rows.map(async ({ vehicle_photo_key, ...offer }) => ({
+    ...offer, vehicle_photo_url: vehicle_photo_key ? await getVehiclePhotoUrl(vehicle_photo_key).catch(() => null) : null,
+  }))) });
 }));
 
 app.get('/api/v1/vehicles', requireAuth, asyncHandler(async (req, res) => {
