@@ -352,6 +352,30 @@
 
 **Next implementation step:** Rebuild and launch in the iOS simulator, then implement driver trip lifecycle controls with clear participant-specific actions.
 
+## Phase 6 — Opt-in route matching and mutual interest
+
+**Phase:** 6 Navigation/Matching; part of Phase 5 Production UI replacement.
+
+**Status:** PARTIAL. An opt-in passenger-candidate flow now evaluates actual passenger demand against the remaining foreground navigation route, checks candidate detours with ordered road-routing waypoints, and requires both driver's stationary interest and passenger confirmation. It intentionally does not create a price proposal or booking.
+
+**Completed:** Added migration `012_navigation_matching.sql` with a verified-vehicle snapshot on each navigation session and durable, expiring `navigation_match_candidates`. Opt-in defaults off and requires an active verified vehicle. Matching queries actual open demands, filters direction, remaining route corridor, departure window, and seat capacity, then calls the configured OSRM-compatible routing provider for baseline, pickup ETA, and pickup/dropoff route distances/durations. Missing routing fails closed. Candidates are scoped to their driver and passenger; driver identity stays hidden until passenger confirmation. Driver interest requires the session be explicitly paused and the latest GPS fix be fresh. Passenger confirmation is idempotent and leaves both demand and booking inventory unchanged. The iOS UI can enable/disable matching, pause before driver response, restore candidate state, list and confirm driver interest, and resume navigation. After mutual confirmation, the paused driver can open the existing demand screen and send an explicit price proposal; it never silently creates a booking.
+
+**Modified files:** `server/index.ts`, `server/routing.ts`, `server/migrations/012_navigation_matching.sql`, `src/services/productionApi.ts`, `src/views/ProductionNavigation.tsx`, `src/views/ProductionMarketplace.tsx`, `tests/fixtures/osrm-stub.mjs`, `tests/navigation.integration.test.ts`, `tests/routing.test.ts`, `docs/API.md`, `docs/DATA_MODEL.md`, `docs/SECURITY.md`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** Added `vehicle_id` and `vehicle_seat_count` to `navigation_sessions`; added `navigation_match_candidates` with unique session/demand pair, route version, detour values, pickup ETA, state, expiry, and GiST route-geography index.
+
+**Endpoints:** `PATCH /api/v1/navigation/sessions/:id/matching`; `POST /api/v1/navigation/sessions/:id/pause`; `POST /api/v1/navigation/sessions/:id/resume`; `GET /api/v1/navigation/sessions/:id/matches`; `POST /api/v1/navigation/sessions/:id/matches/refresh`; `POST /api/v1/navigation/sessions/:id/matches/:candidateId/interest`; `GET /api/v1/demands/mine/navigation-matches`; `POST /api/v1/navigation/matches/:candidateId/passenger-confirm`.
+
+**Tests:** `DATABASE_URL=... npm run db:migrate` applied `012_navigation_matching.sql`. `npm run typecheck`, `npm run lint`, `npm run build`, and `git diff --check` passed. `API_TEST_URL=... npm test` passed 17/17 with local PostGIS/API; the opt-in navigation integration is skipped in that aggregate run. `API_TEST_NAVIGATION=true npx tsx --test tests/navigation.integration.test.ts` passed 1/1 against local PostGIS/API and a local test-only OSRM contract fixture. It checked forward-only road candidate inclusion, reverse and over-capacity exclusion, verified vehicle gate, opt-in, measured detour response, pause-required interest, role denial, withheld driver identity, idempotent passenger confirmation, no booking creation, navigation resume/end, GPS validation, and exact-location purge. `API_TEST_URL=... npx tsx --test tests/api-bookings.integration.test.ts` separately passed 5/5 with no routing provider configured. An initial attempt to run the entire API integration suite while the navigation routing fixture was active failed three routing-dependent assertions because those existing booking tests expect an unconfigured provider; the suites were rerun separately with their intended provider environment. `SIMULATOR_UDID=95D35F57-0F2F-467B-95C1-109C223D18F0 npm run ios:simulator` passed the Vite/Capacitor sync, Xcode build, install, launch, and screenshot flow on iPhone 18 Pro / iOS 27. Screenshot `/tmp/marshgo-ios-simulator.png` shows the reference-aligned MARSHGO welcome screen in the native shell. Tap-through matching and location permission cannot be tested without interactive Simulator controls; actual GPS requires a physical-device run.
+
+**DEMO/TRUTH status:** Candidate records are generated only from persisted user demands and a configured road-routing provider. The local OSRM fixture is test-only; there is no configured production router/geocoder or live GPS device run. Candidate matching has no WebSocket/push, no price proposal linkage, and no route waypoint insertion. No booking is implied by either side's interest.
+
+**Open issues:** Route candidate detour evaluation has API integration coverage only; no on-device GPS run was possible in this headless simulator host. Demand matching does not yet evaluate driver preference flags or existing passenger stop occupancy. The demand proposal is not linked to the candidate row, no in-app realtime/chat notification is sent, and the route is not automatically recalculated or updated with accepted stops. Router/geocoder/map tiles are unconfigured.
+
+**External dependencies:** Approved production OSRM-compatible route provider, geocoder, map tile service, tap-capable iOS Simulator or physical iPhone with GPS, staging environment and independent user/device acceptance.
+
+**Next implementation step:** Link mutually confirmed navigation interest into the existing quote/proposal flow without implying a booking, then add realtime notification delivery and on-device GPS acceptance when providers/devices are available.
+
 ## Phase 6 — Foreground GPS navigation session
 
 **Phase:** 6 Navigation/Matching (foreground navigation slice).

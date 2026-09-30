@@ -9,12 +9,23 @@ export class RoutingUnavailableError extends Error {
 }
 
 export async function getRoadRoute(origin: [number, number], destination: [number, number]): Promise<RoadRoute> {
+  return getRoadRouteThroughPoints([origin, destination]);
+}
+
+export async function getRoadRouteThroughPoints(points: [number, number][]): Promise<RoadRoute> {
+  if (points.length < 2 || points.length > 6) throw new RoutingUnavailableError('A road route needs 2–6 valid waypoint coordinates');
+  for (const point of points) {
+    if (point.length !== 2 || !Number.isFinite(point[0]) || !Number.isFinite(point[1]) || Math.abs(point[0]) > 180 || Math.abs(point[1]) > 90) {
+      throw new RoutingUnavailableError('Road routing received invalid coordinates');
+    }
+  }
   const base = process.env.ROUTING_ENGINE_URL;
   if (!base) throw new RoutingUnavailableError();
   let url: URL;
   try {
     const normalizedBase = base.endsWith('/') ? base : `${base}/`;
-    url = new URL(`${origin[0]},${origin[1]};${destination[0]},${destination[1]}?overview=full&geometries=geojson`, normalizedBase);
+    const path = points.map(([longitude, latitude]) => `${longitude},${latitude}`).join(';');
+    url = new URL(`${path}?overview=full&geometries=geojson`, normalizedBase);
   } catch { throw new RoutingUnavailableError('Routing endpoint is invalid'); }
 
   const response = await fetch(url, { signal: AbortSignal.timeout(10_000), headers: { accept: 'application/json' } }).catch(() => null);

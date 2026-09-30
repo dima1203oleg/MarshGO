@@ -4,7 +4,7 @@ import express, { NextFunction, Request, Response } from 'express';
 import { rateLimit } from 'express-rate-limit';
 import { Pool, PoolClient } from 'pg';
 import { sendVerificationCode, SmsProviderUnavailableError } from './sms';
-import { getRoadRoute, RoutingUnavailableError } from './routing';
+import { getRoadRoute, getRoadRouteThroughPoints, RoutingUnavailableError } from './routing';
 import { GeocodingUnavailableError, suggestPlaces } from './geocoding';
 import {
   createVehiclePhotoUpload, createVerificationEvidenceUpload, deleteStoredVehiclePhoto, getVehiclePhotoUrl,
@@ -175,9 +175,136 @@ app.post('/api/v1/routing/route', requireAuth, asyncHandler(async (req, res) => 
   }
 }));
 
+type NavigationMatch = {
+  demandId: string; pickupEta: Date; detourDistanceM: number; detourDurationS: number;
+  expiresAt: Date;
+};
+
+async function listNavigationMatches(sessionId: string, driverId: string) {
+  const { rows } = await pool.query(
+    `SELECT c.id,c.demand_id,c.status,c.detour_distance_m,c.detour_duration_s,c.pickup_eta,c.computed_at,c.expires_at,
+       d.origin_name,d.destination_name,d.earliest_departure,d.latest_departure,d.passenger_count,d.budget_minor,d.budget_type,d.notes,d.requirements,
+       v.make AS vehicle_make,v.model AS vehicle_model
+     FROM navigation_match_candidates c
+     JOIN navigation_sessions s ON s.id=c.navigation_session_id AND s.driver_id=$2
+     JOIN passenger_demands d ON d.id=c.demand_id
+     LEFT JOIN vehicles v ON v.id=s.vehicle_id
+     WHERE c.navigation_session_id=$1 AND s.state IN ('active','paused') AND c.status NOT IN ('dismissed','expired') AND c.expires_at>now() AND d.status='open'
+     ORDER BY c.status='driver_interested' DESC,c.detour_duration_s,c.pickup_eta LIMIT 20`, [sessionId, driverId],
+  );
+  return rows;
+}
+
+async function refreshNavigationMatches(sessionId: string, driverId: string) {
+  const { rows: sessions } = await pool.query<{
+    state: string; opt_in: boolean; vehicle_seat_count: number | null; current_location: [number, number] | null;
+    current_location_at: Date | null; destination: [number, number] | null; route_version: number;
+  }>(
+    `SELECT state,opt_in,vehicle_seat_count,route_version,
+       CASE WHEN current_location IS NULL THEN NULL ELSE ARRAY[ST_X(current_location::geometry),ST_Y(current_location::geometry)] END AS current_location,
+       CASE WHEN destination IS NULL THEN NULL ELSE ARRAY[ST_X(destination::geometry),ST_Y(destination::geometry)] END AS destination,
+       current_location_at
+     FROM navigation_sessions WHERE id=$1 AND driver_id=$2`, [sessionId, driverId],
+  );
+  const session = sessions[0];
+  if (!session) throw new ApiError(404, 'navigation session unavailable');
+  if (session.state !== 'active' || !session.opt_in) throw new ApiError(409, 'Pause navigation and opt in before looking for passengers', 'matching_not_enabled');
+  if (!session.vehicle_seat_count) throw new ApiError(409, 'A verified active vehicle is required for passenger matching', 'verified_vehicle_required');
+  if (!session.current_location || !session.destination || !session.current_location_at || Date.now() - new Date(session.current_location_at).getTime() > 60_000) {
+    throw new ApiError(409, 'A fresh GPS fix is required for route matching', 'location_stale');
+  }
+
+  const corridorMeters = Math.max(500, Math.min(10_000, Number(process.env.NAVIGATION_MATCH_CORRIDOR_METERS) || 3_000));
+  const maxDetourMeters = Math.max(1_000, Math.min(100_000, Number(process.env.NAVIGATION_MATCH_MAX_DETOUR_METERS) || 25_000));
+  const maxDetourSeconds = Math.max(300, Math.min(7_200, Number(process.env.NAVIGATION_MATCH_MAX_DETOUR_SECONDS) || 1_800));
+  const { rows: demands } = await pool.query<{
+    id: string; origin_name: string; destination_name: string; origin: [number, number]; destination: [number, number];
+    earliest_departure: Date; latest_departure: Date; passenger_count: number;
+  }>(
+    `WITH remaining AS (
+       SELECT s.id, ST_LineSubstring(s.route,
+         LEAST(1, GREATEST(0, ST_LineLocatePoint(s.route, s.current_location::geometry))), 1) AS route
+       FROM navigation_sessions s WHERE s.id=$1 AND s.driver_id=$2
+     )
+     SELECT d.id,d.origin_name,d.destination_name,
+       ARRAY[ST_X(d.origin::geometry),ST_Y(d.origin::geometry)] AS origin,
+       ARRAY[ST_X(d.destination::geometry),ST_Y(d.destination::geometry)] AS destination,
+       d.earliest_departure,d.latest_departure,d.passenger_count
+     FROM passenger_demands d JOIN navigation_sessions s ON s.id=$1 JOIN remaining r ON r.id=s.id
+     WHERE s.driver_id=$2 AND s.state='active' AND s.opt_in=true AND d.status='open' AND d.passenger_id<>$2
+       AND d.latest_departure>now() AND d.earliest_departure<now()+interval '12 hours'
+       AND d.passenger_count<=s.vehicle_seat_count
+       AND ST_DWithin(s.route::geography,d.origin,$3)
+       AND ST_DWithin(s.route::geography,d.destination,$3)
+       AND ST_DWithin(r.route::geography,d.origin,$3)
+       AND ST_DWithin(r.route::geography,d.destination,$3)
+       AND ST_LineLocatePoint(s.route,d.origin::geometry)>ST_LineLocatePoint(s.route,s.current_location::geometry)
+       AND ST_LineLocatePoint(s.route,d.destination::geometry)>ST_LineLocatePoint(s.route,d.origin::geometry)
+     ORDER BY d.earliest_departure LIMIT 8`, [sessionId, driverId, corridorMeters],
+  );
+  if (!demands.length) return [];
+
+  let baseline: Awaited<ReturnType<typeof getRoadRoute>>;
+  try { baseline = await getRoadRoute(session.current_location, session.destination); }
+  catch (error) {
+    if (error instanceof RoutingUnavailableError) throw new ApiError(503, error.message, 'routing_unavailable');
+    throw error;
+  }
+  const now = Date.now();
+  const evaluated = await Promise.all(demands.map(async (demand): Promise<NavigationMatch | null> => {
+    try {
+      const [toPickup, withPassenger] = await Promise.all([
+        getRoadRoute(session.current_location!, demand.origin),
+        getRoadRouteThroughPoints([session.current_location!, demand.origin, demand.destination, session.destination!]),
+      ]);
+      const pickupEta = new Date(now + toPickup.durationSeconds * 1000);
+      if (pickupEta < new Date(demand.earliest_departure) || pickupEta > new Date(demand.latest_departure)) return null;
+      const detourDistanceM = Math.max(0, Math.round(withPassenger.distanceMeters - baseline.distanceMeters));
+      const detourDurationS = Math.max(0, Math.round(withPassenger.durationSeconds - baseline.durationSeconds));
+      if (detourDistanceM > maxDetourMeters || detourDurationS > maxDetourSeconds) return null;
+      return {
+        demandId: demand.id, pickupEta, detourDistanceM, detourDurationS,
+        expiresAt: new Date(Math.min(new Date(demand.latest_departure).getTime() + 30 * 60_000, now + 5 * 60_000)),
+      };
+    } catch (error) {
+      if (error instanceof RoutingUnavailableError) throw new ApiError(503, error.message, 'routing_unavailable');
+      throw error;
+    }
+  }));
+  const matches = evaluated.filter((match): match is NavigationMatch => Boolean(match));
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const current = await client.query<{ state: string; opt_in: boolean; route_version: number }>(
+      'SELECT state,opt_in,route_version FROM navigation_sessions WHERE id=$1 AND driver_id=$2 FOR UPDATE', [sessionId, driverId],
+    );
+    if (!current.rows[0] || current.rows[0].state !== 'active' || !current.rows[0].opt_in || Number(current.rows[0].route_version) !== Number(session.route_version)) {
+      throw new ApiError(409, 'Navigation session changed during matching; refresh candidates', 'navigation_session_changed');
+    }
+    await client.query(
+      `UPDATE navigation_match_candidates SET status='expired' WHERE navigation_session_id=$1 AND status='suggested' AND expires_at<=now()`, [sessionId],
+    );
+    for (const match of matches) {
+      await client.query(
+        `INSERT INTO navigation_match_candidates(navigation_session_id,demand_id,route_version,detour_distance_m,detour_duration_s,pickup_eta,expires_at)
+         SELECT $1,d.id,$3,$4,$5,$6,$7 FROM passenger_demands d WHERE d.id=$2 AND d.status='open' AND d.latest_departure>now()
+         ON CONFLICT(navigation_session_id,demand_id) DO UPDATE SET route_version=EXCLUDED.route_version,
+           detour_distance_m=EXCLUDED.detour_distance_m,detour_duration_s=EXCLUDED.detour_duration_s,pickup_eta=EXCLUDED.pickup_eta,
+           computed_at=now(),expires_at=EXCLUDED.expires_at
+         WHERE navigation_match_candidates.status IN ('suggested','expired')`,
+        [sessionId, match.demandId, session.route_version, match.detourDistanceM, match.detourDurationS, match.pickupEta.toISOString(), match.expiresAt.toISOString()],
+      );
+    }
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally { client.release(); }
+  return listNavigationMatches(sessionId, driverId);
+}
+
 // Foreground navigation stores only the driver's latest location. It is private to the
-// authenticated driver and removed when the session ends. Matching is intentionally
-// absent until the demand corridor / detour engine is implemented.
+// authenticated driver and removed when the session ends. Matching starts opt-in only.
 app.post('/api/v1/navigation/sessions', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
   const { origin, destination, destinationName } = req.body ?? {};
   const pointValid = (point: unknown) => Array.isArray(point) && point.length === 2 &&
@@ -199,13 +326,18 @@ app.post('/api/v1/navigation/sessions', requireAuth, requireRole('driver'), asyn
     await client.query('SELECT id FROM users WHERE id=$1 FOR UPDATE', [req.userId]);
     const active = await client.query('SELECT id FROM navigation_sessions WHERE driver_id=$1 AND state IN (\'active\',\'paused\')', [req.userId]);
     if (active.rows[0]) throw new ApiError(409, 'End the existing navigation session before starting another', 'navigation_already_active');
+    const verifiedVehicle = await client.query<{ id: string; seat_count: number }>(
+      `SELECT id,seat_count FROM vehicles WHERE owner_id=$1 AND is_active=true AND verification_status='verified' AND archived_at IS NULL
+       ORDER BY created_at DESC LIMIT 1 FOR SHARE`, [req.userId],
+    );
+    const matchingVehicle = verifiedVehicle.rows[0];
     const { rows } = await client.query(
-      `INSERT INTO navigation_sessions(driver_id,destination_name,destination,route,route_distance_m,route_duration_s)
-       VALUES($1,$2,ST_SetSRID(ST_MakePoint($3,$4),4326)::geography,
-         ST_SetSRID(ST_GeomFromGeoJSON($5),4326),$6,$7)
-       RETURNING id,state,destination_name,route_distance_m,route_duration_s,route_version,opt_in,started_at`,
-      [req.userId, destinationName.trim(), destination[0], destination[1], JSON.stringify({ type: 'LineString', coordinates: route.geometry }),
-        Math.round(route.distanceMeters), Math.round(route.durationSeconds)],
+      `INSERT INTO navigation_sessions(driver_id,vehicle_id,vehicle_seat_count,destination_name,destination,route,route_distance_m,route_duration_s)
+       VALUES($1,$2,$3,$4,ST_SetSRID(ST_MakePoint($5,$6),4326)::geography,
+         ST_SetSRID(ST_GeomFromGeoJSON($7),4326),$8,$9)
+       RETURNING id,state,destination_name,route_distance_m,route_duration_s,route_version,opt_in,started_at,vehicle_id,vehicle_seat_count,(vehicle_id IS NOT NULL) AS matching_vehicle_available`,
+      [req.userId, matchingVehicle?.id ?? null, matchingVehicle ? Number(matchingVehicle.seat_count) : null, destinationName.trim(), destination[0], destination[1],
+        JSON.stringify({ type: 'LineString', coordinates: route.geometry }), Math.round(route.distanceMeters), Math.round(route.durationSeconds)],
     );
     await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES($1,$2,$3,$4)', [req.userId, 'navigation.started', 'navigation_session', rows[0].id]);
     await client.query('COMMIT');
@@ -218,7 +350,7 @@ app.post('/api/v1/navigation/sessions', requireAuth, requireRole('driver'), asyn
 
 app.get('/api/v1/navigation/sessions/active', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT id,state,destination_name,route_distance_m,route_duration_s,route_version,opt_in,started_at,ended_at,
+    `SELECT id,state,destination_name,route_distance_m,route_duration_s,route_version,opt_in,started_at,ended_at,vehicle_id,vehicle_seat_count,(vehicle_id IS NOT NULL) AS matching_vehicle_available,
        ST_AsGeoJSON(route)::json->'coordinates' AS route,
        CASE WHEN current_location IS NULL THEN NULL ELSE json_build_array(ST_X(current_location::geometry),ST_Y(current_location::geometry)) END AS current_location,
        current_location_accuracy_m,current_location_at
@@ -227,9 +359,123 @@ app.get('/api/v1/navigation/sessions/active', requireAuth, requireRole('driver')
   res.json({ data: rows[0] ?? null });
 }));
 
+app.patch('/api/v1/navigation/sessions/:id/matching', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+  const enabled = req.body?.enabled;
+  if (typeof enabled !== 'boolean') throw new ApiError(400, 'enabled must be a boolean');
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query<{ state: string; vehicle_id: string | null; vehicle_seat_count: number | null }>(
+      `SELECT state,vehicle_id,vehicle_seat_count FROM navigation_sessions WHERE id=$1 AND driver_id=$2 FOR UPDATE`, [req.params.id, req.userId],
+    );
+    const session = rows[0];
+    if (!session || !['active','paused'].includes(session.state)) throw new ApiError(404, 'navigation session unavailable');
+    if (enabled && (!session.vehicle_id || !session.vehicle_seat_count)) throw new ApiError(409, 'A verified active vehicle is required before passenger matching can be enabled', 'verified_vehicle_required');
+    await client.query('UPDATE navigation_sessions SET opt_in=$3 WHERE id=$1 AND driver_id=$2', [req.params.id, req.userId, enabled]);
+    if (!enabled) await client.query(
+      `UPDATE navigation_match_candidates SET status='expired' WHERE navigation_session_id=$1 AND status IN ('suggested','driver_interested','passenger_confirmed')`, [req.params.id],
+    );
+    await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES($1,$2,$3,$4)',
+      [req.userId, enabled ? 'navigation.matching.enabled' : 'navigation.matching.disabled', 'navigation_session', req.params.id]);
+    await client.query('COMMIT');
+    res.json({ data: { id: req.params.id, enabled, default: false } });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally { client.release(); }
+}));
+
+app.post('/api/v1/navigation/sessions/:id/pause', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+  const { rows } = await pool.query(
+    `UPDATE navigation_sessions SET state='paused' WHERE id=$1 AND driver_id=$2 AND state='active'
+     RETURNING id,state,opt_in,current_location_at`, [req.params.id, req.userId],
+  );
+  if (!rows[0]) throw new ApiError(409, 'Only active navigation can be paused');
+  res.json({ data: rows[0] });
+}));
+
+app.post('/api/v1/navigation/sessions/:id/resume', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+  const { rows } = await pool.query(
+    `UPDATE navigation_sessions SET state='active' WHERE id=$1 AND driver_id=$2 AND state='paused'
+     RETURNING id,state,opt_in,current_location_at`, [req.params.id, req.userId],
+  );
+  if (!rows[0]) throw new ApiError(409, 'Only a paused navigation session can be resumed');
+  res.json({ data: rows[0] });
+}));
+
+app.get('/api/v1/navigation/sessions/:id/matches', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+  const owned = await pool.query('SELECT id FROM navigation_sessions WHERE id=$1 AND driver_id=$2', [req.params.id, req.userId]);
+  if (!owned.rows[0]) throw new ApiError(404, 'navigation session unavailable');
+  res.json({ data: await listNavigationMatches(req.params.id, req.userId!) });
+}));
+
+app.post('/api/v1/navigation/sessions/:id/matches/refresh', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+  res.json({ data: await refreshNavigationMatches(req.params.id, req.userId!) });
+}));
+
+app.post('/api/v1/navigation/sessions/:id/matches/:candidateId/interest', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+  const { rows } = await pool.query(
+    `UPDATE navigation_match_candidates c SET status='driver_interested'
+     FROM navigation_sessions s,passenger_demands d
+     WHERE c.id=$1 AND c.navigation_session_id=$2 AND s.id=c.navigation_session_id AND s.driver_id=$3
+       AND s.state='paused' AND s.opt_in=true AND s.current_location_at>now()-interval '2 minutes'
+       AND d.id=c.demand_id AND d.status='open' AND c.status='suggested' AND c.expires_at>now()
+     RETURNING c.id,c.demand_id,c.status,c.pickup_eta,c.detour_distance_m,c.detour_duration_s`,
+    [req.params.candidateId, req.params.id, req.userId],
+  );
+  if (!rows[0]) throw new ApiError(409, 'Candidate expired or unavailable. Pause the car and refresh matches.', 'candidate_unavailable');
+  res.json({ data: rows[0] });
+}));
+
+app.get('/api/v1/demands/mine/navigation-matches', requireAuth, requireRole('passenger'), asyncHandler(async (req, res) => {
+  const { rows } = await pool.query(
+    `SELECT c.id AS candidate_id,c.demand_id,c.status,c.detour_distance_m,c.detour_duration_s,c.pickup_eta,c.expires_at,
+       d.origin_name,d.destination_name,d.earliest_departure,d.latest_departure,d.passenger_count,d.budget_minor,d.budget_type,
+       CASE WHEN c.status='passenger_confirmed' THEN u.display_name ELSE NULL END AS driver_name,
+       CASE WHEN c.status='passenger_confirmed' THEN v.make ELSE NULL END AS vehicle_make,
+       CASE WHEN c.status='passenger_confirmed' THEN v.model ELSE NULL END AS vehicle_model
+     FROM navigation_match_candidates c JOIN passenger_demands d ON d.id=c.demand_id
+     JOIN navigation_sessions s ON s.id=c.navigation_session_id JOIN users u ON u.id=s.driver_id
+     LEFT JOIN vehicles v ON v.id=s.vehicle_id
+     WHERE d.passenger_id=$1 AND d.status='open' AND c.status IN ('driver_interested','passenger_confirmed')
+       AND c.expires_at>now() AND s.state IN ('active','paused')
+     ORDER BY c.status='passenger_confirmed' DESC,c.pickup_eta LIMIT 50`, [req.userId],
+  );
+  res.json({ data: rows });
+}));
+
+app.post('/api/v1/navigation/matches/:candidateId/passenger-confirm', requireAuth, requireRole('passenger'), asyncHandler(async (req, res) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query<{ id: string; demand_id: string; passenger_id: string; status: string; expires_at: Date }>(
+      `SELECT c.id,c.demand_id,d.passenger_id,c.status,c.expires_at
+       FROM navigation_match_candidates c JOIN passenger_demands d ON d.id=c.demand_id
+       JOIN navigation_sessions s ON s.id=c.navigation_session_id
+       WHERE c.id=$1 AND s.state='paused' AND s.opt_in=true AND s.current_location_at>now()-interval '2 minutes'
+         AND d.status='open' FOR UPDATE OF c,d`, [req.params.candidateId],
+    );
+    const candidate = rows[0];
+    if (!candidate || candidate.passenger_id !== req.userId) throw new ApiError(404, 'navigation match unavailable');
+    if (candidate.status === 'passenger_confirmed') {
+      await client.query('COMMIT');
+      res.json({ data: { id: candidate.id, demandId: candidate.demand_id, status: candidate.status }, replayed: true });
+      return;
+    }
+    if (candidate.status !== 'driver_interested' || new Date(candidate.expires_at) <= new Date()) throw new ApiError(409, 'The driver has not expressed current interest in this match');
+    await client.query("UPDATE navigation_match_candidates SET status='passenger_confirmed' WHERE id=$1", [candidate.id]);
+    await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES($1,$2,$3,$4)', [req.userId, 'navigation.match.passenger_confirmed', 'navigation_match', candidate.id]);
+    await client.query('COMMIT');
+    res.json({ data: { id: candidate.id, demandId: candidate.demand_id, status: 'passenger_confirmed', nextStep: 'price_negotiation' } });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally { client.release(); }
+}));
+
 app.get('/api/v1/navigation/sessions/:id', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT id,state,destination_name,route_distance_m,route_duration_s,route_version,opt_in,started_at,ended_at,
+    `SELECT id,state,destination_name,route_distance_m,route_duration_s,route_version,opt_in,started_at,ended_at,vehicle_id,vehicle_seat_count,(vehicle_id IS NOT NULL) AS matching_vehicle_available,
        ST_AsGeoJSON(route)::json->'coordinates' AS route,
        CASE WHEN current_location IS NULL THEN NULL ELSE json_build_array(ST_X(current_location::geometry),ST_Y(current_location::geometry)) END AS current_location,
        current_location_accuracy_m,current_location_at

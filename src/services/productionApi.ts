@@ -67,9 +67,18 @@ export type ApiPlace = { label: string; latitude: number; longitude: number; pro
 export type ApiNavigationSession = {
   id: string; state: 'active' | 'paused' | 'ended'; destination_name: string;
   route_distance_m: number; route_duration_s: number; route_version: number; opt_in: boolean;
+  matching_vehicle_available: boolean; vehicle_seat_count: number | null;
   started_at: string; ended_at?: string | null; route: [number, number][];
   current_location: [number, number] | null; current_location_accuracy_m: number | null; current_location_at: string | null;
 };
+export type ApiNavigationMatch = {
+  id: string; demand_id: string; status: 'suggested' | 'driver_interested' | 'passenger_confirmed' | 'dismissed' | 'expired';
+  detour_distance_m: number; detour_duration_s: number; pickup_eta: string; expires_at: string;
+  origin_name: string; destination_name: string; earliest_departure: string; latest_departure: string;
+  passenger_count: number; budget_minor: number | null; budget_type: 'total_all' | 'per_seat';
+  vehicle_make: string | null; vehicle_model: string | null;
+};
+export type ApiPassengerNavigationMatch = Omit<ApiNavigationMatch, 'id'> & { candidate_id: string; driver_name: string | null };
 export type ApiDemand = {
   id: string; origin_name: string; destination_name: string; earliest_departure: string; latest_departure: string;
   passenger_count: number; budget_minor: number | null; budget_type: 'total_all' | 'per_seat'; notes: string | null;
@@ -153,6 +162,24 @@ export const productionApi = {
     return request<ApiNavigationSession>('/navigation/sessions', { method: 'POST', body: JSON.stringify(input) });
   },
   activeNavigation() { return request<ApiNavigationSession | null>('/navigation/sessions/active'); },
+  setNavigationMatching(id: string, enabled: boolean) {
+    return request<{ id: string; enabled: boolean; default: false }>(`/navigation/sessions/${id}/matching`, { method: 'PATCH', body: JSON.stringify({ enabled }) });
+  },
+  pauseNavigation(id: string) { return request<{ id: string; state: 'paused'; opt_in: boolean }>(`/navigation/sessions/${id}/pause`, { method: 'POST' }); },
+  resumeNavigation(id: string) { return request<{ id: string; state: 'active'; opt_in: boolean }>(`/navigation/sessions/${id}/resume`, { method: 'POST' }); },
+  refreshNavigationMatches(id: string) { return request<ApiNavigationMatch[]>(`/navigation/sessions/${id}/matches/refresh`, { method: 'POST' }); },
+  navigationMatches(id: string) { return request<ApiNavigationMatch[]>(`/navigation/sessions/${id}/matches`); },
+  expressNavigationInterest(sessionId: string, candidateId: string) {
+    return request<{ id: string; demand_id: string; status: 'driver_interested'; pickup_eta: string; detour_distance_m: number; detour_duration_s: number }>(
+      `/navigation/sessions/${sessionId}/matches/${candidateId}/interest`, { method: 'POST' },
+    );
+  },
+  myNavigationMatches() { return request<ApiPassengerNavigationMatch[]>('/demands/mine/navigation-matches'); },
+  confirmNavigationMatch(candidateId: string) {
+    return request<{ id: string; demandId: string; status: 'passenger_confirmed'; nextStep: 'price_negotiation' }>(
+      `/navigation/matches/${candidateId}/passenger-confirm`, { method: 'POST' },
+    );
+  },
   navigationSession(id: string) { return request<ApiNavigationSession>(`/navigation/sessions/${id}`); },
   sendNavigationLocation(id: string, input: { coordinates: [number, number]; accuracyMeters: number; capturedAt: string }) {
     return request<{ accepted: boolean; onRoute: boolean; capturedAt: string }>(`/navigation/sessions/${id}/location`, {
