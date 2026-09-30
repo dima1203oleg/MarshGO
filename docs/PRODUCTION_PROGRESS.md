@@ -940,7 +940,9 @@ The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max 
 
 **External dependencies:** Approved production map-tile, routing and geocoding provider configuration; physical-device location validation.
 
-**Next implementation step:** Publish this tested change to the umbrella repository, then confirm Site/iOS/umbrella GitHub Actions. Continue with contracted routing/map service setup and live navigation verification; these are external blockers.
+**Next implementation step:** Continue with contracted routing/map service setup and live navigation verification; these external dependencies block claims of a fully live basemap or end-to-end real-device navigation.
+
+**GitHub verification:** Published umbrella commit `6219f2b` to `codex/marshgo-production`; its push CI [`36686996373`](https://github.com/dima1203oleg/MarshGO/actions/runs/36686996373) and PR CI [`36687003256`](https://github.com/dima1203oleg/MarshGO/actions/runs/36687003256) passed, including migration, integration tests and browser E2E. Published Site commit `3f000cd`; Site CI [`36686580078`](https://github.com/dima1203oleg/MarshGO-Site/actions/runs/36686580078) passed. Published iOS documentation commit `323f914`; iOS Simulator Build [`36686847575`](https://github.com/dima1203oleg/MarshGO-iOS/actions/runs/36686847575) passed against current Site main. The PR remains draft/open; no public deploy occurred.
 
 ## Phase 4 continuation — competing proposal acceptance race
 
