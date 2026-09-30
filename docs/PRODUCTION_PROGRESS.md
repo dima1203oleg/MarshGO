@@ -968,6 +968,12 @@ The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max 
 
 **Next implementation step:** Publish this slice to umbrella and standalone Server/Site repositories, rebuild the Capacitor bundle from the published Site revision, run simulator launch/build workflows for both requested device profiles, and check the resulting GitHub CI before moving to the next matching handshake.
 
+**Publication and device verification:** Published umbrella commit `a21a2b7` on `codex/marshgo-production`, Server commit `a0f7bde` on `MarshGO-Server/main`, and Site commit `03f3027` on `MarshGO-Site/main`. Rebuilt the native Capacitor app using the published Site revision `03f3027`, then installed and launched it on iPhone 15 Pro Max and iPhone 16 Pro Max simulators. Final first-screen captures: `/tmp/marshgo-site03f3027-iphone15.png` and `/tmp/marshgo-site03f3027-iphone16.png`. A first iPhone 16 capture was blank during early WebKit startup; after relaunch and a 10-second wait, both simulators rendered the complete welcome view. No backend/API was running, so this validates native packaging and the first screen only. The local build used Node 25.4.0 while the repository specifies 24.21.0 (engine warning); CI uses its pinned Node version.
+
+**GitHub CI:** Umbrella branch workflow [`36689801958`](https://github.com/dima1203oleg/MarshGO/actions/runs/36689801958) and PR workflow [`36689811065`](https://github.com/dima1203oleg/MarshGO/actions/runs/36689811065), Server [`36689802615`](https://github.com/dima1203oleg/MarshGO-Server/actions/runs/36689802615), Site [`36689801269`](https://github.com/dima1203oleg/MarshGO-Site/actions/runs/36689801269), and iOS Simulator Build [`36690296800`](https://github.com/dima1203oleg/MarshGO-iOS/actions/runs/36690296800) completed successfully. iOS documentation commit `905852e` records the current site bundle and simulator proof. PR #1 remains draft/open; no production hosting, App Store release, or live services were deployed.
+
+**Next implementation step:** Continue the navigation-match handshake into passenger-visible price negotiation and mutual booking, preserving consent and route-detour constraints. Production routing/geocoding/tiles, real SMS, private object storage, staging, Web Push, backups/monitoring, and physical-device GPS remain external or operational gates.
+
 ## Phase 4 continuation — competing proposal acceptance race
 
 **Phase:** 4 Reverse Market; exclusive demand resolution.
