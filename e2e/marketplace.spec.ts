@@ -556,6 +556,14 @@ test('foreground road route renders on iPhone 15 Pro Max and 16 Pro Max viewport
       expect(viewport.documentWidth).toBeLessThanOrEqual(viewport.width + 1);
       const modelFileName = model.toLowerCase().replaceAll(' ', '-');
       await page.screenshot({ path: `/tmp/marshgo-${modelFileName}-home.png`, fullPage: true });
+      for (const tab of ['Пошук', 'Поїздки', 'Профіль'] as const) {
+        await page.getByRole('button', { name: tab, exact: true }).click();
+        await expect(page.locator('h1').first()).toBeVisible();
+        const tabViewport = await page.evaluate(() => ({ width: window.innerWidth, documentWidth: document.documentElement.scrollWidth }));
+        expect(tabViewport.documentWidth).toBeLessThanOrEqual(tabViewport.width + 1);
+        await page.screenshot({ path: `/tmp/marshgo-${modelFileName}-${tab.toLowerCase()}.png`, fullPage: true });
+      }
+      await page.getByRole('button', { name: 'Головна', exact: true }).click();
       await page.getByRole('button', { name: 'Почати навігацію' }).click();
       await page.getByPlaceholder('Наприклад, Львів').fill('Львів');
       await page.getByRole('button', { name: 'Знайти', exact: true }).click();
