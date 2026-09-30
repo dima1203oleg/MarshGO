@@ -25,6 +25,7 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
   let apiCreatedVehicleId: string | null = null;
   const extraVehicleIds: string[] = [];
   const verificationIds: string[] = [];
+  const moderationCaseIds: string[] = [];
   let otpUserId: string | null = null;
 
   before(async () => {
@@ -50,6 +51,8 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     await pool.query('DELETE FROM verification_records WHERE user_id = ANY($1::uuid[]) OR id=ANY($2::uuid[])', [[ids.driver, ids.passengerA, ids.passengerB, ids.admin], verificationIds]);
     await pool.query('DELETE FROM otp_challenges WHERE phone_e164 LIKE $1', [`+38099${process.pid}%`]);
     await pool.query("DELETE FROM audit_events WHERE actor_id = ANY($1::uuid[]) AND action IN ('vehicle.created','offer.created','demand.created','demand.cancelled','proposal.created','proposal.countered','proposal.agreed','proposal.accepted','user.blocked','user.unblocked')", [[ids.driver, ids.passengerA]]);
+    await pool.query("DELETE FROM audit_events WHERE entity_id=ANY($1::uuid[]) OR (actor_id=ANY($2::uuid[]) AND action LIKE 'moderation.%')", [moderationCaseIds, [ids.passengerA, ids.admin]]);
+    await pool.query('DELETE FROM moderation_cases WHERE id=ANY($1::uuid[])', [moderationCaseIds]);
     await pool.query("DELETE FROM audit_events WHERE (actor_id=ANY($1::uuid[]) AND action LIKE 'verification.%') OR entity_id=ANY($2::uuid[])", [[ids.driver, ids.admin], verificationIds]);
     await pool.query('DELETE FROM audit_events WHERE entity_id IN (SELECT id FROM bookings WHERE offer_id IN (SELECT id FROM offers WHERE driver_id = $1)) OR entity_id = ANY($2::uuid[])',
       [ids.driver, [ids.vehicle, ...(apiCreatedVehicleId ? [apiCreatedVehicleId] : []), ...extraVehicleIds, ...verificationIds]]);
@@ -169,6 +172,55 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     }
     const { rows } = await pool.query('SELECT available_seats FROM offers WHERE id = $1', [ids.offer]);
     assert.equal(rows[0].available_seats, 1);
+  });
+
+  it('accepts private safety reports only from booking participants and restricts staff review', async () => {
+    const bookingResponse = await fetch(`${apiUrl}/api/v1/bookings`, {
+      method: 'POST', headers: { 'content-type': 'application/json', 'x-dev-user-id': ids.passengerA, 'idempotency-key': `report-${crypto.randomUUID()}` },
+      body: JSON.stringify({ offerId: ids.offer, seats: 1 }),
+    });
+    assert.equal(bookingResponse.status, 201);
+    const booking = await bookingResponse.json() as { data: { id: string } };
+    const report = await fetch(`${apiUrl}/api/v1/reports`, {
+      method: 'POST', headers: { 'content-type': 'application/json', 'x-dev-user-id': ids.passengerA },
+      body: JSON.stringify({ bookingId: booking.data.id, category: 'safety', details: 'Driver drove dangerously near the destination.' }),
+    });
+    assert.equal(report.status, 201);
+    const reportBody = await report.json() as { data: { id: string; status: string } };
+    moderationCaseIds.push(reportBody.data.id);
+    assert.equal(reportBody.data.status, 'open');
+
+    const repeated = await fetch(`${apiUrl}/api/v1/reports`, {
+      method: 'POST', headers: { 'content-type': 'application/json', 'x-dev-user-id': ids.passengerA },
+      body: JSON.stringify({ bookingId: booking.data.id, category: 'safety', details: 'A second open report for the same booking.' }),
+    });
+    assert.equal(repeated.status, 409);
+    const outsider = await fetch(`${apiUrl}/api/v1/reports`, {
+      method: 'POST', headers: { 'content-type': 'application/json', 'x-dev-user-id': ids.passengerB },
+      body: JSON.stringify({ bookingId: booking.data.id, category: 'other', details: 'I am not a participant here.' }),
+    });
+    assert.equal(outsider.status, 404);
+
+    const forbiddenQueue = await fetch(`${apiUrl}/api/v1/admin/moderation?status=all`, { headers: { 'x-dev-user-id': ids.passengerB } });
+    assert.equal(forbiddenQueue.status, 403);
+    const queue = await fetch(`${apiUrl}/api/v1/admin/moderation?status=open`, { headers: { 'x-dev-user-id': ids.admin } });
+    assert.equal(queue.status, 200);
+    const queueBody = await queue.json() as { data: Array<{ id: string; reporter_name: string; reported_user_name: string }> };
+    assert.equal(queueBody.data.some((item) => item.id === reportBody.data.id && item.reporter_name === 'API test passenger A' && item.reported_user_name === 'API test driver'), true);
+
+    const startReview = await fetch(`${apiUrl}/api/v1/admin/moderation/${reportBody.data.id}/decision`, {
+      method: 'POST', headers: { 'content-type': 'application/json', 'x-dev-user-id': ids.admin }, body: JSON.stringify({ status: 'in_review' }),
+    });
+    assert.equal(startReview.status, 200);
+    const resolution = await fetch(`${apiUrl}/api/v1/admin/moderation/${reportBody.data.id}/decision`, {
+      method: 'POST', headers: { 'content-type': 'application/json', 'x-dev-user-id': ids.admin },
+      body: JSON.stringify({ status: 'resolved', action: 'no_action', note: 'Reviewed the report and documented follow-up.' }),
+    });
+    assert.equal(resolution.status, 200);
+    const closedReport = await pool.query('SELECT status,resolution_action,resolved_at FROM moderation_cases WHERE id=$1', [reportBody.data.id]);
+    assert.equal(closedReport.rows[0].status, 'resolved');
+    assert.equal(closedReport.rows[0].resolution_action, 'no_action');
+    assert.ok(closedReport.rows[0].resolved_at);
   });
 
   it('enforces driver role, vehicle ownership, and vehicle verification before publishing', async () => {

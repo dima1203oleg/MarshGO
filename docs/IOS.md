@@ -23,6 +23,8 @@ SIMULATOR_UDID=<device-udid> bun run ios:simulator
 
 The simulator build points at `http://localhost:3002`. The iOS target permits cleartext HTTP only for the `localhost` hostname for local development. Release builds must set `VITE_API_BASE_URL` to the HTTPS API origin; do not ship the simulator endpoint or local development OTP configuration.
 
+The production welcome and authenticated mobile screens are built from the same React/Capacitor app. The welcome view was rebuilt and relaunched on iPhone 18 Pro / iOS 27 after the latest changes; the captured screen is `/tmp/marshgo-ios-simulator.png`. It visually confirms the road background, brand lockup, Ukrainian copy, CTA hierarchy and iOS safe-area/status-bar handling. This automated simulator run confirms build/install/launch and first render only; it does not perform OTP entry or authenticated bookings.
+
 ## Native limitations and release work
 
 * The current app relies on the existing browser session client. Validate refresh-cookie persistence across force-quit/relaunch on physical iOS devices before release.

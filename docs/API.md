@@ -78,6 +78,12 @@ Headers: `Idempotency-Key` (16–128 characters). JSON body: `{ "offerId": "<uui
 
 Cancels a confirmed booking owned by the caller and restores its seats exactly once. Other booking states cannot be cancelled through this endpoint.
 
+## Safety reports and moderation
+
+`POST /api/v1/reports` requires an authenticated passenger or driver who is a participant in the referenced booking. Body: `{ "bookingId": "<uuid>", "category": "safety|harassment|fraud|service|other", "details": "..." }`; details must contain 10–2000 characters. The API derives the reported participant from the booking and does not accept a client-supplied target user ID. A reporter may create at most 10 cases in a rolling 24-hour period; only one open/in-review case per reporter and booking is allowed. Private case content is not returned to either booking participant.
+
+`GET /api/v1/admin/moderation?status=open|in_review|resolved|dismissed|all` and `POST /api/v1/admin/moderation/:id/decision` require a persisted moderator or administrator role. Decisions transition an open case to `in_review`, then to `resolved` or `dismissed` with an audited 3–1000 character note. Only the assigned reviewer or an administrator may update a case in review. Account suspension is administrator-only, rejects staff targets, revokes stored sessions, and closes active realtime sockets. A reviewer is excluded from a case if they are its reporter or target.
+
 `GET /api/v1/bookings/:id/ticket` issues a short-lived HMAC-signed, PII-free ticket to a booking participant. The driver posts the token to `POST /api/v1/bookings/:id/boarding`; driver-only `POST /api/v1/bookings/:id/start` advances a boarded booking to `in_progress`. Driver and passenger must each confirm `POST /api/v1/bookings/:id/complete` before state becomes `completed`. `GET /api/v1/bookings/:id/events` returns the participant-scoped transition history. Reviews are accepted at `POST /api/v1/bookings/:id/reviews` only after both completion confirmations; one review per participant, rating 1–5. Offer search returns the server aggregate rating and count; new drivers have zero reviews rather than a seeded rating.
 
 ## Conversations

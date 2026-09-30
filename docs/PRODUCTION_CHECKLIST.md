@@ -11,6 +11,7 @@
 - [x] Demand/proposal/counter history, driver agreement on passenger counters, and explicit passenger confirmation that atomically creates the booking.
 - [x] Participant-scoped persistent message history and send APIs.
 - [x] Staff-guarded vehicle verification queue, private evidence upload contract, document decisions, and vehicle gating after both required approvals.
+- [x] Private booking-scoped safety report intake, staff moderation queue, audited reviewer decisions, and administrator-only suspension.
 - [x] Local PostGIS migrations and transaction concurrency tests, including OTP/session and last-seat contention.
 - [x] Node 24.21.0 LTS runtime pin, CI lint/typecheck/unit-test/build, OSRM-compatible adapter contract test.
 - [x] Production PWA OTP, server search, offer publishing, garage, booking/history, reverse-demand proposal, and booking-chat screens use authenticated APIs.
@@ -32,7 +33,7 @@
 - [ ] Shared rate limiting, object storage, deletion/retention processing, and security review.
 - [x] Local mobile-sized browser E2E: two independent contexts, local OTP/geocoder, server search, booking, shared seats, negotiation, role/ownership check, real-time chat delivery and persisted replay.
 - [ ] Staging and physical-device acceptance with two independent accounts and real provider credentials.
-- [ ] Abuse reports, moderation case intake/resolution, and staff response policy for blocked active bookings.
+- [ ] Staff response policy, coverage schedule, incident escalation and physical safety response procedures for reports and blocked active bookings.
 - [ ] Interactive iOS simulator sign-in/booking run and physical-device session persistence check.
 - [ ] CI, TLS, deployment manifests, staging, backups/restore, monitoring, and rollback drill.
 

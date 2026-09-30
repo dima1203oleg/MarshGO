@@ -567,3 +567,27 @@
 **External dependencies:** Production Redis endpoint and managed metrics/alerting remain owner-provisioned. No new external credentials required for local verification.
 
 **Next implementation step:** Implement abuse-report intake and staff moderation actions; extend the outbox to booking/proposal events and make logout revocation durable.
+
+## Phase 7 continuation — private reports and staff moderation
+
+**Phase:** 7 Realtime and safety operations.
+
+**Status:** PARTIAL. Booking participants can submit a private report and staff can review it through a guarded server queue. Staffing procedures, moderation notifications and staging review are still absent.
+
+**Completed:** Added a PostgreSQL moderation case model. A report must reference a booking the caller participated in; the API derives the other participant and accepts no client-supplied target ID. Added per-reporter daily rate limiting, duplicate open-report protection, bounded category/details fields, audit events, and a profile-inaccessible staff queue. Moderators/admins can claim a case and record an audited terminal decision; only the assigned reviewer or an administrator can continue an in-review case. Only an administrator can suspend a non-staff account; the API revokes its sessions and closes active realtime sockets. Added private report submission from booking chat and a staff moderation view alongside verification review.
+
+**Modified files:** `server/migrations/015_moderation_cases.sql`, `server/index.ts`, `src/services/productionApi.ts`, `src/views/ProductionMarketplace.tsx`, `tests/api-bookings.integration.test.ts`, `docs/API.md`, `docs/DATA_MODEL.md`, `docs/SECURITY.md`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_CHECKLIST.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** `moderation_cases` with reporter/reported-user/booking references, category/details constraints, reviewer and resolution metadata, state invariants, duplicate open booking-report index, and staff queue/user indexes.
+
+**Endpoints:** `POST /api/v1/reports`; `GET /api/v1/admin/moderation`; `POST /api/v1/admin/moderation/:id/decision`.
+
+**Tests:** Applied `015_moderation_cases.sql` on local loopback `marshgo_e2e` and `marshgo`. `npm run typecheck`, `npm run lint`, `npm test` (12/12), `npm run build`, and `git diff --check` passed. `API_TEST_DATABASE_URL=postgres://marshgo:local_only_change_me@127.0.0.1:5434/marshgo_e2e REDIS_URL=redis://127.0.0.1:6380 npm run test:integration` passed bookings/moderation 6/6, navigation 1/1, realtime 1/1. The moderation test covers participant-only intake, duplicate conflict, outsider denial, staff queue authorization, assignment and resolution persistence. First integration run caught an incorrect booking route join; it was fixed and the complete rerun passed. `E2E_DATABASE_URL=postgres://marshgo:local_only_change_me@127.0.0.1:5434/marshgo_e2e REDIS_URL=redis://127.0.0.1:6380 npm run test:e2e` passed the two-account UI scenario (1/1). `SIMULATOR_UDID=95D35F57-0F2F-467B-95C1-109C223D18F0 npm run ios:simulator` passed Vite production build, Capacitor sync, Xcode build, install and launch on iPhone 18 Pro / iOS 27. Screenshot `/tmp/marshgo-ios-simulator.png` shows the bundled MARSHGO welcome screen with safe-area layout, scenic road image and native status bar; interactive sign-in and post-auth gestures remain untested on this headless host.
+
+**DEMO/TRUTH status:** Report details and review actions are persisted and server-authorized. UI appears only in the production/API-backed screen; development demo data does not seed moderation cases. This is not a staffed or externally monitored safety service.
+
+**Open issues:** Add durable notification/outbox for new reports and decisions; enforce staff coverage/escalation procedures; perform staging abuse/suspension review; interactive iOS sign-in/booking remains untested.
+
+**External dependencies:** Owner must provision and verify the initial staff roles and establish safety-response procedures. No external service credentials required for the local report flow.
+
+**Next implementation step:** Extend transactional outbox coverage to booking/proposal events, then continue remaining Gate A infrastructure and physical-device acceptance blockers.

@@ -2083,6 +2083,122 @@ app.post('/api/v1/bookings/:id/block-other', requireAuth, asyncHandler(async (re
   } finally { client.release(); }
 }));
 
+app.post('/api/v1/reports', requireAuth, asyncHandler(async (req, res) => {
+  const { bookingId, category, details } = req.body ?? {};
+  const categories = ['safety', 'harassment', 'fraud', 'service', 'other'];
+  if (typeof bookingId !== 'string' || !/^[0-9a-f-]{36}$/i.test(bookingId) ||
+      typeof category !== 'string' || !categories.includes(category) ||
+      typeof details !== 'string' || details.trim().length < 10 || details.trim().length > 2000) {
+    throw new ApiError(400, 'Booking, report category, and 10–2000 character details are required');
+  }
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query('SELECT id FROM users WHERE id=$1 FOR UPDATE', [req.userId]);
+    const { rows } = await client.query<{ passenger_id: string; driver_id: string }>(
+      `SELECT b.passenger_id,o.driver_id FROM bookings b JOIN offers o ON o.id=b.offer_id
+        WHERE b.id=$1 AND (b.passenger_id=$2 OR o.driver_id=$2) FOR UPDATE OF b`, [bookingId, req.userId],
+    );
+    const booking = rows[0];
+    if (!booking) throw new ApiError(404, 'booking unavailable');
+    const reportedUserId = booking.passenger_id === req.userId ? booking.driver_id : booking.passenger_id;
+    const limit = await client.query<{ count: number }>(
+      'SELECT count(*)::int AS count FROM moderation_cases WHERE reporter_id=$1 AND created_at>now()-interval \'24 hours\'', [req.userId],
+    );
+    if (Number(limit.rows[0]?.count ?? 0) >= 10) throw new ApiError(429, 'Daily report limit reached', 'report_rate_limit');
+    const report = await client.query<{ id: string; status: string }>(
+      `INSERT INTO moderation_cases(reporter_id,reported_user_id,booking_id,category,details)
+       VALUES($1,$2,$3,$4,$5) RETURNING id,status`, [req.userId, reportedUserId, bookingId, category, details.trim()],
+    );
+    await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES($1,\'moderation.report.created\',\'moderation_case\',$2)', [req.userId, report.rows[0].id]);
+    await client.query('COMMIT');
+    res.status(201).json({ data: report.rows[0] });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    if (typeof error === 'object' && error !== null && 'code' in error && error.code === '23505') {
+      throw new ApiError(409, 'An open report already exists for this booking', 'report_already_open');
+    }
+    throw error;
+  } finally { client.release(); }
+}));
+
+app.get('/api/v1/admin/moderation', requireAuth, requireStaff, asyncHandler(async (req, res) => {
+  const status = typeof req.query.status === 'string' ? req.query.status : 'open';
+  if (!['open', 'in_review', 'resolved', 'dismissed', 'all'].includes(status)) throw new ApiError(400, 'Invalid moderation queue status');
+  const limit = Math.max(1, Math.min(100, Number(req.query.limit) || 50));
+  const { rows } = await pool.query(
+    `SELECT c.id,c.booking_id,c.category,c.details,c.status,c.resolution_action,c.resolution_note,
+            c.created_at,c.updated_at,c.resolved_at,reporter.display_name AS reporter_name,
+            reported.display_name AS reported_user_name,o.origin_name,o.destination_name
+       FROM moderation_cases c
+       JOIN users reporter ON reporter.id=c.reporter_id
+       JOIN users reported ON reported.id=c.reported_user_id
+       LEFT JOIN bookings b ON b.id=c.booking_id
+       LEFT JOIN offers o ON o.id=b.offer_id
+      WHERE ($1='all' OR c.status=$1)
+        AND c.reporter_id<>$2 AND c.reported_user_id<>$2
+      ORDER BY CASE c.status WHEN 'open' THEN 0 WHEN 'in_review' THEN 1 ELSE 2 END,c.created_at,c.id
+      LIMIT $3`, [status, req.userId, limit],
+  );
+  res.json({ data: rows });
+}));
+
+app.post('/api/v1/admin/moderation/:id/decision', requireAuth, requireStaff, asyncHandler(async (req, res) => {
+  const nextStatus = req.body?.status;
+  const action = req.body?.action;
+  const note = req.body?.note;
+  if (!['in_review', 'resolved', 'dismissed'].includes(nextStatus) ||
+      (nextStatus === 'in_review' && (action !== undefined || note !== undefined)) ||
+      (nextStatus !== 'in_review' && (!['no_action', 'suspend_account'].includes(action) || typeof note !== 'string' || note.trim().length < 3 || note.trim().length > 1000)) ||
+      (nextStatus === 'dismissed' && action === 'suspend_account')) {
+    throw new ApiError(400, 'Use in_review without a decision, or resolve/dismiss with an action and a 3–1000 character note');
+  }
+  const client = await pool.connect();
+  let suspendedUserId: string | null = null;
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query<{
+      id: string; reporter_id: string; reported_user_id: string; status: string; reviewer_id: string | null;
+    }>('SELECT id,reporter_id,reported_user_id,status,reviewer_id FROM moderation_cases WHERE id=$1 FOR UPDATE', [req.params.id]);
+    const report = rows[0];
+    if (!report) throw new ApiError(404, 'moderation case unavailable');
+    if (report.reporter_id === req.userId || report.reported_user_id === req.userId) throw new ApiError(403, 'Conflicted staff cannot review this case');
+    if (report.status === 'resolved' || report.status === 'dismissed') throw new ApiError(409, 'Moderation case is already closed', 'moderation_case_closed');
+    if (nextStatus === 'in_review' && report.status !== 'open') throw new ApiError(409, 'Moderation case is already under review');
+    const staffRole = await client.query<{ is_admin: boolean }>(
+      `SELECT EXISTS(SELECT 1 FROM user_roles WHERE user_id=$1 AND role='admin') AS is_admin`, [req.userId],
+    );
+    if (report.status === 'in_review' && report.reviewer_id !== req.userId && !staffRole.rows[0]?.is_admin) {
+      throw new ApiError(403, 'Only the assigned reviewer or an administrator can update this case');
+    }
+    if (action === 'suspend_account' && !staffRole.rows[0]?.is_admin) throw new ApiError(403, 'Only administrators can suspend an account');
+    if (action === 'suspend_account') {
+      const target = await client.query<{ roles: string[]; account_status: string }>('SELECT roles,account_status FROM users WHERE id=$1 FOR UPDATE', [report.reported_user_id]);
+      if (target.rows[0]?.roles.includes('admin') || target.rows[0]?.roles.includes('moderator')) throw new ApiError(403, 'Staff accounts cannot be suspended through user reports');
+      await client.query(`UPDATE users SET account_status='suspended',updated_at=now() WHERE id=$1 AND account_status='active'`, [report.reported_user_id]);
+      await client.query('UPDATE sessions SET revoked_at=COALESCE(revoked_at,now()) WHERE user_id=$1', [report.reported_user_id]);
+      suspendedUserId = report.reported_user_id;
+    }
+    const { rows: updated } = await client.query(
+      `UPDATE moderation_cases SET status=$2,reviewer_id=$3,resolution_action=$4,resolution_note=$5,
+         updated_at=now(),resolved_at=CASE WHEN $2 IN ('resolved','dismissed') THEN now() ELSE NULL END
+        WHERE id=$1 RETURNING id,status,resolution_action,resolution_note,updated_at,resolved_at`,
+      [report.id, nextStatus, req.userId, action ?? null, typeof note === 'string' ? note.trim() : null],
+    );
+    await client.query(
+      `INSERT INTO audit_events(actor_id,action,entity_type,entity_id,details)
+       VALUES($1,$2,'moderation_case',$3,jsonb_build_object('action',$4::text))`,
+      [req.userId, `moderation.${nextStatus}`, report.id, action ?? 'review_started'],
+    );
+    await client.query('COMMIT');
+    if (suspendedUserId) closeRealtimeConnections(suspendedUserId);
+    res.json({ data: updated[0] });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally { client.release(); }
+}));
+
 app.post('/api/v1/realtime/ticket', requireAuth, asyncHandler(async (req, res) => {
   if (!req.sessionId || !req.userId) throw new ApiError(401, 'A server session is required for realtime chat', 'realtime_session_required');
   const now = Date.now();

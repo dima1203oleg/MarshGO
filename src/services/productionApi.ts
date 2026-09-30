@@ -7,6 +7,14 @@ export type ApiUser = {
   is_verified: boolean;
 };
 export type ApiBlockedUser = { user_id: string; display_name: string; created_at: string };
+export type ApiModerationCase = {
+  id: string; reporter_name: string; reported_user_name: string; booking_id: string | null;
+  origin_name: string | null; destination_name: string | null; category: 'safety' | 'harassment' | 'fraud' | 'service' | 'other';
+  details: string; status: 'open' | 'in_review' | 'resolved' | 'dismissed';
+  resolution_action: 'no_action' | 'suspend_account' | null; resolution_note: string | null;
+  created_at: string; updated_at: string; resolved_at: string | null;
+};
+type ApiModerationDecision = Pick<ApiModerationCase, 'id' | 'status' | 'resolution_action' | 'resolution_note' | 'updated_at' | 'resolved_at'>;
 
 export type ApiOffer = {
   id: string;
@@ -223,6 +231,15 @@ export const productionApi = {
   blockedUsers() { return request<ApiBlockedUser[]>('/users/me/blocks'); },
   blockBookingOther(bookingId: string) { return request<void>(`/bookings/${bookingId}/block-other`, { method: 'POST' }); },
   unblockUser(userId: string) { return request<void>(`/users/${encodeURIComponent(userId)}/block`, { method: 'DELETE' }); },
+  createReport(input: { bookingId: string; category: ApiModerationCase['category']; details: string }) {
+    return request<{ id: string; status: 'open' }>('/reports', { method: 'POST', body: JSON.stringify(input) });
+  },
+  moderationCases(status: 'open' | 'in_review' | 'resolved' | 'dismissed' | 'all' = 'open') {
+    return request<ApiModerationCase[]>(`/admin/moderation?status=${status}`);
+  },
+  reviewModerationCase(caseId: string, input: { status: 'in_review' | 'resolved' | 'dismissed'; action?: 'no_action' | 'suspend_account'; note?: string }) {
+    return request<ApiModerationDecision>(`/admin/moderation/${encodeURIComponent(caseId)}/decision`, { method: 'POST', body: JSON.stringify(input) });
+  },
   me() { return request<ApiUser>('/users/me'); },
   vehicles() { return request<ApiVehicle[]>('/vehicles'); },
   enableRole(role: 'passenger' | 'driver') {
