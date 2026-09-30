@@ -1169,3 +1169,17 @@ The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max 
 **GitHub:** Root commit `2df5ab8` and Server commit `f967576` are pushed. Root CI [`36705163160`](https://github.com/dima1203oleg/MarshGO/actions/runs/36705163160) and Server CI [`36705191016`](https://github.com/dima1203oleg/MarshGO-Server/actions/runs/36705191016) passed including integration suites.
 
 **Next step:** Continue P0 operational hardening. Production still requires the real secrets/providers listed above; local CI config used placeholders only and did not contact Twilio.
+
+## Multimodal expansion — Journey Phase A/B foundation
+
+**Status:** PARTIAL. Started the additive Journey layer in MarshGO-Server and synchronized the same implementation into this umbrella workspace. Existing Offer, Booking, Demand, Proposal and Navigation domains remain intact.
+
+**Implemented:** Added persisted Journey, ordered JourneyLeg and preference models; server-side FASTEST/CHEAPEST/BALANCED/PREMIUM/RELIABLE/CUSTOM scoring; uncertainty-aware transfer feasibility; provider contracts; and authenticated Community-only Journey search/history/detail endpoints. Search uses current published offers with stored road geometry, persists a plan snapshot, labels unbooked prices ESTIMATED, returns no fake external inventory and reports unavailable transport modes. Server report: `MarshGO-Server/docs/MULTIMODAL_PROGRESS.md`.
+
+**Changed files:** `server/migrations/020_journeys.sql`, `server/journey/*`, `server/providers/types.ts`, `server/index.ts`, Journey tests and integration wiring, `docs/API.md`, `docs/DATA_MODEL.md`, `docs/MULTIMODAL_PROGRESS.md`, and the umbrella test script in `package.json`.
+
+**Tests:** Server typecheck and unit suite passed (24 passed, one opt-in DB test skipped); isolated PostGIS migration/schema test passed; full API booking/search, navigation, realtime, restart and rate-limit integration suites passed; umbrella `npm run check:production` passed; Playwright E2E passed 3/3, including two-user booking/chat, mutual navigation-match flow, and iPhone 15 Pro Max / 16 Pro Max viewport rendering.
+
+**Limitations:** Planner currently returns direct Community legs only. There is no walking/transit/taxi/rail inventory, Journey UI, persisted inbox/push, future transfer matching, monitor/replanning, or multi-passenger stop optimizer. External provider integration remains blocked on contracts/credentials. No staging or production deployment occurred.
+
+**Next step:** Connect selecting/bookable Journey legs to existing booking transactions, then implement future Community matching with ETA uncertainty and continue provider-independent Journey monitoring/replanning.
