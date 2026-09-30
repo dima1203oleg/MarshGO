@@ -23,18 +23,19 @@ In another terminal run `npm run dev`. Vite proxies `/api`, `/healthz`, and `/re
 * `npm run typecheck` — TypeScript check (excludes generated `dist/`).
 * `npm run lint` — ESLint on backend, tests, and changed UI entry points.
 * `npm test` — unit tests; the API/PostGIS suite skips unless `API_TEST_URL` and a loopback `API_TEST_DATABASE_URL` are provided.
+* `npm run test:integration` — booking/lifecycle API integration against a loopback `marshgo_e2e` database, then opt-in navigation matching with a local OSRM contract fixture. Applies no migrations and refuses non-test databases.
 * `npm run test:e2e` — iPhone-sized Chromium browser flow against a dedicated local PostGIS database; requires Playwright Chromium, see below.
 * `npm run build` — production PWA build.
 * `npm run db:migrate` — apply additive SQL migrations.
 * `npm run ios:sync` — build the web bundle and sync it into the Capacitor iOS target.
 * `SIMULATOR_UDID=<device-udid> SIMULATOR_API_BASE_URL=http://localhost:3002 npm run ios:simulator` — build, install, launch, and capture the app on an iOS simulator (local API must be running).
 
-Local API transaction suite (requires started local API and database):
+Manual API integration (requires a started local API and database):
 
 ```sh
 API_TEST_URL=http://127.0.0.1:3002 \
 API_TEST_DATABASE_URL=postgres://marshgo:local_only_change_me@127.0.0.1:5434/marshgo \
-npm test
+npm run test:integration:bookings
 ```
 
 Browser E2E uses a separate database named `marshgo_e2e`, isolated service ports, and a local test geocoder. It seeds and removes only its UUID-scoped fixtures. Run after starting the local Compose database:

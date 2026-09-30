@@ -424,6 +424,30 @@
 
 **Next implementation step:** Expand deterministic API/E2E coverage for role/ownership denial and concurrent booking; then add an interactive simulator/XCUITest path for sign-in and the actual home/search screens.
 
+## Phase 9 — Run API/PostGIS integration suites in CI
+
+**Phase:** 9 Hardening / continuous verification.
+
+**Status:** PARTIAL. CI now exercises existing booking/lifecycle and foreground navigation API integration tests in addition to the browser flow. This does not replace production-provider tests or staging acceptance.
+
+**Completed:** Added `npm run test:integration` with scoped subcommands. The runner refuses any database other than loopback `marshgo_e2e`, starts a development-only API process with `x-dev-user-id` test identity, runs transactional booking tests without routing, stops that API, starts a local OSRM contract fixture, and runs navigation/matching tests against a second API process. GitHub Actions invokes this runner after migrations against its isolated PostGIS service. README documents the safe local invocation and makes clear this is fixture-backed verification.
+
+**Modified files:** `scripts/run-integration-tests.sh`, `package.json`, `.github/workflows/ci.yml`, `README.md`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** None; the runner intentionally does not apply migrations. CI applies migrations to the isolated PostGIS service before the test step.
+
+**API endpoints:** Existing booking/lifecycle and navigation session/matching routes are exercised by the two integration suites.
+
+**Tests:** `API_TEST_DATABASE_URL=postgres://marshgo:local_only_change_me@127.0.0.1:5434/marshgo_e2e npm run test:integration` passed booking suite 5/5 and navigation suite 1/1. This includes OTP/profile/session rotation, one-winner last-seat concurrency, vehicle/role ownership, verification workflow, demand negotiation/booking conversion, real-route candidate filters, opt-in, mutual confirmation, GPS validation, and location purge. After wiring CI, `npm run typecheck`, `npm run lint`, `bash -n scripts/run-integration-tests.sh`, `npm test` (12/12), `npm run build`, `npm run test:e2e` (1/1), and `git diff --check` all passed locally.
+
+**DEMO/TRUTH status:** All integration users and route responses are test-only; the OSRM fixture estimates routes only for deterministic assertions and is never presented to the app as a production provider. The runner pins DB targeting to loopback and the dedicated test database.
+
+**Remaining issues:** No CI result from GitHub Actions has been observed for this change yet; physical device, real providers, production host, load/performance, backup restore, and interactive iOS workflows are still outstanding.
+
+**External blockers:** None for local CI wiring. Production service credentials and deployment/restore resources remain separately blocked as listed above.
+
+**Next implementation step:** Validate the complete local command set including browser E2E after adding the runner, then continue the critical acceptance matrix with multi-device booking/cancellation and safe mutual-match behavior.
+
 ## Phase 6 — Foreground GPS navigation session
 
 **Phase:** 6 Navigation/Matching (foreground navigation slice).
