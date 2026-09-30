@@ -8,7 +8,7 @@
 
 | Repository | Local branch / commit | Working tree | Notes |
 |---|---|---|---|
-| MarshGO umbrella | `codex/marshgo-production` / `ec7f8a30e7241e7a4c1f6871fc585ba9eb8821e4` | clean; 1 commit ahead of remote branch | Integration tests exercised this checkout. |
+| MarshGO umbrella | `codex/marshgo-production` / `d5f9f67defdd6a377468162a86a79c245b68b930` | clean; local commits unpushed | Integration code and acceptance harness exercised this checkout. |
 | MarshGO-Server | `main` / `363532c1e6bedd083b2f53c2449eeb6b34869ac6` | clean; 2 commits ahead of remote main | Synced integration API/domain code and migrations through `027`; its own lint/type/unit/integration tests pass locally. |
 | MarshGO-Site | `main` / `e47538b1281bc8fcab8dd3f4b646575caace5646` | clean; 3 commits ahead of remote main | Synced production UI/source; Leaflet component and dependencies removed. Full-source lint, typecheck, build and bundle checks pass. |
 | MarshGO-iOS | `main` / `28aa2acaa02b62732013e586576d898905099332` | clean; 2 commits ahead of remote main | Tagged CI now fails closed on missing/mismatched pinned inputs and compiles an unsigned Release archive. Local archive compile succeeded using old Site `ed602ac`, not the current Site SHA; signing/TestFlight remain unavailable. |
