@@ -454,13 +454,32 @@ app.get('/api/v1/offers', asyncHandler(async (req, res) => {
   const destination = String(req.query.destination || '').trim();
   const date = req.query.date === undefined ? null : String(req.query.date);
   const seats = req.query.seats === undefined ? 1 : Number(req.query.seats);
+  const coordinateKeys = ['originLon', 'originLat', 'destinationLon', 'destinationLat'] as const;
+  const suppliedCoordinates = coordinateKeys.map((key) => req.query[key] !== undefined);
+  const hasCoordinates = suppliedCoordinates.every(Boolean);
+  if (suppliedCoordinates.some(Boolean) && !hasCoordinates) throw new ApiError(400, 'all four route coordinates are required');
+  const coordinates = hasCoordinates ? coordinateKeys.map((key) => Number(req.query[key])) : [];
   if (!origin || !destination || origin.length > 120 || destination.length > 120) {
     throw new ApiError(400, 'origin and destination are required');
   }
-  if (!Number.isInteger(seats) || seats < 1 || seats > 20 || (date !== null && !/^\d{4}-\d{2}-\d{2}$/.test(date))) {
+  if (!Number.isInteger(seats) || seats < 1 || seats > 20 || (date !== null && !/^\d{4}-\d{2}-\d{2}$/.test(date)) ||
+      (hasCoordinates && (coordinates.some((coordinate) => !Number.isFinite(coordinate)) ||
+        Math.abs(coordinates[0]) > 180 || Math.abs(coordinates[1]) > 90 || Math.abs(coordinates[2]) > 180 || Math.abs(coordinates[3]) > 90))) {
     throw new ApiError(400, 'invalid date or passenger count');
   }
-    const { rows } = await pool.query(
+  const routeFilter = hasCoordinates
+    ? `AND ST_DWithin(o.origin,ST_SetSRID(ST_MakePoint($1,$2),4326)::geography,20000)
+       AND ST_DWithin(o.destination,ST_SetSRID(ST_MakePoint($3,$4),4326)::geography,20000)`
+    : 'AND lower(o.origin_name)=lower($1) AND lower(o.destination_name)=lower($2)';
+  const dateParameter = hasCoordinates ? 5 : 3;
+  const seatsParameter = hasCoordinates ? 6 : 4;
+  const filters = [
+    routeFilter,
+    `AND ($${dateParameter}::date IS NULL OR (o.departure_at AT TIME ZONE 'Europe/Kyiv')::date=$${dateParameter}::date)`,
+    `AND o.available_seats >= $${seatsParameter}`,
+  ].join('\n');
+  const parameters = hasCoordinates ? [...coordinates, date, seats] : [origin, destination, date, seats];
+  const { rows } = await pool.query(
     `SELECT o.id, o.origin_name, o.destination_name, o.departure_at, o.arrival_at,o.distance_m,o.duration_s,o.route_source,o.price_per_seat_minor,
             o.currency, o.available_seats, o.total_seats, u.display_name AS driver_name,
             ratings.average_rating,ratings.review_count,photo.object_key AS vehicle_photo_key
@@ -468,11 +487,9 @@ app.get('/api/v1/offers', asyncHandler(async (req, res) => {
        LEFT JOIN vehicle_photos photo ON photo.vehicle_id=o.vehicle_id AND photo.is_primary=true
        LEFT JOIN LATERAL (SELECT round(avg(r.rating)::numeric,2) AS average_rating,count(*)::int AS review_count FROM reviews r WHERE r.target_id=o.driver_id) ratings ON true
       WHERE o.status = 'published' AND o.departure_at > now() AND o.available_seats > 0
-        AND o.available_seats >= $4
-        AND lower(o.origin_name) = lower($1) AND lower(o.destination_name) = lower($2)
-        AND ($3::date IS NULL OR (o.departure_at AT TIME ZONE 'Europe/Kyiv')::date=$3::date)
+        ${filters}
       ORDER BY o.departure_at ASC LIMIT 100`,
-    [origin, destination, date, seats],
+    parameters,
   );
   res.json({ data: await Promise.all(rows.map(async ({ vehicle_photo_key, ...offer }) => ({
     ...offer, vehicle_photo_url: vehicle_photo_key ? await getVehiclePhotoUrl(vehicle_photo_key).catch(() => null) : null,

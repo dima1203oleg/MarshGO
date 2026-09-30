@@ -41,6 +41,10 @@ export function ProductionMarketplace() {
   const [authIntro, setAuthIntro] = useState(true);
   const [origin, setOrigin] = useState('');
   const [destination, setDestination] = useState('');
+  const [searchOriginPlace, setSearchOriginPlace] = useState<ApiPlace | null>(null);
+  const [searchDestinationPlace, setSearchDestinationPlace] = useState<ApiPlace | null>(null);
+  const [routePlaceField, setRoutePlaceField] = useState<'origin' | 'destination' | null>(null);
+  const [routePlaceSuggestions, setRoutePlaceSuggestions] = useState<ApiPlace[]>([]);
   const [date, setDate] = useState(todayKyiv);
   const [seats, setSeats] = useState(1);
   const [offers, setOffers] = useState<ApiOffer[]>([]);
@@ -118,10 +122,16 @@ export function ProductionMarketplace() {
   const refreshOpenDemands = useCallback(async () => setOpenDemands(await productionApi.openDemands()), []);
   const refreshAdminQueue = useCallback(async () => setAdminQueue(await productionApi.adminVerificationQueue()), []);
   const loadOffers = useCallback(async () => {
-    const next = await productionApi.offers({ origin: origin.trim(), destination: destination.trim(), date, seats });
+    const next = await productionApi.offers({
+      origin: origin.trim(), destination: destination.trim(), date, seats,
+      ...(searchOriginPlace && searchDestinationPlace ? {
+        originCoordinates: [searchOriginPlace.longitude, searchOriginPlace.latitude] as [number, number],
+        destinationCoordinates: [searchDestinationPlace.longitude, searchDestinationPlace.latitude] as [number, number],
+      } : {}),
+    });
     setOffers(next);
     return next;
-  }, [date, destination, origin, seats]);
+  }, [date, destination, origin, seats, searchDestinationPlace, searchOriginPlace]);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
@@ -162,10 +172,26 @@ export function ProductionMarketplace() {
   const search = async (event?: FormEvent) => {
     event?.preventDefault();
     if (!origin.trim() || !destination.trim()) { setStatusMessage('Вкажіть місто відправлення та призначення.'); return; }
+    if (!searchOriginPlace || !searchDestinationPlace) { setStatusMessage('Оберіть обидві точки зі справжніх результатів геокодера.'); return; }
     setBusy(true); setStatusMessage('');
     try { await loadOffers(); setShowResults(true); setTab('search'); }
     catch (error) { setStatusMessage(error instanceof Error ? error.message : 'Пошук не вдався.'); }
     finally { setBusy(false); }
+  };
+
+  const searchRoutePlace = async (field: 'origin' | 'destination') => {
+    const query = field === 'origin' ? origin.trim() : destination.trim();
+    if (query.length < 3) { setStatusMessage('Введіть щонайменше 3 символи для пошуку місця.'); return; }
+    setRoutePlaceField(field); setRoutePlaceSuggestions([]); setPlaceSearchBusy(true); setStatusMessage('');
+    try { setRoutePlaceSuggestions(await productionApi.suggestPlaces(query)); }
+    catch (error) { setStatusMessage(error instanceof Error ? error.message : 'Пошук місця недоступний.'); }
+    finally { setPlaceSearchBusy(false); }
+  };
+
+  const chooseSearchPlace = (place: ApiPlace) => {
+    if (routePlaceField === 'origin') { setSearchOriginPlace(place); setOrigin(place.label); }
+    if (routePlaceField === 'destination') { setSearchDestinationPlace(place); setDestination(place.label); }
+    setRoutePlaceSuggestions([]); setRoutePlaceField(null);
   };
 
   const book = async (offer: ApiOffer) => {
@@ -493,9 +519,11 @@ export function ProductionMarketplace() {
 
   const searchForm = <form onSubmit={search} className="rounded-[1.7rem] border border-white bg-white p-3 shadow-[0_10px_28px_rgba(31,67,114,.08)]">
     <div className="relative">
-      <label className="flex items-center gap-3 rounded-t-2xl bg-[#f6f8fc] px-3 py-3"><MapPin size={19} className="text-blue-600"/><span className="flex-1"><small className="block text-[10px] text-slate-400">Звідки</small><input required value={origin} onChange={(event) => setOrigin(event.target.value)} className="w-full bg-transparent text-sm font-bold outline-none" placeholder="Місто відправлення" /></span><span className="mr-1 h-2 w-2 rounded-full bg-emerald-500"/></label>
+      <label className="flex items-center gap-3 rounded-t-2xl bg-[#f6f8fc] px-3 py-3"><MapPin size={19} className="text-blue-600"/><span className="flex-1"><small className="block text-[10px] text-slate-400">Звідки</small><input required value={origin} onChange={(event) => {setOrigin(event.target.value);setSearchOriginPlace(null);}} className="w-full bg-transparent text-sm font-bold outline-none" placeholder="Місто відправлення" /></span><button type="button" onClick={()=>void searchRoutePlace('origin')} disabled={placeSearchBusy} className="rounded-lg bg-white px-2.5 py-2 text-[10px] font-bold text-blue-700">{placeSearchBusy&&routePlaceField==='origin'?'…':'Знайти'}</button></label>
+      {routePlaceField==='origin'&&routePlaceSuggestions.length>0&&<div className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-100 bg-white">{routePlaceSuggestions.map(place=><button key={place.providerId} type="button" onClick={()=>chooseSearchPlace(place)} className="block w-full px-3 py-2.5 text-left text-xs hover:bg-blue-50">{place.label}</button>)}</div>}
       <div className="ml-[21px] h-3 border-l-2 border-dotted border-slate-300" />
-      <label className="flex items-center gap-3 rounded-b-2xl bg-[#f6f8fc] px-3 py-3"><MapPin size={19} className="text-rose-500"/><span className="flex-1"><small className="block text-[10px] text-slate-400">Куди</small><input required value={destination} onChange={(event) => setDestination(event.target.value)} className="w-full bg-transparent text-sm font-bold outline-none" placeholder="Місто призначення" /></span><button type="button" onClick={() => { setOrigin(destination); setDestination(origin); }} className="grid h-9 w-9 place-items-center rounded-full bg-white text-blue-600 shadow-sm" aria-label="Поміняти місцями"><ArrowDownUp size={17}/></button></label>
+      <label className="flex items-center gap-3 rounded-b-2xl bg-[#f6f8fc] px-3 py-3"><MapPin size={19} className="text-rose-500"/><span className="flex-1"><small className="block text-[10px] text-slate-400">Куди</small><input required value={destination} onChange={(event) => {setDestination(event.target.value);setSearchDestinationPlace(null);}} className="w-full bg-transparent text-sm font-bold outline-none" placeholder="Місто призначення" /></span><button type="button" onClick={()=>void searchRoutePlace('destination')} disabled={placeSearchBusy} className="rounded-lg bg-white px-2.5 py-2 text-[10px] font-bold text-blue-700">{placeSearchBusy&&routePlaceField==='destination'?'…':'Знайти'}</button><button type="button" onClick={() => { setOrigin(destination); setDestination(origin); setSearchOriginPlace(searchDestinationPlace); setSearchDestinationPlace(searchOriginPlace); }} className="grid h-9 w-9 place-items-center rounded-full bg-white text-blue-600 shadow-sm" aria-label="Поміняти місцями"><ArrowDownUp size={17}/></button></label>
+      {routePlaceField==='destination'&&routePlaceSuggestions.length>0&&<div className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-100 bg-white">{routePlaceSuggestions.map(place=><button key={place.providerId} type="button" onClick={()=>chooseSearchPlace(place)} className="block w-full px-3 py-2.5 text-left text-xs hover:bg-blue-50">{place.label}</button>)}</div>}
     </div>
     <div className="mt-2 grid grid-cols-[1.2fr_.8fr] gap-2">
       <label className="flex items-center gap-2 rounded-xl bg-[#f6f8fc] px-3 py-2.5"><CalendarDays size={17} className="text-slate-500"/><span className="min-w-0"><small className="block text-[10px] text-slate-400">Дата</small><input required type="date" value={date} onChange={(event) => setDate(event.target.value)} className="w-full bg-transparent text-xs font-semibold outline-none" /></span></label>

@@ -254,6 +254,13 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     const foundOffer = foundOffers.find((offer) => offer.id === response.data.id);
     assert.equal(foundOffer?.vehicle_photo_key, undefined);
     assert.equal(foundOffer?.vehicle_photo_url, null);
+    const geoFound = await fetch(`${apiUrl}/api/v1/offers?origin=Стрий&destination=Львів&date=${localDepartureDate}&seats=2&originLon=24.02&originLat=49.02&destinationLon=25.01&destinationLat=50.01`);
+    assert.equal(geoFound.status, 200);
+    assert.equal((await geoFound.json() as { data: Array<{ id: string }> }).data.some((offer) => offer.id === response.data.id), true);
+    const geoMiss = await fetch(`${apiUrl}/api/v1/offers?origin=Стрий&destination=Львів&date=${localDepartureDate}&seats=2&originLon=23&originLat=48&destinationLon=25.01&destinationLat=50.01`);
+    assert.equal((await geoMiss.json() as { data: Array<{ id: string }> }).data.some((offer) => offer.id === response.data.id), false);
+    const partialGeo = await fetch(`${apiUrl}/api/v1/offers?origin=Стрий&destination=Львів&originLon=24&originLat=49`);
+    assert.equal(partialGeo.status, 400);
     const tooMany = await fetch(`${apiUrl}/api/v1/offers?origin=API%20Publish%20Origin&destination=API%20Publish%20Destination&date=${localDepartureDate}&seats=5`);
     assert.equal((await tooMany.json() as { data: unknown[] }).data.length, 0);
   });

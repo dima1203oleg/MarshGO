@@ -125,8 +125,10 @@ export const productionApi = {
   async logout() {
     try { await request('/auth/logout'); } finally { accessToken = null; }
   },
-  offers(params: { origin: string; destination: string; date: string; seats: number }) {
-    const query = new URLSearchParams({ ...params, seats: String(params.seats) });
+  offers(params: { origin: string; destination: string; date: string; seats: number; originCoordinates?: [number, number]; destinationCoordinates?: [number, number] }) {
+    const query = new URLSearchParams({ origin: params.origin, destination: params.destination, date: params.date, seats: String(params.seats) });
+    if (params.originCoordinates) { query.set('originLon', String(params.originCoordinates[0])); query.set('originLat', String(params.originCoordinates[1])); }
+    if (params.destinationCoordinates) { query.set('destinationLon', String(params.destinationCoordinates[0])); query.set('destinationLat', String(params.destinationCoordinates[1])); }
     return request<ApiOffer[]>(`/offers?${query.toString()}`);
   },
   myOffers() { return request<ApiOffer[]>('/offers/mine'); },

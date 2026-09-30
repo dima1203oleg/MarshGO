@@ -303,3 +303,27 @@
 **External blockers:** Private S3-compatible photo/document storage and production geocoder/routing provider.
 
 **Next implementation step:** Run integration/build/iOS simulator checks for this slice; then continue the core acceptance path and remaining route-aware search/navigation work.
+
+## Phase 3 / 5 — PostGIS route endpoint search
+
+**Phase:** 3 Offers/Search; 5 Production UI replacement.
+
+**Status:** PARTIAL. Production UI search now requires actual provider-selected origin and destination points; the API supports geospatial endpoint proximity. Full route overlap/segment feasibility is still outstanding.
+
+**Completed:** Added PostGIS search by origin and destination `ST_DWithin` within 20 km, with date and seat filters. The mobile home/search inputs now call the place provider and send selected WGS84 coordinates; typing alone is not treated as a canonical place. All four coordinate query parameters are required together and validated. The API keeps exact-name matching only for compatibility with legacy clients. Integration tests verify a near coordinate match succeeds despite different city labels, a remote origin is excluded, and partial coordinate input returns 400.
+
+**Modified files:** `server/index.ts`, `src/services/productionApi.ts`, `src/views/ProductionMarketplace.tsx`, `tests/api-bookings.integration.test.ts`, `docs/API.md`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** None; query uses the existing GiST-indexed PostGIS offer points.
+
+**Endpoints:** Extended `GET /api/v1/offers` with `originLon`, `originLat`, `destinationLon`, and `destinationLat`.
+
+**Tests:** `npm test` passed 16/16 with local PostGIS/API; geo tests cover successful proximity, remote exclusion and incomplete coordinate validation. `npm run typecheck`, `npm run lint`, `npm run build`, and `git diff --check` passed. `npm run ios:simulator` rebuilt, installed, and launched the app on iPhone 18 Pro / iOS 27; screenshot `/tmp/marshgo-ios-geosearch.png` confirms the reference-aligned welcome screen in the native shell. Search interaction itself is not tap-tested on this headless host.
+
+**DEMO/TRUTH status:** Current production search uses coordinates selected from the configured geocoder and live DB inventory. No straight-line route, fabricated ETA or demo provider data is returned. Exact-name compatibility remains available to non-UI callers.
+
+**Remaining issues:** Endpoint radius is only a coarse match. Route polyline overlap, intermediate pickup/dropoff feasibility, time window, full total-cost sorting, pagination/cursors and real geocoder configuration remain outstanding. A user cannot complete point selection until a geocoder is configured.
+
+**External blockers:** Contracted/self-hosted HTTPS geocoder and routing provider for production use.
+
+**Next implementation step:** Add route-corridor candidate evaluation using stored road geometry and measured detours; connect real provider configuration before claiming production search availability.

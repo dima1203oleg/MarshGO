@@ -11,7 +11,7 @@ Base URL: the API server, default `http://localhost:3002`.
 
 `GET /api/v1/offers?origin=Стрий&destination=Львів`
 
-Returns published, future offers with available seats from PostgreSQL. Optional `date=YYYY-MM-DD` is interpreted in `Europe/Kyiv`; `seats` defaults to 1 and filters out offers without enough seats. It does not return seed data. Search is currently exact city-name matching; geographic route matching is not implemented yet.
+Returns published, future offers with available seats from PostgreSQL. Optional `date=YYYY-MM-DD` is interpreted in `Europe/Kyiv`; `seats` defaults to 1 and filters out offers without enough seats. It does not return seed data. Supplying all four origin/destination WGS84 coordinate parameters selects PostGIS geosearch with a 20 km endpoint radius. If coordinates are omitted, legacy clients use exact city-name matching. The UI requires geocoder-selected route points.
 
 Offer search and `/offers/mine` include `vehicle_photo_url` only when the primary photo's private object can be signed. Raw object keys are never returned; an unavailable photo store does not suppress otherwise valid offers.
 
