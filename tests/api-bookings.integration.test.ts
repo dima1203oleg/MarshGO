@@ -528,7 +528,7 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
       method: 'POST', headers: headers(ids.passengerB), body: JSON.stringify({ body: 'I should not see this.' }),
     });
     assert.equal(outside.status, 404);
-    const blockAfterBooking = await fetch(`${apiUrl}/api/v1/users/${ids.driver}/block`, { method: 'POST', headers: headers(ids.passengerA) });
+    const blockAfterBooking = await fetch(`${apiUrl}/api/v1/bookings/${booking.data.id}/block-other`, { method: 'POST', headers: headers(ids.passengerA) });
     assert.equal(blockAfterBooking.status, 204);
     const blockedHistory = await fetch(`${apiUrl}/api/v1/conversations/${conversation.data.id}/messages`, { headers: headers(ids.driver) });
     assert.equal(blockedHistory.status, 404);

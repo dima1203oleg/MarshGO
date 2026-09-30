@@ -1,13 +1,13 @@
 import { FormEvent, lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import {
-  ArrowDownUp, ArrowLeft, ArrowRight, Bell, CalendarDays, CarFront, ChevronRight,
+  ArrowDownUp, ArrowLeft, ArrowRight, Ban, Bell, CalendarDays, CarFront, ChevronRight,
   CircleUserRound, Clock3, Compass, Home, LogOut, MapPin, MessageCircle, Minus, Navigation,
   Plus, Search, ShieldCheck, Ticket, Users, X,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
-import { ApiBooking, ApiDemand, ApiMessage, ApiOffer, ApiPassengerNavigationMatch, ApiPlace, ApiProposal, ApiProposalRevision, ApiUser, ApiVehicle, ApiVehiclePhoto, ApiVerificationQueueItem, ApiVerificationRecord, productionApi } from '../services/productionApi';
+import { ApiBlockedUser, ApiBooking, ApiDemand, ApiMessage, ApiOffer, ApiPassengerNavigationMatch, ApiPlace, ApiProposal, ApiProposalRevision, ApiUser, ApiVehicle, ApiVehiclePhoto, ApiVerificationQueueItem, ApiVerificationRecord, productionApi } from '../services/productionApi';
 const ProductionNavigation = lazy(() => import('./ProductionNavigation').then((module) => ({ default: module.ProductionNavigation })));
 
 type Tab = 'home' | 'search' | 'trips' | 'chat' | 'profile' | 'demand' | 'requests' | 'my-demands' | 'offer-new' | 'admin' | 'navigation';
@@ -51,6 +51,7 @@ export function ProductionMarketplace() {
   const [offers, setOffers] = useState<ApiOffer[]>([]);
   const [myOffers, setMyOffers] = useState<ApiOffer[]>([]);
   const [bookings, setBookings] = useState<ApiBooking[]>([]);
+  const [blockedUsers, setBlockedUsers] = useState<ApiBlockedUser[]>([]);
   const [vehicles, setVehicles] = useState<ApiVehicle[]>([]);
   const [vehiclePhotos, setVehiclePhotos] = useState<Record<string, ApiVehiclePhoto[]>>({});
   const [verificationRecords, setVerificationRecords] = useState<ApiVerificationRecord[]>([]);
@@ -115,6 +116,7 @@ export function ProductionMarketplace() {
   const [vehicleForm, setVehicleForm] = useState({ make: '', model: '', modelYear: new Date().getFullYear(), seats: 4 });
 
   const refreshBookings = useCallback(async () => setBookings(await productionApi.bookings()), []);
+  const refreshBlockedUsers = useCallback(async () => setBlockedUsers(await productionApi.blockedUsers()), []);
   const refreshMyOffers = useCallback(async () => setMyOffers(await productionApi.myOffers()), []);
   const refreshVehicles = useCallback(async () => {
     const [nextVehicles, nextVerification] = await Promise.all([productionApi.vehicles(), productionApi.verificationRecords()]);
@@ -147,9 +149,9 @@ export function ProductionMarketplace() {
     productionApi.restoreSession().then(async () => {
       const currentUser = await productionApi.me();
       setUser(currentUser);
-      await Promise.all([refreshBookings(), refreshVehicles(), ...(currentUser.roles.includes('driver') ? [refreshMyOffers(), refreshOpenDemands()] : []), ...(currentUser.roles.includes('passenger') ? [refreshMyDemands(), refreshPassengerNavigationMatches()] : [])]);
+      await Promise.all([refreshBookings(), refreshVehicles(), refreshBlockedUsers(), ...(currentUser.roles.includes('driver') ? [refreshMyOffers(), refreshOpenDemands()] : []), ...(currentUser.roles.includes('passenger') ? [refreshMyDemands(), refreshPassengerNavigationMatches()] : [])]);
     }).catch(() => undefined).finally(() => setLoading(false));
-  }, [refreshBookings, refreshMyOffers, refreshPassengerNavigationMatches, refreshVehicles]);
+  }, [refreshBlockedUsers, refreshBookings, refreshMyOffers, refreshPassengerNavigationMatches, refreshVehicles]);
 
   useEffect(() => {
     if (tab !== 'chat' || !selectedBooking) { setRealtimeConnected(false); return; }
@@ -194,7 +196,7 @@ export function ProductionMarketplace() {
       const currentUser = await productionApi.verifyOtp(phone, code);
       setUser(currentUser);
       const refreshedUser = await productionApi.me(); setUser(refreshedUser);
-      await Promise.all([refreshBookings(), refreshVehicles(), ...(refreshedUser.roles.includes('driver') ? [refreshMyOffers(), refreshOpenDemands()] : []), ...(refreshedUser.roles.includes('passenger') ? [refreshMyDemands(), refreshPassengerNavigationMatches()] : [])]);
+      await Promise.all([refreshBookings(), refreshVehicles(), refreshBlockedUsers(), ...(refreshedUser.roles.includes('driver') ? [refreshMyOffers(), refreshOpenDemands()] : []), ...(refreshedUser.roles.includes('passenger') ? [refreshMyDemands(), refreshPassengerNavigationMatches()] : [])]);
       setShowLogin(false);
     } catch (error) { setStatusMessage(error instanceof Error ? error.message : 'Код не прийнято.'); }
     finally { setBusy(false); }
@@ -522,9 +524,33 @@ export function ProductionMarketplace() {
     finally { setBusy(false); }
   };
 
+  const blockBookingContact = async () => {
+    if (!selectedBooking) return;
+    const contactName = selectedBooking.current_user_is_driver ? selectedBooking.passenger_name : selectedBooking.driver_name;
+    if (!window.confirm(`Заблокувати ${contactName}? Чат і нові пропозиції між вами будуть недоступні. Наявне бронювання не скасується.`)) return;
+    setBusy(true); setStatusMessage('');
+    try {
+      await productionApi.blockBookingOther(selectedBooking.id);
+      await refreshBlockedUsers();
+      setMessages([]); setRealtimeConnected(false); setSelectedBooking(null); setTab('trips');
+      setStatusMessage(`${contactName} заблоковано. Бронювання залишилось у списку поїздок.`);
+    } catch (error) { setStatusMessage(error instanceof Error ? error.message : 'Не вдалося заблокувати користувача.'); }
+    finally { setBusy(false); }
+  };
+
+  const unblockContact = async (blocked: ApiBlockedUser) => {
+    setBusy(true); setStatusMessage('');
+    try {
+      await productionApi.unblockUser(blocked.user_id);
+      await refreshBlockedUsers();
+      setStatusMessage(`${blocked.display_name} розблоковано.`);
+    } catch (error) { setStatusMessage(error instanceof Error ? error.message : 'Не вдалося розблокувати користувача.'); }
+    finally { setBusy(false); }
+  };
+
   const logout = async () => {
     await productionApi.logout().catch(() => undefined);
-    setUser(null); setBookings([]); setVehicles([]); setOffers([]); setShowLogin(true); setOtpRequested(false);
+    setUser(null); setBookings([]); setBlockedUsers([]); setVehicles([]); setOffers([]); setShowLogin(true); setOtpRequested(false);
   };
 
   if (loading) return <main className="grid min-h-[100svh] place-items-center bg-[#f5f8fd] text-sm text-slate-500">Завантажуємо захищену сесію…</main>;
@@ -632,7 +658,7 @@ export function ProductionMarketplace() {
     {bookings.length ? <div className="space-y-3">{bookings.map((booking)=><article key={booking.id} className="rounded-[1.4rem] bg-white p-4 shadow-sm"><div className="flex items-center justify-between"><span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${booking.status==='confirmed'?'bg-emerald-50 text-emerald-700':'bg-slate-100 text-slate-600'}`}>{booking.status==='confirmed'?'Підтверджено':booking.status}</span><span className="text-[10px] text-slate-400">{formatDate(booking.departure_at,{day:'numeric',month:'short'})}</span></div><h2 className="mt-3 text-lg font-extrabold">{booking.origin_name} <span className="text-blue-600">→</span> {booking.destination_name}</h2><p className="mt-1 text-xs text-slate-500">{formatDate(booking.departure_at)} · {booking.seat_count} місця · {formatMoney(booking.total_price_minor,booking.currency)}</p><div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3"><span className="text-xs text-slate-500">{booking.current_user_is_driver ? `Пасажир · ${booking.passenger_name}` : `Водій · ${booking.driver_name}`}</span><div className="flex items-center gap-2">{!booking.current_user_is_driver&&booking.status==='confirmed'&&<button disabled={busy} onClick={()=>void cancelTrip(booking)} className="rounded-xl bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700 disabled:opacity-50">Скасувати</button>}<button onClick={()=>void openChat(booking)} className="flex items-center gap-1 rounded-xl bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700"><MessageCircle size={14}/>Написати</button></div></div></article>)}</div> : <div className="rounded-2xl bg-white p-6 text-center"><Ticket className="mx-auto text-slate-300"/><p className="mt-2 font-bold">Поки немає поїздок</p><p className="mt-1 text-sm text-slate-500">Знайдіть маршрут і забронюйте місце.</p><button onClick={()=>setTab('home')} className="mt-4 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white">Знайти поїздку</button></div>}
   </div>;
 
-  const chatScreen = <div className="mx-auto flex min-h-[65svh] w-full max-w-xl flex-col px-5 pb-5"><div className="mb-4 flex items-center gap-3"><button onClick={()=>{setSelectedBooking(null);setTab('trips');}} className="grid h-10 w-10 place-items-center rounded-full bg-white"><ArrowLeft size={18}/></button><div><h1 className="font-extrabold">{selectedBooking ? (selectedBooking.current_user_is_driver ? selectedBooking.passenger_name : selectedBooking.driver_name) : 'Чати'}</h1><p className="text-xs text-slate-500">{selectedBooking ? `${selectedBooking.origin_name} → ${selectedBooking.destination_name}` : 'Повідомлення за бронюваннями'}</p></div></div>
+  const chatScreen = <div className="mx-auto flex min-h-[65svh] w-full max-w-xl flex-col px-5 pb-5"><div className="mb-4 flex items-center gap-3"><button onClick={()=>{setSelectedBooking(null);setTab('trips');}} className="grid h-10 w-10 place-items-center rounded-full bg-white"><ArrowLeft size={18}/></button><div className="min-w-0 flex-1"><h1 className="truncate font-extrabold">{selectedBooking ? (selectedBooking.current_user_is_driver ? selectedBooking.passenger_name : selectedBooking.driver_name) : 'Чати'}</h1><p className="truncate text-xs text-slate-500">{selectedBooking ? `${selectedBooking.origin_name} → ${selectedBooking.destination_name}` : 'Повідомлення за бронюваннями'}</p></div>{selectedBooking&&<button disabled={busy} onClick={()=>void blockBookingContact()} aria-label="Заблокувати співрозмовника" title="Заблокувати співрозмовника" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-rose-50 text-rose-600 disabled:opacity-50"><Ban size={18}/></button>}</div>
     {!selectedBooking ? <div className="space-y-3">{bookings.length ? bookings.map(booking=><button key={booking.id} onClick={()=>void openChat(booking)} className="flex w-full items-center gap-3 rounded-2xl bg-white p-4 text-left"><span className="grid h-10 w-10 place-items-center rounded-full bg-blue-50 text-blue-600"><MessageCircle size={18}/></span><span className="min-w-0 flex-1"><b className="block text-sm">{booking.origin_name} → {booking.destination_name}</b><small className="text-slate-500">{booking.driver_name} · {formatDate(booking.departure_at,{day:'numeric',month:'short'})}</small></span><ChevronRight size={17} className="text-slate-400"/></button>) : <p className="rounded-2xl bg-white p-5 text-sm text-slate-500">Чат з’явиться після підтвердження бронювання.</p>}</div> : <>
       <div className="mb-3 rounded-xl bg-white px-3 py-2 text-center text-[11px] text-slate-500">Бронювання · {selectedBooking.origin_name} → {selectedBooking.destination_name}<span className={`ml-2 font-semibold ${realtimeConnected?'text-emerald-600':'text-slate-400'}`}>{realtimeConnected?'· онлайн':'· офлайн, історія збережена'}</span></div>
       <div className="flex-1 space-y-3 overflow-y-auto rounded-2xl bg-white/60 p-3">{messages.length ? messages.map((item)=><div key={item.id} className={`max-w-[84%] rounded-2xl px-3 py-2.5 text-sm ${item.sender_id===user.id?'ml-auto rounded-br-md bg-blue-600 text-white':'rounded-bl-md bg-white shadow-sm'}`}><p>{item.body}</p><small className={`mt-1 block text-[10px] ${item.sender_id===user.id?'text-blue-100':'text-slate-400'}`}>{formatDate(item.created_at,{hour:'2-digit',minute:'2-digit'})}</small></div>) : <div className="py-10 text-center text-sm text-slate-500">Почніть розмову з водієм або пасажиром.</div>}</div>
@@ -659,6 +685,7 @@ export function ProductionMarketplace() {
       {vehicles.length ? <div className="space-y-2">{vehicles.map(vehicleCard)}</div> : <p className="rounded-xl bg-[#f6f8fc] p-3 text-sm text-slate-500">Автомобілів ще не додано.</p>}
       <button onClick={()=>void enableDriver()} disabled={user.roles.includes('driver')||busy} className="mt-3 w-full rounded-xl border border-blue-100 py-3 text-sm font-bold text-blue-700 disabled:text-slate-400">{user.roles.includes('driver')?'Роль водія активна':'Увімкнути роль водія'}</button>
     </div>
+    <section className="mt-4 rounded-[1.4rem] bg-white p-4 shadow-sm"><div className="mb-3 flex items-center gap-2"><Ban size={17} className="text-rose-600"/><div><h2 className="font-extrabold">Заблоковані користувачі</h2><p className="text-xs text-slate-500">Керуйте приватним списком блокувань</p></div></div>{blockedUsers.length? <div className="space-y-2">{blockedUsers.map((blocked)=><div key={blocked.user_id} className="flex items-center gap-3 rounded-xl bg-[#f6f8fc] p-3"><span className="grid h-9 w-9 place-items-center rounded-full bg-white text-sm font-bold text-slate-600">{blocked.display_name.slice(0,1).toUpperCase()}</span><span className="min-w-0 flex-1"><b className="block truncate text-sm">{blocked.display_name}</b><small className="text-slate-500">Заблоковано {formatDate(blocked.created_at,{day:'numeric',month:'short',year:'numeric'})}</small></span><button disabled={busy} onClick={()=>void unblockContact(blocked)} className="rounded-lg bg-white px-3 py-2 text-xs font-bold text-blue-700 disabled:opacity-50">Розблокувати</button></div>)}</div>:<p className="rounded-xl bg-[#f6f8fc] p-3 text-sm text-slate-500">Список порожній. Заблокувати контакт можна з його чату.</p>}</section>
     <div className="mt-4 overflow-hidden rounded-[1.4rem] bg-white shadow-sm">{[['Документи','Статус перевірки доступний у профілі'],['Налаштування','Особисті налаштування'],['Допомога','Центр підтримки']].map(([title,sub])=><button key={title} onClick={()=>setStatusMessage(`${title}: цей розділ ще не реалізовано.`)} className="flex w-full items-center gap-3 border-b border-slate-100 px-4 py-4 text-left last:border-0"><span className="grid h-9 w-9 place-items-center rounded-xl bg-slate-50 text-slate-600"><ShieldCheck size={17}/></span><span className="flex-1"><b className="block text-sm">{title}</b><small className="text-slate-400">{sub}</small></span><ChevronRight size={17} className="text-slate-400"/></button>)}</div>
     {user.roles.some((role)=>role==='admin'||role==='moderator')&&<button onClick={()=>{setTab('admin');void refreshAdminQueue().catch((error:unknown)=>setStatusMessage(error instanceof Error?error.message:'Черга перевірок недоступна.'));}} className="mt-3 flex w-full items-center justify-between rounded-xl bg-white p-4 text-left shadow-sm"><span><b className="block text-sm">Модерація документів</b><small className="text-slate-500">Захищена черга перевірки водіїв</small></span><ChevronRight size={17} className="text-slate-400"/></button>}
     <button onClick={()=>void logout()} className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-white py-3 text-sm font-bold text-rose-600 shadow-sm"><LogOut size={16}/>Вийти</button>

@@ -1992,6 +1992,27 @@ app.get('/api/v1/bookings/:id/conversation', requireAuth, asyncHandler(async (re
   res.json({ data: rows[0] });
 }));
 
+app.post('/api/v1/bookings/:id/block-other', requireAuth, asyncHandler(async (req, res) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query<{ passenger_id: string; driver_id: string }>(
+      `SELECT b.passenger_id,o.driver_id FROM bookings b JOIN offers o ON o.id=b.offer_id
+        WHERE b.id=$1 AND (b.passenger_id=$2 OR o.driver_id=$2) FOR UPDATE OF b`, [req.params.id, req.userId],
+    );
+    const booking = rows[0];
+    if (!booking) throw new ApiError(404, 'booking unavailable');
+    const otherUserId = booking.passenger_id === req.userId ? booking.driver_id : booking.passenger_id;
+    await client.query('INSERT INTO user_blocks(blocker_id,blocked_id) VALUES($1,$2) ON CONFLICT DO NOTHING', [req.userId, otherUserId]);
+    await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES($1,$2,$3,$4)', [req.userId, 'user.blocked', 'user', otherUserId]);
+    await client.query('COMMIT');
+    res.status(204).end();
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally { client.release(); }
+}));
+
 app.post('/api/v1/realtime/ticket', requireAuth, asyncHandler(async (req, res) => {
   if (!req.sessionId || !req.userId) throw new ApiError(401, 'A server session is required for realtime chat', 'realtime_session_required');
   const now = Date.now();

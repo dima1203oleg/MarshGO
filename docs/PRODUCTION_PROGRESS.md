@@ -470,31 +470,31 @@
 
 **External dependencies:** No provider credentials for this slice. Redis provisioning is already local but its pub/sub integration is outstanding engineering work.
 
-**Next implementation step:** Add block/unblock controls to the production profile/chat views and shared Redis fan-out before any multi-instance deployment.
+**Next implementation step:** Add shared Redis WebSocket fan-out before any multi-instance deployment; block controls are recorded in the account-safety continuation below.
 
 ## Phase 7 — User-ID block enforcement
 
 **Phase:** 7 Real-time and account-safety continuation.
 
-**Status:** PARTIAL. Authenticated server-side block management is implemented and integration-tested. The production UI, report/moderation case flow, and rules for existing bookings still need product work.
+**Status:** PARTIAL. Server and production UI block/unblock flows are implemented and integration/E2E-tested. Report/moderation intake and active-booking policy remain.
 
-**Completed:** Added `user_blocks` with user-ID keys, cascade deletion, and a reverse lookup index. Authenticated list/block/unblock endpoints are idempotent where applicable and audit logged. Either direction in a blocked pair prevents demand proposals and negotiation, suppresses passive route candidates, and denies booking-chat history and message sends. Blocks leave an already-confirmed booking intact; standard booking cancellation remains a separate explicit action.
+**Completed:** Added `user_blocks` with user-ID keys, cascade deletion, and a reverse lookup index. Authenticated list/block/unblock endpoints are audit logged. Production chat offers a participant block action for a confirmed booking; Profile lists blocks and can unblock. Either direction in a blocked pair prevents demand proposals and negotiation, suppresses passive route candidates, and denies booking-chat history and message sends. Blocks leave an already-confirmed booking intact; standard booking cancellation remains a separate explicit action.
 
-**Modified files:** `server/migrations/013_user_blocks.sql`, `server/index.ts`, `tests/api-bookings.integration.test.ts`, `tests/navigation.integration.test.ts`, `docs/API.md`, `docs/DATA_MODEL.md`, `docs/SECURITY.md`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_PROGRESS.md`.
+**Modified files:** `server/migrations/013_user_blocks.sql`, `server/index.ts`, `src/services/productionApi.ts`, `src/views/ProductionMarketplace.tsx`, `tests/api-bookings.integration.test.ts`, `tests/navigation.integration.test.ts`, `e2e/marketplace.spec.ts`, `docs/API.md`, `docs/DATA_MODEL.md`, `docs/SECURITY.md`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_CHECKLIST.md`, `docs/PRODUCTION_PROGRESS.md`.
 
 **Database changes:** `user_blocks(blocker_id, blocked_id, created_at)`, composite primary key, self-block check, cascading foreign keys, and reverse lookup index.
 
-**Endpoints:** `GET /api/v1/users/me/blocks`; `POST /api/v1/users/:id/block`; `DELETE /api/v1/users/:id/block`.
+**Endpoints:** `GET /api/v1/users/me/blocks`; `POST /api/v1/users/:id/block`; `DELETE /api/v1/users/:id/block`; `POST /api/v1/bookings/:id/block-other` resolves the participant server-side to avoid disclosing another account ID to the client.
 
-**Tests:** Applied migration `013_user_blocks.sql` to local `marshgo` and isolated `marshgo_e2e` PostGIS databases. `npm run test:integration` passed booking/chat 5/5 and navigation 1/1; assertions verify block/unblock, proposal denial, chat history/send denial, and matching suppression while blocked. `npm test` passed 12/12, `npm run test:e2e` passed 1/1, `npm run typecheck`, `npm run lint`, `npm run build`, and `git diff --check` passed.
+**Tests:** Applied migration `013_user_blocks.sql` to local `marshgo` and isolated `marshgo_e2e` PostGIS databases. `npm run test:integration` passed booking/chat 5/5 and navigation 1/1; assertions verify block/unblock, proposal denial, chat history/send denial, and matching suppression while blocked. `npm test` passed 12/12; production build passed; two-account `npm run test:e2e` passed 1/1, covering UI block, profile listing, blocked message rejection/no insert, unblock, and restored message persistence. `npm run typecheck`, `npm run lint`, and `git diff --check` passed. `npm run ios:simulator` passed with the local development API running: Capacitor sync, Xcode build, install and launch on iPhone 18 Pro / iOS 27; screenshot at `/tmp/marshgo-ios-block-ui.png` shows the branded onboarding. Touch-driven native login and in-app screens remain untested.
 
-**DEMO/TRUTH status:** Block data and enforcement are server/PostgreSQL-backed. No demo blacklist data is used by these endpoints. Existing bookings are not cancelled by a block. UI controls are not yet connected.
+**DEMO/TRUTH status:** Block data and enforcement are server/PostgreSQL-backed. No demo blacklist data is used by the production endpoints or PWA. Existing bookings are not cancelled by a block.
 
-**Remaining issues:** Expose block/unblock actions in production profile, chat, and demand UI; add abuse report/moderation workflow; define the customer-support policy for blocking an existing booking pair.
+**Remaining issues:** Add abuse report/moderation intake and resolution; define the customer-support policy for blocking an existing booking pair.
 
 **External dependencies:** None for the server slice. Staff moderation still requires initial authorized staff provisioning and the unfinished admin workflow.
 
-**Next implementation step:** Connect block controls to the production client, then continue reliability hardening for shared WebSocket fan-out and external geocoder/routing configuration.
+**Next implementation step:** Add report/moderation workflow, then implement shared Redis WebSocket fan-out and continue owner provisioning for external geocoder/routing services.
 
 ## Phase 6 — Foreground GPS navigation session
 

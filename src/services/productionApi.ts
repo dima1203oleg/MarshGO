@@ -6,6 +6,7 @@ export type ApiUser = {
   roles: string[];
   is_verified: boolean;
 };
+export type ApiBlockedUser = { user_id: string; display_name: string; created_at: string };
 
 export type ApiOffer = {
   id: string;
@@ -117,6 +118,7 @@ async function request<T>(path: string, init: RequestInit = {}, retryAuth = true
     }
   }
   if (!response.ok) throw new Error(body?.error?.message || `Request failed (${response.status})`);
+  if (response.status === 204) return undefined as T;
   return (body as ApiEnvelope<T>).data;
 }
 
@@ -218,6 +220,9 @@ export const productionApi = {
   cancelBooking(bookingId: string) {
     return request<{ id: string; status: string; replayed?: boolean }>(`/bookings/${bookingId}/cancel`, { method: 'POST' });
   },
+  blockedUsers() { return request<ApiBlockedUser[]>('/users/me/blocks'); },
+  blockBookingOther(bookingId: string) { return request<void>(`/bookings/${bookingId}/block-other`, { method: 'POST' }); },
+  unblockUser(userId: string) { return request<void>(`/users/${encodeURIComponent(userId)}/block`, { method: 'DELETE' }); },
   me() { return request<ApiUser>('/users/me'); },
   vehicles() { return request<ApiVehicle[]>('/vehicles'); },
   enableRole(role: 'passenger' | 'driver') {

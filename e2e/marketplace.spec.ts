@@ -239,6 +239,30 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
        JOIN bookings b ON b.id=c.booking_id WHERE b.offer_id=$1 ORDER BY m.created_at`, [offerId],
     );
     expect(messages.rows.map((row) => row.body)).toEqual(['Буду на місці о 08:45.', realtimeMessage]);
+
+    await passengerPage.getByRole('button', { name: 'Поїздки', exact: true }).click();
+    await passengerPage.getByRole('button', { name: /Написати/ }).first().click();
+    passengerPage.once('dialog', (dialog) => dialog.accept());
+    await passengerPage.getByRole('button', { name: 'Заблокувати співрозмовника' }).click();
+    await passengerPage.getByRole('button', { name: 'Профіль', exact: true }).click();
+    await expect(passengerPage.getByText('Заблоковані користувачі')).toBeVisible();
+    await expect(passengerPage.getByText('MARSHGO E2E Driver', { exact: true })).toBeVisible();
+
+    const deniedMessage = 'Це повідомлення має бути заблоковане.';
+    const driverChatInput = driverPage.getByPlaceholder('Напишіть повідомлення…');
+    await driverChatInput.fill(deniedMessage);
+    await driverChatInput.press('Enter');
+    await expect(driverPage.getByRole('status')).toContainText('conversation unavailable');
+    const deniedStored = await pool.query<{ count: number }>('SELECT count(*)::int AS count FROM messages WHERE body=$1', [deniedMessage]);
+    expect(deniedStored.rows[0].count).toBe(0);
+
+    await passengerPage.getByRole('button', { name: 'Розблокувати', exact: true }).click();
+    await expect(passengerPage.getByText('Список порожній. Заблокувати контакт можна з його чату.')).toBeVisible();
+    await driverChatInput.press('Enter');
+    await expect(driverPage.getByText(deniedMessage)).toBeVisible();
+    await passengerPage.getByRole('button', { name: 'Поїздки', exact: true }).click();
+    await passengerPage.getByRole('button', { name: /Написати/ }).last().click();
+    await expect(passengerPage.getByText(deniedMessage)).toBeVisible();
   } finally {
     await passengerContext.close();
     await driverContext.close();
