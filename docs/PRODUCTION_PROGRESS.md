@@ -854,7 +854,13 @@
 
 **External dependencies:** No credentials for this local MARSHGO inventory workflow. Contracted partner feeds, managed routing/geocoding, staging infrastructure, SMS and payment providers remain owner-provisioned blockers.
 
-**Next implementation step:** Commit and push the verified changes to the umbrella source branch and the standalone Server, Site, and iOS wrapper repositories; verify their GitHub Actions. Continue remaining production blockers after remote CI.
+**Next implementation step:** Continue mobile WKWebView interaction tests and route-provider/map validation, then close remaining Gate A staging and external-service blockers. The current GitHub changes and CI runs are already published/verified below.
+
+## GitHub and native build verification — 2026-09-30
+
+Changes were pushed to the existing production work branch and the three focused repositories. GitHub Actions passed for umbrella CI at `f88d6db`, Server CI at `e358ad2`, Site CI at `80631b0`, and the iOS Simulator Build at `ff71161`. The iOS workflow compiled the latest default-branch site bundle and Xcode Simulator target. Umbrella PR #1 remains open as a draft; no production/staging deployment was performed.
+
+The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max and iPhone 16 Pro Max simulators. Both render the reference-aligned welcome screen; this does not verify tapping through sign-in, OTP, booking, maps on a live provider, locked-screen GPS, signing, or App Store distribution. Mobile viewport browser E2E covers route UI at both dimensions using a local routing fixture. Production-grade route tiles/routing, SMS credentials, managed hosting, external commercial providers, and two-account staging acceptance remain blockers.
 
 ## Phase 4 continuation — competing proposal acceptance race
 
