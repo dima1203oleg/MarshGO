@@ -831,3 +831,27 @@
 **External dependencies:** No credentials required for participant authorization. Refund handling depends on an actual payment provider/contract, which is not configured.
 
 **Next implementation step:** Publish and verify the mirrored server and site changes, then keep advancing Gate A test cases while preserving the outstanding staging/provider blockers.
+
+## Phase 4 continuation — competing proposal acceptance race
+
+**Phase:** 4 Reverse Market; exclusive demand resolution.
+
+**Status:** PARTIAL. Two different proposals can no longer be mistaken as independently confirmable when a passenger double-confirms or requests race. Existing demand-row locking serializes acceptance; a regression test now proves the transaction outcome.
+
+**Completed:** Extended the real API/PostGIS negotiation test to create two driver proposals for one passenger demand and submit both passenger acceptance requests concurrently. It asserts one HTTP 201 and one HTTP 409, then queries PostgreSQL to prove the demand is matched, exactly one proposal is accepted, the other is rejected, and only one booking/offer was created. Existing counteroffer agreement and accepted-price tests remain in the same integration flow.
+
+**Modified files:** `tests/api-bookings.integration.test.ts`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_CHECKLIST.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** None.
+
+**Endpoints:** Existing `POST /api/v1/proposals/:id/accept`.
+
+**Tests:** `npm run typecheck`, `npm run lint`, and `API_TEST_DATABASE_URL=... npm run test:integration` passed. Booking/negotiation: 8/8; navigation: 1/1; Redis multi-instance: 1/1; restart persistence: 1/1. The first typecheck flagged an inferred fetch response as implicit `any`; adding the explicit DOM `Response` type resolved it before the passing rerun.
+
+**DEMO/TRUTH status:** This is a two-request race against the actual local API and PostgreSQL transaction/row locks, using isolated test identities. It is not a production traffic load test.
+
+**Open issues:** Route relevance and detour/time feasibility are not yet enforced for reverse-market proposals; staging and external-provider validation also remain open.
+
+**External dependencies:** None for the transaction invariant. Real routing/geocoding and staging infrastructure remain separately blocked.
+
+**Next implementation step:** Mirror and validate this acceptance-race test in the server repository, then implement/test route relevance with an explicit road-routing provider contract without substituting straight-line distance for route truth.

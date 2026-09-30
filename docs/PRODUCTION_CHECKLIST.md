@@ -11,6 +11,7 @@
 - [x] Passenger or trip driver can cancel a confirmed booking; unrelated accounts are denied, and repeated cancellation returns inventory once.
 - [x] Isolated local integration proves booking state, seat inventory, and idempotent replay survive a real API process stop/start against the same PostgreSQL database; managed staging restart/restore rehearsal remains open.
 - [x] Demand/proposal/counter history, driver agreement on passenger counters, and explicit passenger confirmation that atomically creates the booking.
+- [x] Two simultaneous passenger acceptances for competing proposals on one demand produce one booking and close the losing proposal.
 - [x] Participant-scoped persistent message history and send APIs.
 - [x] Staff-guarded vehicle verification queue, private evidence upload contract, document decisions, and vehicle gating after both required approvals.
 - [x] Private booking-scoped safety report intake, staff moderation queue, audited reviewer decisions, and administrator-only suspension.
