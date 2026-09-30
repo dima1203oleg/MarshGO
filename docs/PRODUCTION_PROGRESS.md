@@ -1306,6 +1306,8 @@ The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max 
 
 **Tests:** `npm run check:production` passed (48 unit pass, 1 optional DB test skipped; typecheck, lint and build passed). Standalone Site typecheck, lint and build passed. `E2E_DATABASE_URL=postgres://…/marshgo_e2e_rendezvous npm run test:e2e` passed 5/5 after rerunning sequentially; the first concurrent run raced the production build against the PWA build and temporarily missed map tiles. Focused onboarding and Journey detail reruns passed 1/1 each. The focused iPhone viewport/navigation rerun passed on both emulated models and captured home, search, trips, profile and route map screens. Screenshot review caught and fixed low-contrast styling, a duplicate back button, and overlong address labels.
 
+**CI follow-up:** GitHub E2E exposed a race where a realtime interest notification could replace a transient success toast before the assertion. The test now verifies the persisted UI state instead of the toast; the focused two-account flow passed locally (1/1). A rerun of GitHub CI is pending.
+
 **Demo/truth status:** iOS remains the shared React UI in WKWebView. Simulator screenshots confirm startup rendering, while onboarding and journey interactions are browser-driven E2E, not native tap-through. The current planner supplies Community journeys only; external transport remains explicitly unavailable. These screens are styled to the supplied design direction, not pixel-identical exports from the reference boards.
 
 **External dependencies:** Live bus/taxi/transit APIs, production geocoder/router/map tiles, APNs/TestFlight credentials and physical-device acceptance remain outstanding.

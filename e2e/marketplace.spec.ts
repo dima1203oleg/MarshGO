@@ -489,7 +489,8 @@ test('two accounts confirm a route match, negotiate, book and refresh the driver
     await passengerPage.getByRole('button', { name: 'Оновити', exact: true }).click();
     await expect(passengerPage.getByRole('button', { name: 'Підтвердити взаємний інтерес' })).toBeVisible();
     await passengerPage.getByRole('button', { name: 'Підтвердити взаємний інтерес' }).click();
-    await expect(passengerPage.getByRole('status')).toContainText('Взаємний інтерес підтверджено. Ціну та бронювання ще не погоджено');
+    await expect(passengerPage.getByRole('button', { name: 'Підтвердити взаємний інтерес' })).toHaveCount(0);
+    await expect(passengerPage.getByText(/Взаємний інтерес підтверджено\. Водій може надіслати ціну у пропозиції/)).toBeVisible();
 
     const proposalId = await driverPage.evaluate(async ({ token, demandId, candidateId, vehicle }) => {
       const response = await fetch(`/api/v1/demands/${demandId}/proposals`, {
