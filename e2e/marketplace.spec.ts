@@ -13,6 +13,7 @@ const pool = new Pool({ connectionString: databaseUrl });
 const driverId = randomUUID();
 const vehicleId = randomUUID();
 const offerId = randomUUID();
+const rescueAlternativeId = randomUUID();
 const driverPhone = `+38050${String(Date.now()).slice(-7)}`;
 const passengerPhone = `+38067${String(Date.now() + 1).slice(-7)}`;
 const navigationPhone = `+38063${String(Date.now() + 2).slice(-7)}`;
@@ -65,6 +66,17 @@ test.beforeAll(async () => {
       (date_trunc('day',now() AT TIME ZONE 'Europe/Kyiv') + interval '1 day' + interval '10 hours 30 minutes') AT TIME ZONE 'Europe/Kyiv',
       78000,5400,'e2e_fixture',15000,4,4)
   `, [offerId, driverId, vehicleId]);
+  await pool.query(`
+    INSERT INTO offers(id,driver_id,vehicle_id,origin_name,destination_name,origin,destination,route,
+      departure_at,arrival_at,distance_m,duration_s,route_source,price_per_seat_minor,total_seats,available_seats)
+    VALUES($1,$2,$3,'Rescue E2E Origin','Rescue E2E Destination',
+      ST_SetSRID(ST_MakePoint(23.8561,49.2567),4326)::geography,
+      ST_SetSRID(ST_MakePoint(24.0297,49.8397),4326)::geography,
+      ST_SetSRID(ST_GeomFromGeoJSON('{"type":"LineString","coordinates":[[23.8561,49.2567],[24.0297,49.8397]]}'),4326),
+      (date_trunc('day',now() AT TIME ZONE 'Europe/Kyiv') + interval '1 day' + interval '10 hours') AT TIME ZONE 'Europe/Kyiv',
+      (date_trunc('day',now() AT TIME ZONE 'Europe/Kyiv') + interval '1 day' + interval '11 hours 30 minutes') AT TIME ZONE 'Europe/Kyiv',
+      78000,5400,'e2e_fixture',22000,4,4)
+  `, [rescueAlternativeId, driverId, vehicleId]);
 });
 
 test.afterAll(async () => {
@@ -291,6 +303,41 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     await passengerPage.getByRole('button', { name: 'Поїздки', exact: true }).click();
     await passengerPage.getByRole('button', { name: /Написати/ }).last().click();
     await expect(passengerPage.getByText(deniedMessage)).toBeVisible();
+
+    const cancelledBooking = await passengerPage.evaluate(async targetOfferId => {
+      const sessionResponse = await fetch('/api/v1/auth/refresh', { method: 'POST' });
+      const session = await sessionResponse.json();
+      const response = await fetch('/api/v1/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.data.accessToken}`, 'Idempotency-Key': `e2e-rescue-${crypto.randomUUID()}` },
+        body: JSON.stringify({ offerId: targetOfferId, seats: 1 }),
+      });
+      return { status: response.status, body: await response.json() };
+    }, offerId);
+    expect(cancelledBooking.status).toBe(201);
+    await passengerPage.reload();
+    await expect(passengerPage.getByText('Привіт, E2E!')).toBeVisible();
+    await passengerPage.getByRole('button', { name: 'Поїздки', exact: true }).click();
+    const rescueTripCard = passengerPage.locator('article').filter({ hasText: 'MARSHGO E2E Driver' }).first();
+    passengerPage.once('dialog', dialog => dialog.accept());
+    await rescueTripCard.getByRole('button', { name: 'Скасувати' }).click();
+    await expect(rescueTripCard.getByText('Інші поїздки MARSHGO поруч')).toBeVisible();
+    const rescueAlternative = rescueTripCard.getByRole('button').filter({ hasText: 'Rescue E2E Origin' });
+    await expect(rescueAlternative).toContainText('MARSHGO Community');
+    await expect(rescueAlternative).toContainText('220 грн');
+    await rescueAlternative.click();
+    await expect(passengerPage.getByRole('heading', { name: /Rescue E2E Origin/ })).toBeVisible();
+    const rescueBookingResponse = passengerPage.waitForResponse(response =>
+      response.url().endsWith('/api/v1/bookings') && response.request().method() === 'POST',
+    );
+    await passengerPage.getByRole('button', { name: /Забронювати місце/ }).click();
+    const bookingResponse = await rescueBookingResponse;
+    expect(bookingResponse.status(), await bookingResponse.text()).toBe(201);
+    const rescueBooking = await pool.query<{ status: string; total_price_minor: number }>(
+      `SELECT b.status,b.total_price_minor FROM bookings b WHERE b.offer_id=$1 AND b.passenger_id=(SELECT id FROM users WHERE phone_e164=$2)`,
+      [rescueAlternativeId, passengerPhone],
+    );
+    expect(rescueBooking.rows).toEqual([{ status: 'confirmed', total_price_minor: 22000 }]);
   } finally {
     await passengerContext.close();
     await driverContext.close();

@@ -9,6 +9,7 @@
 - [x] API liveness/readiness and database-backed city/date/seat offer search.
 - [x] Transactional seat decrement, per-user idempotency, ownership checks, and idempotent cancellation API.
 - [x] Passenger or trip driver can cancel a confirmed booking; unrelated accounts are denied, and repeated cancellation returns inventory once.
+- [x] Passenger cancellation starts a server-backed Rescue lookup over actual active MARSHGO Community inventory and permits selecting an alternative that uses the standard atomic booking endpoint; locally tested through cancel → rescue result → new confirmed booking. Search is endpoint-radius/time-window based and is not yet provider/routing detour aware.
 - [x] Isolated local integration proves booking state, seat inventory, and idempotent replay survive a real API process stop/start against the same PostgreSQL database; managed staging restart/restore rehearsal remains open.
 - [x] Demand/proposal/counter history, driver agreement on passenger counters, and explicit passenger confirmation that atomically creates the booking.
 - [x] Two simultaneous passenger acceptances for competing proposals on one demand produce one booking and close the losing proposal.
@@ -37,6 +38,7 @@
 - [x] Production trip screen supports signed ticket handoff, driver boarding/start, and two-party completion using server state and realtime refresh; covered in two-account E2E.
 - [ ] Add native QR generation/scanning and completion-review UI; navigation candidate conversion still needs an integrated booking/waypoint flow and requires foreground connectivity.
 - [ ] Configure production routing/geocoding services and implement corridor/multi-stop search and rerouting.
+- [ ] Upgrade Rescue matching to road-route/time-window feasibility and include only externally contracted, freshly quoted partner inventory where agreements allow.
 - [ ] Configure a real map-tile provider. Navigation currently shows returned route geometry over a neutral canvas and displays an explicit missing-map warning.
 - [ ] Shared rate limiting, object storage, deletion/retention processing, and security review.
 - [x] Local mobile-sized browser E2E: two independent contexts, local OTP/geocoder, server search, booking, shared seats, negotiation, role/ownership check, real-time chat delivery and persisted replay.

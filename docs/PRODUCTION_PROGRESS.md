@@ -832,6 +832,30 @@
 
 **Next implementation step:** Publish and verify the mirrored server and site changes, then keep advancing Gate A test cases while preserving the outstanding staging/provider blockers.
 
+## Phase 7 continuation — cancellation Rescue lookup and rebooking
+
+**Phase:** 7 Real-time/Rescue; 5 UI integration.
+
+**Status:** PARTIAL. A passenger can now retrieve currently published MARSHGO Community alternatives after cancelling a confirmed booking and continue to the existing atomic booking flow. This is not the full provider-backed or route-detour-aware Rescue system.
+
+**Completed:** Added an authenticated `GET /api/v1/bookings/:id/rescue` endpoint restricted to the cancelled booking's passenger. It filters real published Community offers by available seats, future departure time window, endpoint proximity (20 km), self-dealing and user blocks, and reports the source/check time and distance. The production PWA displays these results on the cancelled trip and selecting one opens its normal booking detail. Fixed a UI bug where a successful booking could be followed by a failing empty-search refresh and appear unsuccessful. Extended PostGIS integration and browser E2E through cancellation, Rescue display, selection, and a second persisted booking.
+
+**Modified files:** `server/index.ts`, `src/services/productionApi.ts`, `src/views/ProductionMarketplace.tsx`, `tests/api-bookings.integration.test.ts`, `e2e/marketplace.spec.ts`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_CHECKLIST.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** None.
+
+**Endpoints:** `GET /api/v1/bookings/:id/rescue` (new; passenger scoped); existing `POST /api/v1/bookings/:id/cancel`, `GET /api/v1/offers/:id`, and `POST /api/v1/bookings` continue to provide the underlying state changes.
+
+**Tests:** Root `npm run typecheck`, `npm run lint`, `npm test` (12/12), `npm run build`, full `npm run test:integration` (booking 9/9, navigation 1/1, Redis multi-instance realtime 1/1, API restart 1/1), and `E2E_DATABASE_URL=postgres://...@127.0.0.1:5434/marshgo_e2e REDIS_URL=redis://127.0.0.1:6380 npm run test:e2e` (2/2) passed. The Playwright route view rendered at iPhone 15 Pro Max and 16 Pro Max viewports against the isolated OSRM fixture. The standalone server clone also passed typecheck, unit tests (8/8), and the complete integration suite with the same 9/1/1/1 results; the standalone site passed lint, typecheck, and production build. The Capacitor app built, installed and launched on both named iOS simulators; screenshots `/tmp/marshgo-ios-rescue-iphone15-later.png` and `/tmp/marshgo-ios-rescue-iphone16-later.png` show the welcome screen correctly rendered. This simulator check does not automate taps, OTP or booking inside native WebKit, and the route geometry still comes from a local test fixture rather than a contracted production routing/map service.
+
+**DEMO/TRUTH status:** Rescue cards contain data read from PostgreSQL and use the ordinary authenticated booking API; no partner, taxi, bus or fabricated inventory is presented. The 20 km endpoint radius and time window are a limited prefilter, not proof of a feasible road detour, and results may change between display and booking (the booking transaction revalidates capacity/state).
+
+**Open issues:** Add routing-engine detour feasibility, provider freshness/quote contracts, time-zone-aware cancellation policy/refunds, external partner alternatives, and notification delivery. Complete full-suite reruns and synchronize all changed source/tests/docs to the three standalone repositories before CI verification.
+
+**External dependencies:** No credentials for this local MARSHGO inventory workflow. Contracted partner feeds, managed routing/geocoding, staging infrastructure, SMS and payment providers remain owner-provisioned blockers.
+
+**Next implementation step:** Commit and push the verified changes to the umbrella source branch and the standalone Server, Site, and iOS wrapper repositories; verify their GitHub Actions. Continue remaining production blockers after remote CI.
+
 ## Phase 4 continuation — competing proposal acceptance race
 
 **Phase:** 4 Reverse Market; exclusive demand resolution.
