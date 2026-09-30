@@ -1101,3 +1101,27 @@ The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max 
 **Publication:** Server `bbea24b` pushed to `MarshGO-Server/main`; Site `50816d7` pushed to `MarshGO-Site/main`; iOS verification documentation `647ffbb` pushed to `MarshGO-iOS/main` (iOS CI pending). The umbrella changes are on `codex/marshgo-production`; do not merge PR or deploy production.
 
 **Next implementation step:** Add a Playwright two-account acceptance journey from route candidate confirmation through proposal and booking/reroute, then implement multi-passenger route stop ordering only after the provider-backed route test is reliable.
+
+## Phase 6 continuation — browser acceptance and realtime outbox repair
+
+**Phase:** 6 Navigation/matching; 7 realtime; 9 mobile and E2E verification.
+
+**Status:** PARTIAL. The core browser flow now passes on the production PWA build with two isolated accounts; an outbox row decoder defect that prevented fresh navigation events from publishing is fixed and verified across two API instances.
+
+**Completed:** Added Playwright coverage for a driver starting foreground road navigation, explicitly opting into route matching, and a second account publishing a geographically compatible demand. The driver expresses interest while safely stopped; the passenger confirms; the driver sends a candidate-bound price; the passenger accepts; PostgreSQL contains one confirmed booking and ordered pickup/dropoff waypoints; after browser reload the driver's real route geometry changes and matching stays disabled. Captured viewport and map geometry checks for iPhone 15 Pro Max and iPhone 16 Pro Max presets. The E2E booking assertion now waits for the actual POST response and checks returned booking identity, inventory and persisted rows. Increased the isolated E2E-only global API request budget to avoid false throttling from map/GPS polling without changing runtime defaults. Diagnosed and fixed the realtime outbox worker's `uuid[]` recipient handling/query decoder and made event-type vs recipient validation errors explicit.
+
+**Modified files:** `server/index.ts`, `e2e/marketplace.spec.ts`, `playwright.config.ts`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** None. Existing outbox recipient arrays are returned to Node as `text[]` for reliable delivery.
+
+**Endpoints/events:** Existing driver-interest/passenger-confirm, navigation proposal creation and proposal acceptance endpoints; persisted `navigation.match.driver-interested`, `navigation.match.passenger-confirmed`, and `navigation.route-updated` events now pass through the outbox worker.
+
+**Tests:** `npm run check:production` passed (typecheck, ESLint, 16 unit tests passed, one DB-only test skipped, production PWA build). `npm run test:integration` passed bookings/negotiation 9/9, navigation 1/1, cross-instance WebSocket/outbox 1/1, restart persistence 1/1, shared Redis rate limit 1/1. Full production-build Playwright E2E passed 3/3: two-account marketplace/rescue/chat, two-account navigation→mutual confirmation→price→booking→reroute, and foreground route/map viewport checks on iPhone 15 Pro Max and 16 Pro Max. Test routing, map tiles and geocoding use local deterministic provider fixtures; simulator screenshots still do not establish physical-device GPS or contracted map/routing service operation.
+
+**DEMO/TRUTH status:** These browser flows use the production PWA bundle and local authenticated API/PostGIS, not `localStorage` seeded fixtures. Device presets run in Chromium emulation. Native UI previously launched on both Xcode simulators, but native auth/GPS and physical iOS navigation remain unverified.
+
+**Open issues:** Production SMS, contracted/self-hosted routing, geocoding and map tiles, private S3 storage, staging/production hosting, background iOS GPS, full payment and partner contracts, multi-passenger stop scheduling and load/restore evidence remain open. Do not describe the product as production-ready.
+
+**External dependencies:** SMS provider credentials, routing/geocoder/tile hosting, object storage, production Redis/database/monitoring/backup, partner agreements, Apple signing/release credentials, and real-device GPS testing.
+
+**Next implementation step:** Mirror the outbox decoder fix and new candidate-to-booking E2E contract into the split Server/Site repositories, run their CI, then continue release-hardening work without promoting/deploying production.
