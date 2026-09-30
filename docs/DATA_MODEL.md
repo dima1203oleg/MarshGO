@@ -26,4 +26,6 @@ The PostgreSQL schema is managed by ordered SQL migrations in `server/migrations
 
 ## Not yet modeled or incomplete
 
-No persistent geocoder place registry, route stops, vehicle photo object lifecycle/cleanup job, location-event retention, navigation sessions/match candidates, push subscriptions/outbox, partner inventory, financial ledger, user blocks/moderation workflows, or migration rollback rehearsal exists yet. These are tracked as incomplete in `docs/PRODUCTION_AUDIT.md` and must not be inferred from UI components.
+Migrations `010_navigation_sessions.sql` and `011_navigation_retention.sql` add owner-scoped foreground navigation sessions with road geometry, destination point/label, route distance/duration/version, opt-in flag (false by default), and the latest GPS point/accuracy/time. GiST indexes support route and current-location queries, and a partial unique index permits one active/paused session per driver. The latest precise point is intentionally not an event history: it is deleted along with destination label/coordinates and route geometry at session end or after five minutes without a GPS update.
+
+No persistent geocoder place registry, route stops, vehicle photo object lifecycle/cleanup job, historical location-event retention, match-candidate engine, push subscriptions/outbox, partner inventory, financial ledger, user blocks/moderation workflows, or migration rollback rehearsal exists yet. These are tracked as incomplete in `docs/PRODUCTION_AUDIT.md` and must not be inferred from UI components.

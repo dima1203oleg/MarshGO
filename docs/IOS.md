@@ -1,6 +1,6 @@
 # MARSHGO iOS app
 
-MARSHGO now has a Capacitor iOS target that packages the existing React app in a native WKWebView. It uses bundle ID `ua.marshgo.app`, iOS 15 or later, the MARSHGO app icon, and portrait layout. The production surface has a mobile-first home/search/trips/chat/profile shell. Its welcome screen uses a bundled Carpathian road image, a transparent status bar with light icons, and the five-control bottom navigation from the supplied reference. Chat is available from a booking; vehicle CRUD and offer booking use the current API. Demand creation, driver offer publishing, navigation, and matching are still incomplete.
+MARSHGO has a Capacitor iOS target that packages the existing React app in a native WKWebView. It uses bundle ID `ua.marshgo.app`, iOS 15 or later, the MARSHGO app icon, and portrait layout. The mobile-first home/search/trips/chat/profile shell follows the supplied reference. The welcome screen uses a bundled Carpathian road image, a transparent status bar with light icons, and five-control bottom navigation. Vehicle CRUD, offer booking, passenger demand, driver publishing and proposal negotiation use the current API. Driver foreground navigation now requests a real GPS fix and server-computed road route, resumes an active session, streams validated foreground fixes, and deletes precise position data when ended. Passive matching, turn instructions, rerouting, tile-provider setup, background GPS, and physical-device permission verification remain incomplete.
 
 ## Build and run on a simulator
 
@@ -26,6 +26,7 @@ The simulator build points at `http://localhost:3002`. The iOS target permits cl
 ## Native limitations and release work
 
 * The current app relies on the existing browser session client. Validate refresh-cookie persistence across force-quit/relaunch on physical iOS devices before release.
-* Foreground location and the native navigation experience are not wired to the UI. Background GPS, push notifications, camera upload, app review metadata, signing, privacy declarations, and physical-device testing remain separate work.
+* `NSLocationWhenInUseUsageDescription` describes foreground route use. Navigation requires `ROUTING_ENGINE_URL`; without it, starting a route returns an unavailable error. `VITE_MAP_TILE_URL` and attribution must point to a contracted or self-hosted tile service before street-map tiles appear.
+* Background GPS is not supported or claimed. Push notifications, camera upload, App Store metadata/signing/privacy declarations, and physical-device GPS-permission testing remain separate work.
 * No App Store archive, signing profile, public endpoint, production SMS, or external payment was created or used in simulator testing.
 * This environment has the CoreSimulator runtime and `simctl` but does not include the graphical `Simulator.app`; `simctl` installed/launched the app and captured its production welcome screen, but interactive field entry and booking gestures could not be automated here.

@@ -351,3 +351,27 @@
 **External blockers:** Tap-capable simulator/physical iPhone for interaction checks; payment provider contract for any future refunds.
 
 **Next implementation step:** Rebuild and launch in the iOS simulator, then implement driver trip lifecycle controls with clear participant-specific actions.
+
+## Phase 6 — Foreground GPS navigation session
+
+**Phase:** 6 Navigation/Matching (foreground navigation slice).
+
+**Status:** PARTIAL. Real GPS session and route persistence are implemented and API-tested. Passenger matching, navigation instructions, rerouting, map-provider configuration, background GPS, and physical-device GPS permission testing remain incomplete.
+
+**Completed:** Added migrations `010_navigation_sessions.sql` and `011_navigation_retention.sql` with one-active-session-per-driver and spatial indexes. Added owner/driver-authorized start, restore, inspect, location-update, and idempotent end API. Starting requires a real GPS origin and successful OSRM-compatible road route; no estimate is invented if routing is absent. The API validates WGS84, sample accuracy ≤100 m, freshness (≤60 s), future skew (≤15 s), ordering, and implausible movement. It returns an on-route check against the road line. End removes precise position, destination label/point, and road geometry; a five-minute no-fix cleanup runs at startup and every 15 seconds. Added a mobile navigation screen in the production shell with destination geocoder selection, native-browser foreground location watch, visible stale/off-route state, real route geometry, map-tile-provider configuration, and explicit disclosure that passenger matching/voice/background navigation are unavailable. iOS now requests foreground location permission with a purpose string.
+
+**Modified files:** `server/migrations/010_navigation_sessions.sql`, `server/migrations/011_navigation_retention.sql`, `server/index.ts`, `src/services/productionApi.ts`, `src/views/ProductionMarketplace.tsx`, `src/views/ProductionNavigation.tsx`, `ios/App/App/Info.plist`, `.env.example`, `package.json`, `tests/fixtures/osrm-stub.mjs`, `tests/navigation.integration.test.ts`, `docs/API.md`, `docs/DATA_MODEL.md`, `docs/SECURITY.md`, `docs/IOS.md`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** `navigation_sessions` with `geography(Point,4326)` destination/current location, `geometry(LineString,4326)` road route, route distance/duration/version, state and opt-in flag. Partial unique active-session-per-driver index plus GiST route/current-location indexes. Destination label is nullable for retention purge.
+
+**Endpoints:** `POST /api/v1/navigation/sessions`; `GET /api/v1/navigation/sessions/active`; `GET /api/v1/navigation/sessions/:id`; `POST /api/v1/navigation/sessions/:id/location`; `POST /api/v1/navigation/sessions/:id/end`.
+
+**Tests:** Applied both migrations on the existing local PostGIS container. Navigation API integration passed 1/1 against local PostGIS/API with a test-only OSRM-compatible fixture. Tested role/owner denial, duplicate active session conflict, route polyline/distance, fresh GPS accepted/on-route, stale GPS 400, teleport 422, idempotent end, and deletion of route/destination/precise point. `npm test`: 11 passed, 2 opt-in integration suites skipped without env. `npm run typecheck`, `npm run lint`, `npm run build`, and `git diff --check` passed after fixture cleanup. `npm run ios:simulator` built/installed/launched `ua.marshgo.app` on iPhone 18 Pro / iOS 27; screenshot `/tmp/marshgo-ios-simulator.png` confirms the production welcome screen renders in the native shell. Tap-through OTP/navigation and GPS permission testing are unavailable because only headless `simctl` is present. The test route fixture does not represent a real roads service.
+
+**DEMO/TRUTH status:** Production navigation no longer uses demo coordinates or simulated movement. API stores one latest GPS point only, available to the owning driver. If `ROUTING_ENGINE_URL` is missing the start request fails closed. No opt-in passenger matching is exposed as active. Without `VITE_MAP_TILE_URL`, the app draws the real route geometry and identifies the missing street-map tile layer.
+
+**Open issues:** No actual dynamic route recalculation, maneuver/voice guidance, geospatial passenger candidate query, detour routing, mutual passenger consent, WebSocket location fanout, offline recovery UX, or background tracking. A tap-driven iOS GPS session was not possible on the headless simulator host.
+
+**External dependencies:** Configure an owned/contracted OSRM-compatible router; approved contracted/self-hosted map tile service plus attribution; real geocoder for selecting destination; physical-device/iOS permission review. Passive matching needs its own route-detour engine and two-sided consent workflow.
+
+**Next implementation step:** Run lint and the complete build/test suite after fixture cleanup; sync, install, and launch the updated iOS app in the available simulator. Then implement and test passenger candidate corridor/detour matching without exposing it as active until both sides confirm.

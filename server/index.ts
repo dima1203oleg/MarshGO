@@ -175,6 +175,144 @@ app.post('/api/v1/routing/route', requireAuth, asyncHandler(async (req, res) => 
   }
 }));
 
+// Foreground navigation stores only the driver's latest location. It is private to the
+// authenticated driver and removed when the session ends. Matching is intentionally
+// absent until the demand corridor / detour engine is implemented.
+app.post('/api/v1/navigation/sessions', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+  const { origin, destination, destinationName } = req.body ?? {};
+  const pointValid = (point: unknown) => Array.isArray(point) && point.length === 2 &&
+    point.every((value) => typeof value === 'number' && Number.isFinite(value)) &&
+    Math.abs(point[0]) <= 180 && Math.abs(point[1]) <= 90;
+  if (!pointValid(origin) || !pointValid(destination) || typeof destinationName !== 'string' ||
+      destinationName.trim().length < 1 || destinationName.trim().length > 120) {
+    throw new ApiError(400, 'A GPS origin, destination coordinates and destination name are required');
+  }
+  let route: Awaited<ReturnType<typeof getRoadRoute>>;
+  try { route = await getRoadRoute(origin as [number, number], destination as [number, number]); }
+  catch (error) {
+    if (error instanceof RoutingUnavailableError) throw new ApiError(503, error.message, 'routing_unavailable');
+    throw error;
+  }
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query('SELECT id FROM users WHERE id=$1 FOR UPDATE', [req.userId]);
+    const active = await client.query('SELECT id FROM navigation_sessions WHERE driver_id=$1 AND state IN (\'active\',\'paused\')', [req.userId]);
+    if (active.rows[0]) throw new ApiError(409, 'End the existing navigation session before starting another', 'navigation_already_active');
+    const { rows } = await client.query(
+      `INSERT INTO navigation_sessions(driver_id,destination_name,destination,route,route_distance_m,route_duration_s)
+       VALUES($1,$2,ST_SetSRID(ST_MakePoint($3,$4),4326)::geography,
+         ST_SetSRID(ST_GeomFromGeoJSON($5),4326),$6,$7)
+       RETURNING id,state,destination_name,route_distance_m,route_duration_s,route_version,opt_in,started_at`,
+      [req.userId, destinationName.trim(), destination[0], destination[1], JSON.stringify({ type: 'LineString', coordinates: route.geometry }),
+        Math.round(route.distanceMeters), Math.round(route.durationSeconds)],
+    );
+    await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES($1,$2,$3,$4)', [req.userId, 'navigation.started', 'navigation_session', rows[0].id]);
+    await client.query('COMMIT');
+    res.status(201).json({ data: { ...rows[0], route: route.geometry, current_location: origin, current_location_accuracy_m: null, current_location_at: null } });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally { client.release(); }
+}));
+
+app.get('/api/v1/navigation/sessions/active', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+  const { rows } = await pool.query(
+    `SELECT id,state,destination_name,route_distance_m,route_duration_s,route_version,opt_in,started_at,ended_at,
+       ST_AsGeoJSON(route)::json->'coordinates' AS route,
+       CASE WHEN current_location IS NULL THEN NULL ELSE json_build_array(ST_X(current_location::geometry),ST_Y(current_location::geometry)) END AS current_location,
+       current_location_accuracy_m,current_location_at
+     FROM navigation_sessions WHERE driver_id=$1 AND state IN ('active','paused') LIMIT 1`, [req.userId],
+  );
+  res.json({ data: rows[0] ?? null });
+}));
+
+app.get('/api/v1/navigation/sessions/:id', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+  const { rows } = await pool.query(
+    `SELECT id,state,destination_name,route_distance_m,route_duration_s,route_version,opt_in,started_at,ended_at,
+       ST_AsGeoJSON(route)::json->'coordinates' AS route,
+       CASE WHEN current_location IS NULL THEN NULL ELSE json_build_array(ST_X(current_location::geometry),ST_Y(current_location::geometry)) END AS current_location,
+       current_location_accuracy_m,current_location_at
+     FROM navigation_sessions WHERE id=$1 AND driver_id=$2 AND state IN ('active','paused')`, [req.params.id, req.userId],
+  );
+  if (!rows[0]) throw new ApiError(404, 'navigation session unavailable');
+  res.json({ data: rows[0] });
+}));
+
+app.post('/api/v1/navigation/sessions/:id/location', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+  const { coordinates, accuracyMeters, capturedAt } = req.body ?? {};
+  const validPoint = Array.isArray(coordinates) && coordinates.length === 2 && coordinates.every((v) => typeof v === 'number' && Number.isFinite(v)) &&
+    Math.abs(coordinates[0]) <= 180 && Math.abs(coordinates[1]) <= 90;
+  const captured = new Date(capturedAt);
+  const now = Date.now();
+  if (!validPoint || typeof accuracyMeters !== 'number' || !Number.isFinite(accuracyMeters) || accuracyMeters < 0 || accuracyMeters > 100 ||
+      !Number.isFinite(captured.getTime()) || captured.getTime() < now - 60_000 || captured.getTime() > now + 15_000) {
+    throw new ApiError(400, 'GPS point is invalid, inaccurate, stale or has an invalid timestamp', 'invalid_location');
+  }
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const session = await client.query<{ current_location_at: Date | null; current_location_accuracy_m: number | null; state: string }>(
+      `SELECT state,current_location_at,current_location_accuracy_m FROM navigation_sessions WHERE id=$1 AND driver_id=$2 FOR UPDATE`, [req.params.id, req.userId],
+    );
+    const current = session.rows[0];
+    if (!current) throw new ApiError(404, 'navigation session unavailable');
+    if (current.state !== 'active') throw new ApiError(409, 'navigation session is not active', 'navigation_not_active');
+    if (current.current_location_at && captured <= new Date(current.current_location_at)) throw new ApiError(409, 'GPS sample is out of order', 'location_out_of_order');
+    if (current.current_location_at) {
+      const previous = await client.query<{ distance_m: number; elapsed_s: number }>(
+        `SELECT ST_Distance(current_location,ST_SetSRID(ST_MakePoint($2,$3),4326)::geography) AS distance_m,
+         EXTRACT(EPOCH FROM ($4::timestamptz-current_location_at)) AS elapsed_s
+         FROM navigation_sessions WHERE id=$1`, [req.params.id, coordinates[0], coordinates[1], captured.toISOString()],
+      );
+      const elapsedS = Math.max(0, Number(previous.rows[0]?.elapsed_s));
+      const maxMeters = Math.max(250, elapsedS * 80 + accuracyMeters + Number(current.current_location_accuracy_m ?? 0));
+      if (Number(previous.rows[0]?.distance_m) > maxMeters) throw new ApiError(422, 'GPS movement is implausible; navigation paused for safety', 'implausible_location');
+    }
+    const update = await client.query<{ on_route: boolean; current_location_at: Date }>(
+      `UPDATE navigation_sessions SET current_location=ST_SetSRID(ST_MakePoint($3,$4),4326)::geography,
+        current_location_accuracy_m=$5,current_location_at=$6
+       WHERE id=$1 AND driver_id=$2
+       RETURNING ST_DWithin(route::geography,current_location,500) AS on_route,current_location_at`,
+      [req.params.id, req.userId, coordinates[0], coordinates[1], accuracyMeters, captured.toISOString()],
+    );
+    await client.query('COMMIT');
+    res.json({ data: { accepted: true, onRoute: update.rows[0].on_route, capturedAt: update.rows[0].current_location_at } });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally { client.release(); }
+}));
+
+app.post('/api/v1/navigation/sessions/:id/end', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+  const { rows } = await pool.query(
+    `UPDATE navigation_sessions SET state='ended',opt_in=false,ended_at=COALESCE(ended_at,now()),destination_name=NULL,destination=NULL,route=NULL,
+       current_location=NULL,current_location_accuracy_m=NULL,current_location_at=NULL
+     WHERE id=$1 AND driver_id=$2 AND state<>'ended' RETURNING id,state,ended_at`, [req.params.id, req.userId],
+  );
+  if (!rows[0]) {
+    const existing = await pool.query('SELECT id FROM navigation_sessions WHERE id=$1 AND driver_id=$2', [req.params.id, req.userId]);
+    if (!existing.rows[0]) throw new ApiError(404, 'navigation session unavailable');
+    res.json({ data: { id: req.params.id, state: 'ended', replayed: true } });
+    return;
+  }
+  await pool.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES($1,$2,$3,$4)', [req.userId, 'navigation.ended', 'navigation_session', req.params.id]);
+  res.json({ data: rows[0] });
+}));
+
+async function expireStaleNavigationSessions() {
+  await pool.query(
+    `WITH expired AS (
+       UPDATE navigation_sessions SET state='ended',opt_in=false,ended_at=now(),destination_name=NULL,destination=NULL,route=NULL,
+         current_location=NULL,current_location_accuracy_m=NULL,current_location_at=NULL
+       WHERE state IN ('active','paused') AND COALESCE(current_location_at,started_at)<now()-interval '5 minutes'
+       RETURNING driver_id,id
+     )
+     INSERT INTO audit_events(actor_id,action,entity_type,entity_id)
+       SELECT driver_id,'navigation.expired','navigation_session',id FROM expired`,
+  );
+}
+
 app.post('/api/v1/auth/otp/request', asyncHandler(async (req, res) => {
   const phone = req.body?.phone;
   const requestedName = req.body?.displayName;
@@ -1567,7 +1705,13 @@ app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
 });
 
 const server = app.listen(port, host, () => console.log(JSON.stringify({ level: 'info', event: 'api.started', host, port })));
+void expireStaleNavigationSessions().catch((error: unknown) => console.error(JSON.stringify({ level: 'error', event: 'navigation.expiry_failed', message: error instanceof Error ? error.message : 'unknown_error' })));
+const navigationExpiryTimer = setInterval(() => {
+  void expireStaleNavigationSessions().catch((error: unknown) => console.error(JSON.stringify({ level: 'error', event: 'navigation.expiry_failed', message: error instanceof Error ? error.message : 'unknown_error' })));
+}, 15_000);
+navigationExpiryTimer.unref();
 async function shutdown() {
+  clearInterval(navigationExpiryTimer);
   server.close(() => { void pool.end().finally(() => process.exit(0)); });
 }
 process.on('SIGTERM', shutdown);

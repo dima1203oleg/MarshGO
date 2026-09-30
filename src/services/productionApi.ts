@@ -64,6 +64,12 @@ export type ApiVerificationQueueItem = ApiVerificationRecord & {
 export type ApiMessage = { id: string; sender_id: string; sender_name: string; body: string; created_at: string };
 export type ApiConversation = { id: string; booking_id: string; created_at: string };
 export type ApiPlace = { label: string; latitude: number; longitude: number; providerId: string };
+export type ApiNavigationSession = {
+  id: string; state: 'active' | 'paused' | 'ended'; destination_name: string;
+  route_distance_m: number; route_duration_s: number; route_version: number; opt_in: boolean;
+  started_at: string; ended_at?: string | null; route: [number, number][];
+  current_location: [number, number] | null; current_location_accuracy_m: number | null; current_location_at: string | null;
+};
 export type ApiDemand = {
   id: string; origin_name: string; destination_name: string; earliest_departure: string; latest_departure: string;
   passenger_count: number; budget_minor: number | null; budget_type: 'total_all' | 'per_seat'; notes: string | null;
@@ -143,6 +149,17 @@ export const productionApi = {
   suggestPlaces(query: string) {
     return request<ApiPlace[]>(`/places/suggest?q=${encodeURIComponent(query)}`);
   },
+  startNavigation(input: { origin: [number, number]; destination: [number, number]; destinationName: string }) {
+    return request<ApiNavigationSession>('/navigation/sessions', { method: 'POST', body: JSON.stringify(input) });
+  },
+  activeNavigation() { return request<ApiNavigationSession | null>('/navigation/sessions/active'); },
+  navigationSession(id: string) { return request<ApiNavigationSession>(`/navigation/sessions/${id}`); },
+  sendNavigationLocation(id: string, input: { coordinates: [number, number]; accuracyMeters: number; capturedAt: string }) {
+    return request<{ accepted: boolean; onRoute: boolean; capturedAt: string }>(`/navigation/sessions/${id}/location`, {
+      method: 'POST', body: JSON.stringify(input),
+    });
+  },
+  endNavigation(id: string) { return request<{ id: string; state: string; ended_at?: string; replayed?: boolean }>(`/navigation/sessions/${id}/end`, { method: 'POST' }); },
   createDemand(input: {
     originName: string; destinationName: string; origin: [number, number]; destination: [number, number];
     earliestDeparture: string; latestDeparture: string; passengers: number; budgetMinor?: number;

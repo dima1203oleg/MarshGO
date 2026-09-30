@@ -33,6 +33,8 @@
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(MARKETING_VERSION)</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>MARSHGO uses your location to build and display your active foreground route. Your precise location is private and is deleted when navigation ends.</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>

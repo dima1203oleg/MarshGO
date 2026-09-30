@@ -33,6 +33,15 @@ Verification uploads are not operational until a private S3-compatible bucket, c
 
 `POST /api/v1/routing/route` (authenticated) returns an OSRM-compatible road geometry, distance, and duration. `ROUTING_ENGINE_URL` must point to a configured private or contracted OSRM-compatible endpoint. In production, offer creation requires a successful route and persists the returned geometry, distance, duration, source, and computed arrival time; missing or failed routing returns 503. Local development can create explicitly marked `development_unrouted` fixtures for tests only.
 
+Foreground driver navigation is owner-scoped and requires the driver role:
+
+* `POST /api/v1/navigation/sessions` builds a real route from the current GPS point to a selected geocoded destination; an active session must be ended before starting another. Missing routing returns 503.
+* `GET /api/v1/navigation/sessions/active` restores the current driver's active session; `GET /api/v1/navigation/sessions/:id` is available only to its owner.
+* `POST /api/v1/navigation/sessions/:id/location` accepts fresh WGS84 samples with accuracy ≤100 m, rejects out-of-order/implausible movement, and reports whether the sample is within 500 m of the stored road geometry.
+* `POST /api/v1/navigation/sessions/:id/end` is idempotent and clears the destination label/point, exact coordinates, and route geometry immediately. An API cleanup task also ends sessions with no GPS update for five minutes (including after restart) and removes their location and route data.
+
+The location feed runs only while the foreground PWA screen is visible. There is no background location guarantee, turn-by-turn voice guidance, rerouting, or passive passenger matching yet. `VITE_MAP_TILE_URL` and `VITE_MAP_TILE_ATTRIBUTION` configure the public map tile source; production must use a contracted or self-hosted provider. With no tile provider configured, the UI clearly shows that the road geometry is displayed without a street-map layer.
+
 `GET /api/v1/places/suggest?q=Стрий` (authenticated) requests up to six Ukrainian suggestions from a configured Nominatim-compatible `GEOCODING_ENGINE_URL`. The API validates coordinates and returns provider identifiers and labels. Production refuses non-HTTPS geocoder URLs. Without a contracted/self-hosted provider the route returns 503; the client does not substitute guessed coordinates. Search is rate limited separately.
 
 `POST /api/v1/auth/otp/request` and `POST /api/v1/auth/otp/verify` implement phone challenge enrollment. OTP codes are hashed, expire after five minutes, permit five attempts, and have a one-minute resend cooldown plus a per-phone hourly cap. The no-network OTP provider is allowed only with `NODE_ENV=development` and `AUTH_DEV_OTP=true`; production Twilio delivery requires account credentials and a verified sender. Verify returns a short-lived opaque bearer token and an HttpOnly refresh cookie. `POST /api/v1/auth/refresh` rotates refresh credentials and revokes a token family on reuse; `POST /api/v1/auth/logout` and `/logout-all` revoke sessions.

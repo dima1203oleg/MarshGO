@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint server tests src/App.tsx src/components/AppHeader.tsx src/services/storage.ts src/services/productionApi.ts src/views/HomeView.tsx src/views/SearchView.tsx src/views/ProductionMarketplace.tsx vite.config.ts eslint.config.js",
+    "lint": "eslint server tests src/App.tsx src/components/AppHeader.tsx src/services/storage.ts src/services/productionApi.ts src/views/HomeView.tsx src/views/SearchView.tsx src/views/ProductionMarketplace.tsx src/views/ProductionNavigation.tsx vite.config.ts eslint.config.js",
     "test": "tsx --test tests/*.test.ts",
     "build": "vite build",
     "preview": "vite preview",
