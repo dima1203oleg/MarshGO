@@ -22,13 +22,7 @@ function tomorrowInKyiv() {
   return new Date(Date.UTC(year, month - 1, day + 1)).toISOString().slice(0, 10);
 }
 
-async function signIn(page: import('@playwright/test').Page, name: string, phone: string) {
-  let refreshCookieSetByServer = false;
-  page.on('response', async (response) => {
-    if (response.url().endsWith('/api/v1/auth/otp/verify')) {
-      refreshCookieSetByServer = Boolean((await response.allHeaders())['set-cookie']);
-    }
-  });
+async function signIn(page: import('@playwright/test').Page, name: string, phone: string): Promise<string> {
   await page.goto('/');
   await page.getByRole('button', { name: 'Почати', exact: true }).first().click();
   await page.getByPlaceholder('Ваше ім’я').fill(name);
@@ -39,9 +33,13 @@ async function signIn(page: import('@playwright/test').Page, name: string, phone
   const code = (await otpNotice.innerText()).match(/\b\d{6}\b/)?.[0];
   expect(code, 'development OTP should be visible only in this isolated local E2E environment').toMatch(/^\d{6}$/);
   await page.locator('input[autocomplete="one-time-code"]').fill(code!);
-  await page.getByRole('button', { name: 'Підтвердити номер' }).click();
+  const [authResponse] = await Promise.all([
+    page.waitForResponse(response => response.url().endsWith('/api/v1/auth/otp/verify')),
+    page.getByRole('button', { name: 'Підтвердити номер' }).click(),
+  ]);
   await expect(page.getByText(`Привіт, ${name.split(' ')[0]}!`)).toBeVisible();
-  expect(refreshCookieSetByServer, 'OTP verification should issue a refresh cookie').toBe(true);
+  expect(Boolean((await authResponse.allHeaders())['set-cookie']), 'OTP verification should issue a refresh cookie').toBe(true);
+  return (await authResponse.json()).data.accessToken as string;
 }
 
 test.beforeAll(async () => {
@@ -95,7 +93,19 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
   const driverPage = await driverContext.newPage();
 
   try {
-    await signIn(passengerPage, 'E2E Passenger', passengerPhone);
+    const passengerAccessToken = await signIn(passengerPage, 'E2E Passenger', passengerPhone);
+    const profileBeforeRoleSwitch = await passengerPage.evaluate(async token => fetch('/api/v1/users/me', { headers: { Authorization: `Bearer ${token}` } }).then(async response => ({ status: response.status, body: await response.json() })), passengerAccessToken);
+    expect(profileBeforeRoleSwitch.status).toBe(200);
+    const userIdBeforeRoleSwitch = profileBeforeRoleSwitch.body.data.id;
+    const enabledDriverRole = await passengerPage.evaluate(async token => fetch('/api/v1/users/me/roles', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ role: 'driver' }) }).then(response => response.status), passengerAccessToken);
+    expect(enabledDriverRole).toBe(200);
+    const profileAfterRoleSwitch = await passengerPage.evaluate(async token => fetch('/api/v1/users/me', { headers: { Authorization: `Bearer ${token}` } }).then(response => response.json()), passengerAccessToken);
+    const switchedProfile = profileAfterRoleSwitch.data;
+    expect(switchedProfile.id).toBe(userIdBeforeRoleSwitch);
+    expect(switchedProfile.roles).toEqual(expect.arrayContaining(['passenger', 'driver']));
+    const crossAccountVehicleEdit = await passengerPage.evaluate(async ({ token, targetVehicleId }) => fetch(`/api/v1/vehicles/${targetVehicleId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ make: 'Unauthorized edit' }) }).then(response => response.status), { token: passengerAccessToken, targetVehicleId: vehicleId });
+    expect(crossAccountVehicleEdit).toBe(404);
+
     await test.info().attach('marshgo-iphone-home', {
       body: await passengerPage.screenshot({ fullPage: true }),
       contentType: 'image/png',

@@ -63,7 +63,7 @@ The two-phone acceptance criterion is not met end to end: real SMS is unconfigur
 | ID | Status | Current finding |
 | --- | --- | --- |
 | B01 | PARTIAL | Auth, offers, bookings, demands, proposals, and messages persist in PostgreSQL APIs; development screens still use localStorage. |
-| B02 | PARTIAL | Production user identity is server-issued and stable; dev role switch still swaps seeded demo profiles. Production role-switch UI is not implemented. |
+| B02 | PARTIAL | Production roles are server-side and one account can enable passenger/driver capability without replacing its User ID; the isolated E2E verified stable identity and both persisted roles. Frontend active-role/navigation preferences are not yet a complete production role-switch flow; legacy demo switch still swaps seeded profiles. |
 | B03 | DONE | Removed hardcoded selected offer/demand IDs and fallback-to-first-record behavior; default date now uses Europe/Kyiv today; missing records show an explicit not-found state. |
 | B04 | PARTIAL | API conversations are created per booking with authorized participants; production PWA reads/sends persisted booking messages. WebSocket delivery, unread state, and demand-linked pre-booking chat remain absent; legacy demo still has fixed conversation assumptions. |
 | B05 | PARTIAL | API uses transactional row lock, seat check/decrement, unique idempotency, and concurrent integration coverage; no staging/two-device confirmation yet. |
