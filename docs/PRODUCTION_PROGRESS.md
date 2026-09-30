@@ -886,6 +886,14 @@ The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max 
 
 **Next implementation step:** Mirror the store, test and integration-runner change to `MarshGO-Server`, run standalone CI, then continue hardening Redis failure handling and routing/matching integration.
 
+## GitHub verification — Redis rate-limit release
+
+**Published:** The shared Redis limiter is pushed to the umbrella `MarshGO` repo on `codex/marshgo-production` (`c836b798`) and to `MarshGO-Server` `main` (`6024bd6d`). The existing standalone `MarshGO-Site` (`80631b0`) and `MarshGO-iOS` (`ff71161`) remain published and their latest workflows are successful.
+
+**CI evidence:** [Umbrella push CI](https://github.com/dima1203oleg/MarshGO/actions/runs/36683056699), [umbrella PR CI](https://github.com/dima1203oleg/MarshGO/actions/runs/36683060533), and [Server CI](https://github.com/dima1203oleg/MarshGO-Server/actions/runs/36683055097) all completed successfully. Latest Site CI `36680728871` and iOS Simulator CI `36680859063` are successful. The iOS workflow compiles against the site bundle; simulator screenshot validation was previously done for iPhone 15 Pro Max and iPhone 16 Pro Max but did not automate login/booking interactions.
+
+**Release status:** Source and CI are published across the three focused repositories (plus the umbrella repository). This is not a production deployment. The draft PR remains open; external service and interactive two-account/mobile acceptance blockers listed above remain unresolved.
+
 ## Phase 4 continuation — competing proposal acceptance race
 
 **Phase:** 4 Reverse Market; exclusive demand resolution.
