@@ -40,7 +40,8 @@
 - [ ] Configure production routing/geocoding services and implement corridor/multi-stop search and rerouting.
 - [ ] Upgrade Rescue matching to road-route/time-window feasibility and include only externally contracted, freshly quoted partner inventory where agreements allow.
 - [ ] Configure a real map-tile provider. Navigation currently shows returned route geometry over a neutral canvas and displays an explicit missing-map warning.
-- [ ] Shared rate limiting, object storage, deletion/retention processing, and security review.
+- [x] Shared Redis rate limits for API and place search; cross-instance integration test sends requests through two API processes and observes one shared limit.
+- [ ] Private object storage, deletion/retention processing, trusted proxy configuration, Redis outage recovery/alerting, and security review.
 - [x] Local mobile-sized browser E2E: two independent contexts, local OTP/geocoder, server search, booking, shared seats, negotiation, role/ownership check, real-time chat delivery and persisted replay.
 - [ ] Staging and physical-device acceptance with two independent accounts and real provider credentials.
 - [ ] Staff response policy, coverage schedule, incident escalation and physical safety response procedures for reports and blocked active bookings.

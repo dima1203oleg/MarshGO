@@ -43,6 +43,7 @@ export default defineConfig({
         API_HOST: '127.0.0.1',
         API_PORT: '3302',
         REDIS_URL: process.env.REDIS_URL ?? 'redis://127.0.0.1:6380',
+        API_RATE_LIMIT_PREFIX: `marshgo:e2e:${process.pid}:${Date.now()}:`,
         SESSION_SECRET: process.env.SESSION_SECRET ?? 'test-only-marshgo-e2e-session-secret-32chars',
         AUTH_DEV_OTP: 'true',
         GEOCODING_ENGINE_URL: 'http://127.0.0.1:3304/search',

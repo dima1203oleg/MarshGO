@@ -862,6 +862,30 @@ Changes were pushed to the existing production work branch and the three focused
 
 The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max and iPhone 16 Pro Max simulators. Both render the reference-aligned welcome screen; this does not verify tapping through sign-in, OTP, booking, maps on a live provider, locked-screen GPS, signing, or App Store distribution. Mobile viewport browser E2E covers route UI at both dimensions using a local routing fixture. Production-grade route tiles/routing, SMS credentials, managed hosting, external commercial providers, and two-account staging acceptance remain blockers.
 
+## Phase 9 continuation — shared Redis API rate limits
+
+**Phase:** 9 Security/reliability; P0 API hardening.
+
+**Status:** PARTIAL. General API and place-search limits now coordinate across server instances when Redis is configured. Trusted-proxy configuration, Redis outage alert/recovery drills and managed production topology remain open.
+
+**Completed:** Added `RedisRateLimitStore` using atomic Redis `INCR` plus window expiry and hashed client keys. The general `/api` limiter and stricter place-search limiter use distinct Redis prefixes; production startup already requires Redis. Local development without Redis retains the in-process development store. Added a test that alternates five unauthenticated requests across two independent API processes under a three-request window and verifies the shared sequence is 404, 404, 404, 429, 429.
+
+**Modified files:** `server/redisRateLimitStore.ts`, `server/index.ts`, `tests/redis-rate-limit-store.test.ts`, `tests/redis-rate-limit.integration.test.ts`, `scripts/run-integration-tests.sh`, `playwright.config.ts`, `package.json`, `docs/SECURITY.md`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_CHECKLIST.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** None.
+
+**Endpoints:** No endpoint contract changes; the existing `/api` limiter now shares counters via Redis.
+
+**Tests:** `npm run typecheck`, `npm run lint`, `npm run build`, and `npm test` passed (13 passed, one opt-in API test skipped; a unit test confirms rate limiting rejects when Redis is unavailable). `API_TEST_DATABASE_URL=postgres://...@127.0.0.1:5434/marshgo_e2e REDIS_URL=redis://127.0.0.1:6380 npm run test:integration` passed booking 9/9, navigation 1/1, Redis realtime 1/1, process restart 1/1, and Redis rate-limit 1/1. The new cross-process test uses real local Redis and isolated loopback APIs. Full browser E2E passed 2/2 after assigning each E2E API process a unique Redis rate-limit namespace.
+
+**DEMO/TRUTH status:** Production API instances share Redis counters; development configurations without Redis are explicitly process-local. This does not establish ingress IP correctness until trusted proxy hops are configured, nor resilience during Redis outages.
+
+**Open issues:** Exercise Redis outage recovery/alerting, configure trusted proxies, run dependency/security checks, sync and publish to standalone Server, and verify CI. Production infra and owner credentials are unchanged blockers.
+
+**External dependencies:** None to verify local cross-instance Redis behavior. Trusted ingress settings and production Redis failover/monitoring require the deployment operator.
+
+**Next implementation step:** Mirror the store, test and integration-runner change to `MarshGO-Server`, run standalone CI, then continue hardening Redis failure handling and routing/matching integration.
+
 ## Phase 4 continuation — competing proposal acceptance race
 
 **Phase:** 4 Reverse Market; exclusive demand resolution.
