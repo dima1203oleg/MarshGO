@@ -274,8 +274,32 @@
 
 **DEMO/TRUTH status:** Offer creation and own-offer history use the production API; place coordinates require actual geocoder results; route geometry, distance, arrival and duration come from the configured OSRM-compatible service in production. No external bus/taxi inventory is shown as live.
 
-**Remaining issues:** Geocoder and routing URLs are unset in this workspace. Vehicle photo upload is not yet exposed in the production profile UI and is not yet a required gate for server offer creation, so this slice does not satisfy the full vehicle-photo policy. No owner-side offer cancellation/edit screen, route stops, or tap-driven two-account iOS test is included.
+**Remaining issues:** Geocoder and routing URLs are unset in this workspace. Photo UI and server-side publication gating are implemented in the continuation below, but no real upload can be performed until the private bucket is configured. No owner-side offer cancellation/edit screen, route stops, or tap-driven two-account iOS test is included.
 
 **External blockers:** Contracted/self-hosted geocoding and routing services; private S3-compatible vehicle-photo bucket; interactive iOS simulator/physical devices and real SMS credentials for end-to-end acceptance.
 
 **Next implementation step:** Add vehicle photo upload/primary photo UI and enforce the real-photo publication policy server-side; then run authenticated two-device offer/search/booking acceptance against staging.
+
+## Phase 2 / 3 / 5 — Private vehicle photo flow and publication gate
+
+**Phase:** 2 Auth/Garage; 3 Offers; 5 Production UI replacement.
+
+**Status:** PARTIAL. The signed S3-compatible vehicle-photo endpoints are now connected to the production profile UI, and the backend requires a verified vehicle with at least one validated photo before publishing.
+
+**Completed:** Added upload-to-private-bucket flow for JPEG/PNG/WebP (10 MiB max), owner-only photo gallery with short-lived read URLs, primary-photo selection and deletion. The offer form only allows a verified vehicle with a recorded real photo; the server independently enforces this invariant. The API integration test verifies publication is denied without a photo and succeeds only after a photo record exists.
+
+**Modified files:** `server/index.ts`, `src/services/productionApi.ts`, `src/views/ProductionMarketplace.tsx`, `tests/api-bookings.integration.test.ts`, `docs/API.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** None.
+
+**Endpoints:** Existing `/vehicles/:id/photos*` upload/list/primary/delete endpoints are now used by the iOS/PWA profile; `POST /offers` enforces photo presence.
+
+**Tests:** `npm test` passed 16/16 including photo-required offer creation; `npm run typecheck`, `npm run lint`, `npm run build`, and `git diff --check` passed. `npm run ios:simulator` rebuilt, installed and launched the app on iPhone 18 Pro / iOS 27; screenshot `/tmp/marshgo-ios-vehicle-photo.png` confirms native launch and welcome rendering. Tap-driven profile upload was not run because only headless `simctl` is available. Test photo metadata is an isolated DB fixture because no S3 bucket is configured and no real image was uploaded.
+
+**DEMO/TRUTH status:** No placeholder vehicle images are used. Uploads fail with an explicit storage-not-configured error until S3 settings and bucket CORS are supplied. Server publication checks the vehicle has a photo whose object passed the existing server-side content-signature verification before metadata was stored.
+
+**Remaining issues:** S3 bucket, credentials/workload identity, encryption, access logs, CORS, malware controls and retention are still external operational requirements. Offer photo is currently displayed only in the owner's profile; public search results do not yet include vehicle photos.
+
+**External blockers:** Private S3-compatible photo/document storage and production geocoder/routing provider.
+
+**Next implementation step:** Run integration/build/iOS simulator checks for this slice; then continue the core acceptance path and remaining route-aware search/navigation work.

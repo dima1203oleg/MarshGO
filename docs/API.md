@@ -27,7 +27,7 @@ Returns published, future offers with available seats from PostgreSQL. Optional 
 
 Verification uploads are not operational until a private S3-compatible bucket, credentials, encryption-at-rest controls, access policy, and Capacitor/web CORS are configured. No live documents were uploaded in local tests.
 
-`POST /api/v1/offers` (driver role) publishes a future offer with named endpoints, WGS84 coordinates, departure time, price in minor currency units, seat count, and an owned verified vehicle.
+`POST /api/v1/offers` (driver role) publishes a future offer with named endpoints, WGS84 coordinates, departure time, price in minor currency units, seat count, and an owned verified vehicle with at least one server-verified photo. An offer without a vehicle photo is rejected with 409 `vehicle_photo_required`. `GET /api/v1/offers/mine` returns the authenticated driver's offers and inventory only.
 
 `POST /api/v1/routing/route` (authenticated) returns an OSRM-compatible road geometry, distance, and duration. `ROUTING_ENGINE_URL` must point to a configured private or contracted OSRM-compatible endpoint. In production, offer creation requires a successful route and persists the returned geometry, distance, duration, source, and computed arrival time; missing or failed routing returns 503. Local development can create explicitly marked `development_unrouted` fixtures for tests only.
 

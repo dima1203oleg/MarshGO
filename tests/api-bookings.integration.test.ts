@@ -227,6 +227,12 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     assert.equal(pendingOffer.status, 404);
 
     await pool.query("UPDATE vehicles SET verification_status = 'verified' WHERE id = $1", [apiCreatedVehicleId]);
+    const missingPhoto = await fetch(`${apiUrl}/api/v1/offers`, {
+      method: 'POST', headers: { 'content-type': 'application/json', 'x-dev-user-id': ids.driver },
+      body: JSON.stringify(offerPayload),
+    });
+    assert.equal(missingPhoto.status, 409);
+    await pool.query('INSERT INTO vehicle_photos(vehicle_id,object_key,is_primary) VALUES ($1,$2,true)', [apiCreatedVehicleId, `vehicle-photos/test/${apiCreatedVehicleId}/fixture`]);
     const published = await fetch(`${apiUrl}/api/v1/offers`, {
       method: 'POST', headers: { 'content-type': 'application/json', 'x-dev-user-id': ids.driver },
       body: JSON.stringify(offerPayload),

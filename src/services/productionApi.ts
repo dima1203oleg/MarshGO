@@ -50,6 +50,7 @@ export type ApiVehicle = {
   verification_status: string;
   is_active: boolean;
 };
+export type ApiVehiclePhoto = { id: string; url: string; is_primary: boolean; created_at: string };
 export type ApiVerificationRecord = {
   id: string; verification_type: 'vehicle' | 'driver_license' | 'identity' | 'commercial'; vehicle_id: string | null;
   status: 'pending' | 'approved' | 'rejected'; created_at: string; reviewed_at: string | null;
@@ -173,6 +174,26 @@ export const productionApi = {
   },
   createVehicle(input: { make: string; model: string; modelYear: number; seats: number }) {
     return request<ApiVehicle>('/vehicles', { method: 'POST', body: JSON.stringify(input) });
+  },
+  vehiclePhotos(vehicleId: string) { return request<ApiVehiclePhoto[]>(`/vehicles/${vehicleId}/photos`); },
+  async uploadVehiclePhoto(vehicleId: string, file: File) {
+    const allowed = new Set(['image/jpeg', 'image/png', 'image/webp']);
+    if (!allowed.has(file.type) || file.size < 1 || file.size > 10 * 1024 * 1024) throw new Error('Додайте JPEG, PNG або WebP до 10 МБ.');
+    const upload = await request<{ key: string; url: string; fields: Record<string, string>; maxBytes: number }>(`/vehicles/${vehicleId}/photos/upload-url`, {
+      method: 'POST', body: JSON.stringify({ contentType: file.type }),
+    });
+    const form = new FormData();
+    for (const [key, value] of Object.entries(upload.fields)) form.append(key, value);
+    form.append('file', file);
+    const uploaded = await fetch(upload.url, { method: 'POST', body: form });
+    if (!uploaded.ok) throw new Error(`Сховище не прийняло фото (${uploaded.status}).`);
+    return request<ApiVehiclePhoto>(`/vehicles/${vehicleId}/photos`, { method: 'POST', body: JSON.stringify({ key: upload.key, contentType: file.type }) });
+  },
+  setPrimaryVehiclePhoto(vehicleId: string, photoId: string) {
+    return request<ApiVehiclePhoto>(`/vehicles/${vehicleId}/photos/${photoId}/primary`, { method: 'PATCH' });
+  },
+  deleteVehiclePhoto(vehicleId: string, photoId: string) {
+    return request<{ id: string; deleted: boolean }>(`/vehicles/${vehicleId}/photos/${photoId}`, { method: 'DELETE' });
   },
   activateVehicle(id: string) { return request<ApiVehicle>(`/vehicles/${id}/activate`, { method: 'POST' }); },
   verificationRecords() { return request<ApiVerificationRecord[]>('/users/me/verification'); },

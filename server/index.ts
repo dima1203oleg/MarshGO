@@ -957,11 +957,13 @@ app.post('/api/v1/offers', requireAuth, requireRole('driver'), asyncHandler(asyn
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    const vehicle = await client.query<{ seat_count: number }>(
-      "SELECT seat_count FROM vehicles WHERE id = $1 AND owner_id = $2 AND verification_status = 'verified' FOR SHARE",
+    const vehicle = await client.query<{ seat_count: number; has_photo: boolean }>(
+      `SELECT v.seat_count,EXISTS(SELECT 1 FROM vehicle_photos p WHERE p.vehicle_id=v.id) AS has_photo
+         FROM vehicles v WHERE v.id=$1 AND v.owner_id=$2 AND v.verification_status='verified' FOR SHARE`,
       [vehicleId, req.userId],
     );
     if (!vehicle.rows[0]) throw new ApiError(404, 'verified vehicle unavailable');
+    if (!vehicle.rows[0].has_photo) throw new ApiError(409, 'A verified vehicle photo is required before publishing', 'vehicle_photo_required');
     if (seats > Number(vehicle.rows[0].seat_count)) throw new ApiError(400, 'offer exceeds vehicle capacity');
     const { rows } = await client.query(
       `INSERT INTO offers(driver_id,vehicle_id,origin_name,destination_name,origin,destination,route,departure_at,arrival_at,distance_m,duration_s,route_source,price_per_seat_minor,total_seats,available_seats)
