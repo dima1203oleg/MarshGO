@@ -1000,6 +1000,30 @@ The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max 
 
 **Publication and device verification:** Published umbrella commit `7b5c398` on `codex/marshgo-production`, Server implementation commit `7ba197a` plus API-path correction `18b697a` on `MarshGO-Server/main`, Site commit `2cdc4a2` on `MarshGO-Site/main`, and iOS documentation commit `eedcd4f` on `MarshGO-iOS/main`. The standalone Server initially failed CI because its API implementation had been copied to the repository root rather than `server/index.ts`; the root umbrella was unaffected. Corrected the path, reran Server typecheck, unit tests, and the complete PostgreSQL/PostGIS/Redis integration suite locally, then pushed the fix. Final GitHub runs passed: umbrella push [`36694161846`](https://github.com/dima1203oleg/MarshGO/actions/runs/36694161846) and PR [`36694158725`](https://github.com/dima1203oleg/MarshGO/actions/runs/36694158725), Server [`36695035549`](https://github.com/dima1203oleg/MarshGO-Server/actions/runs/36695035549), Site [`36694337040`](https://github.com/dima1203oleg/MarshGO-Site/actions/runs/36694337040), and iOS Simulator Build [`36694845655`](https://github.com/dima1203oleg/MarshGO-iOS/actions/runs/36694845655). Rebuilt and launched the site revision `2cdc4a2` on both iPhone 15 Pro Max and iPhone 16 Pro Max simulators; captures `/tmp/marshgo-site2cdc4a2-iphone15.png` and `/tmp/marshgo-site2cdc4a2-iphone16.png` show the full welcome screen. No local API was running during the simulator capture, so this is packaging/launch/first-screen evidence only, not signed-in or GPS acceptance.
 
+## Phase 6 continuation — transactional navigation booking and reroute
+
+**Phase:** 6 Navigation/matching; 4 Reverse Market.
+
+**Status:** PARTIAL. Passenger acceptance of a candidate-bound price now commits one booking and extends the driver's stored road route through pickup and dropoff. Matching is turned off for the rest of that navigation session; multi-passenger route stop ordering is deliberately not enabled.
+
+**Completed:** The passenger proposal-accept endpoint obtains a road route for the rider and a full remaining route for the driver before taking database locks, then locks and revalidates the demand, proposal, candidate, session, route version, fresh location, driver consent and verified vehicle. In one PostgreSQL transaction it creates the booking, rider route geometry, conversation, pickup/dropoff waypoint rows, updates the driver's route geometry/distance/duration/version, disables matching and expires competing navigation candidates, and stores a driver-only route-update outbox event. Routing or state change failure rolls back the booking. The driver UI receives the event, refetches the owner-authorized active route, redraws the road polyline and displays a confirmation message. The API rejects a second passenger opt-in until this navigation session ends. The integration test verifies exact waypoint order/coordinates, full route geometry through both stops, route version increment, single booking and matching lockout.
+
+**Modified files:** `server/index.ts`, `server/migrations/018_navigation_waypoints.sql`, `src/services/productionApi.ts`, `src/views/ProductionNavigation.tsx`, `tests/navigation.integration.test.ts`, `docs/API.md`, `docs/DATA_MODEL.md`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_CHECKLIST.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** Migration `018_navigation_waypoints.sql` adds ordered, booking/candidate-bound pickup/dropoff geography.
+
+**Endpoints:** `POST /api/v1/proposals/:id/accept` now creates the route update for navigation-bound proposals; `PATCH /api/v1/navigation/sessions/:id/matching` rejects another opt-in while agreed waypoints exist. New `navigation.route-updated` outbox event targets the driver only.
+
+**Tests:** `npm run check:production` passed (typecheck, lint, 16 unit tests, 1 database-only skip, production build). `npm run test:e2e` passed 2/2 (two-user marketplace and iPhone 15/16 Pro Max viewport/map route geometry). `npm run test:integration` passed on the latest full retry: booking/negotiation 9/9 (including concurrent last-seat lock), navigation proposal/booking/reroute 1/1, Redis multi-instance realtime 1/1, process restart 1/1, and shared rate limit 1/1. Two earlier full-suite retries hit an existing short Redis-outbox publication timeout in the realtime test; the subsequent full rerun passed. The navigation test's first run exposed test cleanup order after waypoints added a restrictive candidate reference; cleanup was corrected and the final navigation test passed.
+
+**DEMO/TRUTH status:** Booking and route changes persist on the actual local API/PostGIS database, and the OSRM fixture contract supplied an ordered road geometry during test. No live/self-hosted production routing provider is configured. Simulator evidence from this slice only covers app launch/welcome screen; no gesture, OTP, route-update event or physical GPS path was exercised on the simulators.
+
+**Open issues:** Generalized multi-passenger itinerary/matching, live route deviation rerouting/turn instructions, real map tiles/geocoding/routing service, two-account browser navigation E2E, and native simulator authentication/GPS route acceptance remain open. Do not present native background location as available.
+
+**External dependencies:** Production routing/geocoding/map tile provider, production SMS/storage/hosting, and a physical iPhone GPS permission/device pass remain outstanding.
+
+**Next implementation step:** Publish this incremental API+Site change to the umbrella and split repositories, verify GitHub/iOS build checks, then add a safe browser E2E for two independent accounts through navigation candidate confirmation, price proposal, acceptance and persisted reroute.
+
 ## Phase 6 continuation — passenger confirmation returns to driver
 
 **Phase:** 6 Navigation/matching; 7 realtime delivery.
@@ -1051,3 +1075,29 @@ The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max 
 **External dependencies:** None for the transaction invariant. Real routing/geocoding and staging infrastructure remain separately blocked.
 
 **Next implementation step:** Mirror and validate this acceptance-race test in the server repository, then implement/test route relevance with an explicit road-routing provider contract without substituting straight-line distance for route truth.
+
+## Phase 6 continuation — passenger-confirmed route insertion, validation and publication
+
+**Phase:** 6 Navigation/matching; 4 Reverse Market.
+
+**Status:** PARTIAL. A passenger can accept a navigation candidate's price proposal; the API transaction creates exactly one booking, persists pickup/dropoff route waypoints, recalculates the driver's remaining road route, disables further matches for that session, and notifies the driver's UI to refresh. This is the first single-passenger route insertion; full multi-passenger scheduling remains out of scope.
+
+**Completed:** Revalidated the core API transaction and persisted reroute against PostgreSQL/PostGIS and an ordered OSRM-compatible test provider; copied the matching implementation into the Server and Site repositories; rebuilt/installed/launched the Capacitor app on both requested Pro Max simulators and visually checked the welcome screen at each device resolution.
+
+**Modified files:** `server/index.ts`, `server/migrations/018_navigation_waypoints.sql`, `src/services/productionApi.ts`, `src/views/ProductionNavigation.tsx`, `tests/navigation.integration.test.ts`, `docs/API.md`, `docs/DATA_MODEL.md`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_CHECKLIST.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** `018_navigation_waypoints.sql` adds ordered geography pickup/dropoff records bound to booking and navigation candidate.
+
+**Endpoints/events:** `POST /api/v1/proposals/:id/accept` atomically creates booking + waypoints + driver-route update; `PATCH /api/v1/navigation/sessions/:id/matching` refuses a second opt-in for a route that already has an agreed passenger. Driver-only outbox event: `navigation.route-updated`.
+
+**Tests:** Main workspace `npm run check:production` passed (typecheck, lint, 16 unit tests, one database-only skip, production build); `npm run test:integration` passed booking/negotiation 9/9, navigation 1/1, multi-instance realtime 1/1, restart 1/1, rate limit 1/1; Playwright E2E passed 2/2 (two-user marketplace and Pro Max viewport/route-geometry checks). Standalone Server `npm run typecheck`, `npm run test` (9 pass, 1 opt-in integration skip) and complete `npm run test:integration` passed. Server CI run [`36697101588`](https://github.com/dima1203oleg/MarshGO-Server/actions/runs/36697101588) and Site CI run [`36697110670`](https://github.com/dima1203oleg/MarshGO-Site/actions/runs/36697110670) passed. Standalone Server has no lint script; its typecheck and test jobs are the available checks. iOS simulator Xcode builds/install/launch passed on iPhone 15 Pro Max and iPhone 16 Pro Max. Captures: `/tmp/marshgo-navroute-iphone15.png`, `/tmp/marshgo-navroute-iphone16-final.png`; the 16 Pro Max required relaunch/wait after an early blank WKWebView capture. iOS CI is pending at time of this entry.
+
+**DEMO/TRUTH status:** Server booking, waypoints and new route geometry are durable; unit and integration tests use an isolated local routing fixture. The iOS simulator verifies first-screen render only; it was built with `http://localhost:3306` and no API process, so native OTP, live map tiles, GPS and authenticated route-update interaction were not tested. Node 25.4.0 was used locally and emitted an engine warning against the repo's Node 24.21.0 pin; GitHub CI uses the pin.
+
+**Open issues:** A contracted/self-hosted geocoder, routing engine and map tiles are unconfigured. Generalized multi-passenger insertion, live deviation rerouting/turn instructions, real device GPS/permission verification and native two-account end-to-end navigation remain open. External SMS, photo storage, staging/production hosting and partner APIs also remain blockers. The PWA does not provide guaranteed background GPS.
+
+**External dependencies:** Routing/geocoding/map-tile provider credentials or hosted service, SMS sender credentials, private object storage, staging/production environment, and physical-device GPS checks.
+
+**Publication:** Server `bbea24b` pushed to `MarshGO-Server/main`; Site `50816d7` pushed to `MarshGO-Site/main`; iOS verification documentation `647ffbb` pushed to `MarshGO-iOS/main` (iOS CI pending). Main umbrella changes are ready to push to `codex/marshgo-production` after this documentation commit; do not merge PR or deploy production.
+
+**Next implementation step:** Add a Playwright two-account acceptance journey from route candidate confirmation through proposal and booking/reroute, then implement multi-passenger route stop ordering only after the provider-backed route test is reliable.

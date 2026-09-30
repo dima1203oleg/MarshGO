@@ -19,7 +19,7 @@
 - [x] Local PostGIS migration and booking concurrency tests, including 20 simultaneous independent users competing for the final seat, one idempotent winner, 19 controlled conflicts, parameter-mismatch rejection, and cancellation that restores inventory exactly once.
 - [x] Node 24.21.0 LTS runtime pin, CI lint/typecheck/unit-test/build, OSRM-compatible adapter contract test.
 - [x] Production PWA OTP, server search, offer publishing, garage, booking/history, reverse-demand proposal, and booking-chat screens use authenticated APIs.
-- [x] Foreground iOS navigation uses real GPS and road geometry; opt-in match flow requires verified vehicle and mutual interest before opening a candidate-bound price proposal. Accepted proposals still need waypoint insertion and rerouting.
+- [x] Foreground iOS navigation uses real GPS and road geometry; opt-in match flow requires verified vehicle and mutual interest before opening a candidate-bound price proposal. Passenger acceptance stores waypoints and recomputes rider/driver geometry; the route-update outbox event refreshes the driver UI.
 - [x] Capacitor iOS target builds, installs, and launches on iPhone 15 Pro Max and iPhone 16 Pro Max / iOS 27 simulators; welcome-screen screenshots confirm the hero image, native status bar, and safe-area layout.
 - [x] Native API CORS allows the Capacitor `capacitor://localhost` origin; integration test covers the response header.
 
@@ -33,14 +33,14 @@
 - [x] Transactional PostgreSQL outbox for chat messages with deduplication, multi-worker leases, retry/backoff, and seven-day published-record retention.
 - [x] Transactional PostgreSQL outbox for booking state and proposal negotiation/closure events, with REST resync as canonical state.
 - [x] Transactional `navigation.match.driver-interested` outbox event: paused driver interest is delivered to the passenger across API instances without disclosing location; UI reloads the passenger's authorized match list.
-- [x] Candidate-bound proposal creation rejects unconfirmed, stale, revoked-consent, duplicate, wrong-vehicle and changed-route matches; passenger acceptance revalidates consent/session state. Integration tests cover these gates. Waypoint insertion and route recalculation remain open.
+- [x] Candidate-bound proposal creation rejects unconfirmed, stale, revoked-consent, duplicate, wrong-vehicle and changed-route matches; passenger acceptance revalidates consent/session state. Integration tests cover these gates, route recalculation and waypoint persistence.
 - [x] Transactional `navigation.match.passenger-confirmed` outbox event: passenger consent is delivered to the driver across API instances without disclosing location; foreground navigation reloads the driver's authorized candidate list; test confirms this does not create a booking.
 - [x] Staff-only outbox queue age/depth metrics and Redis readiness reporting; controlled invalid-event retry/backoff integration test.
 - [ ] Redis outage recovery runbook/drill, external alerting, and Web Push/inbox for messages, proposals, bookings, navigation matches and rescue.
 - [x] Connect passenger demand/proposal negotiation and booking-scoped chat to authenticated APIs.
 - [x] Production trip screen supports signed ticket handoff, driver boarding/start, and two-party completion using server state and realtime refresh; covered in two-account E2E.
-- [ ] Add native QR generation/scanning and completion-review UI; navigation candidate conversion still needs an integrated booking/waypoint flow and requires foreground connectivity.
-- [ ] Configure production routing/geocoding services and implement corridor/multi-stop search and rerouting.
+- [ ] Add native QR generation/scanning and completion-review UI; navigation booking still requires foreground connectivity.
+- [ ] Configure production routing/geocoding services and generalized multi-passenger stop ordering/matching. The single-passenger proposal-acceptance flow uses the configured routing adapter.
 - [ ] Upgrade Rescue matching to road-route/time-window feasibility and include only externally contracted, freshly quoted partner inventory where agreements allow.
 - [ ] Configure a real map-tile provider. Navigation currently shows returned route geometry over a neutral canvas and displays an explicit missing-map warning.
 - [x] Shared Redis rate limits for API and place search; cross-instance integration test sends requests through two API processes and observes one shared limit.
