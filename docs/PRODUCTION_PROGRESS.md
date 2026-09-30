@@ -1295,3 +1295,21 @@ The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max 
 **External dependencies:** Production router/geocoder/map tiles, SMS, staging infrastructure, GTFS/taxi/rail contracts, APNs/TestFlight and physical-device journey acceptance remain outstanding.
 
 **Next implementation step:** Implement and test the Journey monitor against freshness-bounded, real provider/vehicle ETA observations; future transfer candidates remain disabled without a live schedule and routing source.
+
+## Mobile design alignment — onboarding and simulator flow
+
+**Status:** Partial.
+
+**Completed:** Added three mobile-first onboarding screens before phone login: real transport scope, server-ranked journey priorities, and an optional foreground geolocation permission. The copy explicitly says bus/taxi/public-transport inventory is unavailable until real providers are connected. Existing signed-in home, search, journey results and navigation continue using the same responsive React UI in web and Capacitor iOS.
+
+**Changed files:** `src/views/ProductionMarketplace.tsx`, `e2e/marketplace.spec.ts`.
+
+**Tests:** `npm run check:production` passed (48 unit pass, 1 optional DB test skipped; typecheck, lint and build passed). `E2E_DATABASE_URL=postgres://…/marshgo_e2e_rendezvous npm run test:e2e` passed 5/5 after rerunning sequentially; the first concurrent run raced the production build against the PWA build and temporarily missed map tiles. A focused onboarding rerun passed 1/1 after a screenshot review caught and fixed low-contrast styling and a duplicate back button. Existing viewport/navigation test covers emulated iPhone 15 Pro Max and 16 Pro Max layouts, with real routed geometry and isolated map tiles.
+
+**Demo/truth status:** iOS remains the shared React UI in WKWebView. Simulator screenshots confirm startup rendering, while onboarding and journey interactions are browser-driven E2E, not native tap-through. The current planner supplies Community journeys only; external transport remains explicitly unavailable. These screens are styled to the supplied design direction, not pixel-identical exports from the reference boards.
+
+**External dependencies:** Live bus/taxi/transit APIs, production geocoder/router/map tiles, APNs/TestFlight credentials and physical-device acceptance remain outstanding.
+
+**Simulator verification:** Updated Site bundle built into the Capacitor iOS wrapper (`site:build`, `cap sync ios`, Xcode simulator build) and launched on iPhone 15 Pro Max and iPhone 16 Pro Max simulators. Captures: `/tmp/marshgo-ios-15-promax-onboarding.png` and `/tmp/marshgo-ios-16-promax-onboarding.png`. Both show the splash screen without clipping. Interactive onboarding was covered by Playwright, not tapped through in native Simulator. Physical-device, TestFlight and multi-leg production acceptance remain separate work.
+
+**Next implementation step:** Continue visual alignment across Journey detail, active trip, chat and profile surfaces using the shared Site/iOS React components; current simulator captures only prove startup rendering, and browser viewport E2E proves responsive layout and map route rendering, not pixel identity to the supplied boards.

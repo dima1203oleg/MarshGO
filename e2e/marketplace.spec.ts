@@ -33,6 +33,9 @@ function tomorrowInKyiv() {
 async function signIn(page: import('@playwright/test').Page, name: string, phone: string): Promise<string> {
   await page.goto('/');
   await page.getByRole('button', { name: 'Почати', exact: true }).first().click();
+  await page.getByRole('button', { name: 'Далі', exact: true }).click();
+  await page.getByRole('button', { name: 'Далі', exact: true }).click();
+  await page.getByRole('button', { name: 'Пропустити', exact: true }).click();
   await page.getByPlaceholder('Ваше ім’я').fill(name);
   await page.getByPlaceholder('+380 номер телефону').fill(phone);
   await page.getByRole('button', { name: 'Почати', exact: true }).click();
@@ -49,6 +52,23 @@ async function signIn(page: import('@playwright/test').Page, name: string, phone
   expect(Boolean((await authResponse.allHeaders())['set-cookie']), 'OTP verification should issue a refresh cookie').toBe(true);
   return (await authResponse.json()).data.accessToken as string;
 }
+
+test('onboarding explains the real transport scope and keeps location permission optional', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Почати', exact: true }).first().click();
+  await expect(page.getByRole('heading', { name: /Усі поїздки/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Назад' })).toHaveCount(1);
+  await expect(page.getByText(/Автобуси, таксі та громадський транспорт з’являться/)).toBeVisible();
+  await page.screenshot({ path: '/tmp/marshgo-onboarding-transport.png', fullPage: true });
+  await page.getByRole('button', { name: 'Далі', exact: true }).click();
+  await expect(page.getByRole('heading', { name: /Обирайте, що/ })).toBeVisible();
+  await page.screenshot({ path: '/tmp/marshgo-onboarding-strategy.png', fullPage: true });
+  await page.getByRole('button', { name: 'Далі', exact: true }).click();
+  await expect(page.getByRole('heading', { name: /Дозвольте MARSHGO/ })).toBeVisible();
+  await page.screenshot({ path: '/tmp/marshgo-onboarding-permissions.png', fullPage: true });
+  await page.getByRole('button', { name: 'Не зараз', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Вхід за номером телефону' })).toBeVisible();
+});
 
 test.beforeAll(async () => {
   await pool.query(`
