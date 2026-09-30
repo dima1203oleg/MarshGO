@@ -1183,3 +1183,21 @@ The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max 
 **Limitations:** Planner currently returns direct Community legs only; plans do not yet track bookings or replan. There is no walking/transit/taxi/rail inventory, Journey history/active-trip UI, persisted inbox/push, future transfer matching, monitor/replanning, or multi-passenger stop optimizer. External provider integration remains blocked on contracts/credentials. No staging or production deployment occurred.
 
 **Next step:** Connect selecting/bookable Journey legs to existing booking transactions, then implement future Community matching with ETA uncertainty and continue provider-independent Journey monitoring/replanning.
+
+## Multimodal expansion — Journey booking lifecycle binding
+
+**Status:** PARTIAL. Journey-planned Community legs can now pass through the existing transactional booking service. This does not yet add multi-leg journeys or replanning alternatives.
+
+**Implemented:** `POST /api/v1/bookings` optionally accepts paired Journey and leg IDs, verifies Journey ownership and selected single-leg state inside the existing seat-lock transaction, freezes the server-calculated price on the leg, associates the booking and moves the Journey to `READY`. Idempotency replays validate the original Journey association. Cancellation remains idempotent, returns seats once, transitions a linked leg to `CANCELLED` and its Journey to `REPLANNING`, and emits owner-scoped `journey.updated`. The site sends the link from the chosen result through its normal booking flow.
+
+**Changed files:** `server/index.ts`, `tests/api-bookings.integration.test.ts`, `src/services/productionApi.ts`, `src/views/JourneyResultsPanel.tsx`, `src/views/ProductionMarketplace.tsx`, `e2e/marketplace.spec.ts`, `docs/API.md`, `docs/MULTIMODAL_PROGRESS.md`.
+
+**Database/API changes:** No migration required; the existing Journey foreign keys and Community booking fee snapshots are reused. Changed `POST /api/v1/bookings`, `POST /api/v1/bookings/:id/cancel`; added the supported realtime event `journey.updated`.
+
+**Tests:** Server typecheck passed; unit/build verification in progress. Real PostGIS/Redis integration passed: Journey schema 1/1, core booking/search/negotiation 10/10, navigation 1/1, cross-instance realtime 1/1, restart 1/1, rate-limit 1/1. These include 20 concurrent last-seat attempts, Journey price locking, idempotency mismatch rejection, double cancellation and Journey event privacy. Site typecheck/lint/build passed. The Playwright Journey flow now also books the selected leg and verifies persisted `READY` state; final umbrella suite is pending.
+
+**Demo/truth status:** Community search and booking use persisted database records. Bus, transit, taxi, rail, walking legs, future transfer matching, Journey monitor/replanning and push remain unavailable and are not presented as live options.
+
+**External blockers:** Provider feeds/contracts, staging credentials/infrastructure, SMS and routing/geocoding service credentials remain outstanding.
+
+**Next step:** Run umbrella E2E on an isolated local PostGIS/Redis database, publish the lifecycle changes to Server/Site and the umbrella integration branch, then proceed to future Community matching using arrival uncertainty windows.

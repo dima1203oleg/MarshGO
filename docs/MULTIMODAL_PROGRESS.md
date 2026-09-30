@@ -43,16 +43,49 @@
 - `JOURNEY_TEST_DATABASE_URL=... npm run test:integration:journey`: 1/1 passed against PostGIS 4326 tables.
 - `API_TEST_DATABASE_URL=... REDIS_URL=... npm run test:integration`: Journey schema 1/1; API booking/negotiation/search 10/10 (including offer detail privacy); navigation 1/1; cross-instance realtime 1/1; restart 1/1; rate-limit 1/1 passed.
 - Site `npm run typecheck`, `npm run lint`, and `npm run build`: passed with the Journey search/results interface.
+- Umbrella Playwright `npm run test:e2e`: 4/4 passed, including the Community Journey Planner UI, persistence, provider disclosure and public offer-detail handoff.
 - Clean local migrations 001–020 passed on an isolated loopback database.
 - One transfer-engine expected-risk assertion initially expected LOW with only 12 minutes of post-requirement slack; corrected the fixture to provide 22 minutes. Final suite passed.
 
 **LIMITATIONS / BLOCKED_EXTERNAL**
 - Search currently returns direct Community legs only and no walking/multileg path. An unbooked Journey is a plan snapshot, not a reservation.
 - No bus, rail, taxi, GTFS, municipal transit or commercial provider is connected. Provider contracts alone are not service availability.
-- No provider cache, live journey monitor, predictive matching/replanning, persistent notifications or push yet. Site results UI is not yet covered by a Journey-specific browser E2E.
+- No provider cache, Journey history/active-trip UI, booking-to-leg lifecycle binding, live journey monitor, predictive matching/replanning, persistent notifications or push yet.
 - Existing native iOS remains a Capacitor/WKWebView client; Journey acceptance on physical devices is not covered.
 
 **NEXT**
-- Reconcile a JourneyLeg with booking and offer cancellation lifecycle, and let users select/book a Community leg without duplicating booking/fee logic.
 - Add a real walking route provider contract before creating WALK legs.
 - Then implement future Community transfer matching using uncertainty windows and the already-existing opt-in Navigation matching domain.
+
+## Phase B continuation — Journey booking lifecycle binding
+
+**Status:** PARTIAL.
+
+**DONE**
+- The existing booking endpoint accepts optional paired Journey/leg IDs. In the same transaction as the existing seat lock, it checks Journey ownership, selected state, single-leg scope, offer identity and passenger count, then stores the booking link, changes the leg to `CONFIRMED` / `LOCKED`, freezes the actual fare and marks the Journey `READY`.
+- Idempotency replay validates the original Journey association as well as offer and seat count. A conflicting association returns 409.
+- Cancelling a linked booking updates its leg to `CANCELLED`, transitions the Journey to `REPLANNING`, clears confirmed price and emits an owner-only `journey.updated` event. Existing booking cancellation still returns inventory at most once.
+- The Site carries Journey and leg IDs from a selected result into its existing booking flow and reports the server-confirmed Journey state.
+
+**CHANGED FILES**
+- `server/index.ts`
+- `tests/api-bookings.integration.test.ts`
+- `docs/API.md`, `docs/MULTIMODAL_PROGRESS.md`
+- Site: `src/services/productionApi.ts`, `src/views/JourneyResultsPanel.tsx`, `src/views/ProductionMarketplace.tsx`
+
+**API CHANGES**
+- `POST /api/v1/bookings`: optional `journeyId` + `journeyLegId` association.
+- `POST /api/v1/bookings/:id/cancel`: linked Journey transition and owner-scoped `journey.updated`.
+- Realtime event: `journey.updated`.
+
+**TESTS**
+- Added to the real PostGIS/Redis booking integration suite: linked booking, frozen Journey price, replay, double cancel, Journey transitions and participant-only event recipients.
+- First run executed all assertions successfully but teardown failed because new Journey audit rows retained the fixture actor FK; test cleanup now explicitly removes these test audit rows before deleting fixture users. Full suite is rerunning.
+- The corresponding Playwright flow now books from a Journey result and checks the persisted `READY` state.
+
+**LIMITATIONS / BLOCKED_EXTERNAL**
+- Cancellation sets `REPLANNING` but does not yet find replacement legs.
+- Journey UI represents a single direct Community leg only; no partner modes, future transfer match or route monitor is active.
+
+**NEXT**
+- Complete test run and publish this additive lifecycle slice. Continue with future Community transfer matching using the existing opt-in Navigation matching domain and explicit uncertainty/time windows.
