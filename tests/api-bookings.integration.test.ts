@@ -235,6 +235,11 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     const response = await published.json() as { data: { id: string; available_seats: number; route_source: string } };
     assert.equal(response.data.available_seats, 2);
     assert.equal(response.data.route_source, 'development_unrouted');
+    const myOffers = await fetch(`${apiUrl}/api/v1/offers/mine`, { headers: { 'x-dev-user-id': ids.driver } });
+    assert.equal(myOffers.status, 200);
+    assert.equal((await myOffers.json() as { data: Array<{ id: string; status: string }> }).data.some((offer) => offer.id === response.data.id && offer.status === 'published'), true);
+    const otherUsersOffers = await fetch(`${apiUrl}/api/v1/offers/mine`, { headers: { 'x-dev-user-id': ids.passengerA } });
+    assert.equal(otherUsersOffers.status, 403);
     const localDepartureDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Kyiv' }).format(new Date(offerPayload.departureAt));
     const found = await fetch(`${apiUrl}/api/v1/offers?origin=API%20Publish%20Origin&destination=API%20Publish%20Destination&date=${localDepartureDate}&seats=2`);
     assert.equal(found.status, 200);

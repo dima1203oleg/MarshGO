@@ -255,3 +255,27 @@
 **External blockers:** Owner/DBA staff role provisioning; private object storage setup and policy; document retention and malware-scanning decision; authorized moderators.
 
 **Next implementation step:** Review the new vehicle document flow on iOS when the interactive simulator is available; implement real vehicle photo UI; then build driver offer publishing against the existing routing and offer API, keeping production publication blocked without a verified vehicle and configured route engine.
+
+## Phase 3 / 5 — Driver offer publishing from iOS
+
+**Phase:** 3 Offers/Booking; 5 Production UI replacement continuation.
+
+**Status:** PARTIAL. A driver can now create a server-backed Community offer in the iOS/PWA production UI and view their own published offers. Live publication in this workspace remains blocked by the missing geocoder and routing provider configuration.
+
+**Completed:** Added an iOS-friendly offer form with provider-selected origin/destination coordinates, future departure, price per seat, vehicle seat limit, and a verified owner vehicle requirement. Added authenticated `GET /api/v1/offers/mine`, which returns only the caller's offers and status. The trips screen now separates driver-owned offers from bookings. The create action offers passenger demand, driver trip publishing, and driver demand browsing. API errors remain visible and no route/ETA is invented.
+
+**Modified files:** `server/index.ts`, `src/services/productionApi.ts`, `src/views/ProductionMarketplace.tsx`, `tests/api-bookings.integration.test.ts`, `docs/API.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** None.
+
+**Endpoints:** Added `GET /api/v1/offers/mine`; UI uses existing `GET /api/v1/places/suggest` and `POST /api/v1/offers`.
+
+**Tests:** `npm test` passed 16/16 with the local loopback API/PostGIS test configuration. The offer integration case verifies publication only with a verified owner vehicle and now verifies own-offer visibility plus denial to a passenger role. `npm run typecheck`, `npm run lint`, `npm run build`, and `git diff --check` passed. `npm run ios:simulator` rebuilt, installed and launched the app on iPhone 18 Pro / iOS 27; screenshot `/tmp/marshgo-ios-offer-ui.png` shows the reference-aligned welcome screen inside the native shell. Tap-driven offer submission could not be exercised because the host only exposes headless `simctl`.
+
+**DEMO/TRUTH status:** Offer creation and own-offer history use the production API; place coordinates require actual geocoder results; route geometry, distance, arrival and duration come from the configured OSRM-compatible service in production. No external bus/taxi inventory is shown as live.
+
+**Remaining issues:** Geocoder and routing URLs are unset in this workspace. Vehicle photo upload is not yet exposed in the production profile UI and is not yet a required gate for server offer creation, so this slice does not satisfy the full vehicle-photo policy. No owner-side offer cancellation/edit screen, route stops, or tap-driven two-account iOS test is included.
+
+**External blockers:** Contracted/self-hosted geocoding and routing services; private S3-compatible vehicle-photo bucket; interactive iOS simulator/physical devices and real SMS credentials for end-to-end acceptance.
+
+**Next implementation step:** Add vehicle photo upload/primary photo UI and enforce the real-photo publication policy server-side; then run authenticated two-device offer/search/booking acceptance against staging.

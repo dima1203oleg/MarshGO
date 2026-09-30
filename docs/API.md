@@ -13,7 +13,9 @@ Base URL: the API server, default `http://localhost:3002`.
 
 Returns published, future offers with available seats from PostgreSQL. Optional `date=YYYY-MM-DD` is interpreted in `Europe/Kyiv`; `seats` defaults to 1 and filters out offers without enough seats. It does not return seed data. Search is currently exact city-name matching; geographic route matching is not implemented yet.
 
-`POST /api/v1/vehicles` (driver role) creates a vehicle record without accepting or returning a full license plate. The first car becomes active; later cars do not replace it. New vehicles remain pending until an authorized verification workflow exists.
+`GET /api/v1/offers/mine` requires the driver role and returns only the caller's own offers with current seat counts and statuses.
+
+`POST /api/v1/vehicles` (driver role) creates a vehicle record without accepting or returning a full license plate. The first car becomes active; later cars do not replace it. New vehicles remain pending until the authorized verification workflow approves both registration and driver licence evidence.
 
 `GET /api/v1/vehicles` lists only the caller's non-archived vehicles. `PATCH /api/v1/vehicles/:id` edits only an owned vehicle. `POST /api/v1/vehicles/:id/activate` atomically switches the active vehicle. `DELETE /api/v1/vehicles/:id` archives only when it has no future published trip.
 

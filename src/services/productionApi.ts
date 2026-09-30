@@ -23,6 +23,7 @@ export type ApiOffer = {
   driver_name: string;
   average_rating: number | null;
   review_count: number;
+  status?: string;
 };
 
 export type ApiBooking = {
@@ -125,6 +126,15 @@ export const productionApi = {
   offers(params: { origin: string; destination: string; date: string; seats: number }) {
     const query = new URLSearchParams({ ...params, seats: String(params.seats) });
     return request<ApiOffer[]>(`/offers?${query.toString()}`);
+  },
+  myOffers() { return request<ApiOffer[]>('/offers/mine'); },
+  createOffer(input: {
+    vehicleId: string; originName: string; destinationName: string; origin: [number, number]; destination: [number, number];
+    departureAt: string; pricePerSeatMinor: number; seats: number;
+  }) {
+    return request<{ id: string; origin_name: string; destination_name: string; departure_at: string; status: string }>(
+      '/offers', { method: 'POST', body: JSON.stringify(input) },
+    );
   },
   suggestPlaces(query: string) {
     return request<ApiPlace[]>(`/places/suggest?q=${encodeURIComponent(query)}`);
