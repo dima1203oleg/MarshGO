@@ -623,7 +623,9 @@ test('Journey Planner ranks a persisted Community route and opens its current of
     await expect(page.getByRole('button', { name: /Забронювати місце/ })).toBeVisible();
     const linkedBookingResponse = page.waitForResponse(response => response.url().endsWith('/api/v1/bookings') && response.request().method() === 'POST');
     await page.getByRole('button', { name: /Забронювати місце/ }).click();
-    expect((await linkedBookingResponse).status()).toBe(201);
+    const linkedBookingHttp = await linkedBookingResponse;
+    expect(linkedBookingHttp.status()).toBe(201);
+    const linkedBooking = await linkedBookingHttp.json() as { data: { id: string } };
     await expect(page.getByText('Journey оновлено сервером і збережено як готовий маршрут.')).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Збережені маршрути' })).toBeVisible();
     await expect(page.getByText('Маршрут готовий')).toBeVisible();
@@ -633,6 +635,13 @@ test('Journey Planner ranks a persisted Community route and opens its current of
     );
     expect(linked.rows).toHaveLength(1);
     expect(linked.rows[0]).toMatchObject({ state: 'READY', confirmed_price_minor: 15000, leg_state: 'CONFIRMED', price_status: 'LOCKED' });
+
+    page.once('dialog', dialog => void dialog.accept());
+    const cancelResponse = page.waitForResponse(response => response.url().endsWith(`/api/v1/bookings/${linkedBooking.data.id}/cancel`));
+    await page.getByRole('button', { name: 'Скасувати', exact: true }).click();
+    expect((await cancelResponse).status()).toBe(200);
+    await expect(page.getByText('Потрібне перепланування')).toBeVisible();
+    await expect(page.getByText('Ціна оновиться після перепланування')).toBeVisible();
   } finally {
     await context.close();
   }

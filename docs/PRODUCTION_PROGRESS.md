@@ -1210,10 +1210,10 @@ The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max 
 
 **Status:** PARTIAL.
 
-**Implemented:** The Site now fetches the signed-in user's saved Journey history from `GET /api/v1/journeys/me` at session restore and login. The Trips screen shows stored plan state, origin/destination, Kyiv-local departure time, passenger count, confirmation vs estimated fare, and persisted leg/booking state. Owner-only `journey.updated` events refresh that list. Logging out clears it from UI memory. This is a database-backed Journey view; it does not add rerouting or transfer-provider data.
+**Implemented:** The Site now fetches the signed-in user's saved Journey history from `GET /api/v1/journeys/me` at session restore and login. The Trips screen shows stored plan state, origin/destination, Kyiv-local departure time, passenger count, confirmation vs estimated fare, and persisted leg/booking state. Owner-only `journey.updated` events refresh that list. Logging out clears it from UI memory. When a linked booking is cancelled, the backend also clears the previous planned/confirmed total; the UI states that a new price will follow replanning instead of retaining a stale fare.
 
 **Changed files:** `src/services/productionApi.ts`, `src/views/ProductionMarketplace.tsx`, `e2e/marketplace.spec.ts`.
 
-**Tests:** Root typecheck/lint passed; `npm run check:production` passed (31 unit tests, one opt-in DB-only test skipped; production build passed); isolated PostgreSQL/PostGIS + Redis integration suites passed; Playwright E2E passed 4/4, including the Trips screen showing a persisted Journey as `Маршрут готовий` after the booking.
+**Tests:** Root typecheck/lint passed; `npm run check:production` passed (31 unit tests, one opt-in DB-only test skipped; production build passed); isolated PostgreSQL/PostGIS + Redis integration suites passed; Playwright E2E passed 4/4, including showing a persisted Journey as `Маршрут готовий`, cancelling its booking, and showing `REPLANNING` without the stale fare.
 
 **Next step:** Continue the future Community transfer matcher only when there is a real predecessor leg schedule and uncertainty source. No current Bus/GTFS partner feed exists, so Bus-to-Community future-transfer inventory remains unavailable.
