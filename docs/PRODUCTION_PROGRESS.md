@@ -1127,3 +1127,27 @@ The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max 
 **GitHub CI:** Umbrella push run [`36701646951`](https://github.com/dima1203oleg/MarshGO/actions/runs/36701646951), draft PR run [`36701652704`](https://github.com/dima1203oleg/MarshGO/actions/runs/36701652704), and Server run [`36701692148`](https://github.com/dima1203oleg/MarshGO-Server/actions/runs/36701692148) all passed, including CI migrations/integration and the umbrella Playwright suite.
 
 **Next implementation step:** Continue Gate A hardening for provider-backed maps/routing, physical-device location permissions, external SMS/storage and staging/backup; keep the split Server and Site repositories aligned when their respective code changes.
+
+## Phase 7 continuation — Community fee snapshots and isolated acceptance DBs
+
+**Phase:** 7 Monetization/security; 9 test isolation.
+
+**Status:** PARTIAL. Every current first-party direct or negotiated booking now records a server-calculated immutable 0% Community fee snapshot. Commercial pricing and payment remain disabled pending an approved agreement/provider.
+
+**Completed:** Added a fail-closed `FeeEngine` for integer minor units. It accepts only the configured `community` fee class, sets `platform_fee_minor=0`, preserves the full gross amount as the driver amount and records `community-0pct-v1`; it never reads a client-provided fee. Added additive migration `019_booking_fee_snapshot.sql`, integrated the rule into direct booking and demand-proposal acceptance transactions, returned the fee snapshot through booking DTOs, and asserted it in API integration and browser E2E. Added support for independently named loopback test databases prefixed `marshgo_e2e_`, allowing clean-schema migrations and preventing concurrent local API instances from contending over one test outbox/database.
+
+**Modified files:** `server/fees.ts`, `server/index.ts`, `server/migrations/019_booking_fee_snapshot.sql`, `src/services/productionApi.ts`, `scripts/ensure-e2e-database.ts`, `scripts/run-integration-tests.sh`, `tests/fees.test.ts`, `tests/api-bookings.integration.test.ts`, `e2e/marketplace.spec.ts`, `docs/API.md`, `docs/ARCHITECTURE.md`, `docs/SECURITY.md`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_CHECKLIST.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** `019_booking_fee_snapshot.sql` adds immutable `fee_class`, `platform_fee_minor`, and `fee_rule_version` columns with a check constraint to `bookings`.
+
+**Endpoints:** Existing direct `POST /api/v1/bookings` and negotiated `POST /api/v1/proposals/:id/accept` now calculate and return the authoritative fee snapshot.
+
+**Tests:** `npm run check:production` passed (typecheck, lint, 18 unit tests passed, one opt-in DB-only test skipped, PWA build). Created a clean loopback database `marshgo_e2e_fee`, applied all migrations `001`–`019`, then `npm run test:integration` passed: bookings/negotiation 9/9, navigation 1/1, cross-instance realtime/outbox 1/1, restart persistence 1/1, rate limit 1/1. `npm run test:e2e` against that database passed 3/3, including fee snapshot assertions on direct and navigation-linked booking and the two Pro Max browser viewport checks. The older shared `marshgo_e2e` database had an already-running API process competing for outbox rows; the isolated DB avoided this test interference without stopping the user's service.
+
+**DEMO/TRUTH status:** First-party Community bookings are server-priced and carry a 0% snapshot; no online money transfer occurs. No commercial/partner percentage is configured, no fee ledger/settlement or payment provider exists. The new clean local DB is for tests only, not staging.
+
+**Open issues:** Contract-backed commercial fees, online payments/webhooks/refunds, production SMS/routing/geocoding/tile/photo-storage services, physical-device GPS, staging/backup/monitoring and multi-passenger matching remain incomplete.
+
+**External dependencies:** Commercial fee agreements, payment provider contract/credentials, real SMS sender, approved routing/geocoder/map tile service, private storage, and staging/production host access.
+
+**Next implementation step:** Propagate the fee module/migration and shared DTO into split Server/Site repositories, run their checks and GitHub CI, then continue implementing independent security/reliability work.

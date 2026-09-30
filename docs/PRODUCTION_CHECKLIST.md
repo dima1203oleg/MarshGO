@@ -8,6 +8,7 @@
 - [x] Additive schema includes users/roles/sessions/OTP, vehicles, geospatial offers/demands, bookings, proposals, conversations, messages, and audit events.
 - [x] API liveness/readiness and database-backed city/date/seat offer search.
 - [x] Transactional seat decrement, per-user idempotency, ownership checks, and idempotent cancellation API.
+- [x] Server-side Community fee calculation and immutable booking fee snapshot; all current first-party bookings freeze exactly 0 platform commission. Commercial fee classes fail closed until approved contract terms exist.
 - [x] Passenger or trip driver can cancel a confirmed booking; unrelated accounts are denied, and repeated cancellation returns inventory once.
 - [x] Passenger cancellation starts a server-backed Rescue lookup over actual active MARSHGO Community inventory and permits selecting an alternative that uses the standard atomic booking endpoint; locally tested through cancel → rescue result → new confirmed booking. Search is endpoint-radius/time-window based and is not yet provider/routing detour aware.
 - [x] Isolated local integration proves booking state, seat inventory, and idempotent replay survive a real API process stop/start against the same PostgreSQL database; managed staging restart/restore rehearsal remains open.
@@ -26,6 +27,7 @@
 ## Required before staging
 
 - [ ] Configure/test real OTP provider, sender identity, secure session policy, and staging HTTPS same-site API routing.
+- [ ] Configure approved/versioned commercial fee rules only after carrier agreements; no online payment or settlement provider is connected.
 - [ ] Configure private, encrypted vehicle/document storage and operate verification review with approved staff, retention, and malware scanning.
 - [x] Booking lifecycle API with signed boarding ticket, participant completion confirmations, and completed-trip reviews.
 - [x] Authenticated WebSocket delivery across API instances via Redis Pub/Sub; shared 30-second one-use tickets use Redis `GETDEL`; account logout closes remote sockets; two-process integration and browser replay E2E pass.

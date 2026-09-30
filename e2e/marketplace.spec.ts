@@ -159,8 +159,8 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     await passengerPage.getByRole('button', { name: /Забронювати місце/ }).click();
     const createdBookingResponse = await bookingResponsePromise;
     expect(createdBookingResponse.status()).toBe(201);
-    const createdBooking = (await createdBookingResponse.json()).data as { id: string; offer_id: string; seat_count: number; total_price_minor: number; status: string };
-    expect(createdBooking).toMatchObject({ offer_id: offerId, seat_count: 2, total_price_minor: 30000, status: 'confirmed' });
+    const createdBooking = (await createdBookingResponse.json()).data as { id: string; offer_id: string; seat_count: number; total_price_minor: number; status: string; fee_class: string; platform_fee_minor: number; fee_rule_version: string };
+    expect(createdBooking).toMatchObject({ offer_id: offerId, seat_count: 2, total_price_minor: 30000, status: 'confirmed', fee_class: 'community', platform_fee_minor: 0, fee_rule_version: 'community-0pct-v1' });
     await expect(passengerPage.getByRole('heading', { name: 'Мої поїздки' })).toBeVisible();
     await expect(passengerPage.getByText(/2 місця/).first()).toBeVisible();
 
@@ -480,6 +480,7 @@ test('two accounts confirm a route match, negotiate, book and refresh the driver
     expect(acceptance.status).toBe(201);
     const booking = await pool.query<{ status: string; total_price_minor: number }>('SELECT status,total_price_minor FROM bookings WHERE id=$1', [acceptance.body.data.id]);
     expect(booking.rows).toEqual([{ status: 'confirmed', total_price_minor: 30000 }]);
+    expect(acceptance.body.data).toMatchObject({ fee_class: 'community', platform_fee_minor: 0, fee_rule_version: 'community-0pct-v1' });
     const route = await pool.query<{ route_version: number; opt_in: boolean; waypoint_count: number }>(
       `SELECT s.route_version,s.opt_in,(SELECT count(*)::int FROM navigation_waypoints w WHERE w.navigation_session_id=s.id) AS waypoint_count
          FROM navigation_sessions s WHERE s.id=$1`, [navigationSessionId],
