@@ -625,6 +625,8 @@ test('Journey Planner ranks a persisted Community route and opens its current of
     await page.getByRole('button', { name: /Забронювати місце/ }).click();
     expect((await linkedBookingResponse).status()).toBe(201);
     await expect(page.getByText('Journey оновлено сервером і збережено як готовий маршрут.')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Збережені маршрути' })).toBeVisible();
+    await expect(page.getByText('Маршрут готовий')).toBeVisible();
     const linked = await pool.query<{ state: string; confirmed_price_minor: number; leg_state: string; price_status: string; booking_id: string }>(
       `SELECT j.state,j.confirmed_price_minor,l.state AS leg_state,l.price_status,l.booking_id
          FROM journeys j JOIN journey_legs l ON l.journey_id=j.id WHERE j.user_id=(SELECT id FROM users WHERE phone_e164=$1)`, [journeyPassengerPhone],
