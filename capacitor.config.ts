@@ -5,8 +5,14 @@ const config: CapacitorConfig = {
   appName: 'MARSHGO',
   webDir: 'dist',
   ios: {
-    contentInset: 'automatic',
+    contentInset: 'never',
     preferredContentMode: 'mobile',
+  },
+  plugins: {
+    StatusBar: {
+      overlaysWebView: true,
+      style: 'DARK',
+    },
   },
 };
 

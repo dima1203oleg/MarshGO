@@ -23,17 +23,21 @@ Returns published, future offers with available seats from PostgreSQL. Optional 
 
 `POST /api/v1/routing/route` (authenticated) returns an OSRM-compatible road geometry, distance, and duration. `ROUTING_ENGINE_URL` must point to a configured private or contracted OSRM-compatible endpoint. In production, offer creation requires a successful route and persists the returned geometry, distance, duration, source, and computed arrival time; missing or failed routing returns 503. Local development can create explicitly marked `development_unrouted` fixtures for tests only.
 
+`GET /api/v1/places/suggest?q=Стрий` (authenticated) requests up to six Ukrainian suggestions from a configured Nominatim-compatible `GEOCODING_ENGINE_URL`. The API validates coordinates and returns provider identifiers and labels. Production refuses non-HTTPS geocoder URLs. Without a contracted/self-hosted provider the route returns 503; the client does not substitute guessed coordinates. Search is rate limited separately.
+
 `POST /api/v1/auth/otp/request` and `POST /api/v1/auth/otp/verify` implement phone challenge enrollment. OTP codes are hashed, expire after five minutes, permit five attempts, and have a one-minute resend cooldown plus a per-phone hourly cap. The no-network OTP provider is allowed only with `NODE_ENV=development` and `AUTH_DEV_OTP=true`; production Twilio delivery requires account credentials and a verified sender. Verify returns a short-lived opaque bearer token and an HttpOnly refresh cookie. `POST /api/v1/auth/refresh` rotates refresh credentials and revokes a token family on reuse; `POST /api/v1/auth/logout` and `/logout-all` revoke sessions.
 
 `GET|PATCH /api/v1/users/me` reads and updates the authenticated profile. `POST /api/v1/users/me/roles` permits self-enabling only passenger/driver roles without changing user identity. `GET /api/v1/users/me/export` exports account records; `POST /api/v1/users/me/deletion-requests` creates a pending request without immediately disabling the account. `GET /api/v1/bookings` returns bookings where the caller is a passenger or driver.
 
 ## Reverse marketplace
 
-`POST /api/v1/demands` (passenger role) creates a geocoded passenger request with a maximum seven-day time window, passenger count, and optional budget. `GET /api/v1/demands` (driver role) returns open requests other than the driver's own.
+`POST /api/v1/demands` (passenger role) stores a passenger request with coordinates selected from the place geocoder, a maximum seven-day time window, passenger count, optional budget basis (`total_all` or `per_seat`), notes, and boolean requirements. `GET /api/v1/demands/mine` returns the caller's requests and pending proposal counts. `GET /api/v1/demands` (driver role) returns open requests other than the driver's own. `POST /api/v1/demands/:id/cancel` is owner-only and idempotent while cancelled. Driver demand results are not yet ranked by route compatibility.
+
+`GET /api/v1/demands/:id/proposals` returns proposals to the passenger who owns the demand, or only the caller's own proposal to a participating driver. An eligible driver may call `POST /api/v1/proposals/:id/agree` after a passenger counter-offer; it records an immutable driver revision at that price and does not create a booking. A passenger must still call `POST /api/v1/proposals/:id/accept`. That final endpoint rejects a passenger's unconfirmed counter-offer.
 
 `POST /api/v1/demands/:id/proposals` (driver role) creates a price/time proposal using the caller's verified vehicle. The proposal price is the total agreed amount in minor UAH units. It expires no later than the demand's time window.
 
-`POST /api/v1/proposals/:id/counter` lets only a participant counter; turns must alternate between driver and passenger. Each revision is persisted. `GET /api/v1/proposals/:id/revisions` exposes the history only to negotiation participants.
+`POST /api/v1/proposals/:id/counter` lets only a participant counter; turns must alternate between driver and passenger. Each revision is persisted, and positive amounts are required. `GET /api/v1/proposals/:id/revisions` exposes the history only to negotiation participants.
 
 `POST /api/v1/proposals/:id/accept` is passenger-only. In one database transaction it resolves the demand, rejects competing proposals, creates the matched offer and booking, consumes seats, opens the conversation and writes an audit event. Repeated acceptance is rejected after the first commit.
 
@@ -55,6 +59,6 @@ Cancels a confirmed booking owned by the caller and restores its seats exactly o
 
 `GET /api/v1/bookings/:id/conversation` returns the conversation only to a booking participant. `GET /api/v1/conversations/:id/messages` returns persisted participant-only history, and `POST /api/v1/conversations/:id/messages` stores a message after checking membership. Delivery is request/response only; WebSocket and push updates are not implemented.
 
-Responses use `{ "data": ... }`; errors use `{ "error": { "code", "message", "requestId" } }`. This is the current API surface, not a claim of full OpenAPI coverage. OpenAPI generation and vehicle-photo upload endpoints remain unimplemented.
+Responses use `{ "data": ... }`; errors use `{ "error": { "code", "message", "requestId" } }`. This is the current API surface, not a claim of full OpenAPI coverage. OpenAPI generation remains unimplemented.
 
-The production PWA currently uses OTP sign-in, the server offer search, server booking endpoint, and persisted booking list. The dev build continues to show the existing demo UI. Production PWA does not yet include driver offer creation, vehicle management/photos, demand negotiation, chat, or navigation screens.
+The production PWA uses OTP sign-in, server offer search/booking, booking history and participant chat, profile/vehicle CRUD, and the reverse-marketplace demand/proposal endpoints. Place search needs `GEOCODING_ENGINE_URL`; without it, the demand form cannot publish a request. Driver proposals require an authorized verified vehicle, and the current admin verification workflow is still a blocker. Demand matching by road corridor, driver offer publishing UI, vehicle photos in the new screen, navigation, and WebSocket delivery are not implemented.

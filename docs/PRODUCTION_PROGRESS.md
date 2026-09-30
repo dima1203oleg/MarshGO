@@ -189,3 +189,45 @@
 **External dependencies:** SMS provider credentials and sender; production HTTPS API; geocoder/routing deployment; private photo storage; interactive simulator runner or physical iPhone.
 
 **Next implementation step:** Add place suggestion/geocoding and route selection, then build driver offer creation and passenger demand negotiation screens on the existing server contracts; add tap-driven simulator E2E on an interactive runner.
+
+## Phase 4 / 5 — Demand negotiation UI and geocoded place input
+
+**Phase:** 4 Reverse Market; 5 Production UI replacement continuation.
+
+**Status:** PARTIAL. Passenger demand and negotiation are now represented in the production UI and persist through the API. Actual address suggestions need a configured provider, and verified driver vehicles need a real review flow before drivers can propose.
+
+**Completed:** Added a Nominatim-compatible geocoder adapter and authenticated `/places/suggest` API with query validation, Ukraine restriction, HTTPS enforcement in production, five-second timeout, independent rate limit, and fail-closed behavior. Passenger form requires selecting actual provider results before publishing coordinates; it persists departure interval, passenger count, total/per-seat budget, requirements and notes. Added passenger demand list/proposal inbox/cancel, driver open-request list, driver proposal form, persisted counter revisions/history, explicit driver agreement after passenger counter, and separate passenger confirmation that creates the booking. Demand list is deliberately labeled as unranked; no route matching is claimed. Added migration `008_demand_details.sql`.
+
+**Modified files:** `server/geocoding.ts`, `server/index.ts`, `server/migrations/008_demand_details.sql`, `src/services/productionApi.ts`, `src/views/ProductionMarketplace.tsx`, `tests/geocoding.test.ts`, `tests/api-bookings.integration.test.ts`, `.env.example`, `docs/API.md`, `docs/DATA_MODEL.md`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** `008_demand_details.sql` adds constrained `budget_type`, `notes`, and object-valued JSONB `requirements` columns to `passenger_demands`; migration was applied to the local PostGIS database.
+
+**Endpoints:** `GET /api/v1/places/suggest`; extended `POST /api/v1/demands`; added `GET /api/v1/demands/mine`, `POST /api/v1/demands/:id/cancel`, `GET /api/v1/demands/:id/proposals`, and `POST /api/v1/proposals/:id/agree`; proposal acceptance now rejects a passenger's unconfirmed counter-offer.
+
+**Tests:** `npm run typecheck`, `npm run lint`, and `npm run build` passed. Unit suite passed 10/10. Local API/PostGIS integration suite passed 14/14 with development OTP and test identity bypass enabled only for that run; it covers budget/requirements persistence, driver request visibility, cancellation replay, proposal revision history, driver agreement, premature passenger confirmation rejection, and final booking creation. Place adapter tests cover coordinate validation, UA-scoped query contract, and unconfigured fail-closed response. Migration 008 applied. `npm run ios:simulator` rebuilt, installed, and launched the updated production bundle on iPhone 18 Pro / iOS 27; simulator health check returned `{"status":"ok"}`. Screenshot is `/tmp/marshgo-demand-ui-ios.png`. Interactive controls remain untested because only headless `simctl` is available.
+
+**DEMO/TRUTH status:** Request, proposal, negotiation, cancellation, and booking state are server-backed. Place entry refuses to publish without a provider-selected coordinate. Geocoder has no production endpoint configured; UI therefore cannot complete address selection in current workspace. Driver proposals require a verified vehicle; user-facing verification review is not implemented. Open driver requests are not route-filtered. No GPS matching, WebSocket, or partner service is represented as live.
+
+**Open issues:** No configured geocoder, no vehicle approval/admin UI, no route-aware demand sorting, incomplete privacy refinement for exact demand locations after agreement, and no interactive UI test. App-level request/accept UI awaits a working verified vehicle in a development environment or manual moderation path.
+
+**External blockers:** Owner-selected contracted/self-hosted Nominatim-compatible endpoint; routing provider for road-distance matching; operational driver verification reviewer and policy; tap-driven simulator runner/physical device.
+
+**Next implementation step:** Add a protected vehicle verification decision workflow for authorized admins and connect real route-based driver-demand eligibility; then implement driver offer publishing UI against the existing route/offer contracts.
+
+## iOS reference alignment — welcome and navigation
+
+**Phase:** 5 continuation / native iOS visual integration.
+
+**Status:** PARTIAL. The native iPhone welcome surface now follows the supplied scenic welcome direction; internal screens retain the same light card-and-blue-action system. This is a visual pass, not pixel-by-pixel completion of every supplied screen.
+
+**Completed:** Added a locally bundled, compressed Carpathian road hero image; centered MARSHGO map-pin branding; title and authentication actions; native edge-to-edge status bar with light icons on authentication screens and dark icons after sign-in; and a five-control bottom bar (Home, Search, Create, Trips, Profile). Chat remains reachable from the booking action so the primary navigation matches the reference.
+
+**Modified files:** `public/images/welcome-road.jpg`, `src/views/ProductionMarketplace.tsx`, `src/index.css`, `capacitor.config.ts`, `package.json`, `bun.lock`, `ios/App/CapApp-SPM/Package.swift`, `docs/IOS.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Tests:** `npx tsc --noEmit`, `npx eslint src/views/ProductionMarketplace.tsx capacitor.config.ts`, `npm run build`, `npx cap sync ios`, and `npm run ios:simulator` passed. iPhone 18 Pro / iOS 27 screenshot `/tmp/marshgo-ios-welcome-final.png` confirms photo bleed under the status bar, white status glyphs and working welcome actions rendered without overflow. This headless host still cannot tap through authentication or verify signed-in screens.
+
+**Remaining issues:** SMS delivery is not configured; internal screen interactions still require a tap-capable simulator or physical iPhone. The larger 10-screen reference collection has not all been individually matched or verified.
+
+**External blockers:** Tap-driven simulator/physical device and real SMS provider credentials for end-to-end sign-in.
+
+**Next implementation step:** Run the complete authenticated iOS flow in an interactive simulator, then align and verify the signed-in home/search/detail/trips/profile views against the supplied device references.

@@ -36,6 +36,11 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+html:has(.auth-screen),
+body:has(.auth-screen) {
+  background-color: #081b35;
+}
+
 html.dark body {
   background-color: #071324;
   color: #F1F5F9;

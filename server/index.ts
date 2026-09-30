@@ -5,6 +5,7 @@ import { rateLimit } from 'express-rate-limit';
 import { Pool, PoolClient } from 'pg';
 import { sendVerificationCode, SmsProviderUnavailableError } from './sms';
 import { getRoadRoute, RoutingUnavailableError } from './routing';
+import { GeocodingUnavailableError, suggestPlaces } from './geocoding';
 import { createVehiclePhotoUpload, deleteStoredVehiclePhoto, getVehiclePhotoUrl, isAllowedPhotoType, ObjectStorageUnavailableError, verifyVehiclePhotoObject } from './objectStorage';
 
 const app = express();
@@ -17,6 +18,7 @@ const allowedOrigins = new Set((process.env.CORS_ORIGINS || 'http://localhost:30
 const sessionSecret = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
 const accessLifetimeMs = 15 * 60 * 1000;
 const refreshLifetimeMs = 30 * 24 * 60 * 60 * 1000;
+const placeSearchLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 60, standardHeaders: 'draft-8', legacyHeaders: false });
 
 app.disable('x-powered-by');
 app.use((req, res, next) => {
@@ -338,6 +340,18 @@ app.get('/api/v1/users/me', requireAuth, asyncHandler(async (req, res) => {
   );
   if (!rows[0]) throw new ApiError(404, 'user unavailable');
   res.json({ data: rows[0] });
+}));
+
+app.get('/api/v1/places/suggest', requireAuth, placeSearchLimiter, asyncHandler(async (req, res) => {
+  const query = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+  if (query.length < 3 || query.length > 120) throw new ApiError(400, 'place query must contain 3–120 characters');
+  try {
+    const data = await suggestPlaces(query);
+    res.json({ data });
+  } catch (error) {
+    if (error instanceof GeocodingUnavailableError) throw new ApiError(503, error.message, 'geocoder_unavailable');
+    throw error;
+  }
 }));
 
 app.patch('/api/v1/users/me', requireAuth, asyncHandler(async (req, res) => {
@@ -984,7 +998,7 @@ app.post('/api/v1/bookings/:id/reviews', requireAuth, asyncHandler(async (req, r
 
 app.post('/api/v1/demands', requireAuth, requireRole('passenger'), asyncHandler(async (req, res) => {
   const body = req.body ?? {};
-  const { originName, destinationName, origin, destination, earliestDeparture, latestDeparture, passengers, budgetMinor } = body;
+  const { originName, destinationName, origin, destination, earliestDeparture, latestDeparture, passengers, budgetMinor, budgetType, notes, requirements } = body;
   const validPoint = (point: unknown) => Array.isArray(point) && point.length === 2 &&
     typeof point[0] === 'number' && typeof point[1] === 'number' && Number.isFinite(point[0]) && Number.isFinite(point[1]) &&
     Math.abs(point[0]) <= 180 && Math.abs(point[1]) <= 90;
@@ -995,25 +1009,74 @@ app.post('/api/v1/demands', requireAuth, requireRole('passenger'), asyncHandler(
       !validPoint(origin) || !validPoint(destination) || !Number.isFinite(earliest.getTime()) || !Number.isFinite(latest.getTime()) ||
       earliest <= new Date() || latest < earliest || latest.getTime() - earliest.getTime() > 7 * 86400_000 ||
       !Number.isInteger(passengers) || passengers < 1 || passengers > 20 ||
-      (budgetMinor !== undefined && (!Number.isInteger(budgetMinor) || budgetMinor < 0 || budgetMinor > 100_000_000))) {
+      (budgetMinor !== undefined && (!Number.isInteger(budgetMinor) || budgetMinor < 0 || budgetMinor > 100_000_000)) ||
+      (budgetType !== undefined && budgetType !== 'total_all' && budgetType !== 'per_seat') ||
+      (notes !== undefined && (typeof notes !== 'string' || notes.trim().length > 1000)) ||
+      (requirements !== undefined && (!requirements || typeof requirements !== 'object' || Array.isArray(requirements)))) {
     throw new ApiError(400, 'invalid passenger demand');
   }
   const { rows } = await pool.query(
-    `INSERT INTO passenger_demands(passenger_id,origin_name,destination_name,origin,destination,earliest_departure,latest_departure,passenger_count,budget_minor)
-     VALUES ($1,$2,$3,ST_SetSRID(ST_MakePoint($4,$5),4326)::geography,ST_SetSRID(ST_MakePoint($6,$7),4326)::geography,$8,$9,$10,$11)
-     RETURNING id,origin_name,destination_name,earliest_departure,latest_departure,passenger_count,budget_minor,status,created_at`,
-    [req.userId, originName.trim(), destinationName.trim(), origin[0], origin[1], destination[0], destination[1], earliest.toISOString(), latest.toISOString(), passengers, budgetMinor ?? null],
+    `INSERT INTO passenger_demands(passenger_id,origin_name,destination_name,origin,destination,earliest_departure,latest_departure,passenger_count,budget_minor,budget_type,notes,requirements)
+     VALUES ($1,$2,$3,ST_SetSRID(ST_MakePoint($4,$5),4326)::geography,ST_SetSRID(ST_MakePoint($6,$7),4326)::geography,$8,$9,$10,$11,$12,$13,$14)
+     RETURNING id,origin_name,destination_name,earliest_departure,latest_departure,passenger_count,budget_minor,budget_type,notes,requirements,status,created_at`,
+    [req.userId, originName.trim(), destinationName.trim(), origin[0], origin[1], destination[0], destination[1], earliest.toISOString(), latest.toISOString(), passengers, budgetMinor ?? null, budgetType ?? 'total_all', notes?.trim() || null, JSON.stringify(requirements ?? {})],
   );
   await pool.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'demand.created', 'demand', rows[0].id]);
   res.status(201).json({ data: rows[0] });
 }));
 
+app.get('/api/v1/demands/mine', requireAuth, requireRole('passenger'), asyncHandler(async (req, res) => {
+  const { rows } = await pool.query(
+    `SELECT d.id,d.origin_name,d.destination_name,d.earliest_departure,d.latest_departure,d.passenger_count,d.budget_minor,d.budget_type,d.notes,d.requirements,d.status,d.created_at,
+            (SELECT count(*)::int FROM proposals p WHERE p.demand_id=d.id AND p.status='pending') AS proposal_count
+       FROM passenger_demands d WHERE d.passenger_id=$1 ORDER BY d.created_at DESC LIMIT 100`, [req.userId],
+  );
+  res.json({ data: rows });
+}));
+
+app.post('/api/v1/demands/:id/cancel', requireAuth, requireRole('passenger'), asyncHandler(async (req, res) => {
+  const { rows } = await pool.query(
+    `UPDATE passenger_demands SET status='cancelled' WHERE id=$1 AND passenger_id=$2 AND status='open'
+     RETURNING id,status`, [req.params.id, req.userId],
+  );
+  if (!rows[0]) {
+    const existing = await pool.query('SELECT id,status FROM passenger_demands WHERE id=$1 AND passenger_id=$2', [req.params.id, req.userId]);
+    if (!existing.rows[0]) throw new ApiError(404, 'demand unavailable');
+    if (existing.rows[0].status !== 'cancelled') throw new ApiError(409, 'only an open demand can be cancelled');
+    res.json({ data: existing.rows[0], replayed: true });
+    return;
+  }
+  await pool.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'demand.cancelled', 'demand', rows[0].id]);
+  res.json({ data: rows[0], replayed: false });
+}));
+
 app.get('/api/v1/demands', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT id,origin_name,destination_name,earliest_departure,latest_departure,passenger_count,budget_minor,created_at
+    `SELECT id,origin_name,destination_name,earliest_departure,latest_departure,passenger_count,budget_minor,budget_type,notes,requirements,created_at
        FROM passenger_demands WHERE status='open' AND latest_departure>now() AND passenger_id<>$1
       ORDER BY earliest_departure LIMIT 100`, [req.userId],
   );
+  res.json({ data: rows });
+}));
+
+app.get('/api/v1/demands/:id/proposals', requireAuth, asyncHandler(async (req, res) => {
+  const { rows } = await pool.query(
+    `SELECT p.id,p.demand_id,p.driver_id,u.display_name AS driver_name,p.vehicle_id,v.make,v.model,v.model_year,
+            p.price_minor,p.currency,p.departure_at,p.comment,p.status,p.expires_at,p.revision_number,
+            latest.actor_role AS last_actor_role,latest.comment AS last_comment
+       FROM passenger_demands d JOIN proposals p ON p.demand_id=d.id
+       JOIN users u ON u.id=p.driver_id LEFT JOIN vehicles v ON v.id=p.vehicle_id
+       LEFT JOIN LATERAL (SELECT actor_role,comment FROM proposal_revisions r WHERE r.proposal_id=p.id ORDER BY revision_number DESC LIMIT 1) latest ON true
+      WHERE d.id=$1 AND (d.passenger_id=$2 OR p.driver_id=$2)
+      ORDER BY p.created_at DESC`, [req.params.id, req.userId],
+  );
+  if (!rows.length) {
+    const demand = await pool.query<{ passenger_id: string; status: string }>('SELECT passenger_id,status FROM passenger_demands WHERE id=$1', [req.params.id]);
+    const driver = await pool.query<{ allowed: boolean }>('SELECT EXISTS(SELECT 1 FROM user_roles WHERE user_id=$1 AND role=\'driver\') AS allowed', [req.userId]);
+    if (!demand.rows[0] || (demand.rows[0].passenger_id !== req.userId && !(driver.rows[0]?.allowed && demand.rows[0].status === 'open'))) {
+      throw new ApiError(404, 'demand unavailable');
+    }
+  }
   res.json({ data: rows });
 }));
 
@@ -1021,7 +1084,7 @@ app.post('/api/v1/demands/:id/proposals', requireAuth, requireRole('driver'), as
   const { vehicleId, priceMinor, departureAt, comment } = req.body ?? {};
   const departure = new Date(departureAt);
   if (typeof vehicleId !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(vehicleId) ||
-      !Number.isInteger(priceMinor) || priceMinor < 0 || priceMinor > 100_000_000 || !Number.isFinite(departure.getTime()) ||
+      !Number.isInteger(priceMinor) || priceMinor < 1 || priceMinor > 100_000_000 || !Number.isFinite(departure.getTime()) ||
       (comment !== undefined && (typeof comment !== 'string' || comment.length > 1000))) throw new ApiError(400, 'invalid proposal');
   const client = await pool.connect();
   try {
@@ -1062,7 +1125,7 @@ app.post('/api/v1/demands/:id/proposals', requireAuth, requireRole('driver'), as
 app.post('/api/v1/proposals/:id/counter', requireAuth, asyncHandler(async (req, res) => {
   const { priceMinor, departureAt, comment } = req.body ?? {};
   const departure = new Date(departureAt);
-  if (!Number.isInteger(priceMinor) || priceMinor < 0 || priceMinor > 100_000_000 || !Number.isFinite(departure.getTime()) ||
+  if (!Number.isInteger(priceMinor) || priceMinor < 1 || priceMinor > 100_000_000 || !Number.isFinite(departure.getTime()) ||
       (comment !== undefined && (typeof comment !== 'string' || comment.length > 1000))) throw new ApiError(400, 'invalid counter-offer');
   const client = await pool.connect();
   try {
@@ -1104,6 +1167,41 @@ app.post('/api/v1/proposals/:id/counter', requireAuth, asyncHandler(async (req, 
   }
 }));
 
+app.post('/api/v1/proposals/:id/agree', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query<{
+      id: string; demand_id: string; driver_id: string; passenger_id: string; price_minor: number; departure_at: Date;
+      revision_number: number; expires_at: Date; demand_status: string;
+    }>(
+      `SELECT p.id,p.demand_id,p.driver_id,d.passenger_id,p.price_minor,p.departure_at,p.revision_number,p.expires_at,d.status AS demand_status
+         FROM proposals p JOIN passenger_demands d ON d.id=p.demand_id
+        WHERE p.id=$1 AND p.status='pending' FOR UPDATE OF p,d`, [req.params.id],
+    );
+    const proposal = rows[0];
+    if (!proposal || proposal.demand_status !== 'open' || new Date(proposal.expires_at) <= new Date()) throw new ApiError(404, 'proposal unavailable');
+    if (proposal.driver_id !== req.userId) throw new ApiError(403, 'only the proposing driver can agree');
+    const { rows: latest } = await client.query<{ actor_id: string; actor_role: string }>(
+      'SELECT actor_id,actor_role FROM proposal_revisions WHERE proposal_id=$1 ORDER BY revision_number DESC LIMIT 1', [proposal.id],
+    );
+    if (!latest[0] || latest[0].actor_role !== 'passenger') throw new ApiError(409, 'there is no passenger counter-offer to accept');
+    const revision = Number(proposal.revision_number) + 1;
+    await client.query('UPDATE proposals SET revision_number=$2 WHERE id=$1', [proposal.id, revision]);
+    await client.query(
+      `INSERT INTO proposal_revisions(proposal_id,revision_number,actor_id,actor_role,price_minor,departure_at,comment)
+       VALUES ($1,$2,$3,'driver',$4,$5,'Водій погодив умови')`,
+      [proposal.id, revision, req.userId, proposal.price_minor, new Date(proposal.departure_at).toISOString()],
+    );
+    await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'proposal.agreed', 'proposal', proposal.id]);
+    await client.query('COMMIT');
+    res.json({ data: { id: proposal.id, price_minor: proposal.price_minor, departure_at: proposal.departure_at, revision_number: revision, status: 'awaiting_passenger_confirmation' } });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally { client.release(); }
+}));
+
 app.post('/api/v1/proposals/:id/accept', requireAuth, asyncHandler(async (req, res) => {
   const client = await pool.connect();
   try {
@@ -1123,6 +1221,10 @@ app.post('/api/v1/proposals/:id/accept', requireAuth, asyncHandler(async (req, r
     }>('SELECT id,driver_id,vehicle_id,price_minor,departure_at,status,expires_at FROM proposals WHERE id=$1 AND demand_id=$2 FOR UPDATE', [req.params.id, demand.id]);
     const proposal = proposalRows[0];
     if (!proposal || proposal.status !== 'pending' || new Date(proposal.expires_at) <= new Date()) throw new ApiError(409, 'proposal is no longer available');
+    const { rows: latestRevisions } = await client.query<{ actor_role: string }>(
+      'SELECT actor_role FROM proposal_revisions WHERE proposal_id=$1 ORDER BY revision_number DESC LIMIT 1', [proposal.id],
+    );
+    if (latestRevisions[0]?.actor_role !== 'driver') throw new ApiError(409, 'driver must agree to the passenger counter-offer before final confirmation');
     const departure = new Date(proposal.departure_at);
     if (departure < new Date(demand.earliest_departure) || departure > new Date(demand.latest_departure)) throw new ApiError(409, 'proposal time is outside the demand window');
     const { rows: vehicles } = await client.query(

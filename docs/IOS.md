@@ -1,6 +1,6 @@
 # MARSHGO iOS app
 
-MARSHGO now has a Capacitor iOS target that packages the existing React app in a native WKWebView. It uses bundle ID `ua.marshgo.app`, iOS 15 or later, the MARSHGO app icon, and portrait layout. The production surface has a mobile-first home/search/trips/chat/profile shell. Chat is available for existing booking participants; vehicle CRUD and offer booking use the current API. Demand creation, driver offer publishing, navigation, and matching are still incomplete.
+MARSHGO now has a Capacitor iOS target that packages the existing React app in a native WKWebView. It uses bundle ID `ua.marshgo.app`, iOS 15 or later, the MARSHGO app icon, and portrait layout. The production surface has a mobile-first home/search/trips/chat/profile shell. Its welcome screen uses a bundled Carpathian road image, a transparent status bar with light icons, and the five-control bottom navigation from the supplied reference. Chat is available from a booking; vehicle CRUD and offer booking use the current API. Demand creation, driver offer publishing, navigation, and matching are still incomplete.
 
 ## Build and run on a simulator
 

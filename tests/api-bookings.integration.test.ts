@@ -46,7 +46,7 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     await pool.query('DELETE FROM users WHERE phone_e164 LIKE $1', [`+38099${process.pid}%`]);
     await pool.query('DELETE FROM sessions WHERE user_id = ANY($1::uuid[])', [[ids.driver, ids.passengerA, ids.passengerB]]);
     await pool.query('DELETE FROM otp_challenges WHERE phone_e164 LIKE $1', [`+38099${process.pid}%`]);
-    await pool.query("DELETE FROM audit_events WHERE actor_id = ANY($1::uuid[]) AND action IN ('vehicle.created','offer.created','demand.created','proposal.created','proposal.countered','proposal.accepted')", [[ids.driver, ids.passengerA]]);
+    await pool.query("DELETE FROM audit_events WHERE actor_id = ANY($1::uuid[]) AND action IN ('vehicle.created','offer.created','demand.created','demand.cancelled','proposal.created','proposal.countered','proposal.agreed','proposal.accepted')", [[ids.driver, ids.passengerA]]);
     await pool.query('DELETE FROM audit_events WHERE entity_id IN (SELECT id FROM bookings WHERE offer_id IN (SELECT id FROM offers WHERE driver_id = $1)) OR entity_id = ANY($2::uuid[])',
       [ids.driver, [ids.vehicle, ...(apiCreatedVehicleId ? [apiCreatedVehicleId] : []), ...extraVehicleIds]]);
     await pool.query('DELETE FROM reviews WHERE booking_id IN (SELECT id FROM bookings WHERE offer_id IN (SELECT id FROM offers WHERE driver_id=$1))', [ids.driver]);
@@ -251,10 +251,24 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
         originName: 'Reverse Origin', destinationName: 'Reverse Destination',
         origin: [23.86, 49.25], destination: [24.03, 49.84],
         earliestDeparture: earliest.toISOString(), latestDeparture: latest.toISOString(), passengers: 2, budgetMinor: 16000,
+        budgetType: 'total_all', notes: 'One suitcase', requirements: { luggage: true },
       }),
     });
     assert.equal(demandResponse.status, 201);
-    const demand = await demandResponse.json() as { data: { id: string; status: string } };
+    const demand = await demandResponse.json() as { data: { id: string; status: string; budget_type: string; notes: string; requirements: { luggage: boolean } } };
+    assert.equal(demand.data.budget_type, 'total_all');
+    assert.equal(demand.data.notes, 'One suitcase');
+    assert.equal(demand.data.requirements.luggage, true);
+
+    const ownDemands = await fetch(`${apiUrl}/api/v1/demands/mine`, { headers: headers(ids.passengerA) });
+    assert.equal(ownDemands.status, 200);
+    assert.equal((await ownDemands.json() as { data: Array<{ id: string; proposal_count: number }> }).data.find((item) => item.id === demand.data.id)?.proposal_count, 0);
+
+    const driverDemands = await fetch(`${apiUrl}/api/v1/demands`, { headers: headers(ids.driver) });
+    assert.equal((await driverDemands.json() as { data: Array<{ id: string }> }).data.some((item) => item.id === demand.data.id), true);
+    const noProposals = await fetch(`${apiUrl}/api/v1/demands/${demand.data.id}/proposals`, { headers: headers(ids.driver) });
+    assert.equal(noProposals.status, 200);
+    assert.deepEqual((await noProposals.json() as { data: unknown[] }).data, []);
 
     const proposalResponse = await fetch(`${apiUrl}/api/v1/demands/${demand.data.id}/proposals`, {
       method: 'POST', headers: headers(ids.driver),
@@ -274,10 +288,21 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
       body: JSON.stringify({ priceMinor: 15000, departureAt: earliest.toISOString(), comment: 'Agreed at this price' }),
     });
     assert.equal(counter.status, 200);
+    const prematureAccept = await fetch(`${apiUrl}/api/v1/proposals/${proposal.data.id}/accept`, {
+      method: 'POST', headers: headers(ids.passengerA),
+    });
+    assert.equal(prematureAccept.status, 409);
+    const agreedByDriver = await fetch(`${apiUrl}/api/v1/proposals/${proposal.data.id}/agree`, {
+      method: 'POST', headers: headers(ids.driver),
+    });
+    assert.equal(agreedByDriver.status, 200);
     const revisions = await fetch(`${apiUrl}/api/v1/proposals/${proposal.data.id}/revisions`, {
       headers: headers(ids.driver),
     });
-    assert.equal((await revisions.json() as { data: unknown[] }).data.length, 2);
+    const proposalHistory = await revisions.json() as { data: Array<{ actor_role: string; price_minor: number }> };
+    assert.equal(proposalHistory.data.length, 3);
+    assert.equal(proposalHistory.data[2].actor_role, 'driver');
+    assert.equal(proposalHistory.data[2].price_minor, 15000);
 
     const accepted = await fetch(`${apiUrl}/api/v1/proposals/${proposal.data.id}/accept`, {
       method: 'POST', headers: headers(ids.passengerA),
@@ -287,6 +312,19 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     assert.equal(booking.data.total_price_minor, 15000);
     assert.equal(booking.data.seat_count, 2);
     assert.equal(booking.agreedTotalMinor, 15000);
+
+    const cancellationDemand = await fetch(`${apiUrl}/api/v1/demands`, {
+      method: 'POST', headers: headers(ids.passengerA),
+      body: JSON.stringify({
+        originName: 'Cancel Origin', destinationName: 'Cancel Destination', origin: [23.86, 49.25], destination: [24.03, 49.84],
+        earliestDeparture: earliest.toISOString(), latestDeparture: latest.toISOString(), passengers: 1,
+      }),
+    });
+    const cancellationDemandId = (await cancellationDemand.json() as { data: { id: string } }).data.id;
+    const cancelled = await fetch(`${apiUrl}/api/v1/demands/${cancellationDemandId}/cancel`, { method: 'POST', headers: headers(ids.passengerA) });
+    assert.equal((await cancelled.json() as { data: { status: string } }).data.status, 'cancelled');
+    const cancelledAgain = await fetch(`${apiUrl}/api/v1/demands/${cancellationDemandId}/cancel`, { method: 'POST', headers: headers(ids.passengerA) });
+    assert.equal((await cancelledAgain.json() as { replayed: boolean }).replayed, true);
 
     const ticketResponse = await fetch(`${apiUrl}/api/v1/bookings/${booking.data.id}/ticket`, { headers: headers(ids.driver) });
     assert.equal(ticketResponse.status, 200);

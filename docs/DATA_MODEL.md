@@ -9,7 +9,7 @@ The PostgreSQL schema is managed by ordered SQL migrations in `server/migrations
 | Identity | `users`, `user_roles`, `sessions`, `otp_challenges`, `driver_profiles`, `verification_records`, `account_deletion_requests` | Unique E.164 phone; roles are normalized; access and refresh credentials are hashed; OTP challenge expiry and attempt state are stored. |
 | Garage | `vehicles`, `vehicle_photos` | Owner FK; seat bounds; one active non-archived car per owner; archive preserves historic references. Photo metadata exists, upload/storage does not. |
 | Marketplace | `offers`, `bookings`, `booking_events`, `booking_completion_confirmations`, `reviews` | Offer points and optional road LineString use SRID 4326; prices are integer minor units; capacity is checked; booking idempotency is unique per passenger; state transitions and two-party completion confirmations are persisted; reviews require completed bookings. |
-| Demand | `passenger_demands`, `proposals`, `proposal_revisions` | Time window and passenger bounds; immutable price/time revisions; one accepted proposal per demand. |
+| Demand | `passenger_demands`, `proposals`, `proposal_revisions` | Time window and passenger bounds; total/per-seat budget basis, notes, JSON requirements; immutable price/time and driver-agreement revisions; one accepted proposal per demand. |
 | Messaging | `conversations`, `conversation_members`, `messages` | Conversation membership binds access to booking participants; message bodies have length constraints. |
 | Operations | `audit_events` | Critical backend actions are recorded with actor, entity, action, and timestamp. |
 
@@ -22,6 +22,7 @@ The PostgreSQL schema is managed by ordered SQL migrations in `server/migrations
 * `005_offer_routes.sql` — route-derived arrival, distance, duration, and source.
 * `006_vehicle_photo_primary.sql` — at most one primary image per vehicle.
 * `007_booking_lifecycle_reviews.sql` — boarding/in-progress states, immutable booking transitions, two-party completion, and completed-booking reviews.
+* `008_demand_details.sql` — passenger budget basis, notes, and JSON requirement flags.
 
 ## Not yet modeled or incomplete
 
