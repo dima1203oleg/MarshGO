@@ -1166,4 +1166,6 @@ The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max 
 
 **External blockers:** A production web origin, Twilio account credentials, a secret manager, shared Redis, database, routing/geocoding/map tile and object-storage providers must be supplied before a production API can start.
 
-**Next step:** Publish this guard/shutdown slice to the Server repository, verify CI in both repositories, then continue P0 operational hardening.
+**GitHub:** Root commit `2df5ab8` and Server commit `f967576` are pushed. Root CI [`36705163160`](https://github.com/dima1203oleg/MarshGO/actions/runs/36705163160) and Server CI [`36705191016`](https://github.com/dima1203oleg/MarshGO-Server/actions/runs/36705191016) passed including integration suites.
+
+**Next step:** Continue P0 operational hardening. Production still requires the real secrets/providers listed above; local CI config used placeholders only and did not contact Twilio.
