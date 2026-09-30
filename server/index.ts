@@ -6,7 +6,11 @@ import { Pool, PoolClient } from 'pg';
 import { sendVerificationCode, SmsProviderUnavailableError } from './sms';
 import { getRoadRoute, RoutingUnavailableError } from './routing';
 import { GeocodingUnavailableError, suggestPlaces } from './geocoding';
-import { createVehiclePhotoUpload, deleteStoredVehiclePhoto, getVehiclePhotoUrl, isAllowedPhotoType, ObjectStorageUnavailableError, verifyVehiclePhotoObject } from './objectStorage';
+import {
+  createVehiclePhotoUpload, createVerificationEvidenceUpload, deleteStoredVehiclePhoto, getVehiclePhotoUrl,
+  getVerificationEvidenceUrl, isAllowedPhotoType, isAllowedVerificationEvidenceType, ObjectStorageUnavailableError, StoredEvidenceUnavailableError,
+  verifyVehiclePhotoObject, verifyVerificationEvidenceObject,
+} from './objectStorage';
 
 const app = express();
 if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required');
@@ -140,6 +144,15 @@ function requireRole(role: 'driver' | 'passenger') {
         next();
       }).catch(next);
   };
+}
+function requireStaff(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  pool.query<{ allowed: boolean }>(
+    `SELECT EXISTS(SELECT 1 FROM user_roles WHERE user_id=$1 AND role IN ('admin','moderator')) AS allowed`, [req.userId],
+  ).then(({ rows }) => {
+    if (!rows[0]) return res.status(401).json({ error: { code: 'unauthorized', message: 'Authentication required', requestId: res.locals.requestId } });
+    if (!rows[0].allowed) return res.status(403).json({ error: { code: 'forbidden', message: 'Staff role is required', requestId: res.locals.requestId } });
+    next();
+  }).catch(next);
 }
 
 app.get('/healthz', (_req, res) => res.json({ status: 'ok' }));
@@ -453,6 +466,198 @@ app.get('/api/v1/vehicles', requireAuth, asyncHandler(async (req, res) => {
        FROM vehicles WHERE owner_id = $1 AND archived_at IS NULL ORDER BY is_active DESC,created_at DESC`, [req.userId],
   );
   res.json({ data: rows });
+}));
+
+app.get('/api/v1/users/me/verification', requireAuth, asyncHandler(async (req, res) => {
+  const { rows } = await pool.query(
+    `SELECT DISTINCT ON (verification_type,vehicle_id)
+            id,verification_type,vehicle_id,status,created_at,reviewed_at
+       FROM verification_records WHERE user_id=$1
+      ORDER BY verification_type,vehicle_id,created_at DESC,id DESC`, [req.userId],
+  );
+  res.json({ data: rows });
+}));
+
+app.post('/api/v1/vehicles/:id/verification/evidence/upload-url', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+  const contentType = req.body?.contentType;
+  if (!isAllowedVerificationEvidenceType(contentType)) throw new ApiError(400, 'Only JPEG, PNG, and PDF verification evidence is allowed');
+  const { rows } = await pool.query('SELECT 1 FROM vehicles WHERE id=$1 AND owner_id=$2 AND archived_at IS NULL', [req.params.id, req.userId]);
+  if (!rows[0]) throw new ApiError(404, 'vehicle unavailable');
+  const key = `verification-evidence/${req.userId}/${req.params.id}/${crypto.randomUUID()}`;
+  try {
+    const upload = await createVerificationEvidenceUpload(key, contentType);
+    res.json({ data: { key, ...upload } });
+  } catch (error) {
+    if (error instanceof ObjectStorageUnavailableError || (error instanceof Error && error.name === 'CredentialsProviderError')) {
+      throw new ApiError(503, 'Private verification evidence storage is not configured', 'verification_storage_unavailable');
+    }
+    throw error;
+  }
+}));
+
+app.post('/api/v1/vehicles/:id/verification', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+  const vehicleId = req.params.id;
+  const vehiclePrefix = `verification-evidence/${req.userId}/${vehicleId}/`;
+  const registrationKey = req.body?.registrationEvidenceKey;
+  const licenseKey = req.body?.driverLicenseEvidenceKey;
+  const validKey = (key: unknown): key is string => typeof key === 'string' && key.startsWith(vehiclePrefix) &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(key.slice(vehiclePrefix.length));
+  const registrationType = req.body?.registrationContentType;
+  const licenseType = req.body?.driverLicenseContentType;
+  if (!validKey(registrationKey) || !validKey(licenseKey) || registrationKey === licenseKey ||
+      !isAllowedVerificationEvidenceType(registrationType) || !isAllowedVerificationEvidenceType(licenseType)) {
+    throw new ApiError(400, 'Vehicle registration and driver license evidence are required');
+  }
+
+  try {
+    const [registrationValid, licenseValid] = await Promise.all([
+      verifyVerificationEvidenceObject(registrationKey, registrationType),
+      verifyVerificationEvidenceObject(licenseKey, licenseType),
+    ]);
+    if (!registrationValid || !licenseValid) throw new ApiError(400, 'Evidence does not match the required document format or size', 'invalid_verification_evidence');
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    if (error instanceof ObjectStorageUnavailableError || (error instanceof Error && error.name === 'CredentialsProviderError')) {
+      throw new ApiError(503, 'Private verification evidence storage is not configured', 'verification_storage_unavailable');
+    }
+    throw new ApiError(503, 'Uploaded evidence could not be verified', 'verification_evidence_check_failed');
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const vehicle = await client.query('SELECT id FROM vehicles WHERE id=$1 AND owner_id=$2 AND archived_at IS NULL FOR UPDATE', [vehicleId, req.userId]);
+    if (!vehicle.rows[0]) throw new ApiError(404, 'vehicle unavailable');
+    const pending = await client.query(
+      `SELECT verification_type FROM verification_records
+        WHERE user_id=$1 AND vehicle_id=$2 AND verification_type IN ('vehicle','driver_license') AND status='pending'`, [req.userId, vehicleId],
+    );
+    if (pending.rowCount) throw new ApiError(409, 'A verification review is already pending', 'verification_already_pending');
+    await client.query(
+      `INSERT INTO verification_records(user_id,vehicle_id,verification_type,evidence_ref)
+       VALUES ($1,$2,'vehicle',$3),($1,$2,'driver_license',$4)`, [req.userId, vehicleId, registrationKey, licenseKey],
+    );
+    await client.query("UPDATE vehicles SET verification_status='pending' WHERE id=$1", [vehicleId]);
+    await client.query('INSERT INTO driver_profiles(user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING', [req.userId]);
+    await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'verification.submitted', 'vehicle', vehicleId]);
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+  res.status(202).json({ data: { vehicleId, status: 'pending' } });
+}));
+
+app.get('/api/v1/admin/verification', requireAuth, requireStaff, asyncHandler(async (req, res) => {
+  const { rows } = await pool.query(
+    `SELECT r.id,r.user_id,r.vehicle_id,r.verification_type,r.status,r.created_at,
+            u.display_name,v.make,v.model,v.model_year,v.seat_count
+       FROM verification_records r JOIN users u ON u.id=r.user_id
+       LEFT JOIN vehicles v ON v.id=r.vehicle_id
+      WHERE r.status='pending' ORDER BY r.created_at,r.id LIMIT 100`,
+  );
+  res.json({ data: rows });
+}));
+
+app.get('/api/v1/admin/verification/:id/evidence', requireAuth, requireStaff, asyncHandler(async (req, res) => {
+  const { rows } = await pool.query<{ user_id: string; evidence_ref: string | null }>(
+    `SELECT user_id,evidence_ref FROM verification_records WHERE id=$1 AND status='pending'`, [req.params.id],
+  );
+  if (!rows[0]?.evidence_ref) throw new ApiError(404, 'pending verification evidence unavailable');
+  if (rows[0].user_id === req.userId) throw new ApiError(403, 'Reviewers cannot access their own verification evidence');
+  let url: string;
+  try { url = await getVerificationEvidenceUrl(rows[0].evidence_ref); }
+  catch (error) {
+    if (error instanceof StoredEvidenceUnavailableError) throw new ApiError(404, 'Private verification evidence is unavailable', 'verification_evidence_unavailable');
+    if (error instanceof ObjectStorageUnavailableError || (error instanceof Error && error.name === 'CredentialsProviderError')) {
+      throw new ApiError(503, 'Private verification evidence storage is not configured', 'verification_storage_unavailable');
+    }
+    throw error;
+  }
+  await pool.query('UPDATE verification_records SET evidence_accessed_at=now() WHERE id=$1 AND status=\'pending\'', [req.params.id]);
+  await pool.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'verification.evidence.accessed', 'verification', req.params.id]);
+  res.json({ data: { url, expiresInSeconds: 180 } });
+}));
+
+app.post('/api/v1/admin/verification/:id/decision', requireAuth, requireStaff, asyncHandler(async (req, res) => {
+  const decision = req.body?.decision;
+  const note = req.body?.note;
+  if ((decision !== 'approved' && decision !== 'rejected') ||
+      (note !== undefined && (typeof note !== 'string' || note.trim().length > 1000)) ||
+      (decision === 'rejected' && (typeof note !== 'string' || note.trim().length < 3))) {
+    throw new ApiError(400, 'Decision must be approved or rejected; rejection requires a short reason');
+  }
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const subject = await client.query<{ vehicle_id: string | null }>('SELECT vehicle_id FROM verification_records WHERE id=$1', [req.params.id]);
+    if (!subject.rows[0]) throw new ApiError(404, 'verification record unavailable');
+    if (subject.rows[0].vehicle_id) await client.query('SELECT id FROM vehicles WHERE id=$1 FOR UPDATE', [subject.rows[0].vehicle_id]);
+    const found = await client.query<{
+      id: string; user_id: string; vehicle_id: string | null; verification_type: string; status: string; evidence_accessed_at: Date | null;
+    }>(`SELECT id,user_id,vehicle_id,verification_type,status,evidence_accessed_at
+          FROM verification_records WHERE id=$1 FOR UPDATE`, [req.params.id]);
+    const record = found.rows[0];
+    if (!record) throw new ApiError(404, 'verification record unavailable');
+    if (record.user_id === req.userId) throw new ApiError(403, 'Reviewers cannot review their own verification record');
+    if (record.status !== 'pending') throw new ApiError(409, 'Verification was already reviewed', 'verification_already_reviewed');
+    if (!record.evidence_accessed_at) throw new ApiError(409, 'Reviewer must open the private evidence before deciding', 'verification_evidence_not_reviewed');
+
+    await client.query(
+      `UPDATE verification_records SET status=$2,reviewer_id=$3,review_note=$4,reviewed_at=now() WHERE id=$1`,
+      [record.id, decision, req.userId, typeof note === 'string' ? note.trim() || null : null],
+    );
+    if (decision === 'rejected' && record.vehicle_id) {
+      const siblings = await client.query<{ id: string; verification_type: string }>(
+        `UPDATE verification_records SET status='rejected',reviewer_id=$3,review_note=$4,reviewed_at=now()
+          WHERE user_id=$1 AND vehicle_id=$2 AND status='pending' AND id<>$5
+            AND verification_type IN ('vehicle','driver_license')
+          RETURNING id,verification_type`,
+        [record.user_id, record.vehicle_id, req.userId, typeof note === 'string' ? note.trim() : null, record.id],
+      );
+      for (const sibling of siblings.rows) {
+        await client.query(
+          `INSERT INTO audit_events(actor_id,action,entity_type,entity_id,details)
+           VALUES ($1,'verification.rejected','verification',$2,jsonb_build_object('verificationType',$3::text,'reason','paired_document_rejected'))`,
+          [req.userId, sibling.id, sibling.verification_type],
+        );
+      }
+    }
+    let vehicleStatus: string | null = null;
+    if (record.vehicle_id) {
+      const statuses = await client.query<{ vehicle_document: string | null; driver_license: string | null }>(
+        `SELECT
+          (SELECT status FROM verification_records WHERE user_id=$1 AND vehicle_id=$2 AND verification_type='vehicle' ORDER BY created_at DESC,id DESC LIMIT 1) AS vehicle_document,
+          (SELECT status FROM verification_records WHERE user_id=$1 AND vehicle_id=$2 AND verification_type='driver_license' ORDER BY created_at DESC,id DESC LIMIT 1) AS driver_license`,
+        [record.user_id, record.vehicle_id],
+      );
+      const { vehicle_document, driver_license } = statuses.rows[0];
+      vehicleStatus = vehicle_document === 'approved' && driver_license === 'approved' ? 'verified'
+        : vehicle_document === 'rejected' || driver_license === 'rejected' ? 'rejected' : 'pending';
+      await client.query('UPDATE vehicles SET verification_status=$2 WHERE id=$1', [record.vehicle_id, vehicleStatus]);
+      if (driver_license === 'approved') {
+        await client.query(
+          `INSERT INTO driver_profiles(user_id,verification_level,profile_status)
+           VALUES ($1,'identity','active')
+           ON CONFLICT (user_id) DO UPDATE SET verification_level='identity',profile_status='active',updated_at=now()`, [record.user_id],
+        );
+      }
+    }
+    await client.query(
+      `INSERT INTO audit_events(actor_id,action,entity_type,entity_id,details)
+       VALUES ($1,$2,'verification',$3,jsonb_build_object('decision',$4::text,'verificationType',$5::text))`,
+      [req.userId, `verification.${decision}`, record.id, decision, record.verification_type],
+    );
+    await client.query('COMMIT');
+    res.json({ data: { id: record.id, status: decision, vehicleStatus } });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
 }));
 
 app.post('/api/v1/vehicles', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {

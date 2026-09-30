@@ -231,3 +231,27 @@
 **External blockers:** Tap-driven simulator/physical device and real SMS provider credentials for end-to-end sign-in.
 
 **Next implementation step:** Run the complete authenticated iOS flow in an interactive simulator, then align and verify the signed-in home/search/detail/trips/profile views against the supplied device references.
+
+## Phase 2 continuation — protected driver verification
+
+**Phase:** 2 Auth/Garage; production UI and security continuation.
+
+**Status:** PARTIAL. Driver documents can be uploaded and reviewed through protected APIs/UI when private object storage is configured. No real documents or external storage were used in local verification.
+
+**Completed:** Added an 8 MiB JPEG/PNG/PDF evidence policy with signed upload URLs, object metadata/signature validation, owner-only submissions, duplicate-pending prevention, private owner status history, and a staff-only review queue. Admin/moderator roles are required on all queue/evidence/decision endpoints. Staff views omit phone numbers and object keys; evidence URLs are short-lived, self-review is blocked, and document access/decisions are audit logged. A vehicle stays pending until both latest registration and licence decisions are approved; rejecting either closes its paired request so the driver can resubmit. The production profile offers document submission; a staff-gated review page presents evidence and requires a reason to reject.
+
+**Modified files:** `server/objectStorage.ts`, `server/index.ts`, `server/migrations/009_verification_review.sql`, `src/services/productionApi.ts`, `src/views/ProductionMarketplace.tsx`, `tests/object-storage.test.ts`, `tests/api-bookings.integration.test.ts`, `docs/API.md`, `docs/SECURITY.md`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_CHECKLIST.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** `009_verification_review.sql` adds the evidence-access audit timestamp, a review-queue index, and a partial unique guard against duplicate pending records per user/type/vehicle. Migration applied to local PostGIS.
+
+**Endpoints:** `GET /api/v1/users/me/verification`; `POST /api/v1/vehicles/:id/verification/evidence/upload-url`; `POST /api/v1/vehicles/:id/verification`; `GET /api/v1/admin/verification`; `GET /api/v1/admin/verification/:id/evidence`; `POST /api/v1/admin/verification/:id/decision`.
+
+**Tests:** Local API/PostGIS integration and unit suite passed 16/16 with development OTP and identity bypass enabled only on the loopback test API. Verification tests cover anonymous/staff denial, no evidence/phone leakage, storage-not-configured response, required evidence-open access, both approvals before publication, one-time decisions, paired rejection, and driver identity level. Object-storage tests check allowlisted types and 8 MiB policy. `npm run typecheck`, `npm run lint`, `npm run build`, and `git diff --check` passed. `npm run ios:simulator` built with Xcode, installed and launched `ua.marshgo.app` on iPhone 18 Pro / iOS 27; screenshot `/tmp/marshgo-ios-current.png` confirms the reference-aligned scenic welcome screen renders in the native shell. This headless environment provides only `simctl`, so tap-driven auth/booking and the signed-in reference screens remain unverified.
+
+**DEMO/TRUTH status:** No verification uses fake documents or auto-approval. The local form returns 503 for uploads until S3-compatible storage is configured. API code does not expose evidence to offers/search; the staff screen is role-gated and API RBAC is authoritative.
+
+**Remaining issues:** Private S3 bucket, server-side encryption/access logs, app-origin bucket CORS, malware scanning and retention/delete processing are unconfigured. First `admin`/`moderator` role must be granted by an authorized owner/DBA; the UI cannot bootstrap staff. Commercial/legal verification rules still need review. No native tap-driven end-user review was exercised. iOS simulator showed the welcome screen; unauthenticated API refresh correctly received 401, and no credentials were entered, so the driver review flow was not exercised on-device.
+
+**External blockers:** Owner/DBA staff role provisioning; private object storage setup and policy; document retention and malware-scanning decision; authorized moderators.
+
+**Next implementation step:** Review the new vehicle document flow on iOS when the interactive simulator is available; implement real vehicle photo UI; then build driver offer publishing against the existing routing and offer API, keeping production publication blocked without a verified vehicle and configured route engine.

@@ -49,6 +49,14 @@ export type ApiVehicle = {
   verification_status: string;
   is_active: boolean;
 };
+export type ApiVerificationRecord = {
+  id: string; verification_type: 'vehicle' | 'driver_license' | 'identity' | 'commercial'; vehicle_id: string | null;
+  status: 'pending' | 'approved' | 'rejected'; created_at: string; reviewed_at: string | null;
+};
+export type ApiVerificationQueueItem = ApiVerificationRecord & {
+  user_id: string; display_name: string; make: string | null; model: string | null;
+  model_year: number | null; seat_count: number | null;
+};
 
 export type ApiMessage = { id: string; sender_id: string; sender_name: string; body: string; created_at: string };
 export type ApiConversation = { id: string; booking_id: string; created_at: string };
@@ -157,6 +165,32 @@ export const productionApi = {
     return request<ApiVehicle>('/vehicles', { method: 'POST', body: JSON.stringify(input) });
   },
   activateVehicle(id: string) { return request<ApiVehicle>(`/vehicles/${id}/activate`, { method: 'POST' }); },
+  verificationRecords() { return request<ApiVerificationRecord[]>('/users/me/verification'); },
+  verificationEvidenceUploadUrl(vehicleId: string, contentType: string) {
+    return request<{ key: string; url: string; fields: Record<string, string>; expiresInSeconds: number; maxBytes: number }>(
+      `/vehicles/${vehicleId}/verification/evidence/upload-url`, { method: 'POST', body: JSON.stringify({ contentType }) },
+    );
+  },
+  async uploadVerificationEvidence(vehicleId: string, file: File) {
+    const upload = await this.verificationEvidenceUploadUrl(vehicleId, file.type);
+    if (file.size < 1 || file.size > upload.maxBytes) throw new Error('Документ має бути меншим за 8 МБ.');
+    const form = new FormData();
+    for (const [key, value] of Object.entries(upload.fields)) form.append(key, value);
+    form.append('file', file);
+    const response = await fetch(upload.url, { method: 'POST', body: form });
+    if (!response.ok) throw new Error(`Сховище не прийняло документ (${response.status}).`);
+    return { key: upload.key, contentType: file.type };
+  },
+  submitVehicleVerification(vehicleId: string, input: { registrationEvidenceKey: string; registrationContentType: string; driverLicenseEvidenceKey: string; driverLicenseContentType: string }) {
+    return request<{ vehicleId: string; status: string }>(`/vehicles/${vehicleId}/verification`, { method: 'POST', body: JSON.stringify(input) });
+  },
+  adminVerificationQueue() { return request<ApiVerificationQueueItem[]>('/admin/verification'); },
+  adminVerificationEvidence(id: string) { return request<{ url: string; expiresInSeconds: number }>(`/admin/verification/${id}/evidence`); },
+  decideVerification(id: string, decision: 'approved' | 'rejected', note?: string) {
+    return request<{ id: string; status: string; vehicleStatus: string | null }>(`/admin/verification/${id}/decision`, {
+      method: 'POST', body: JSON.stringify({ decision, ...(note ? { note } : {}) }),
+    });
+  },
   conversation(bookingId: string) { return request<ApiConversation>(`/bookings/${bookingId}/conversation`); },
   messages(conversationId: string) { return request<ApiMessage[]>(`/conversations/${conversationId}/messages`); },
   sendMessage(conversationId: string, body: string) {

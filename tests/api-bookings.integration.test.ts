@@ -17,20 +17,22 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     driver: crypto.randomUUID(),
     passengerA: crypto.randomUUID(),
     passengerB: crypto.randomUUID(),
+    admin: crypto.randomUUID(),
     vehicle: crypto.randomUUID(),
     offer: crypto.randomUUID(),
   };
   const keys = [`api-test-${crypto.randomUUID()}`, `api-test-${crypto.randomUUID()}`];
   let apiCreatedVehicleId: string | null = null;
   const extraVehicleIds: string[] = [];
+  const verificationIds: string[] = [];
   let otpUserId: string | null = null;
 
   before(async () => {
     await pool.query(`INSERT INTO users(id,display_name,roles) VALUES
-      ($1,'API test driver',ARRAY['driver']),($2,'API test passenger A',ARRAY['passenger']),($3,'API test passenger B',ARRAY['passenger'])`,
-    [ids.driver, ids.passengerA, ids.passengerB]);
+      ($1,'API test driver',ARRAY['driver']),($2,'API test passenger A',ARRAY['passenger']),($3,'API test passenger B',ARRAY['passenger']),($4,'API test administrator',ARRAY['admin'])`,
+    [ids.driver, ids.passengerA, ids.passengerB, ids.admin]);
     await pool.query(`INSERT INTO user_roles(user_id,role) VALUES
-      ($1,'driver'),($2,'passenger'),($3,'passenger')`, [ids.driver, ids.passengerA, ids.passengerB]);
+      ($1,'driver'),($2,'passenger'),($3,'passenger'),($4,'admin')`, [ids.driver, ids.passengerA, ids.passengerB, ids.admin]);
     await pool.query(`INSERT INTO vehicles(id,owner_id,make,model,model_year,seat_count)
       VALUES ($1,$2,'Test','Vehicle',2024,4)`, [ids.vehicle, ids.driver]);
     await pool.query(`INSERT INTO offers(id,driver_id,vehicle_id,origin_name,destination_name,origin,destination,departure_at,price_per_seat_minor,total_seats,available_seats)
@@ -45,10 +47,12 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     await pool.query('DELETE FROM vehicles WHERE owner_id IN (SELECT id FROM users WHERE phone_e164 LIKE $1)', [`+38099${process.pid}%`]);
     await pool.query('DELETE FROM users WHERE phone_e164 LIKE $1', [`+38099${process.pid}%`]);
     await pool.query('DELETE FROM sessions WHERE user_id = ANY($1::uuid[])', [[ids.driver, ids.passengerA, ids.passengerB]]);
+    await pool.query('DELETE FROM verification_records WHERE user_id = ANY($1::uuid[]) OR id=ANY($2::uuid[])', [[ids.driver, ids.passengerA, ids.passengerB, ids.admin], verificationIds]);
     await pool.query('DELETE FROM otp_challenges WHERE phone_e164 LIKE $1', [`+38099${process.pid}%`]);
     await pool.query("DELETE FROM audit_events WHERE actor_id = ANY($1::uuid[]) AND action IN ('vehicle.created','offer.created','demand.created','demand.cancelled','proposal.created','proposal.countered','proposal.agreed','proposal.accepted')", [[ids.driver, ids.passengerA]]);
+    await pool.query("DELETE FROM audit_events WHERE (actor_id=ANY($1::uuid[]) AND action LIKE 'verification.%') OR entity_id=ANY($2::uuid[])", [[ids.driver, ids.admin], verificationIds]);
     await pool.query('DELETE FROM audit_events WHERE entity_id IN (SELECT id FROM bookings WHERE offer_id IN (SELECT id FROM offers WHERE driver_id = $1)) OR entity_id = ANY($2::uuid[])',
-      [ids.driver, [ids.vehicle, ...(apiCreatedVehicleId ? [apiCreatedVehicleId] : []), ...extraVehicleIds]]);
+      [ids.driver, [ids.vehicle, ...(apiCreatedVehicleId ? [apiCreatedVehicleId] : []), ...extraVehicleIds, ...verificationIds]]);
     await pool.query('DELETE FROM reviews WHERE booking_id IN (SELECT id FROM bookings WHERE offer_id IN (SELECT id FROM offers WHERE driver_id=$1))', [ids.driver]);
     await pool.query('DELETE FROM conversations WHERE booking_id IN (SELECT id FROM bookings WHERE offer_id IN (SELECT id FROM offers WHERE driver_id = $1))', [ids.driver]);
     await pool.query('DELETE FROM bookings WHERE offer_id IN (SELECT id FROM offers WHERE driver_id = $1)', [ids.driver]);
@@ -56,7 +60,7 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     await pool.query('DELETE FROM passenger_demands WHERE passenger_id=$1', [ids.passengerA]);
     await pool.query('DELETE FROM offers WHERE driver_id = $1', [ids.driver]);
     await pool.query('DELETE FROM vehicles WHERE owner_id = $1', [ids.driver]);
-    await pool.query('DELETE FROM users WHERE id = ANY($1::uuid[])', [[ids.driver, ids.passengerA, ids.passengerB]]);
+    await pool.query('DELETE FROM users WHERE id = ANY($1::uuid[])', [[ids.driver, ids.passengerA, ids.passengerB, ids.admin]]);
     await pool.end();
   });
 
@@ -237,6 +241,88 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     assert.equal((await found.json() as { data: Array<{ id: string }> }).data.some((offer) => offer.id === response.data.id), true);
     const tooMany = await fetch(`${apiUrl}/api/v1/offers?origin=API%20Publish%20Origin&destination=API%20Publish%20Destination&date=${localDepartureDate}&seats=5`);
     assert.equal((await tooMany.json() as { data: unknown[] }).data.length, 0);
+  });
+
+  it('keeps verification evidence staff-only and updates a vehicle only after both approvals', async () => {
+    assert.ok(apiCreatedVehicleId);
+    const vehicleRecord = crypto.randomUUID();
+    const licenseRecord = crypto.randomUUID();
+    verificationIds.push(vehicleRecord, licenseRecord);
+    await pool.query(
+      `INSERT INTO verification_records(id,user_id,vehicle_id,verification_type,evidence_ref)
+       VALUES ($1,$2,$3,'vehicle','verification-evidence/test/registration.pdf'),
+              ($4,$2,$3,'driver_license','verification-evidence/test/license.pdf')`,
+      [vehicleRecord, ids.driver, apiCreatedVehicleId, licenseRecord],
+    );
+
+    const anonymousQueue = await fetch(`${apiUrl}/api/v1/admin/verification`);
+    assert.equal(anonymousQueue.status, 401);
+    const driverHeaders = { 'content-type': 'application/json', 'x-dev-user-id': ids.driver };
+    const passengerQueue = await fetch(`${apiUrl}/api/v1/admin/verification`, { headers: { 'x-dev-user-id': ids.passengerA } });
+    assert.equal(passengerQueue.status, 403);
+    const selfUpload = await fetch(`${apiUrl}/api/v1/vehicles/${apiCreatedVehicleId}/verification/evidence/upload-url`, {
+      method: 'POST', headers: { ...driverHeaders, 'x-dev-user-id': ids.passengerA },
+      body: JSON.stringify({ contentType: 'application/pdf' }),
+    });
+    assert.equal(selfUpload.status, 403);
+    const storageUnavailable = await fetch(`${apiUrl}/api/v1/vehicles/${apiCreatedVehicleId}/verification/evidence/upload-url`, {
+      method: 'POST', headers: driverHeaders, body: JSON.stringify({ contentType: 'application/pdf' }),
+    });
+    assert.equal(storageUnavailable.status, 503);
+
+    const staffHeaders = { 'content-type': 'application/json', 'x-dev-user-id': ids.admin };
+    const queueResponse = await fetch(`${apiUrl}/api/v1/admin/verification`, { headers: staffHeaders });
+    assert.equal(queueResponse.status, 200);
+    const queue = await queueResponse.json() as { data: Array<{ id: string; evidence_ref?: string; phone_e164?: string }> };
+    const expectedRecords = new Set<string>([vehicleRecord, licenseRecord]);
+    assert.equal(queue.data.filter((item) => expectedRecords.has(item.id)).length, 2);
+    assert.equal(queue.data.some((item) => item.evidence_ref !== undefined), false);
+    assert.equal(queue.data.some((item) => item.phone_e164 !== undefined), false);
+
+    const forbiddenEvidence = await fetch(`${apiUrl}/api/v1/admin/verification/${vehicleRecord}/evidence`, { headers: { 'x-dev-user-id': ids.passengerA } });
+    assert.equal(forbiddenEvidence.status, 403);
+    const unconfiguredEvidence = await fetch(`${apiUrl}/api/v1/admin/verification/${vehicleRecord}/evidence`, { headers: staffHeaders });
+    assert.equal(unconfiguredEvidence.status, 503);
+
+    const decide = (id: string) => fetch(`${apiUrl}/api/v1/admin/verification/${id}/decision`, {
+      method: 'POST', headers: staffHeaders, body: JSON.stringify({ decision: 'approved' }),
+    });
+    const unopenedDecision = await decide(vehicleRecord);
+    assert.equal(unopenedDecision.status, 409);
+    await pool.query('UPDATE verification_records SET evidence_accessed_at=now() WHERE id=ANY($1::uuid[])', [[vehicleRecord, licenseRecord]]);
+
+    const vehicleApproval = await decide(vehicleRecord);
+    assert.equal(vehicleApproval.status, 200);
+    const stillPending = await pool.query('SELECT verification_status FROM vehicles WHERE id=$1', [apiCreatedVehicleId]);
+    assert.equal(stillPending.rows[0].verification_status, 'pending');
+    const licenseApproval = await decide(licenseRecord);
+    assert.equal(licenseApproval.status, 200);
+    const verifiedVehicle = await pool.query('SELECT verification_status FROM vehicles WHERE id=$1', [apiCreatedVehicleId]);
+    assert.equal(verifiedVehicle.rows[0].verification_status, 'verified');
+    const verifiedDriver = await pool.query('SELECT verification_level,profile_status FROM driver_profiles WHERE user_id=$1', [ids.driver]);
+    assert.deepEqual(verifiedDriver.rows[0], { verification_level: 'identity', profile_status: 'active' });
+    assert.equal((await decide(vehicleRecord)).status, 409);
+
+    const rejectedVehicleRecord = crypto.randomUUID();
+    const rejectedLicenseRecord = crypto.randomUUID();
+    verificationIds.push(rejectedVehicleRecord, rejectedLicenseRecord);
+    await pool.query(
+      `INSERT INTO verification_records(id,user_id,vehicle_id,verification_type,evidence_ref)
+       VALUES ($1,$2,$3,'vehicle','verification-evidence/test/replacement-registration.pdf'),
+              ($4,$2,$3,'driver_license','verification-evidence/test/replacement-license.pdf')`,
+      [rejectedVehicleRecord, ids.driver, apiCreatedVehicleId, rejectedLicenseRecord],
+    );
+    await pool.query('UPDATE verification_records SET evidence_accessed_at=now() WHERE id=$1', [rejectedVehicleRecord]);
+    const rejected = await fetch(`${apiUrl}/api/v1/admin/verification/${rejectedVehicleRecord}/decision`, {
+      method: 'POST', headers: staffHeaders, body: JSON.stringify({ decision: 'rejected', note: 'Document is unreadable' }),
+    });
+    assert.equal(rejected.status, 200);
+    const rejectionState = await pool.query('SELECT status FROM verification_records WHERE id=ANY($1::uuid[]) ORDER BY id', [[rejectedVehicleRecord, rejectedLicenseRecord]]);
+    assert.deepEqual(rejectionState.rows.map((row) => row.status), ['rejected', 'rejected']);
+    const rejectedVehicle = await pool.query('SELECT verification_status FROM vehicles WHERE id=$1', [apiCreatedVehicleId]);
+    assert.equal(rejectedVehicle.rows[0].verification_status, 'rejected');
+    // This shared fixture is used by the next negotiation test; restore its verified state after asserting rejection behavior.
+    await pool.query("UPDATE vehicles SET verification_status='verified' WHERE id=$1", [apiCreatedVehicleId]);
   });
 
   it('keeps negotiation history and atomically converts an accepted proposal into a booking', async () => {
