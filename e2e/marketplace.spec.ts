@@ -244,6 +244,7 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     await passengerPage.getByRole('button', { name: /Написати/ }).first().click();
     passengerPage.once('dialog', (dialog) => dialog.accept());
     await passengerPage.getByRole('button', { name: 'Заблокувати співрозмовника' }).click();
+    await expect(passengerPage.getByRole('status')).toContainText('заблоковано');
     await passengerPage.getByRole('button', { name: 'Профіль', exact: true }).click();
     await expect(passengerPage.getByText('Заблоковані користувачі')).toBeVisible();
     await expect(passengerPage.getByText('MARSHGO E2E Driver', { exact: true })).toBeVisible();

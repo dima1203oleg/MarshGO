@@ -24,8 +24,19 @@ jobs:
           --health-interval 5s
           --health-timeout 3s
           --health-retries 20
+      redis:
+        image: redis:7.4-alpine
+        ports:
+          - 6380:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
     env:
       E2E_DATABASE_URL: postgres://marshgo:local_only_change_me@127.0.0.1:5434/marshgo_e2e
+      REDIS_URL: redis://127.0.0.1:6380
+      SESSION_SECRET: test-only-marshgo-ci-session-secret-32chars
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

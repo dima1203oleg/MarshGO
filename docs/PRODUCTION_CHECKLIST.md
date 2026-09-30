@@ -22,9 +22,10 @@
 - [ ] Configure/test real OTP provider, sender identity, secure session policy, and staging HTTPS same-site API routing.
 - [ ] Configure private, encrypted vehicle/document storage and operate verification review with approved staff, retention, and malware scanning.
 - [x] Booking lifecycle API with signed boarding ticket, participant completion confirmations, and completed-trip reviews.
-- [x] Same-process authenticated WebSocket message delivery to booking participants, single-use session tickets, heartbeats, logout closure, and reconnect history replay (browser E2E).
+- [x] Authenticated WebSocket delivery across API instances via Redis Pub/Sub; shared 30-second one-use tickets use Redis `GETDEL`; account logout closes remote sockets; two-process integration and browser replay E2E pass.
 - [x] Server-backed user blocking from a confirmed booking chat, private blocked-user list, and unblock flow; E2E verifies blocked message denial and restored chat after unblock.
-- [ ] Redis-backed multi-instance WebSocket fanout; Web Push for messages, proposals, bookings, navigation matches and rescue.
+- [x] Transactional PostgreSQL outbox for chat messages with deduplication, multi-worker leases, retry/backoff, and seven-day published-record retention.
+- [ ] Redis/outbox operational monitoring and recovery runbook; extend the outbox to booking/proposal events; Web Push for messages, proposals, bookings, navigation matches and rescue.
 - [x] Connect passenger demand/proposal negotiation and booking-scoped chat to authenticated APIs.
 - [ ] Finish driver booking lifecycle controls; proposal/booking state sync from navigation currently requires manual refresh and foreground connectivity.
 - [ ] Configure production routing/geocoding services and implement corridor/multi-stop search and rerouting.

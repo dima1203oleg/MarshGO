@@ -4,6 +4,7 @@ import express, { NextFunction, Request, Response } from 'express';
 import { rateLimit } from 'express-rate-limit';
 import { Pool, PoolClient } from 'pg';
 import { WebSocket, WebSocketServer } from 'ws';
+import { createClient } from 'redis';
 import type { Duplex } from 'node:stream';
 import { sendVerificationCode, SmsProviderUnavailableError } from './sms';
 import { getRoadRoute, getRoadRouteThroughPoints, RoutingUnavailableError } from './routing';
@@ -22,19 +23,88 @@ type RealtimeTicket = { userId: string; sessionId: string; expiresAt: number };
 type RealtimeMessage = { id: string; conversation_id: string; sender_id: string; sender_name: string; body: string; created_at: Date };
 const realtimeTickets = new Map<string, RealtimeTicket>();
 const realtimeClients = new Map<string, Set<WebSocket>>();
+const realtimeInstanceId = crypto.randomUUID();
+const realtimeChannel = 'marshgo:realtime:v1';
+const realtimeTicketKey = (hash: string) => `marshgo:realtime-ticket:${hash}`;
+type RedisConnection = ReturnType<typeof createClient>;
+let realtimeRedis: RedisConnection | undefined;
+let realtimeSubscriber: RedisConnection | undefined;
 const realtimeSessionBySocket = new WeakMap<WebSocket, string>();
 const aliveRealtimeSockets = new WeakSet<WebSocket>();
 const realtimeServer = new WebSocketServer({ noServer: true, perMessageDeflate: false, maxPayload: 1024 });
-function closeRealtimeConnections(userId: string, sessionId?: string) {
+let realtimeOutboxTimer: NodeJS.Timeout | undefined;
+function closeRealtimeConnectionsLocally(userId: string, sessionId?: string) {
   for (const client of realtimeClients.get(userId) ?? []) {
     if (!sessionId || realtimeSessionBySocket.get(client) === sessionId) client.close(1008, 'session revoked');
   }
 }
-function broadcastRealtime(userIds: string[], type: string, data: unknown) {
-  const event = JSON.stringify({ type, data });
+function closeRealtimeConnections(userId: string, sessionId?: string) {
+  closeRealtimeConnectionsLocally(userId, sessionId);
+  if (process.env.REDIS_URL && realtimeRedis?.isReady) {
+    void realtimeRedis.publish(realtimeChannel, JSON.stringify({ instanceId: realtimeInstanceId, kind: 'session.revoke', userId, sessionId }))
+      .catch((error: unknown) => console.error(JSON.stringify({ level: 'error', event: 'realtime.revoke_publish_failed', message: error instanceof Error ? error.message : 'unknown_error' })));
+  }
+}
+function deliverRealtime(userIds: string[], event: string) {
   for (const userId of userIds) {
     for (const client of realtimeClients.get(userId) ?? []) {
       if (client.readyState === WebSocket.OPEN) client.send(event);
+    }
+  }
+}
+async function broadcastRealtime(userIds: string[], type: string, data: unknown) {
+  const event = JSON.stringify({ type, data });
+  if (process.env.REDIS_URL) {
+    if (!realtimeRedis?.isReady) throw new Error('Redis is not ready for realtime event delivery');
+    await realtimeRedis.publish(realtimeChannel, JSON.stringify({ instanceId: realtimeInstanceId, kind: 'event', userIds, event }));
+  }
+  deliverRealtime(userIds, event);
+}
+type RealtimeOutboxRow = { id: string; event_type: string; recipient_ids: string[]; payload: unknown; attempt_count: number };
+let lastRealtimeOutboxCleanupAt = 0;
+async function dispatchRealtimeOutbox() {
+  if (process.env.REDIS_URL && !realtimeRedis?.isReady) throw new Error('Redis is not ready for realtime outbox delivery');
+  if (Date.now() - lastRealtimeOutboxCleanupAt > 60 * 60 * 1000) {
+    await pool.query(
+      `DELETE FROM realtime_outbox WHERE id IN (
+         SELECT id FROM realtime_outbox WHERE published_at<now()-interval '7 days' ORDER BY published_at LIMIT 1000
+       )`,
+    );
+    lastRealtimeOutboxCleanupAt = Date.now();
+  }
+  const client = await pool.connect();
+  let rows: RealtimeOutboxRow[];
+  try {
+    await client.query('BEGIN');
+    const claimed = await client.query<RealtimeOutboxRow>(
+      `WITH available AS (
+         SELECT id FROM realtime_outbox
+          WHERE published_at IS NULL AND available_at<=now() AND (locked_until IS NULL OR locked_until<now())
+          ORDER BY created_at,id FOR UPDATE SKIP LOCKED LIMIT 25
+       )
+       UPDATE realtime_outbox o SET locked_until=now()+interval '30 seconds',attempt_count=o.attempt_count+1
+        FROM available WHERE o.id=available.id
+       RETURNING o.id,o.event_type,o.recipient_ids,o.payload,o.attempt_count`,
+    );
+    rows = claimed.rows;
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally { client.release(); }
+
+  for (const row of rows) {
+    try {
+      if (row.event_type !== 'conversation.message.created' || !Array.isArray(row.recipient_ids)) throw new Error('unsupported realtime outbox event');
+      await broadcastRealtime(row.recipient_ids, row.event_type, row.payload);
+      await pool.query('UPDATE realtime_outbox SET published_at=now(),locked_until=NULL,last_error=NULL WHERE id=$1', [row.id]);
+    } catch (error) {
+      const retrySeconds = Math.min(300, 2 ** Math.min(Number(row.attempt_count) || 1, 8));
+      await pool.query(
+        `UPDATE realtime_outbox SET available_at=now()+($2::double precision*interval '1 second'),locked_until=NULL,last_error=$3 WHERE id=$1`,
+        [row.id, retrySeconds, error instanceof Error ? error.message.slice(0, 500) : 'unknown_error'],
+      );
+      console.error(JSON.stringify({ level: 'error', event: 'realtime.outbox_retry', outboxId: row.id, attempt: row.attempt_count, retrySeconds }));
     }
   }
 }
@@ -2016,10 +2086,17 @@ app.post('/api/v1/bookings/:id/block-other', requireAuth, asyncHandler(async (re
 app.post('/api/v1/realtime/ticket', requireAuth, asyncHandler(async (req, res) => {
   if (!req.sessionId || !req.userId) throw new ApiError(401, 'A server session is required for realtime chat', 'realtime_session_required');
   const now = Date.now();
-  for (const [hash, ticket] of realtimeTickets) if (ticket.expiresAt <= now) realtimeTickets.delete(hash);
-  if (realtimeTickets.size >= 10_000) throw new ApiError(503, 'Realtime is at capacity; retry shortly', 'realtime_capacity');
   const value = token();
-  realtimeTickets.set(sha256(value), { userId: req.userId, sessionId: req.sessionId, expiresAt: now + 30_000 });
+  const ticket = { userId: req.userId, sessionId: req.sessionId, expiresAt: now + 30_000 };
+  if (process.env.REDIS_URL) {
+    if (!realtimeRedis?.isReady) throw new ApiError(503, 'Realtime is temporarily unavailable', 'realtime_unavailable');
+    const stored = await realtimeRedis.set(realtimeTicketKey(sha256(value)), JSON.stringify(ticket), { EX: 30, NX: true });
+    if (stored !== 'OK') throw new ApiError(503, 'Realtime is at capacity; retry shortly', 'realtime_capacity');
+  } else {
+    for (const [hash, current] of realtimeTickets) if (current.expiresAt <= now) realtimeTickets.delete(hash);
+    if (realtimeTickets.size >= 10_000) throw new ApiError(503, 'Realtime is at capacity; retry shortly', 'realtime_capacity');
+    realtimeTickets.set(sha256(value), ticket);
+  }
   res.status(201).json({ data: { ticket: value, expiresInSeconds: 30 } });
 }));
 
@@ -2047,28 +2124,39 @@ app.get('/api/v1/conversations/:id/messages', requireAuth, asyncHandler(async (r
 app.post('/api/v1/conversations/:id/messages', requireAuth, asyncHandler(async (req, res) => {
   const body = req.body?.body;
   if (typeof body !== 'string' || body.trim().length < 1 || body.trim().length > 4000) throw new ApiError(400, 'message body must contain 1–4000 characters');
-  const { rows } = await pool.query(
-    `INSERT INTO messages(conversation_id,sender_id,body)
-     SELECT $1,$2,$3 WHERE EXISTS (
-       SELECT 1 FROM conversation_members WHERE conversation_id=$1 AND user_id=$2
-     ) AND NOT EXISTS (
-       SELECT 1 FROM conversation_members peer JOIN user_blocks b
-         ON (b.blocker_id=$2 AND b.blocked_id=peer.user_id) OR (b.blocker_id=peer.user_id AND b.blocked_id=$2)
-        WHERE peer.conversation_id=$1 AND peer.user_id<>$2
-     ) RETURNING id,conversation_id,sender_id,body,created_at`,
-    [req.params.id, req.userId, body.trim()],
-  );
-  if (!rows[0]) throw new ApiError(404, 'conversation unavailable');
-  const { rows: messageRows } = await pool.query<RealtimeMessage>(
-    `SELECT m.id,m.conversation_id,m.sender_id,u.display_name AS sender_name,m.body,m.created_at
-       FROM messages m JOIN users u ON u.id=m.sender_id WHERE m.id=$1`, [rows[0].id],
-  );
-  const message = messageRows[0];
-  const { rows: members } = await pool.query<{ user_id: string }>(
-    'SELECT user_id FROM conversation_members WHERE conversation_id=$1', [message.conversation_id],
-  );
-  const memberIds = members.map((member) => member.user_id);
-  broadcastRealtime(memberIds, 'conversation.message.created', message);
+  const client = await pool.connect();
+  let message: RealtimeMessage;
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query<{ id: string }>(
+      `INSERT INTO messages(conversation_id,sender_id,body)
+       SELECT $1,$2,$3 WHERE EXISTS (
+         SELECT 1 FROM conversation_members WHERE conversation_id=$1 AND user_id=$2
+       ) AND NOT EXISTS (
+         SELECT 1 FROM conversation_members peer JOIN user_blocks b
+           ON (b.blocker_id=$2 AND b.blocked_id=peer.user_id) OR (b.blocker_id=peer.user_id AND b.blocked_id=$2)
+          WHERE peer.conversation_id=$1 AND peer.user_id<>$2
+       ) RETURNING id`, [req.params.id, req.userId, body.trim()],
+    );
+    if (!rows[0]) throw new ApiError(404, 'conversation unavailable');
+    const { rows: messageRows } = await client.query<RealtimeMessage>(
+      `SELECT m.id,m.conversation_id,m.sender_id,u.display_name AS sender_name,m.body,m.created_at
+         FROM messages m JOIN users u ON u.id=m.sender_id WHERE m.id=$1`, [rows[0].id],
+    );
+    message = messageRows[0];
+    const { rows: members } = await client.query<{ user_id: string }>(
+      'SELECT user_id FROM conversation_members WHERE conversation_id=$1', [message.conversation_id],
+    );
+    await client.query(
+      `INSERT INTO realtime_outbox(event_type,dedupe_key,recipient_ids,payload)
+       VALUES($1,$2,$3,$4::jsonb)`,
+      ['conversation.message.created', `conversation.message.created:${message.id}`, members.map((member) => member.user_id), JSON.stringify(message)],
+    );
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally { client.release(); }
   res.status(201).json({ data: message });
 }));
 
@@ -2080,12 +2168,13 @@ app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
   return res.status(500).json({ error: { code: 'internal_error', message: 'An unexpected error occurred', requestId: res.locals.requestId } });
 });
 
-const server = app.listen(port, host, () => console.log(JSON.stringify({ level: 'info', event: 'api.started', host, port })));
+let server: ReturnType<typeof app.listen>;
 function rejectRealtimeUpgrade(socket: Duplex, status: number, phrase: string) {
   if (socket.destroyed) return;
   socket.end(`HTTP/1.1 ${status} ${phrase}\r\nConnection: close\r\nContent-Length: 0\r\n\r\n`);
 }
-server.on('upgrade', (request, socket, head) => {
+function attachRealtimeUpgradeHandler() {
+  server.on('upgrade', (request, socket, head) => {
   const origin = request.headers.origin;
   if (origin && !allowedOrigins.has(origin)) { rejectRealtimeUpgrade(socket, 403, 'Forbidden'); return; }
   let url: URL;
@@ -2095,13 +2184,24 @@ server.on('upgrade', (request, socket, head) => {
   const ticketValue = url.searchParams.get('ticket');
   if (!ticketValue) { rejectRealtimeUpgrade(socket, 401, 'Unauthorized'); return; }
   const ticketHash = sha256(ticketValue);
-  const ticket = realtimeTickets.get(ticketHash);
-  realtimeTickets.delete(ticketHash);
-  if (!ticket || ticket.expiresAt <= Date.now()) { rejectRealtimeUpgrade(socket, 401, 'Unauthorized'); return; }
-  void pool.query<{ user_id: string }>(
+  void (async () => {
+    let ticket: RealtimeTicket | undefined;
+    if (process.env.REDIS_URL) {
+      if (!realtimeRedis?.isReady) { rejectRealtimeUpgrade(socket, 503, 'Service Unavailable'); return; }
+      const stored = await realtimeRedis.getDel(realtimeTicketKey(ticketHash));
+      if (stored) {
+        try { ticket = JSON.parse(stored) as RealtimeTicket; }
+        catch { ticket = undefined; }
+      }
+    } else {
+      ticket = realtimeTickets.get(ticketHash);
+      realtimeTickets.delete(ticketHash);
+    }
+    if (!ticket || ticket.expiresAt <= Date.now()) { rejectRealtimeUpgrade(socket, 401, 'Unauthorized'); return; }
+    const { rows } = await pool.query<{ user_id: string }>(
     `SELECT user_id FROM sessions WHERE id=$1 AND user_id=$2 AND revoked_at IS NULL AND expires_at>now()`,
     [ticket.sessionId, ticket.userId],
-  ).then(({ rows }) => {
+    );
     if (!rows[0] || socket.destroyed) { rejectRealtimeUpgrade(socket, 401, 'Unauthorized'); return; }
     realtimeServer.handleUpgrade(request, socket, head, (client) => {
       let userSockets = realtimeClients.get(ticket.userId);
@@ -2117,8 +2217,12 @@ server.on('upgrade', (request, socket, head) => {
       });
       realtimeServer.emit('connection', client, request);
     });
-  }).catch(() => rejectRealtimeUpgrade(socket, 503, 'Service Unavailable'));
-});
+  })().catch((error: unknown) => {
+    console.error(JSON.stringify({ level: 'error', event: 'realtime.upgrade_failed', message: error instanceof Error ? error.message : 'unknown_error' }));
+    rejectRealtimeUpgrade(socket, 503, 'Service Unavailable');
+  });
+  });
+}
 const realtimeHeartbeat = setInterval(() => {
   for (const client of realtimeServer.clients) {
     if (!aliveRealtimeSockets.has(client)) { client.terminate(); continue; }
@@ -2136,11 +2240,58 @@ const navigationExpiryTimer = setInterval(() => {
   void expireStaleNavigationSessions().catch((error: unknown) => console.error(JSON.stringify({ level: 'error', event: 'navigation.expiry_failed', message: error instanceof Error ? error.message : 'unknown_error' })));
 }, 15_000);
 navigationExpiryTimer.unref();
+async function startServer() {
+  const redisUrl = process.env.REDIS_URL;
+  if (!redisUrl && process.env.NODE_ENV === 'production') throw new Error('REDIS_URL is required in production');
+  if (redisUrl) {
+    realtimeRedis = createClient({ url: redisUrl });
+    realtimeRedis.on('error', (error) => console.error(JSON.stringify({ level: 'error', event: 'realtime.redis_error', message: error.message })));
+    await realtimeRedis.connect();
+    realtimeSubscriber = realtimeRedis.duplicate();
+    realtimeSubscriber.on('error', (error) => console.error(JSON.stringify({ level: 'error', event: 'realtime.redis_subscriber_error', message: error.message })));
+    await realtimeSubscriber.connect();
+    await realtimeSubscriber.subscribe(realtimeChannel, (payload) => {
+      try {
+        const message = JSON.parse(payload) as { instanceId?: unknown; kind?: unknown; userIds?: unknown; event?: unknown; userId?: unknown; sessionId?: unknown };
+        if (message.instanceId === realtimeInstanceId) return;
+        if (message.kind === 'session.revoke' && typeof message.userId === 'string') {
+          closeRealtimeConnectionsLocally(message.userId, typeof message.sessionId === 'string' ? message.sessionId : undefined);
+          return;
+        }
+        if (message.kind !== 'event' || !Array.isArray(message.userIds) || typeof message.event !== 'string') return;
+        deliverRealtime(message.userIds.filter((id): id is string => typeof id === 'string'), message.event);
+      } catch (error) {
+        console.error(JSON.stringify({ level: 'error', event: 'realtime.invalid_pubsub_message', message: error instanceof Error ? error.message : 'unknown_error' }));
+      }
+    });
+  }
+  server = app.listen(port, host, () => console.log(JSON.stringify({ level: 'info', event: 'api.started', host, port, realtime: realtimeRedis ? 'redis' : 'single_process_dev' })));
+  attachRealtimeUpgradeHandler();
+  const dispatch = () => { void dispatchRealtimeOutbox().catch((error: unknown) => console.error(JSON.stringify({ level: 'error', event: 'realtime.outbox_dispatch_failed', message: error instanceof Error ? error.message : 'unknown_error' }))); };
+  dispatch();
+  realtimeOutboxTimer = setInterval(dispatch, 500);
+  realtimeOutboxTimer.unref();
+}
+void startServer().catch((error: unknown) => {
+  console.error(JSON.stringify({ level: 'error', event: 'api.start_failed', message: error instanceof Error ? error.message : 'unknown_error' }));
+  process.exitCode = 1;
+  void closeResources();
+});
+async function closeResources() {
+  const tasks: Promise<unknown>[] = [pool.end()];
+  if (realtimeSubscriber) tasks.push(realtimeSubscriber.quit());
+  if (realtimeRedis) tasks.push(realtimeRedis.quit());
+  await Promise.allSettled(tasks);
+}
 async function shutdown() {
   clearInterval(navigationExpiryTimer);
   clearInterval(realtimeHeartbeat);
+  if (realtimeOutboxTimer) clearInterval(realtimeOutboxTimer);
   realtimeServer.close();
-  server.close(() => { void pool.end().finally(() => process.exit(0)); });
+  if (!server) { await closeResources(); process.exit(0); return; }
+  server.close(() => {
+    void closeResources().finally(() => process.exit(0));
+  });
 }
 process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);

@@ -519,3 +519,51 @@
 **External dependencies:** Configure an owned/contracted OSRM-compatible router; approved contracted/self-hosted map tile service plus attribution; real geocoder for selecting destination; physical-device/iOS permission review. Passive matching needs its own route-detour engine and two-sided consent workflow.
 
 **Next implementation step:** Run lint and the complete build/test suite after fixture cleanup; sync, install, and launch the updated iOS app in the available simulator. Then implement and test passenger candidate corridor/detour matching without exposing it as active until both sides confirm.
+
+## Phase 7 continuation — Redis-backed realtime across API instances
+
+**Phase:** 7 Real-time; shared infrastructure slice.
+
+**Status:** PARTIAL. Realtime tickets and message delivery now work across two local API instances backed by Redis. This is not yet a durable event queue, push notification service, staging deployment, or production release.
+
+**Completed:** Added Redis client integration. Production server startup now requires `REDIS_URL`; Redis configured in any environment is connected before the HTTP server starts. Single-use 30-second realtime tickets are stored with Redis expiry and consumed atomically using `GETDEL`, allowing issue/consume across replicas without replay. Persisted conversation messages publish participant-scoped events to a Redis Pub/Sub channel; each API process delivers only to local sockets for those user IDs. Logout/logout-all also publish session revocation so sockets connected to other API processes close. The single-process in-memory ticket/fan-out path is retained only when `REDIS_URL` is absent in non-production development. Added isolated two-instance integration coverage with two authenticated users: ticket issued on API A, socket opened on API B, replay rejected after consumption, durable message posted through API A, event received on API B, and logout on API A closes the API B socket. CI now provisions Redis and shares a stable test session secret across API processes.
+
+**Modified files:** `server/index.ts`, `src/views/ProductionMarketplace.tsx`, `tests/realtime-cluster.integration.test.ts`, `e2e/marketplace.spec.ts`, `scripts/run-integration-tests.sh`, `playwright.config.ts`, `.github/workflows/ci.yml`, `package.json`, `bun.lock`, `docs/ARCHITECTURE.md`, `docs/API.md`, `docs/DEPLOYMENT.md`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_CHECKLIST.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** None.
+
+**Endpoints/events:** Existing `POST /api/v1/realtime/ticket`; WebSocket `/api/v1/realtime?ticket=...`; existing `POST /api/v1/conversations/:id/messages` emits `conversation.message.created` over Redis Pub/Sub after persistence.
+
+**Tests:** With local PostGIS and Redis running, `DATABASE_URL=postgres://marshgo:local_only_change_me@127.0.0.1:5434/marshgo_e2e npm run db:migrate` passed. After the dependency override and logout propagation change, `npm run typecheck`, `npm run lint`, `npm test` (12/12), and `npm run build` passed. `npx --yes bun@1.3.5 audit` reports no vulnerabilities; `bun install --frozen-lockfile` and `git diff --check` passed. `API_TEST_DATABASE_URL=postgres://marshgo:local_only_change_me@127.0.0.1:5434/marshgo_e2e REDIS_URL=redis://127.0.0.1:6380 npm run test:integration` passed booking/lifecycle 5/5, navigation/matching 1/1, and two-process realtime 1/1, including cross-process logout socket closure. `E2E_DATABASE_URL=postgres://marshgo:local_only_change_me@127.0.0.1:5434/marshgo_e2e REDIS_URL=redis://127.0.0.1:6380 npm run test:e2e` passed 1/1 after fixing a navigation race where async block completion could override a user's later screen change. `npm run ios:simulator` with Node 24.21.0 passed Capacitor sync, Xcode build, install, and launch on iPhone 18 Pro / iOS 27; the welcome screen screenshot is `/tmp/marshgo-ios-final-redis.png`. This is a render/startup check only; touch-driven iOS auth, booking, chat and GPS remain untested on this headless host.
+
+**DEMO/TRUTH status:** Conversation records and messages remain PostgreSQL-backed. Redis Pub/Sub is transient fan-out only; clients recover from database history. No production SMS, push delivery, partner service, or public deployment is active.
+
+**Open issues:** The transactional outbox currently covers chat messages only; booking/proposal event publication and logout revocation still need durable delivery coverage. Redis-backed rate limiting, Redis/outbox health metrics and alerting, failover behavior under production topology, durable push delivery, and staging load tests remain incomplete.
+
+**External dependencies:** Production Redis endpoint/credentials and managed operational monitoring must be provisioned by the owner. No new provider credentials were required for local verification.
+
+**Next implementation step:** Build moderation report intake/decision workflow; extend durable outbox coverage to booking/proposal events, then continue provider and staging work.
+
+## Phase 7 continuation — transactional chat event outbox
+
+**Phase:** 7 Realtime; durable event slice.
+
+**Status:** PARTIAL. Chat messages and their realtime event are committed atomically and delivered with retry. Push and other domain-event outbox coverage remain incomplete.
+
+**Completed:** Added migration `014_realtime_outbox.sql`. Message creation now inserts the message and a deduplicated participant-scoped event in one PostgreSQL transaction. A background API worker leases rows using `FOR UPDATE SKIP LOCKED`, publishes through Redis Pub/Sub, records publish state, and schedules exponential retry if Redis is unavailable. Published payload records are pruned after seven days. Events remain durable if an API process exits between transaction commit and Redis publication. Updated the account-block E2E to wait for the asynchronous block result and fixed a race so a completed block action only navigates away if the user still remains in chat.
+
+**Modified files:** `server/migrations/014_realtime_outbox.sql`, `server/index.ts`, `tests/realtime-cluster.integration.test.ts`, `src/views/ProductionMarketplace.tsx`, `e2e/marketplace.spec.ts`, `docs/DATA_MODEL.md`, `docs/API.md`, `docs/ARCHITECTURE.md`, `docs/PRODUCTION_CHECKLIST.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** `realtime_outbox` with UUID event ID, event type, unique dedupe key, recipient snapshot, JSON payload, attempt count, lease expiry, next availability, publish timestamp, last error, and pending-event index.
+
+**Endpoints/events:** Existing `POST /api/v1/conversations/:id/messages` now writes a transactional outbox event; no public endpoint added. Redis channel carries the existing `conversation.message.created` event.
+
+**Tests:** Applied migration `014_realtime_outbox.sql` on local `marshgo` and isolated `marshgo_e2e` PostGIS databases. `npm run typecheck`, `npm run lint`, and `npm test` (12/12) passed. `API_TEST_DATABASE_URL=postgres://marshgo:local_only_change_me@127.0.0.1:5434/marshgo_e2e REDIS_URL=redis://127.0.0.1:6380 npm run test:integration` passed 5 booking/lifecycle, 1 navigation/matching, and 1 two-process realtime test; the realtime test verifies the outbox row is published, cross-instance one-use tickets, event delivery and logout closure. `npm run build` and the two-account `npm run test:e2e` (1/1) passed. The iOS build/simulator launch for this worktree passed shortly before the outbox-only server changes; no UI files changed in the outbox slice.
+
+**DEMO/TRUTH status:** Realtime chat remains authenticated and database-backed. Redis Pub/Sub is still a delivery channel, not storage. No push provider or public deployment is active.
+
+**Open issues:** Extend outbox events to booking/proposal and notifications; make logout revocation delivery durable; monitor queue depth/oldest pending age and Redis failures; exercise retry with an injected outage; no staging or production worker supervision is configured.
+
+**External dependencies:** Production Redis endpoint and managed metrics/alerting remain owner-provisioned. No new external credentials required for local verification.
+
+**Next implementation step:** Implement abuse-report intake and staff moderation actions; extend the outbox to booking/proposal events and make logout revocation durable.
