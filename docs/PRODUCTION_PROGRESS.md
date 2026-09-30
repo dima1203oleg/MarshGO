@@ -998,6 +998,10 @@ The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max 
 
 **Next implementation step:** Design and implement candidate-bound price proposal creation with explicit participant acceptance, expiry and seat-capacity checks; do not create a confirmed booking from either party's unilateral click.
 
+**Publication and device verification:** Published umbrella commit `a66af6e` on `codex/marshgo-production`, Server commit `7ed815f` on `MarshGO-Server/main`, and Site commit `7a5540b` on `MarshGO-Site/main`. Built from Site `7a5540b`, then launched the native package on iPhone 15 Pro Max and iPhone 16 Pro Max. Final welcome captures `/tmp/marshgo-site7a5540b-iphone15-retry.png` and `/tmp/marshgo-site7a5540b-iphone16-final.png` show the full brand/splash screen after relaunch/render wait. This does not test native authentication, actual GPS permission, route rendering, or server requests; the API was not running in this check. iOS docs commit `b5f2c1a` records the evidence.
+
+**GitHub CI:** Umbrella push [`36691659138`](https://github.com/dima1203oleg/MarshGO/actions/runs/36691659138) and PR [`36691667665`](https://github.com/dima1203oleg/MarshGO/actions/runs/36691667665), Server [`36691659639`](https://github.com/dima1203oleg/MarshGO-Server/actions/runs/36691659639), Site [`36691658518`](https://github.com/dima1203oleg/MarshGO-Site/actions/runs/36691658518), and iOS Simulator Build [`36692066467`](https://github.com/dima1203oleg/MarshGO-iOS/actions/runs/36692066467) all passed. The pull request remains draft/open; no production site, backend, or App Store release was deployed.
+
 ## Phase 4 continuation — competing proposal acceptance race
 
 **Phase:** 4 Reverse Market; exclusive demand resolution.
