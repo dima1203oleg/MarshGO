@@ -100,6 +100,7 @@ export function ProductionMarketplace() {
   const [selectedOffer, setSelectedOffer] = useState<ApiOffer | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<ApiBooking | null>(null);
   const [messages, setMessages] = useState<ApiMessage[]>([]);
+  const [realtimeConnected, setRealtimeConnected] = useState(false);
   const [messageDraft, setMessageDraft] = useState('');
   const [busy, setBusy] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
@@ -149,6 +150,33 @@ export function ProductionMarketplace() {
       await Promise.all([refreshBookings(), refreshVehicles(), ...(currentUser.roles.includes('driver') ? [refreshMyOffers(), refreshOpenDemands()] : []), ...(currentUser.roles.includes('passenger') ? [refreshMyDemands(), refreshPassengerNavigationMatches()] : [])]);
     }).catch(() => undefined).finally(() => setLoading(false));
   }, [refreshBookings, refreshMyOffers, refreshPassengerNavigationMatches, refreshVehicles]);
+
+  useEffect(() => {
+    if (tab !== 'chat' || !selectedBooking) { setRealtimeConnected(false); return; }
+    let disposed = false;
+    let unsubscribe: () => void = () => { /* No socket exists until the conversation is resolved. */ };
+    void productionApi.conversation(selectedBooking.id).then((conversation) => {
+      if (disposed) return;
+      unsubscribe = productionApi.subscribeRealtime((event) => {
+        if (event.data.conversation_id !== conversation.id) return;
+        setMessages((current) => current.some((message) => message.id === event.data.id)
+          ? current : [...current, event.data]);
+      }, (connected) => {
+        setRealtimeConnected(connected);
+        if (connected) void productionApi.messages(conversation.id).then((history) => {
+          if (disposed) return;
+          setMessages((current) => {
+            const merged = new Map(history.map((message) => [message.id, message]));
+            for (const message of current) merged.set(message.id, message);
+            return [...merged.values()].sort((left, right) => left.created_at.localeCompare(right.created_at));
+          });
+        }).catch(() => undefined);
+      });
+    }).catch((error: unknown) => {
+      if (!disposed) setStatusMessage(error instanceof Error ? error.message : 'Чат недоступний.');
+    });
+    return () => { disposed = true; unsubscribe(); setRealtimeConnected(false); };
+  }, [selectedBooking?.id, tab]);
 
   const requestOtp = async (event: FormEvent) => {
     event.preventDefault(); setBusy(true); setStatusMessage('');
@@ -235,7 +263,8 @@ export function ProductionMarketplace() {
     try {
       const conversation = await productionApi.conversation(selectedBooking.id);
       const sent = await productionApi.sendMessage(conversation.id, messageDraft.trim());
-      setMessages((current) => [...current, { ...sent, sender_name: user?.display_name ?? '' }]); setMessageDraft('');
+      setMessages((current) => current.some((message) => message.id === sent.id)
+        ? current : [...current, { ...sent, sender_name: user?.display_name ?? sent.sender_name }]); setMessageDraft('');
     } catch (error) { setStatusMessage(error instanceof Error ? error.message : 'Повідомлення не надіслано.'); }
     finally { setBusy(false); }
   };
@@ -605,7 +634,7 @@ export function ProductionMarketplace() {
 
   const chatScreen = <div className="mx-auto flex min-h-[65svh] w-full max-w-xl flex-col px-5 pb-5"><div className="mb-4 flex items-center gap-3"><button onClick={()=>{setSelectedBooking(null);setTab('trips');}} className="grid h-10 w-10 place-items-center rounded-full bg-white"><ArrowLeft size={18}/></button><div><h1 className="font-extrabold">{selectedBooking ? (selectedBooking.current_user_is_driver ? selectedBooking.passenger_name : selectedBooking.driver_name) : 'Чати'}</h1><p className="text-xs text-slate-500">{selectedBooking ? `${selectedBooking.origin_name} → ${selectedBooking.destination_name}` : 'Повідомлення за бронюваннями'}</p></div></div>
     {!selectedBooking ? <div className="space-y-3">{bookings.length ? bookings.map(booking=><button key={booking.id} onClick={()=>void openChat(booking)} className="flex w-full items-center gap-3 rounded-2xl bg-white p-4 text-left"><span className="grid h-10 w-10 place-items-center rounded-full bg-blue-50 text-blue-600"><MessageCircle size={18}/></span><span className="min-w-0 flex-1"><b className="block text-sm">{booking.origin_name} → {booking.destination_name}</b><small className="text-slate-500">{booking.driver_name} · {formatDate(booking.departure_at,{day:'numeric',month:'short'})}</small></span><ChevronRight size={17} className="text-slate-400"/></button>) : <p className="rounded-2xl bg-white p-5 text-sm text-slate-500">Чат з’явиться після підтвердження бронювання.</p>}</div> : <>
-      <div className="mb-3 rounded-xl bg-white px-3 py-2 text-center text-[11px] text-slate-500">Бронювання · {selectedBooking.origin_name} → {selectedBooking.destination_name}</div>
+      <div className="mb-3 rounded-xl bg-white px-3 py-2 text-center text-[11px] text-slate-500">Бронювання · {selectedBooking.origin_name} → {selectedBooking.destination_name}<span className={`ml-2 font-semibold ${realtimeConnected?'text-emerald-600':'text-slate-400'}`}>{realtimeConnected?'· онлайн':'· офлайн, історія збережена'}</span></div>
       <div className="flex-1 space-y-3 overflow-y-auto rounded-2xl bg-white/60 p-3">{messages.length ? messages.map((item)=><div key={item.id} className={`max-w-[84%] rounded-2xl px-3 py-2.5 text-sm ${item.sender_id===user.id?'ml-auto rounded-br-md bg-blue-600 text-white':'rounded-bl-md bg-white shadow-sm'}`}><p>{item.body}</p><small className={`mt-1 block text-[10px] ${item.sender_id===user.id?'text-blue-100':'text-slate-400'}`}>{formatDate(item.created_at,{hour:'2-digit',minute:'2-digit'})}</small></div>) : <div className="py-10 text-center text-sm text-slate-500">Почніть розмову з водієм або пасажиром.</div>}</div>
       <form onSubmit={sendMessage} className="mt-3 flex gap-2 rounded-full bg-white p-2 shadow-sm"><input value={messageDraft} onChange={event=>setMessageDraft(event.target.value)} className="min-w-0 flex-1 bg-transparent px-3 text-sm outline-none" placeholder="Напишіть повідомлення…" maxLength={4000}/><button disabled={busy||!messageDraft.trim()} className="grid h-10 w-10 place-items-center rounded-full bg-blue-600 text-white disabled:opacity-50"><ArrowRight size={18}/></button></form>
     </>}

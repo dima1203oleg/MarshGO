@@ -179,6 +179,15 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     await driverPage.getByRole('button', { name: /Написати/ }).click();
     await expect(driverPage.getByText('Буду на місці о 08:45.')).toBeVisible();
 
+    await passengerPage.getByRole('button', { name: 'Поїздки', exact: true }).click();
+    await passengerPage.getByRole('button', { name: /Написати/ }).click();
+    await expect(passengerPage.getByText(/онлайн/)).toBeVisible();
+    const realtimeMessage = 'Чекаю біля центрального входу.';
+    const passengerChatInput = passengerPage.getByPlaceholder('Напишіть повідомлення…');
+    await passengerChatInput.fill(realtimeMessage);
+    await passengerChatInput.press('Enter');
+    await expect(driverPage.getByText(realtimeMessage)).toBeVisible({ timeout: 10_000 });
+
     await driverPage.getByRole('button', { name: 'Створити' }).click();
     await driverPage.getByRole('button', { name: /Знайти пасажира/ }).click();
     const openDemand = driverPage.locator('article').filter({ hasText: /Стрий → Львів/ }).first();
@@ -222,12 +231,14 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     await expect(driverPage.getByText('Привіт, MARSHGO!')).toBeVisible();
     await driverPage.getByRole('button', { name: 'Поїздки', exact: true }).click();
     await expect(driverPage.getByText('320 грн')).toBeVisible();
+    await driverPage.getByRole('button', { name: /Написати/ }).last().click();
+    await expect(driverPage.getByText(realtimeMessage)).toBeVisible();
 
     const messages = await pool.query<{ body: string }>(
       `SELECT m.body FROM messages m JOIN conversations c ON c.id=m.conversation_id
        JOIN bookings b ON b.id=c.booking_id WHERE b.offer_id=$1 ORDER BY m.created_at`, [offerId],
     );
-    expect(messages.rows.map((row) => row.body)).toEqual(['Буду на місці о 08:45.']);
+    expect(messages.rows.map((row) => row.body)).toEqual(['Буду на місці о 08:45.', realtimeMessage]);
   } finally {
     await passengerContext.close();
     await driverContext.close();

@@ -448,6 +448,30 @@
 
 **Next implementation step:** Validate the complete local command set including browser E2E after adding the runner, then continue the critical acceptance matrix with multi-device booking/cancellation and safe mutual-match behavior.
 
+## Phase 7 — Participant-authorized realtime chat
+
+**Phase:** 7 Real-time chat (message delivery slice).
+
+**Status:** PARTIAL. Local two-account realtime send and reconnect/history replay are browser-tested. Production multi-instance fan-out and push remain incomplete.
+
+**Completed:** Added an authenticated one-use 30-second realtime ticket bound to a persisted access session. WebSocket upgrade checks allowlisted browser origin, consumes the ticket, revalidates active session, limits frames/connections, sends ping/pong heartbeats, and closes connections on logout. Persisted booking messages are broadcast only to participants after the database insert. The production client automatically reconnects using a newly-issued ticket, fetches persisted conversation history on reconnect, deduplicates socket/REST messages, and shows online/offline chat status. E2E reverse proxy now forwards WebSocket upgrades; the two-account mobile-sized test proves an online passenger message appears for an already-connected driver without refresh and is still present when the driver reloads/reopens chat.
+
+**Modified files:** `server/index.ts`, `src/services/productionApi.ts`, `src/views/ProductionMarketplace.tsx`, `tests/fixtures/e2e-web-server.mjs`, `e2e/marketplace.spec.ts`, `package.json`, `bun.lock`, `docs/API.md`, `docs/ARCHITECTURE.md`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** None; the single-use tickets are short-lived in-memory credentials bound to existing database sessions. Messages remain durable in PostgreSQL.
+
+**API endpoints/events:** Added `POST /api/v1/realtime/ticket`; added authenticated WebSocket `GET /api/v1/realtime?ticket=…`; `POST /api/v1/conversations/:id/messages` emits `conversation.message.created` to booking conversation members after persistence.
+
+**Tests:** `npx --yes bun@1.3.5 install --frozen-lockfile` passed. Under pinned Node.js 24.21.0, `npm run typecheck`, `npm run lint`, `npm test` (12/12), and `npm run build` passed. `API_TEST_DATABASE_URL=postgres://marshgo:local_only_change_me@127.0.0.1:5434/marshgo_e2e npm run test:integration` passed booking/lifecycle (5/5) and navigation (1/1). `E2E_DATABASE_URL=postgres://marshgo:local_only_change_me@127.0.0.1:5434/marshgo_e2e npm run test:e2e` passed (1/1), including immediate cross-account WebSocket delivery and persisted replay after reload. `SIMULATOR_UDID=95D35F57-0F2F-467B-95C1-109C223D18F0 SIMULATOR_API_BASE_URL=http://localhost:3002 SIMULATOR_SCREENSHOT_PATH=/tmp/marshgo-ios-realtime-build.png npx --yes --package=node@24.21.0 -- npm run ios:simulator` passed Capacitor sync, Xcode build, install, and launch on iPhone 18 Pro / iOS 27; screenshot confirms the branded onboarding screen renders. Simulator taps/auth/chat/GPS could not be exercised with the available headless simulator controls.
+
+**DEMO/TRUTH status:** Real server sessions and PostgreSQL-backed conversations are used. Ticket issuance cannot use the development identity bypass without a database session. No fixture-only event is exposed by this implementation. Fan-out currently reaches clients connected to the same API process only; a multi-instance production deployment must not scale this server horizontally until shared pub/sub is added.
+
+**Remaining issues:** Web Push, unread/read receipts, demand-bound pre-booking conversations, Redis pub/sub/scale-out, cross-process reconnection/load testing, and independent production staging remain incomplete.
+
+**External dependencies:** No provider credentials for this slice. Redis provisioning is already local but its pub/sub integration is outstanding engineering work.
+
+**Next implementation step:** Add persisted user-ID blocks and enforce them consistently for chat, proposals, and navigation matching; then add shared Redis fan-out before any multi-instance deployment.
+
 ## Phase 6 — Foreground GPS navigation session
 
 **Phase:** 6 Navigation/Matching (foreground navigation slice).

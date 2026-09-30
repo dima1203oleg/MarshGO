@@ -58,4 +58,38 @@ const server = createServer(async (incoming, outgoing) => {
   }
 });
 
+server.on('upgrade', (incoming, clientSocket, head) => {
+  const pathname = new URL(incoming.url ?? '/', 'http://localhost').pathname;
+  if (!pathname.startsWith('/api/')) { clientSocket.end('HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n'); return; }
+  const upstream = proxyRequest({
+    hostname: '127.0.0.1',
+    port: Number(process.env.E2E_API_PORT ?? 3302),
+    path: incoming.url,
+    headers: { ...incoming.headers, host: `127.0.0.1:${process.env.E2E_API_PORT ?? 3302}` },
+  });
+  upstream.on('upgrade', (response, upstreamSocket, upstreamHead) => {
+    clientSocket.write(`HTTP/1.1 ${response.statusCode ?? 502} ${response.statusMessage ?? 'Switching Protocols'}\r\n`);
+    for (const [name, rawValue] of Object.entries(response.headers)) {
+      if (rawValue === undefined) continue;
+      for (const value of Array.isArray(rawValue) ? rawValue : [rawValue]) clientSocket.write(`${name}: ${value}\r\n`);
+    }
+    clientSocket.write('\r\n');
+    if (upstreamHead.length) clientSocket.write(upstreamHead);
+    if (head.length) upstreamSocket.write(head);
+    clientSocket.pipe(upstreamSocket);
+    upstreamSocket.pipe(clientSocket);
+  });
+  upstream.on('response', (response) => {
+    clientSocket.write(`HTTP/1.1 ${response.statusCode ?? 502} ${response.statusMessage ?? 'Bad Gateway'}\r\n`);
+    for (const [name, rawValue] of Object.entries(response.headers)) {
+      if (rawValue === undefined) continue;
+      for (const value of Array.isArray(rawValue) ? rawValue : [rawValue]) clientSocket.write(`${name}: ${value}\r\n`);
+    }
+    clientSocket.write('\r\n');
+    response.pipe(clientSocket);
+  });
+  upstream.on('error', () => clientSocket.destroy());
+  upstream.end();
+});
+
 server.listen(3300, '127.0.0.1');

@@ -62,6 +62,7 @@ export type ApiVerificationQueueItem = ApiVerificationRecord & {
 };
 
 export type ApiMessage = { id: string; sender_id: string; sender_name: string; body: string; created_at: string };
+export type ApiRealtimeEvent = { type: 'conversation.message.created'; data: ApiMessage & { conversation_id: string } };
 export type ApiConversation = { id: string; booking_id: string; created_at: string };
 export type ApiPlace = { label: string; latitude: number; longitude: number; providerId: string };
 export type ApiNavigationSession = {
@@ -276,6 +277,49 @@ export const productionApi = {
   messages(conversationId: string) { return request<ApiMessage[]>(`/conversations/${conversationId}/messages`); },
   sendMessage(conversationId: string, body: string) {
     return request<ApiMessage>(`/conversations/${conversationId}/messages`, { method: 'POST', body: JSON.stringify({ body }) });
+  },
+  subscribeRealtime(onEvent: (event: ApiRealtimeEvent) => void, onState: (connected: boolean) => void) {
+    let active = true;
+    let socket: WebSocket | null = null;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
+    let retryDelay = 1000;
+    const reconnect = () => {
+      if (!active || retryTimer) return;
+      onState(false);
+      retryTimer = setTimeout(() => { retryTimer = null; void connect(); }, retryDelay);
+      retryDelay = Math.min(30_000, retryDelay * 2);
+    };
+    const connect = async () => {
+      if (!active) return;
+      try {
+        const { ticket } = await request<{ ticket: string }>('/realtime/ticket', { method: 'POST' });
+        if (!active) return;
+        const url = new URL(`${apiBase}/api/v1/realtime`, window.location.href);
+        url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+        url.searchParams.set('ticket', ticket);
+        const next = new WebSocket(url);
+        socket = next;
+        next.onopen = () => { retryDelay = 1000; onState(true); };
+        next.onmessage = (message) => {
+          try {
+            const event = JSON.parse(String(message.data)) as ApiRealtimeEvent | { type: string };
+            if (event.type === 'conversation.message.created') onEvent(event as ApiRealtimeEvent);
+          } catch { /* Ignore malformed realtime frames; persisted REST history remains authoritative. */ }
+        };
+        next.onerror = () => next.close();
+        next.onclose = () => { if (socket === next) socket = null; reconnect(); };
+      } catch { reconnect(); }
+    };
+    void connect();
+    return () => {
+      active = false;
+      if (retryTimer) clearTimeout(retryTimer);
+      retryTimer = null;
+      const current = socket;
+      socket = null;
+      current?.close(1000, 'chat closed');
+      onState(false);
+    };
   },
   book(offerId: string, seats: number) {
     return request<ApiBooking>('/bookings', {

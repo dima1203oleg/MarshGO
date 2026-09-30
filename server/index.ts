@@ -3,6 +3,8 @@ import crypto from 'node:crypto';
 import express, { NextFunction, Request, Response } from 'express';
 import { rateLimit } from 'express-rate-limit';
 import { Pool, PoolClient } from 'pg';
+import { WebSocket, WebSocketServer } from 'ws';
+import type { Duplex } from 'node:stream';
 import { sendVerificationCode, SmsProviderUnavailableError } from './sms';
 import { getRoadRoute, getRoadRouteThroughPoints, RoutingUnavailableError } from './routing';
 import { GeocodingUnavailableError, suggestPlaces } from './geocoding';
@@ -16,6 +18,26 @@ const app = express();
 if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required');
 if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) throw new Error('SESSION_SECRET is required in production');
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, max: 12, idleTimeoutMillis: 30_000 });
+type RealtimeTicket = { userId: string; sessionId: string; expiresAt: number };
+type RealtimeMessage = { id: string; conversation_id: string; sender_id: string; sender_name: string; body: string; created_at: Date };
+const realtimeTickets = new Map<string, RealtimeTicket>();
+const realtimeClients = new Map<string, Set<WebSocket>>();
+const realtimeSessionBySocket = new WeakMap<WebSocket, string>();
+const aliveRealtimeSockets = new WeakSet<WebSocket>();
+const realtimeServer = new WebSocketServer({ noServer: true, perMessageDeflate: false, maxPayload: 1024 });
+function closeRealtimeConnections(userId: string, sessionId?: string) {
+  for (const client of realtimeClients.get(userId) ?? []) {
+    if (!sessionId || realtimeSessionBySocket.get(client) === sessionId) client.close(1008, 'session revoked');
+  }
+}
+function broadcastRealtime(userIds: string[], type: string, data: unknown) {
+  const event = JSON.stringify({ type, data });
+  for (const userId of userIds) {
+    for (const client of realtimeClients.get(userId) ?? []) {
+      if (client.readyState === WebSocket.OPEN) client.send(event);
+    }
+  }
+}
 const port = Number(process.env.API_PORT || 3002);
 const host = process.env.API_HOST || '127.0.0.1';
 const allowedOrigins = new Set((process.env.CORS_ORIGINS || 'http://localhost:3000,http://127.0.0.1:3000').split(',').map((origin) => origin.trim()));
@@ -720,12 +742,14 @@ app.post('/api/v1/auth/refresh', asyncHandler(async (req, res) => {
 
 app.post('/api/v1/auth/logout', requireAuth, asyncHandler(async (req, res) => {
   if (req.sessionId) await pool.query('UPDATE sessions SET revoked_at=COALESCE(revoked_at,now()) WHERE id=$1', [req.sessionId]);
+  if (req.userId && req.sessionId) closeRealtimeConnections(req.userId, req.sessionId);
   clearRefreshCookie(res);
   res.json({ data: { loggedOut: true } });
 }));
 
 app.post('/api/v1/auth/logout-all', requireAuth, asyncHandler(async (req, res) => {
   await pool.query('UPDATE sessions SET revoked_at=COALESCE(revoked_at,now()) WHERE user_id=$1', [req.userId]);
+  if (req.userId) closeRealtimeConnections(req.userId);
   clearRefreshCookie(res);
   res.json({ data: { loggedOut: true } });
 }));
@@ -1911,6 +1935,16 @@ app.get('/api/v1/bookings/:id/conversation', requireAuth, asyncHandler(async (re
   res.json({ data: rows[0] });
 }));
 
+app.post('/api/v1/realtime/ticket', requireAuth, asyncHandler(async (req, res) => {
+  if (!req.sessionId || !req.userId) throw new ApiError(401, 'A server session is required for realtime chat', 'realtime_session_required');
+  const now = Date.now();
+  for (const [hash, ticket] of realtimeTickets) if (ticket.expiresAt <= now) realtimeTickets.delete(hash);
+  if (realtimeTickets.size >= 10_000) throw new ApiError(503, 'Realtime is at capacity; retry shortly', 'realtime_capacity');
+  const value = token();
+  realtimeTickets.set(sha256(value), { userId: req.userId, sessionId: req.sessionId, expiresAt: now + 30_000 });
+  res.status(201).json({ data: { ticket: value, expiresInSeconds: 30 } });
+}));
+
 app.get('/api/v1/conversations/:id/messages', requireAuth, asyncHandler(async (req, res) => {
   const limit = Math.max(1, Math.min(100, Number(req.query.limit) || 50));
   const { rows } = await pool.query(
@@ -1939,7 +1973,17 @@ app.post('/api/v1/conversations/:id/messages', requireAuth, asyncHandler(async (
     [req.params.id, req.userId, body.trim()],
   );
   if (!rows[0]) throw new ApiError(404, 'conversation unavailable');
-  res.status(201).json({ data: rows[0] });
+  const { rows: messageRows } = await pool.query<RealtimeMessage>(
+    `SELECT m.id,m.conversation_id,m.sender_id,u.display_name AS sender_name,m.body,m.created_at
+       FROM messages m JOIN users u ON u.id=m.sender_id WHERE m.id=$1`, [rows[0].id],
+  );
+  const message = messageRows[0];
+  const { rows: members } = await pool.query<{ user_id: string }>(
+    'SELECT user_id FROM conversation_members WHERE conversation_id=$1', [message.conversation_id],
+  );
+  const memberIds = members.map((member) => member.user_id);
+  broadcastRealtime(memberIds, 'conversation.message.created', message);
+  res.status(201).json({ data: message });
 }));
 
 app.use((req, res) => res.status(404).json({ error: { code: 'not_found', message: 'Route not found', requestId: res.locals.requestId } }));
@@ -1951,6 +1995,56 @@ app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
 });
 
 const server = app.listen(port, host, () => console.log(JSON.stringify({ level: 'info', event: 'api.started', host, port })));
+function rejectRealtimeUpgrade(socket: Duplex, status: number, phrase: string) {
+  if (socket.destroyed) return;
+  socket.end(`HTTP/1.1 ${status} ${phrase}\r\nConnection: close\r\nContent-Length: 0\r\n\r\n`);
+}
+server.on('upgrade', (request, socket, head) => {
+  const origin = request.headers.origin;
+  if (origin && !allowedOrigins.has(origin)) { rejectRealtimeUpgrade(socket, 403, 'Forbidden'); return; }
+  let url: URL;
+  try { url = new URL(request.url ?? '/', `http://${request.headers.host ?? 'localhost'}`); }
+  catch { rejectRealtimeUpgrade(socket, 400, 'Bad Request'); return; }
+  if (url.pathname !== '/api/v1/realtime') { rejectRealtimeUpgrade(socket, 404, 'Not Found'); return; }
+  const ticketValue = url.searchParams.get('ticket');
+  if (!ticketValue) { rejectRealtimeUpgrade(socket, 401, 'Unauthorized'); return; }
+  const ticketHash = sha256(ticketValue);
+  const ticket = realtimeTickets.get(ticketHash);
+  realtimeTickets.delete(ticketHash);
+  if (!ticket || ticket.expiresAt <= Date.now()) { rejectRealtimeUpgrade(socket, 401, 'Unauthorized'); return; }
+  void pool.query<{ user_id: string }>(
+    `SELECT user_id FROM sessions WHERE id=$1 AND user_id=$2 AND revoked_at IS NULL AND expires_at>now()`,
+    [ticket.sessionId, ticket.userId],
+  ).then(({ rows }) => {
+    if (!rows[0] || socket.destroyed) { rejectRealtimeUpgrade(socket, 401, 'Unauthorized'); return; }
+    realtimeServer.handleUpgrade(request, socket, head, (client) => {
+      let userSockets = realtimeClients.get(ticket.userId);
+      if (!userSockets) { userSockets = new Set(); realtimeClients.set(ticket.userId, userSockets); }
+      if (userSockets.size >= 5) userSockets.values().next().value?.close(1013, 'connection limit');
+      userSockets.add(client);
+      realtimeSessionBySocket.set(client, ticket.sessionId);
+      client.send(JSON.stringify({ type: 'connection.ready', data: { connectedAt: new Date().toISOString() } }));
+      client.on('message', () => client.close(1008, 'server-to-client connection only'));
+      client.on('close', () => {
+        userSockets?.delete(client);
+        if (!userSockets?.size && realtimeClients.get(ticket.userId) === userSockets) realtimeClients.delete(ticket.userId);
+      });
+      realtimeServer.emit('connection', client, request);
+    });
+  }).catch(() => rejectRealtimeUpgrade(socket, 503, 'Service Unavailable'));
+});
+const realtimeHeartbeat = setInterval(() => {
+  for (const client of realtimeServer.clients) {
+    if (!aliveRealtimeSockets.has(client)) { client.terminate(); continue; }
+    aliveRealtimeSockets.delete(client);
+    client.ping();
+  }
+}, 30_000);
+realtimeHeartbeat.unref();
+realtimeServer.on('connection', (client) => {
+  aliveRealtimeSockets.add(client);
+  client.on('pong', () => { aliveRealtimeSockets.add(client); });
+});
 void expireStaleNavigationSessions().catch((error: unknown) => console.error(JSON.stringify({ level: 'error', event: 'navigation.expiry_failed', message: error instanceof Error ? error.message : 'unknown_error' })));
 const navigationExpiryTimer = setInterval(() => {
   void expireStaleNavigationSessions().catch((error: unknown) => console.error(JSON.stringify({ level: 'error', event: 'navigation.expiry_failed', message: error instanceof Error ? error.message : 'unknown_error' })));
@@ -1958,6 +2052,8 @@ const navigationExpiryTimer = setInterval(() => {
 navigationExpiryTimer.unref();
 async function shutdown() {
   clearInterval(navigationExpiryTimer);
+  clearInterval(realtimeHeartbeat);
+  realtimeServer.close();
   server.close(() => { void pool.end().finally(() => process.exit(0)); });
 }
 process.on('SIGTERM', shutdown);

@@ -22,12 +22,13 @@
 - [ ] Configure/test real OTP provider, sender identity, secure session policy, and staging HTTPS same-site API routing.
 - [ ] Configure private, encrypted vehicle/document storage and operate verification review with approved staff, retention, and malware scanning.
 - [x] Booking lifecycle API with signed boarding ticket, participant completion confirmations, and completed-trip reviews.
-- [ ] WebSocket/push delivery for messages, proposal changes, and booking events.
+- [x] Same-process authenticated WebSocket message delivery to booking participants, single-use session tickets, heartbeats, logout closure, and reconnect history replay (browser E2E).
+- [ ] Redis-backed multi-instance WebSocket fanout; Web Push for messages, proposals, bookings, navigation matches and rescue.
 - [x] Connect passenger demand/proposal negotiation and booking-scoped chat to authenticated APIs.
 - [ ] Finish driver booking lifecycle controls; proposal/booking state sync from navigation currently requires manual refresh and foreground connectivity.
 - [ ] Configure production routing/geocoding services and implement corridor/multi-stop search and rerouting.
 - [ ] Shared rate limiting, object storage, deletion/retention processing, and security review.
-- [x] Local mobile-sized browser E2E: two independent contexts, local OTP/geocoder, server search, booking, shared seats, persisted chat.
+- [x] Local mobile-sized browser E2E: two independent contexts, local OTP/geocoder, server search, booking, shared seats, negotiation, role/ownership check, real-time chat delivery and persisted replay.
 - [ ] Staging and physical-device acceptance with two independent accounts and real provider credentials.
 - [ ] Interactive iOS simulator sign-in/booking run and physical-device session persistence check.
 - [ ] CI, TLS, deployment manifests, staging, backups/restore, monitoring, and rollback drill.
