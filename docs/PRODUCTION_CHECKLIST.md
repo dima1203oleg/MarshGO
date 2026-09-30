@@ -27,7 +27,8 @@
 - [ ] Finish driver booking lifecycle controls; proposal/booking state sync from navigation currently requires manual refresh and foreground connectivity.
 - [ ] Configure production routing/geocoding services and implement corridor/multi-stop search and rerouting.
 - [ ] Shared rate limiting, object storage, deletion/retention processing, and security review.
-- [ ] Browser E2E flows and physical-device tests with two independent accounts.
+- [x] Local mobile-sized browser E2E: two independent contexts, local OTP/geocoder, server search, booking, shared seats, persisted chat.
+- [ ] Staging and physical-device acceptance with two independent accounts and real provider credentials.
 - [ ] Interactive iOS simulator sign-in/booking run and physical-device session persistence check.
 - [ ] CI, TLS, deployment manifests, staging, backups/restore, monitoring, and rollback drill.
 

@@ -603,7 +603,7 @@ app.post('/api/v1/auth/otp/request', asyncHandler(async (req, res) => {
   try {
     const delivery = await sendVerificationCode(phone, code);
     if (delivery.provider === 'development') {
-      res.json({ data: { expiresInSeconds: 300, delivery: 'development' }, developmentCode: delivery.testCode });
+      res.json({ data: { expiresInSeconds: 300, delivery: 'development', developmentCode: delivery.testCode }, developmentCode: delivery.testCode });
       return;
     }
     res.json({ data: { expiresInSeconds: 300, delivery: 'sent' } });

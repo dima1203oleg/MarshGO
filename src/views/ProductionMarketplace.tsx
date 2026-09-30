@@ -572,7 +572,7 @@ export function ProductionMarketplace() {
     {([
       { label: 'Попутка', Icon: CarFront, active: true }, { label: 'Автобус', Icon: Ticket, active: false },
       { label: 'Таксі', Icon: CarFront, active: false }, { label: 'Маршрутка', Icon: Users, active: false },
-    ] satisfies { label: string; Icon: LucideIcon; active: boolean }[]).map(({ label, Icon, active }) => <button key={label} onClick={() => !active && setStatusMessage(`${label} поки не підключено як перевірене джерело. Працює MARSHGO Community.`)} className={`flex flex-col items-center gap-1 rounded-2xl px-1 py-3 text-[11px] font-semibold ${active ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-100' : 'bg-white text-slate-500 shadow-sm'}`}><span className={`grid h-9 w-9 place-items-center rounded-xl ${active ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-500'}`}><Icon size={18}/></span>{label}</button>)}
+    ] satisfies { label: string; Icon: LucideIcon; active: boolean }[]).map(({ label, Icon, active }) => <button key={label} onClick={() => !active && setStatusMessage(`${label} поки не підключено як перевірене джерело. Працює MARSHGO Community.`)} className={`flex flex-col items-center gap-1 rounded-2xl px-1 py-2 text-[10px] font-semibold ${active ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-100' : 'bg-white text-slate-500 shadow-sm'}`}><span className={`grid h-8 w-8 place-items-center rounded-xl ${active ? 'bg-blue-600 text-white' : 'bg-slate-50 text-slate-500'}`}><Icon size={16}/></span>{label}</button>)}
     </div>;
 
   const offerCard = (offer: ApiOffer, index: number) => <button key={offer.id} onClick={() => setSelectedOffer(offer)} className="w-full rounded-[1.35rem] border border-slate-100 bg-white p-4 text-left shadow-[0_4px_16px_rgba(30,64,100,.05)]">
@@ -585,7 +585,7 @@ export function ProductionMarketplace() {
 
   const homeScreen = <div className="mx-auto w-full max-w-xl px-5 pb-5">
     <div className="mb-4"><p className="text-sm text-slate-500">Привіт, {user.display_name.split(' ')[0]}!</p><h1 className="text-xl font-extrabold tracking-tight">Куди їдемо сьогодні?</h1></div>
-    {transportTypes}<div className="mt-4">{searchForm}</div>
+    <div className="mt-4">{searchForm}</div>{transportTypes}
     <button onClick={() => setTab('demand')} className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-50 px-4 py-3 text-xs font-bold text-blue-700"><Compass size={16}/>Опублікувати свій запит на поїздку<ArrowRight size={15}/></button>
     <div className="mt-6 flex items-end justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[.16em] text-blue-600">Реальні пропозиції</p><h2 className="mt-1 text-lg font-extrabold">Маршрути поруч</h2></div><button onClick={() => setTab('search')} className="text-xs font-semibold text-blue-600">Усі результати</button></div>
     {offers.length ? <div className="mt-3 space-y-3">{offers.slice(0,2).map(offerCard)}</div> : <div className="mt-3 rounded-2xl bg-white p-4 text-sm text-slate-500 shadow-sm">Шукайте маршрут, щоб побачити опубліковані водіями поїздки.</div>}

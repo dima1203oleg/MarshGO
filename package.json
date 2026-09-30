@@ -9,8 +9,9 @@
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint server tests src/App.tsx src/components/AppHeader.tsx src/services/storage.ts src/services/productionApi.ts src/views/HomeView.tsx src/views/SearchView.tsx src/views/ProductionMarketplace.tsx src/views/ProductionNavigation.tsx vite.config.ts eslint.config.js",
+    "lint": "eslint server tests e2e scripts/ensure-e2e-database.ts playwright.config.ts src/App.tsx src/components/AppHeader.tsx src/services/storage.ts src/services/productionApi.ts src/views/HomeView.tsx src/views/SearchView.tsx src/views/ProductionMarketplace.tsx src/views/ProductionNavigation.tsx vite.config.ts eslint.config.js",
     "test": "tsx --test tests/*.test.ts",
+    "test:e2e": "playwright test",
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist",
@@ -46,6 +47,7 @@
   "devDependencies": {
     "@capacitor/cli": "8.5.2",
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.63.0",
     "@types/express": "^4.17.21",
     "@types/node": "^22.14.0",
     "@types/pg": "^8.23.1",

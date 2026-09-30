@@ -10,6 +10,22 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:17-3.5
+        env:
+          POSTGRES_DB: marshgo_e2e
+          POSTGRES_USER: marshgo
+          POSTGRES_PASSWORD: local_only_change_me
+        ports:
+          - 5434:5432
+        options: >-
+          --health-cmd "pg_isready -U marshgo -d marshgo_e2e"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      E2E_DATABASE_URL: postgres://marshgo:local_only_change_me@127.0.0.1:5434/marshgo_e2e
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -22,4 +38,7 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
+      - run: DATABASE_URL="$E2E_DATABASE_URL" npm run db:migrate
       - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e

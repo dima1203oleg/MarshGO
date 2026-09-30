@@ -376,6 +376,30 @@
 
 **Next implementation step:** Link mutually confirmed navigation interest into the existing quote/proposal flow without implying a booking, then add realtime notification delivery and on-device GPS acceptance when providers/devices are available.
 
+## Phase 5 / 9 — Mobile browser E2E for booking and chat
+
+**Phase:** 5 Production UI replacement; 9 test/quality pipeline.
+
+**Status:** PARTIAL. The first local two-account UI acceptance path is now browser-tested against the real API and isolated PostGIS. Staging/physical iPhone acceptance and the remaining E2E matrix are not complete.
+
+**Completed:** Added an iPhone-sized Chromium Playwright test that signs in two independent users through development-only OTP, resolves origin/destination through an isolated local geocoder fixture, searches a persisted route, books two seats, verifies the database-frozen total and remaining inventory, sends a persisted message, then verifies both booking inventory and chat from a second browser context. Added a dedicated loopback-only `marshgo_e2e` creation helper, unique E2E service ports (3300–3304), Playwright browser config, and GitHub Actions PostGIS + browser E2E steps. Fixed the development OTP response to include its code in the standard `{ data }` envelope consumed by the frontend; the test OTP is returned only by the no-network development adapter. Refined the production iPhone home layout to place route search directly below the greeting and reduce transport category cards to reference scale. The initial browser run exposed an unrelated site bound to port 3000; E2E now uses dedicated ports and refuses server reuse.
+
+**Modified files:** `e2e/marketplace.spec.ts`, `tests/fixtures/geocoder-stub.mjs`, `tests/fixtures/e2e-web-server.mjs`, `playwright.config.ts`, `scripts/ensure-e2e-database.ts`, `server/index.ts`, `src/views/ProductionMarketplace.tsx`, `package.json`, `bun.lock`, `.github/workflows/ci.yml`, `.gitignore`, `README.md`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_CHECKLIST.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** No production schema change. Created a separate local `marshgo_e2e` database and applied existing migrations `001`–`012`; it contains only test fixture data. The test cleans up the exact UUID-scoped fixture rows after execution.
+
+**Endpoints:** Existing `POST /api/v1/auth/otp/request`, `POST /api/v1/auth/otp/verify`, `POST /api/v1/auth/refresh`, `GET /api/v1/places/suggest`, `GET /api/v1/offers`, `POST /api/v1/bookings`, `GET /api/v1/bookings`, booking conversation/history, and `POST /api/v1/conversations/:id/messages` verified through the user interface.
+
+**Tests:** `npx bun@1.3.5 install --frozen-lockfile` passed. `npm run typecheck`, `npm run lint`, and `npm test` passed (12/12 unit tests; integration tests require explicit API test env). `npm run build` passed. `E2E_DATABASE_URL=postgres://marshgo:local_only_change_me@127.0.0.1:5434/marshgo_e2e npm run test:e2e` passed 1/1 on an iPhone-sized Playwright viewport after the visual adjustment: independently authenticated passenger and driver see the same confirmed two-seat booking, two remaining seats, and persisted chat. The test also confirms the HttpOnly refresh cookie survives a page reload and the passenger sees the booking and chat restored from the API. A same-origin test reverse proxy forwards requests to the separate API process, matching the intended deployment shape; direct cross-origin preview did not preserve the test cookie, so it is not used for this cookie-auth test. `/tmp/marshgo-e2e-home-refined.png` captures the refreshed home screen. The first test attempt failed because port 3000 served an unrelated local site; no product code was inferred as passing from that failed run. `npm run ios:simulator` rebuilt, installed, and launched the latest UI on iPhone 18 Pro / iOS 27; `/tmp/marshgo-ios-design-latest.png` confirms the reference-aligned welcome screen in the native shell. No UI taps were automated in Simulator.
+
+**DEMO/TRUTH status:** This is a genuine API/PostGIS-backed local test using fixtures and a local geocoder. OTP code disclosure and geocoder fixture are restricted to test/development configuration; neither represents production SMS/address coverage. Booking and chat state was read back from independent user sessions and PostgreSQL. No real message push or WebSocket delivery is included.
+
+**Remaining issues:** The critical browser scenario is local-only and does not exercise production SMS, uploads, driver publishing UI, reverse-demand negotiation, GPS permission, or passive matching. iPhone Simulator confirms latest build and launch but only the welcome screen has been visually captured; interaction flow remains unverified in the simulator. Full E2E/security/load/restore suites are still incomplete.
+
+**External blockers:** Real SMS sender/account; contracted routing/geocoder/map tiles; private photo/document object storage; HTTPS staging/API host, secrets and monitoring; two physical-device or interactive-simulator acceptance.
+
+**Next implementation step:** Run the same state checks after a full logout/restart, add tested E2E coverage for demand counter-proposals and authorization denial, then validate the new sign-up path in the running iOS simulator once tap automation is available.
+
 ## Phase 6 — Foreground GPS navigation session
 
 **Phase:** 6 Navigation/Matching (foreground navigation slice).
