@@ -974,6 +974,30 @@ The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max 
 
 **Next implementation step:** Continue the navigation-match handshake into passenger-visible price negotiation and mutual booking, preserving consent and route-detour constraints. Production routing/geocoding/tiles, real SMS, private object storage, staging, Web Push, backups/monitoring, and physical-device GPS remain external or operational gates.
 
+## Phase 6 continuation — passenger confirmation returns to driver
+
+**Phase:** 6 Navigation/matching; 7 realtime delivery.
+
+**Status:** PARTIAL. The mutual-interest handshake now notifies both participants across API instances. Passenger confirmation is durable and visible to the driver without creating a booking; the driver can then pause safely and explicitly open the passenger demand to send a proposal.
+
+**Completed:** Passenger confirmation now writes candidate state, audit event, and `navigation.match.passenger-confirmed` outbox event to the same transaction, addressed only to the driver. The foreground driver navigation screen reloads its authorized candidate list and shows that the passenger confirmed, while retaining the explicit price-proposal action and safe-stop requirement. The cross-instance integration connects separate driver/passenger sockets to API instance B, writes interest and confirmation through API instance A, validates both minimal participant-scoped events, and checks authorized REST state from both accounts. The test asserts mutual interest does not silently create a booking.
+
+**Modified files:** `server/index.ts`, `src/services/productionApi.ts`, `src/views/ProductionNavigation.tsx`, `tests/realtime-cluster.integration.test.ts`, `docs/API.md`, `docs/ARCHITECTURE.md`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_CHECKLIST.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** None; existing candidate, audit and outbox tables.
+
+**Endpoints:** Existing `POST /api/v1/navigation/matches/:candidateId/passenger-confirm`; now atomically writes a passenger-only-to-driver realtime event.
+
+**Tests:** `npm run typecheck` and `npm run lint` passed. Full PostgreSQL/PostGIS/Redis integration passed booking/negotiation 9/9, navigation 1/1, two-way cross-instance realtime 1/1, restart 1/1, and shared rate limits 1/1. The new assertion confirms the driver sees `passenger_confirmed` after another user's explicit confirmation while no navigation booking is created. Browser E2E does not yet exercise this specific navigation acceptance/negotiation path. Existing Pro Max viewport E2E and native welcome screen tests remain the only visual device evidence; they use no production routing or map provider.
+
+**DEMO/TRUTH status:** Both consent states persist in PostgreSQL and are relayed through Redis across two API processes. Price proposal creation remains a separate UI action; final route insertion, driver ETA recomputation and atomic capacity reservation from a navigation match are not implemented.
+
+**Open issues:** Tie the navigation candidate to a specific proposal revision with detour, price and seats; require passenger acceptance before booking; then revalidate capacity and route constraints transactionally. Add a browser E2E across two account contexts and validate on-device GPS.
+
+**External dependencies:** Real SMS/provider keys, approved routing/geocoding/map tile service, production Redis/staging, and physical iPhone GPS permissions remain outstanding for the full navigation journey.
+
+**Next implementation step:** Design and implement candidate-bound price proposal creation with explicit participant acceptance, expiry and seat-capacity checks; do not create a confirmed booking from either party's unilateral click.
+
 ## Phase 4 continuation — competing proposal acceptance race
 
 **Phase:** 4 Reverse Market; exclusive demand resolution.

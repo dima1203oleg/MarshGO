@@ -33,6 +33,7 @@
 - [x] Transactional PostgreSQL outbox for chat messages with deduplication, multi-worker leases, retry/backoff, and seven-day published-record retention.
 - [x] Transactional PostgreSQL outbox for booking state and proposal negotiation/closure events, with REST resync as canonical state.
 - [x] Transactional `navigation.match.driver-interested` outbox event: paused driver interest is delivered to the passenger across API instances without disclosing location; UI reloads the passenger's authorized match list.
+- [x] Transactional `navigation.match.passenger-confirmed` outbox event: passenger consent is delivered to the driver across API instances without disclosing location; foreground navigation reloads the driver's authorized candidate list; test confirms this does not create a booking.
 - [x] Staff-only outbox queue age/depth metrics and Redis readiness reporting; controlled invalid-event retry/backoff integration test.
 - [ ] Redis outage recovery runbook/drill, external alerting, and Web Push/inbox for messages, proposals, bookings, navigation matches and rescue.
 - [x] Connect passenger demand/proposal negotiation and booking-scoped chat to authenticated APIs.
