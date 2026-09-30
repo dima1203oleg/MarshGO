@@ -20,6 +20,7 @@ const navigationPhone = `+38063${String(Date.now() + 2).slice(-7)}`;
 const navigationSecondPhone = `+38066${String(Date.now() + 3).slice(-7)}`;
 const navigationPassengerPhone = `+38068${String(Date.now() + 4).slice(-7)}`;
 const navigationFlowDriverPhone = `+38069${String(Date.now() + 5).slice(-7)}`;
+const journeyPassengerPhone = `+38070${String(Date.now() + 6).slice(-7)}`;
 const navigationFlowVehicleId = randomUUID();
 let navigationFlowDemandId = '';
 
@@ -84,7 +85,7 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
-  const testUsers = await pool.query<{ id: string }>('SELECT id FROM users WHERE phone_e164=ANY($1::text[])', [[passengerPhone, navigationPhone, navigationSecondPhone, navigationPassengerPhone, navigationFlowDriverPhone]]);
+  const testUsers = await pool.query<{ id: string }>('SELECT id FROM users WHERE phone_e164=ANY($1::text[])', [[passengerPhone, navigationPhone, navigationSecondPhone, navigationPassengerPhone, navigationFlowDriverPhone, journeyPassengerPhone]]);
   const userIds = [driverId, ...testUsers.rows.map((row) => row.id)];
   const testBookingQuery = `SELECT b.id FROM bookings b JOIN offers o ON o.id=b.offer_id WHERE b.passenger_id=ANY($1::uuid[]) OR o.driver_id=ANY($1::uuid[])`;
   await pool.query('DELETE FROM audit_events WHERE actor_id=ANY($1::uuid[]) OR entity_id=ANY($2::uuid[])', [userIds, [offerId, vehicleId]]);
@@ -97,7 +98,7 @@ test.afterAll(async () => {
   await pool.query('DELETE FROM navigation_sessions WHERE driver_id=ANY($1::uuid[])', [userIds]);
   await pool.query('DELETE FROM passenger_demands WHERE passenger_id=ANY($1::uuid[])', [userIds]);
   await pool.query('DELETE FROM offers WHERE id=$1 OR driver_id=ANY($2::uuid[])', [offerId, userIds]);
-  await pool.query('DELETE FROM otp_challenges WHERE phone_e164=ANY($1::text[])', [[driverPhone, passengerPhone, navigationPhone, navigationSecondPhone, navigationPassengerPhone, navigationFlowDriverPhone]]);
+  await pool.query('DELETE FROM otp_challenges WHERE phone_e164=ANY($1::text[])', [[driverPhone, passengerPhone, navigationPhone, navigationSecondPhone, navigationPassengerPhone, navigationFlowDriverPhone, journeyPassengerPhone]]);
   await pool.query('DELETE FROM sessions WHERE user_id=ANY($1::uuid[])', [userIds]);
   await pool.query('DELETE FROM vehicles WHERE id=$1 OR owner_id=ANY($2::uuid[])', [vehicleId, userIds]);
   await pool.query('DELETE FROM users WHERE id=ANY($1::uuid[])', [userIds]);
@@ -581,5 +582,46 @@ test('foreground road route renders on iPhone 15 Pro Max and 16 Pro Max viewport
       if (sessionId) await page.request.post(`/api/v1/navigation/sessions/${sessionId}/end`).catch(() => undefined);
       await context.close();
     }
+  }
+});
+
+test('Journey Planner ranks a persisted Community route and opens its current offer detail', async ({ browser, baseURL }) => {
+  expect(baseURL).toBeTruthy();
+  const context = await browser.newContext({ baseURL, timezoneId: 'Europe/Kyiv' });
+  const page = await context.newPage();
+  try {
+    const accessToken = await signIn(page, 'Journey Passenger', journeyPassengerPhone);
+    await page.getByPlaceholder('Місто відправлення').fill('Стрий');
+    await page.getByRole('button', { name: 'Знайти', exact: true }).nth(0).click();
+    await page.getByRole('button', { name: /Стрий, Львівська область, Україна/ }).click();
+    await page.getByPlaceholder('Місто призначення').fill('Львів');
+    await page.getByRole('button', { name: 'Знайти', exact: true }).nth(1).click();
+    await page.getByRole('button', { name: /Львів, Львівська область, Україна/ }).click();
+    await page.getByLabel('Час відправлення для плану').fill(`${tomorrowInKyiv()}T08:00`);
+    await page.getByLabel('Пріоритет маршруту').selectOption('CHEAPEST');
+
+    const searchResponse = page.waitForResponse(response => response.url().endsWith('/api/v1/journeys/search') && response.request().method() === 'POST');
+    await page.getByRole('button', { name: /Оптимізувати весь маршрут/ }).click();
+    const response = await searchResponse;
+    expect(response.status()).toBe(200);
+    const payload = (await response.json()).data as { journeys: Array<{ id: string; strategy: string; offerId: string }>; partial: boolean; blockedProviders: string[] };
+    expect(payload.partial).toBe(true);
+    expect(payload.blockedProviders).toContain('bus');
+    expect(payload.journeys.some(item => item.strategy === 'CHEAPEST' && item.offerId === offerId)).toBe(true);
+    await expect(page.getByRole('heading', { name: 'Варіанти маршруту' })).toBeVisible();
+    await expect(page.getByText('Автобуси, таксі й громадський транспорт не підключені як реальні джерела.')).toBeVisible();
+    const saved = await pool.query<{ owner_id: string; offer_id: string }>(
+      `SELECT j.user_id AS owner_id,l.offer_id FROM journeys j JOIN journey_legs l ON l.journey_id=j.id WHERE j.id=$1`, [payload.journeys.find(item => item.strategy === 'CHEAPEST')!.id],
+    );
+    const profile = await page.evaluate(async token => fetch('/api/v1/users/me', { headers: { Authorization: `Bearer ${token}` } }).then(response => response.json()), accessToken);
+    expect(saved.rows).toEqual([{ owner_id: profile.data.id, offer_id: offerId }]);
+
+    const offerDetail = page.waitForResponse(response => response.url().endsWith(`/api/v1/offers/${offerId}`));
+    await page.getByRole('button', { name: /Переглянути пропозицію й бронювання/ }).first().click();
+    expect((await offerDetail).status()).toBe(200);
+    await expect(page.getByRole('heading', { name: /Стрий.*Львів/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Забронювати місце/ })).toBeVisible();
+  } finally {
+    await context.close();
   }
 });
