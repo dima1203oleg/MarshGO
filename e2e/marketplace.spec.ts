@@ -442,6 +442,9 @@ test('two accounts confirm a route match, negotiate, book and refresh the driver
     const initialRoutePath = await routeLine.getAttribute('d');
     await expect(driverPage.getByText('Дуліб → Львів').first()).toBeVisible();
     await driverPage.getByRole('button', { name: 'Зупиніться та призупиніть навігацію, щоб відповісти' }).first().click();
+    await expect.poll(async () => pool.query<{ state: string }>(
+      'SELECT state FROM navigation_sessions WHERE id=$1', [navigationSessionId],
+    ).then(result => result.rows[0]?.state)).toBe('paused');
     const candidateState = await pool.query(`SELECT c.navigation_session_id,c.status,c.expires_at,d.status AS demand_status,s.driver_id,s.state,s.opt_in,s.current_location_at
       FROM navigation_match_candidates c JOIN passenger_demands d ON d.id=c.demand_id JOIN navigation_sessions s ON s.id=c.navigation_session_id WHERE c.id=$1`, [candidate!.id]);
     const driverInterest = await driverPage.evaluate(async ({ token, sessionId, candidateId }) => fetch(`/api/v1/navigation/sessions/${sessionId}/matches/${candidateId}/interest`, {

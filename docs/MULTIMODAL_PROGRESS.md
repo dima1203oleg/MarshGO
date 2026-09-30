@@ -144,6 +144,8 @@
 - This does not add JourneyLeg orchestration for future bus/transit legs, cumulative ETA uncertainty, predictive transfer rescue, provider outage handling or multi-leg replanning.
 - Physical iOS location accuracy, stop arrival acknowledgement and background tracking remain unverified. PWA GPS remains foreground-only.
 
+**Verification follow-up:** The root GitHub PR workflow passed, while its push workflow exposed an E2E timing race: the UI's navigation pause request could still be in flight when the test immediately requested driver interest. The test now waits for the persisted session state to become `paused` before that action. Local Playwright rerun against isolated `marshgo_e2e_multinav` (migrations 001–022) passed 4/4, including two-account live matching and both iPhone Pro Max viewport checks. The first local retry was run against an older isolated database at migration 021 and failed because it lacked the new waypoint `state` column; that run is excluded from passing evidence.
+
 **NEXT**
 - Add dynamic Journey/leg event monitoring and future Community transfer matching using real scheduled predecessor legs plus explicit ETA uncertainty. Until a live transit schedule feed exists, do not show a future bus-to-Community match as available.
 

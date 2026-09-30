@@ -1277,3 +1277,21 @@ The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max 
 **CI correction:** The first GitHub run exposed equal `created_at` values for realtime events inserted within the same DB transaction, which made same-transaction inbox ordering unstable. Outbox creation now uses `clock_timestamp()` and the durable inbox stores that source timestamp, preserving READY → cancellation → REPLANNING event order. The CI check is rerun with this fix.
 
 **Verification after CI ordering fix:** Full isolated PostGIS/Redis integration rerun passed: Journey schema 1/1, API booking/search/negotiation/inbox 10/10, navigation 1/1, cross-instance realtime 1/1, restart persistence 1/1, rate limits 1/1. Root and standalone Server typecheck/unit suites passed (33 root unit pass with one opt-in DB skip; 26 Server unit pass with one opt-in DB skip). New GitHub CI for the ordering correction is pending.
+
+## Multimodal expansion — simulator-view E2E race fix
+
+**Phase:** E verification follow-up (done).
+
+**Completed:** The route-matching browser test now waits for the database-confirmed paused navigation state before it submits driver interest. This removes the timing race where the server correctly rejected interest while the navigation session was still active.
+
+**Changed files:** `e2e/marketplace.spec.ts`, `docs/MULTIMODAL_PROGRESS.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database/API changes:** None.
+
+**Tests:** `npm run check:production` passed (37 unit tests passed, one opt-in DB test skipped; typecheck, ESLint, Vite production build passed). `E2E_DATABASE_URL=postgres://…/marshgo_e2e_multinav REDIS_URL=redis://127.0.0.1:6380 npm run test:e2e` passed 4/4 against migration set 001–022, including two-account route matching and iPhone 15 Pro Max / 16 Pro Max viewport rendering. GitHub umbrella PR CI passed at `941d9f0`; push CI at the same earlier SHA failed this race and is superseded by the test synchronization fix. The standalone Server CI passed at `ef9d105`.
+
+**Demo/truth status:** E2E uses local PostGIS, Redis, map/geocoder/routing fixtures. iPhone viewport checks are browser-emulated and do not prove native iOS live GPS or a production routing provider.
+
+**External dependencies:** Production router/geocoder/map tiles, SMS, staging infrastructure, GTFS/taxi/rail contracts, APNs/TestFlight and physical-device journey acceptance remain outstanding.
+
+**Next implementation step:** Implement and test the Journey monitor against freshness-bounded, real provider/vehicle ETA observations; future transfer candidates remain disabled without a live schedule and routing source.
