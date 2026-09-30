@@ -188,6 +188,9 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     await expect(passengerPage.getByText('Привіт, E2E!')).toBeVisible();
     await passengerPage.getByRole('button', { name: 'Поїздки', exact: true }).click();
     await expect(passengerPage.getByText(/2 місця/).first()).toBeVisible();
+    await passengerPage.getByRole('button', { name: 'Відкрити зустріч' }).click();
+    await expect(passengerPage.getByText('Очікує часу зустрічі')).toBeVisible();
+    await expect(passengerPage.getByText(/Точка посадки · Стрий/)).toBeVisible();
     await passengerPage.getByRole('button', { name: /Написати/ }).click();
     await expect(passengerPage.getByText('Буду на місці о 08:45.')).toBeVisible();
 

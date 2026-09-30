@@ -172,3 +172,32 @@
 
 **NEXT**
 - Add a monitor that evaluates real provider/vehicle ETA observations against subsequent Journey leg windows. Activate it only for legs with verified schedule and uncertainty data; provider feeds remain the gating external dependency.
+
+## Phase 6 continuation — Live Rendezvous backend foundation
+
+**Status:** PARTIAL.
+
+**DONE**
+- Added additive migration `023_rendezvous_sessions.sql`; the existing Journey/booking/navigation tables were not recreated or rewritten.
+- Added participant-authorized APIs to read/create the rendezvous session, activate sharing, submit ephemeral location, report approaching/delay/arrival, complete the two-party pickup handshake, and end sharing. Added a booking-scoped Production Site panel for these actions.
+- Sharing defaults to activation 15 minutes before pickup and an accuracy-aware 75 m geofence. Both are bounded server settings. GPS proximity is advisory; users explicitly confirm arrival.
+- Latest coordinates use Redis keys scoped to rendezvous and participant with a 5-minute TTL. Location updates go only through ephemeral Redis/WebSocket delivery; no coordinate is written to PostgreSQL, outbox, or inbox. Stale points are labelled and booking cancel/completion clears sharing transactionally.
+- Status transitions are persisted in `rendezvous_events` and the transactional outbox. Both booking participants receive state changes; unrelated users receive 404.
+- Added deterministic unit tests and a two-account booking API integration flow for activation, privacy, arrival, boarding and end-of-sharing.
+
+**CHANGED FILES**
+- `server/migrations/023_rendezvous_sessions.sql`, `server/rendezvous.ts`, `server/index.ts`, `server/notifications.ts`, `src/services/productionApi.ts`, `src/views/ProductionMarketplace.tsx`, `tests/rendezvous.test.ts`, `tests/api-bookings.integration.test.ts`
+- `docs/API.md`, `docs/DATA_MODEL.md`, `docs/MULTIMODAL_PROGRESS.md`, `docs/RENDEZVOUS_PROGRESS.md`, `.env.example`
+
+**TESTS**
+- Fresh isolated loopback/PostGIS DB `marshgo_e2e_rendezvous`: migrations 001–023 applied; Journey schema 1/1; booking/search/proposal/rendezvous API 11/11; navigation 1/1; Redis realtime 1/1; restart durability 1/1; rate limits 1/1.
+- Unit tests 42 passed before adding settings validation; root typecheck passed. ESLint initially found one unused helper, which was removed. Re-run complete check after the final docs/config edits.
+- This integration test uses two independent development-auth accounts and local Redis/PostGIS, not physical iPhones or production credentials.
+
+**LIMITATIONS / BLOCKED_EXTERNAL**
+- No automatic activation worker/push, road ETA for either participant, live rendezvous map, native background location, or physical two-device acceptance yet.
+- No Journey Monitor consumes Rendezvous delays/arrival to cascade ETA into later legs or run predictive replan. This remains the next backend feature.
+- SMS/APNs, public HTTPS staging, contracted routing/geocoding/tiles, production signing and two physical iPhones are external/operational blockers.
+
+**NEXT**
+- Add Journey event/monitor contracts and scheduled leg observations; cascade measured Rendezvous delay through the Transfer Engine. Then implement the booking-scoped Site UI and iOS bridge without claiming background tracking until device-tested.
