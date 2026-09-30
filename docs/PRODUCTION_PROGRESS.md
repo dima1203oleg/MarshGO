@@ -1236,6 +1236,24 @@ The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max 
 
 **Next implementation step:** Run the migration and API integration tests on an isolated PostGIS/Redis database, then implement a Journey monitor/event source before emitting future-transfer or predictive-rescue notifications.
 
+## Multimodal expansion — multi-passenger navigation
+
+**Phase:** E (partial).
+
+**Completed:** Added migration `022_multi_passenger_navigation.sql`; real-road stop insertion optimizer with segment seat checks and pickup-before-dropoff ordering; transactional multi-rider navigation proposal acceptance with waypoint snapshot locking/rebuild; GPS stop-arrival state; driver can explicitly re-enable matching between passengers.
+
+**Changed files:** `server/index.ts`, `server/routing.ts`, `server/navigation/stopOptimizer.ts`, `server/migrations/022_multi_passenger_navigation.sql`, `tests/navigation.integration.test.ts`, `tests/navigation-stop-optimizer.test.ts`, `tests/routing.test.ts`, `tests/fixtures/osrm-stub.mjs`, `scripts/run-integration-tests.sh`, `docs/API.md`, `docs/MULTIMODAL_PROGRESS.md`.
+
+**Database/API changes:** Migration 022 adds waypoint `state`, allows up to 30 waypoint ordinals, and persists candidate insertion ordinals. Existing navigation matching and proposal acceptance APIs now handle more than one rider per active route; no new endpoint.
+
+**Tests:** `npm run check:production` passed (36 unit tests; one opt-in DB test skipped; ESLint and production build passed). Fresh isolated PostGIS/Redis database `marshgo_e2e_multinav`: migrations 001–022; Journey schema 1/1, booking/search/negotiation 10/10, navigation with two passenger accounts 1/1, cross-instance realtime 1/1, restart durability 1/1, rate limits 1/1.
+
+**Demo/truth status:** The exercised navigation API flow uses persisted accounts/demands/bookings and an isolated local OSRM-compatible fixture. It is not evidence of production routing SLA or physical-device GPS quality.
+
+**External dependencies:** Contracted routing and geocoding services, SMS credentials, map tiles, S3, staging infrastructure, APNs/push credentials, GTFS/ticket/taxi provider agreements, and physical-device TestFlight acceptance remain outstanding.
+
+**Next implementation step:** Journey live monitor and multi-leg predictive replanning; future community-leg matching remains unavailable until a real predecessor schedule and ETA uncertainty source exist.
+
 **Verification update:** Created fresh loopback database `marshgo_e2e_notifications` and applied migrations 001–021 successfully. Full `E2E_DATABASE_URL=postgres://…/marshgo_e2e_notifications REDIS_URL=redis://127.0.0.1:6380 npm run test:integration` passed: Journey schema 1/1, booking/search/negotiation/Journey inbox 10/10, navigation 1/1, Redis cross-instance realtime 1/1, restart durability 1/1, and rate limiting 1/1. Root unit tests/typecheck/lint/build and standalone Site typecheck/lint/build passed. Playwright E2E passed 4/4; the Journey test opens the inbox, checks saved booking/replanning events, and marks an item read. One test expectation was corrected from three to four notifications because the lifecycle emits booking confirmed/cancelled plus Journey READY/REPLANNING events; final rerun passed.
 
 **CI correction:** The first GitHub run exposed equal `created_at` values for realtime events inserted within the same DB transaction, which made same-transaction inbox ordering unstable. Outbox creation now uses `clock_timestamp()` and the durable inbox stores that source timestamp, preserving READY → cancellation → REPLANNING event order. The CI check is rerun with this fix.
