@@ -32,8 +32,9 @@
 - [x] Server-backed user blocking from a confirmed booking chat, private blocked-user list, and unblock flow; E2E verifies blocked message denial and restored chat after unblock.
 - [x] Transactional PostgreSQL outbox for chat messages with deduplication, multi-worker leases, retry/backoff, and seven-day published-record retention.
 - [x] Transactional PostgreSQL outbox for booking state and proposal negotiation/closure events, with REST resync as canonical state.
+- [x] Transactional `navigation.match.driver-interested` outbox event: paused driver interest is delivered to the passenger across API instances without disclosing location; UI reloads the passenger's authorized match list.
 - [x] Staff-only outbox queue age/depth metrics and Redis readiness reporting; controlled invalid-event retry/backoff integration test.
-- [ ] Redis outage recovery runbook/drill, external alerting, and Web Push for messages, proposals, bookings, navigation matches and rescue.
+- [ ] Redis outage recovery runbook/drill, external alerting, and Web Push/inbox for messages, proposals, bookings, navigation matches and rescue.
 - [x] Connect passenger demand/proposal negotiation and booking-scoped chat to authenticated APIs.
 - [x] Production trip screen supports signed ticket handoff, driver boarding/start, and two-party completion using server state and realtime refresh; covered in two-account E2E.
 - [ ] Add native QR generation/scanning and completion-review UI; navigation candidate conversion still needs an integrated booking/waypoint flow and requires foreground connectivity.

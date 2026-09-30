@@ -944,6 +944,30 @@ The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max 
 
 **GitHub verification:** Published umbrella commit `6219f2b` to `codex/marshgo-production`; its push CI [`36686996373`](https://github.com/dima1203oleg/MarshGO/actions/runs/36686996373) and PR CI [`36687003256`](https://github.com/dima1203oleg/MarshGO/actions/runs/36687003256) passed, including migration, integration tests and browser E2E. Published Site commit `3f000cd`; Site CI [`36686580078`](https://github.com/dima1203oleg/MarshGO-Site/actions/runs/36686580078) passed. Published iOS documentation commit `323f914`; iOS Simulator Build [`36686847575`](https://github.com/dima1203oleg/MarshGO-iOS/actions/runs/36686847575) passed against current Site main. The PR remains draft/open; no public deploy occurred.
 
+## Phase 6 continuation — passenger alert for driver interest
+
+**Phase:** 6 Navigation/matching; 7 realtime delivery.
+
+**Status:** PARTIAL. When a driver expresses interest in a suggested passenger request, the server now records the state/audit event and queues a passenger-only realtime notification atomically. The passenger PWA refreshes its own authorized match list. The subsequent price negotiation and mutual confirmation still require separate actions; driver interest does not create a booking.
+
+**Completed:** Changed the existing interest endpoint to use one PostgreSQL transaction for the candidate transition, audit log, and deduplicated realtime outbox row. The event payload has candidate/demand IDs and status only; no driver identity or precise location is sent. Added a client event type and passenger-side UI resync. Extended the two-API integration flow to connect the passenger's WebSocket to API instance B, submit interest through API instance A, verify cross-instance delivery after outbox publication, and confirm the passenger's authenticated REST list reflects the canonical status. Adjusted the test to wait for durable publication before asserting socket delivery, eliminating a race between observing the database and the separate Pub/Sub subscriber.
+
+**Modified files:** `server/index.ts`, `src/services/productionApi.ts`, `src/views/ProductionMarketplace.tsx`, `tests/realtime-cluster.integration.test.ts`, `docs/API.md`, `docs/ARCHITECTURE.md`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_CHECKLIST.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** None; uses existing `navigation_match_candidates`, `audit_events`, and `realtime_outbox` tables.
+
+**Endpoints:** Existing `POST /api/v1/navigation/sessions/:id/matches/:candidateId/interest`; adds a transactional outbox event, no REST schema changes.
+
+**Tests:** `npm run check:production` passed typecheck, lint, unit tests (16 passed, 1 opt-in DB test skipped), and Vite production build. Full local PostgreSQL/PostGIS/Redis integration passed: booking/negotiation 9/9 (including 20-way last-seat contention), navigation 1/1, cross-instance WebSocket/outbox 1/1 (including driver-interest delivery and expected retry/backoff path), process restart durability 1/1, and shared Redis rate limit 1/1. `E2E_DATABASE_URL=postgres://...@127.0.0.1:5434/marshgo_e2e REDIS_URL=redis://127.0.0.1:6380 npm run test:e2e` passed 2/2: independent-user booking/negotiation/chat and road-map failure/retry at both iPhone Pro Max viewport sizes. The cross-instance test initially timed out while racing the outbox publisher and socket assertion; requiring the durable outbox row to be published before waiting for the socket event resolved the flaky observation, and the full suite then passed. E2E uses isolated local route/tile fixtures; this is not live provider verification.
+
+**DEMO/TRUTH status:** Driver-interest status and passenger alert are persisted and delivered between two local API processes via Redis, then reconciled from authenticated REST. No production Redis, map provider, push service, mutual booking, or full detour route recalculation is configured.
+
+**Open issues:** Add proposal/price negotiation after passenger alert; complete mutual agreement and route waypoint insertion; configure production route/geocoder/map providers, Web Push/inbox, staging, and operational alerting. iOS simulator still proves branded first-screen rendering only; authenticated native gestures, OTP and GPS remain unverified on physical devices.
+
+**External dependencies:** Production Redis/HTTPS staging; contracted or self-hosted routing/geocoding/tiles; SMS credentials; private vehicle-photo bucket; physical-device GPS and device acceptance.
+
+**Next implementation step:** Publish this slice to umbrella and standalone Server/Site repositories, rebuild the Capacitor bundle from the published Site revision, run simulator launch/build workflows for both requested device profiles, and check the resulting GitHub CI before moving to the next matching handshake.
+
 ## Phase 4 continuation — competing proposal acceptance race
 
 **Phase:** 4 Reverse Market; exclusive demand resolution.
