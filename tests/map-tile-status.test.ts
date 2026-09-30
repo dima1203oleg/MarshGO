@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { initialMapTileHealth, leafletTileKey, reduceMapTileHealth } from '../src/services/mapTileStatus';
+import { initialMapTileHealth, mapTileKey, reduceMapTileHealth } from '../src/services/mapTileStatus';
 
 describe('map tile health status', () => {
   it('distinguishes a missing provider from a configured provider loading tiles', () => {
@@ -9,8 +9,8 @@ describe('map tile health status', () => {
   });
 
   it('does not mark the map available while any visible tile failed', () => {
-    const first = leafletTileKey({ z: 8, x: 133, y: 91 });
-    const second = leafletTileKey({ z: 8, x: 134, y: 91 });
+    const first = mapTileKey({ z: 8, x: 133, y: 91 });
+    const second = mapTileKey({ z: 8, x: 134, y: 91 });
     let health = initialMapTileHealth(true);
     health = reduceMapTileHealth(health, 'tileload', first);
     health = reduceMapTileHealth(health, 'tileerror', second);
@@ -23,7 +23,7 @@ describe('map tile health status', () => {
     assert.equal(health.failed.size, 0);
   });
 
-  it('removes old viewport tiles when Leaflet unloads them during zoom', () => {
+  it('removes old viewport tiles when the renderer unloads them during zoom', () => {
     let health = initialMapTileHealth(true);
     health = reduceMapTileHealth(health, 'tileerror', '8/133/91');
     assert.equal(health.status, 'failed');

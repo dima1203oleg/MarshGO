@@ -9,10 +9,10 @@ import {
   RotateCcw,
   MessageSquare,
   CheckCircle2,
-  Sparkles,
+
   Car
 } from 'lucide-react';
-import { PassengerDemand, Proposal, Booking } from '../types';
+import { PassengerDemand, Proposal } from '../types';
 import { NegotiationModal } from '../components/NegotiationModal';
 
 interface DemandDetailViewProps {

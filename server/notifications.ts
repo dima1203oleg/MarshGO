@@ -14,6 +14,7 @@ const notificationText: Record<string, Pick<NotificationProjection, 'title' | 'b
   'proposal.updated': { title: 'Оновлення домовленості', body: 'Перегляньте актуальні умови пропозиції.' },
   'proposal.accepted': { title: 'Домовленість підтверджена', body: 'Бронювання створено на сервері.' },
   'proposal.closed': { title: 'Пропозицію закрито', body: 'Перевірте статус заявки на поїздку.' },
+  'proposal.expired': { title: 'Пропозиція більше не актуальна', body: 'Час відповіді минув. Перегляньте інші пропозиції або оновіть заявку.' },
   'navigation.match.driver-interested': { title: 'Водій зацікавився маршрутом', body: 'Перегляньте пропозицію у своїх заявках.' },
   'navigation.match.passenger-confirmed': { title: 'Пасажир підтвердив інтерес', body: 'Продовжіть узгодження після безпечної зупинки.' },
   'navigation.route-updated': { title: 'Маршрут водія оновлено', body: 'Підтверджену поїздку додано до маршруту.' },

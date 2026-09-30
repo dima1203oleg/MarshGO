@@ -12,4 +12,14 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
     },
   },
+  {
+    files: ['scripts/**/*.{js,mjs,cjs,ts}', 'tools/**/*.{js,mjs,cjs,ts}', '*.config.{js,mjs,cjs,ts}'],
+    languageOptions: {
+      globals: {
+        Buffer: 'readonly',
+        console: 'readonly',
+        process: 'readonly',
+      },
+    },
+  },
 );

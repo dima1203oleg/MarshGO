@@ -8,7 +8,8 @@ import { createClient } from 'redis';
 import { RedisRateLimitStore } from './redisRateLimitStore';
 import type { Duplex } from 'node:stream';
 import { sendVerificationCode, SmsProviderUnavailableError } from './sms';
-import { getRoadRoute, getRoadRouteThroughPoints, RoutingUnavailableError } from './routing';
+import { calculateCanonicalRoute, getRoadRoute, getRoadRouteThroughPoints, RoutingUnavailableError } from './routing';
+import { routeRequestSchema } from '../shared/navigation/contracts';
 import { calculatePlatformFee } from './fees';
 import { validateRuntimeConfig } from './config';
 import { parseJourneySearchRequest } from './journey/search';
@@ -17,7 +18,9 @@ import { optimizeStopInsertion, type NavigationStop } from './navigation/stopOpt
 import { selectRepresentativeJourneys } from './journey/scoring';
 import { JOURNEY_STRATEGIES, type JourneyOption, type JourneyStrategy } from './journey/types';
 import { getRendezvousSettings, isWithinPickupGeofence, resolveRendezvousAction, type RendezvousAction, type RendezvousState } from './rendezvous';
-import { GeocodingUnavailableError, suggestPlaces } from './geocoding';
+import { GeocodingUnavailableError, reverseGeocode, suggestPlaces } from './geocoding';
+import { retainNavigationSessions } from './navigation/sessionRetention';
+import { expireDueProposals } from './proposals/expiry';
 import {
   createVehiclePhotoUpload, createVerificationEvidenceUpload, deleteStoredVehiclePhoto, getVehiclePhotoUrl,
   getVerificationEvidenceUrl, isAllowedPhotoType, isAllowedVerificationEvidenceType, ObjectStorageUnavailableError, StoredEvidenceUnavailableError,
@@ -65,7 +68,7 @@ function deliverRealtime(userIds: string[], event: string) {
 }
 const supportedOutboxEvents = new Set([
   'conversation.message.created', 'booking.confirmed', 'booking.cancelled', 'booking.changed',
-  'proposal.created', 'proposal.countered', 'proposal.updated', 'proposal.accepted', 'proposal.closed',
+  'proposal.created', 'proposal.countered', 'proposal.updated', 'proposal.accepted', 'proposal.closed', 'proposal.expired',
   'navigation.match.driver-interested', 'navigation.match.passenger-confirmed', 'navigation.route-updated',
   'journey.updated', 'journey.started', 'journey.leg.started', 'journey.leg.completed', 'journey.completed',
   'rendezvous.activated', 'rendezvous.driver.approaching', 'rendezvous.passenger.approaching',
@@ -132,17 +135,26 @@ async function dispatchRealtimeOutbox() {
     try {
       if (!supportedOutboxEvents.has(row.event_type)) throw new Error(`unsupported realtime outbox event type: ${row.event_type}`);
       if (!Array.isArray(row.recipient_ids) || row.recipient_ids.length === 0) throw new Error(`invalid realtime outbox recipients: ${typeof row.recipient_ids}`);
-      const notification = projectNotification(row.event_type, row.payload);
-      if (notification) {
-        for (const userId of row.recipient_ids) {
+      // A recipient account may be deleted after this transactional event was
+      // committed. Do not let that stale UUID poison delivery to every other
+      // participant or keep the outbox row retrying forever.
+      const { rows: activeRecipients } = await pool.query<{ id: string }>(
+        'SELECT id::text AS id FROM users WHERE id=ANY($1::uuid[])', [row.recipient_ids],
+      );
+      const recipientIds = activeRecipients.map((recipient) => recipient.id);
+      if (recipientIds.length > 0) {
+        const notification = projectNotification(row.event_type, row.payload);
+        if (notification) {
+          for (const userId of recipientIds) {
           await pool.query(
             `INSERT INTO user_notifications(user_id,source_dedupe_key,event_type,title,body,payload,created_at)
              VALUES($1,$2,$3,$4,$5,$6::jsonb,$7) ON CONFLICT(user_id,source_dedupe_key) DO NOTHING`,
             [userId, `${row.id}:${row.event_type}`, row.event_type, notification.title, notification.body, JSON.stringify(notification.payload), row.created_at],
           );
+          }
         }
+        await broadcastRealtime(recipientIds, row.event_type, row.payload);
       }
-      await broadcastRealtime(row.recipient_ids, row.event_type, row.payload);
       await pool.query('UPDATE realtime_outbox SET published_at=now(),locked_until=NULL,last_error=NULL WHERE id=$1', [row.id]);
     } catch (error) {
       const retrySeconds = Math.min(300, 2 ** Math.min(Number(row.attempt_count) || 1, 8));
@@ -410,6 +422,17 @@ app.post('/api/v1/routing/route', requireAuth, asyncHandler(async (req, res) => 
   }
 }));
 
+// Compressed canonical v1 contract. Keep /routing/route as a legacy compatibility boundary.
+app.post('/api/v1/routing/calculate', requireAuth, asyncHandler(async (req, res) => {
+  const parsed = routeRequestSchema.safeParse(req.body);
+  if (!parsed.success) throw new ApiError(400, 'Route request does not match the v1 schema', 'ROUTING_INVALID_REQUEST');
+  try { res.json({ data: await calculateCanonicalRoute(parsed.data) }); }
+  catch (error) {
+    if (error instanceof RoutingUnavailableError) throw new ApiError(503, error.message, error.detail.code);
+    throw error;
+  }
+}));
+
 type NavigationMatch = {
   demandId: string; pickupEta: Date; detourDistanceM: number; detourDurationS: number;
   expiresAt: Date; pickupOrdinal: number; dropoffOrdinal: number;
@@ -633,7 +656,7 @@ app.patch('/api/v1/navigation/sessions/:id/matching', requireAuth, requireRole('
     const session = rows[0];
     if (!session || !['active','paused'].includes(session.state)) throw new ApiError(404, 'navigation session unavailable');
     if (enabled && (!session.vehicle_id || !session.vehicle_seat_count)) throw new ApiError(409, 'A verified active vehicle is required before passenger matching can be enabled', 'verified_vehicle_required');
-    await client.query('UPDATE navigation_sessions SET opt_in=$3 WHERE id=$1 AND driver_id=$2', [req.params.id, req.userId, enabled]);
+    await client.query('UPDATE navigation_sessions SET opt_in=$3,last_activity_at=now() WHERE id=$1 AND driver_id=$2', [req.params.id, req.userId, enabled]);
     if (!enabled) await client.query(
       `UPDATE navigation_match_candidates SET status='expired' WHERE navigation_session_id=$1 AND status IN ('suggested','driver_interested','passenger_confirmed')`, [req.params.id],
     );
@@ -649,7 +672,7 @@ app.patch('/api/v1/navigation/sessions/:id/matching', requireAuth, requireRole('
 
 app.post('/api/v1/navigation/sessions/:id/pause', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
   const { rows } = await pool.query(
-    `UPDATE navigation_sessions SET state='paused' WHERE id=$1 AND driver_id=$2 AND state='active'
+    `UPDATE navigation_sessions SET state='paused',last_activity_at=now() WHERE id=$1 AND driver_id=$2 AND state='active'
      RETURNING id,state,opt_in,current_location_at`, [req.params.id, req.userId],
   );
   if (!rows[0]) throw new ApiError(409, 'Only active navigation can be paused');
@@ -658,11 +681,58 @@ app.post('/api/v1/navigation/sessions/:id/pause', requireAuth, requireRole('driv
 
 app.post('/api/v1/navigation/sessions/:id/resume', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
   const { rows } = await pool.query(
-    `UPDATE navigation_sessions SET state='active' WHERE id=$1 AND driver_id=$2 AND state='paused'
+    `UPDATE navigation_sessions SET state='active',last_activity_at=now() WHERE id=$1 AND driver_id=$2 AND state='paused'
      RETURNING id,state,opt_in,current_location_at`, [req.params.id, req.userId],
   );
   if (!rows[0]) throw new ApiError(409, 'Only a paused navigation session can be resumed');
   res.json({ data: rows[0] });
+}));
+
+app.post('/api/v1/navigation/sessions/:id/reroute', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+  const { rows } = await pool.query<{
+    state: string; route_version: number; current_location_at: Date | null; current_lon: number | null; current_lat: number | null;
+    destination_lon: number; destination_lat: number; destination_name: string; opt_in: boolean;
+  }>(
+    `SELECT state,route_version,current_location_at,
+       CASE WHEN current_location IS NULL THEN NULL ELSE ST_X(current_location::geometry) END AS current_lon,
+       CASE WHEN current_location IS NULL THEN NULL ELSE ST_Y(current_location::geometry) END AS current_lat,
+       ST_X(destination::geometry) AS destination_lon,ST_Y(destination::geometry) AS destination_lat,destination_name,opt_in
+     FROM navigation_sessions WHERE id=$1 AND driver_id=$2`, [req.params.id, req.userId],
+  );
+  const snapshot = rows[0];
+  if (!snapshot || snapshot.state !== 'active') throw new ApiError(409, 'Only an active owned navigation session can be rerouted', 'NAVIGATION_STATE_CONFLICT');
+  if (!snapshot.current_location_at || snapshot.current_lon === null || snapshot.current_lat === null || Date.now() - new Date(snapshot.current_location_at).getTime() > 90_000) {
+    throw new ApiError(409, 'A fresh GPS fix is required to reroute', 'GPS_STALE');
+  }
+  let route: Awaited<ReturnType<typeof getRoadRoute>>;
+  try { route = await getRoadRoute([snapshot.current_lon, snapshot.current_lat], [snapshot.destination_lon, snapshot.destination_lat]); }
+  catch (error) {
+    if (error instanceof RoutingUnavailableError) throw new ApiError(503, error.message, error.detail.code);
+    throw error;
+  }
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const updated = await client.query(
+      `UPDATE navigation_sessions SET route=ST_SetSRID(ST_GeomFromGeoJSON($4),4326),route_distance_m=$5,route_duration_s=$6,
+         route_version=route_version+1,opt_in=false,last_activity_at=now()
+       WHERE id=$1 AND driver_id=$2 AND state='active' AND route_version=$3 AND current_location_at=$7
+       RETURNING id,state,destination_name,route_distance_m,route_duration_s,route_version,opt_in,started_at,ended_at,
+         vehicle_id,vehicle_seat_count,(vehicle_id IS NOT NULL) AS matching_vehicle_available,
+         ST_AsGeoJSON(route)::json->'coordinates' AS route,
+         json_build_array(ST_X(current_location::geometry),ST_Y(current_location::geometry)) AS current_location,
+         current_location_accuracy_m,current_location_at`,
+      [req.params.id, req.userId, snapshot.route_version, JSON.stringify({ type: 'LineString', coordinates: route.geometry }), Math.round(route.distanceMeters), Math.round(route.durationSeconds), snapshot.current_location_at],
+    );
+    if (!updated.rows[0]) throw new ApiError(409, 'Navigation changed while rerouting; retry with the latest GPS fix', 'NAVIGATION_STATE_CONFLICT');
+    await client.query(`UPDATE navigation_match_candidates SET status='expired' WHERE navigation_session_id=$1 AND status IN ('suggested','driver_interested','passenger_confirmed')`, [req.params.id]);
+    await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES($1,$2,$3,$4)', [req.userId, 'navigation.rerouted', 'navigation_session', req.params.id]);
+    await client.query('COMMIT');
+    res.json({ data: updated.rows[0] });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally { client.release(); }
 }));
 
 app.get('/api/v1/navigation/sessions/:id/matches', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
@@ -800,7 +870,7 @@ app.post('/api/v1/navigation/sessions/:id/location', requireAuth, requireRole('d
     }
     const update = await client.query<{ on_route: boolean; current_location_at: Date }>(
       `UPDATE navigation_sessions SET current_location=ST_SetSRID(ST_MakePoint($3,$4),4326)::geography,
-        current_location_accuracy_m=$5,current_location_at=$6
+        current_location_accuracy_m=$5,current_location_at=$6,last_activity_at=now()
        WHERE id=$1 AND driver_id=$2
        RETURNING ST_DWithin(route::geography,current_location,500) AS on_route,current_location_at`,
       [req.params.id, req.userId, coordinates[0], coordinates[1], accuracyMeters, captured.toISOString()],
@@ -838,16 +908,16 @@ app.post('/api/v1/navigation/sessions/:id/end', requireAuth, requireRole('driver
 }));
 
 async function expireStaleNavigationSessions() {
-  await pool.query(
-    `WITH expired AS (
-       UPDATE navigation_sessions SET state='ended',opt_in=false,ended_at=now(),destination_name=NULL,destination=NULL,route=NULL,
-         current_location=NULL,current_location_accuracy_m=NULL,current_location_at=NULL
-       WHERE state IN ('active','paused') AND COALESCE(current_location_at,started_at)<now()-interval '5 minutes'
-       RETURNING driver_id,id
-     )
-     INSERT INTO audit_events(actor_id,action,entity_type,entity_id)
-       SELECT driver_id,'navigation.expired','navigation_session',id FROM expired`,
-  );
+  await retainNavigationSessions(pool);
+}
+async function expireStaleProposals() {
+  await expireDueProposals(pool, (client, proposal) => insertRealtimeOutbox(
+    client,
+    'proposal.expired',
+    `proposal.expired:${proposal.id}`,
+    [proposal.driver_id, proposal.passenger_id],
+    { proposal_id: proposal.id, demand_id: proposal.demand_id, status: 'expired' },
+  ));
 }
 
 app.post('/api/v1/auth/otp/request', asyncHandler(async (req, res) => {
@@ -1044,6 +1114,19 @@ app.get('/api/v1/places/suggest', requireAuth, placeSearchLimiter, asyncHandler(
   }
 }));
 
+app.get('/api/v1/places/reverse', requireAuth, placeSearchLimiter, asyncHandler(async (req, res) => {
+  const latitude = typeof req.query.lat === 'string' ? Number(req.query.lat) : NaN;
+  const longitude = typeof req.query.lon === 'string' ? Number(req.query.lon) : NaN;
+  if (!Number.isFinite(latitude) || Math.abs(latitude) > 90 || !Number.isFinite(longitude) || Math.abs(longitude) > 180) {
+    throw new ApiError(400, 'lat and lon must be valid WGS84 coordinates', 'invalid_coordinate');
+  }
+  try { res.json({ data: await reverseGeocode(latitude, longitude) }); }
+  catch (error) {
+    if (error instanceof GeocodingUnavailableError) throw new ApiError(503, error.message, 'geocoder_unavailable');
+    throw error;
+  }
+}));
+
 app.patch('/api/v1/users/me', requireAuth, asyncHandler(async (req, res) => {
   const { displayName, email } = req.body ?? {};
   if (displayName !== undefined && (typeof displayName !== 'string' || displayName.trim().length < 2 || displayName.trim().length > 80)) {
@@ -1138,14 +1221,42 @@ app.get('/api/v1/users/me/export', requireAuth, asyncHandler(async (req, res) =>
   res.json({ data: { profile: profile.rows[0], vehicles: vehicles.rows, bookings: bookings.rows, demands: demands.rows } });
 }));
 
-app.post('/api/v1/users/me/deletion-requests', requireAuth, asyncHandler(async (req, res) => {
+app.get('/api/v1/users/me/deletion-request', requireAuth, asyncHandler(async (req, res) => {
   const { rows } = await pool.query(
-    `INSERT INTO account_deletion_requests(user_id) VALUES ($1)
-     ON CONFLICT (user_id) WHERE status='pending' DO NOTHING
-     RETURNING id,status,requested_at`, [req.userId],
+    `SELECT id,status,requested_at,cooling_off_until,cancelled_at
+       FROM account_deletion_requests WHERE user_id=$1
+      ORDER BY requested_at DESC,id DESC LIMIT 1`, [req.userId],
   );
-  if (!rows[0]) throw new ApiError(409, 'An account deletion request is already pending');
+  res.json({ data: rows[0] ?? null });
+}));
+
+app.post('/api/v1/users/me/deletion-requests', requireAuth, asyncHandler(async (req, res) => {
+  const configuredDays = Number(process.env.ACCOUNT_DELETION_COOLING_OFF_DAYS ?? 30);
+  const coolingOffDays = Number.isInteger(configuredDays) && configuredDays >= 7 && configuredDays <= 90 ? configuredDays : 30;
+  const { rows } = await pool.query(
+    `INSERT INTO account_deletion_requests(user_id,status,cooling_off_until)
+     VALUES ($1,'cooling_off',now()+($2::int*interval '1 day'))
+     ON CONFLICT (user_id) WHERE status IN ('cooling_off','approved','processing') DO NOTHING
+     RETURNING id,status,requested_at,cooling_off_until`, [req.userId,coolingOffDays],
+  );
+  if (!rows[0]) throw new ApiError(409, 'An account deletion request is already active');
   res.status(202).json({ data: rows[0] });
+}));
+
+app.post('/api/v1/users/me/deletion-requests/cancel', requireAuth, asyncHandler(async (req, res) => {
+  const { rows } = await pool.query(
+    `UPDATE account_deletion_requests SET status='cancelled',cancelled_at=now()
+      WHERE user_id=$1 AND status='cooling_off'
+      RETURNING id,status,requested_at,cooling_off_until,cancelled_at`, [req.userId],
+  );
+  if (rows[0]) { res.json({ data: rows[0] }); return; }
+  const latest = await pool.query<{ id: string; status: string; requested_at: Date; cooling_off_until: Date | null; cancelled_at: Date | null }>(
+    `SELECT id,status,requested_at,cooling_off_until,cancelled_at FROM account_deletion_requests
+      WHERE user_id=$1 ORDER BY requested_at DESC,id DESC LIMIT 1`, [req.userId],
+  );
+  if (latest.rows[0]?.status === 'cancelled') { res.json({ data: latest.rows[0], replayed: true }); return; }
+  if (!latest.rows[0]) throw new ApiError(404, 'No account deletion request exists');
+  throw new ApiError(409, 'The account deletion request can no longer be cancelled', 'deletion_request_not_cancellable');
 }));
 
 // Return only published, future inventory from the database. This route has no seed-data fallback.
@@ -3046,7 +3157,7 @@ app.post('/api/v1/proposals/:id/accept', requireAuth, asyncHandler(async (req, r
     if (navigationPlan) {
       const updatedSession = await client.query<{ route_version: number }>(
         `UPDATE navigation_sessions SET route=ST_SetSRID(ST_GeomFromGeoJSON($3),4326),route_distance_m=$4,route_duration_s=$5,
-            route_version=route_version+1,opt_in=false
+            route_version=route_version+1,opt_in=false,last_activity_at=now()
           WHERE id=$1 AND driver_id=$2 AND state='paused' AND opt_in=true AND route_version=$6
           RETURNING route_version`,
         [navigationPlan.sessionId, proposal.driver_id,
@@ -3423,6 +3534,11 @@ const navigationExpiryTimer = setInterval(() => {
   void expireStaleNavigationSessions().catch((error: unknown) => console.error(JSON.stringify({ level: 'error', event: 'navigation.expiry_failed', message: error instanceof Error ? error.message : 'unknown_error' })));
 }, 15_000);
 navigationExpiryTimer.unref();
+void expireStaleProposals().catch((error: unknown) => console.error(JSON.stringify({ level: 'error', event: 'proposal.expiry_failed', message: error instanceof Error ? error.message : 'unknown_error' })));
+const proposalExpiryTimer = setInterval(() => {
+  void expireStaleProposals().catch((error: unknown) => console.error(JSON.stringify({ level: 'error', event: 'proposal.expiry_failed', message: error instanceof Error ? error.message : 'unknown_error' })));
+}, 30_000);
+proposalExpiryTimer.unref();
 async function startServer() {
   const redisUrl = process.env.REDIS_URL;
   if (!redisUrl && process.env.NODE_ENV === 'production') throw new Error('REDIS_URL is required in production');
@@ -3473,6 +3589,7 @@ async function closeResources() {
 }
 async function shutdown() {
   clearInterval(navigationExpiryTimer);
+  clearInterval(proposalExpiryTimer);
   clearInterval(realtimeHeartbeat);
   if (realtimeOutboxTimer) clearInterval(realtimeOutboxTimer);
   if (realtimeOutboxDispatch) await realtimeOutboxDispatch;

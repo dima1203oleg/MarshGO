@@ -10,4 +10,8 @@ The original [`MarshGO`](https://github.com/dima1203oleg/MarshGO) repository rem
 
 The iOS repository deliberately consumes the site repository instead of carrying a second copy of the React application. Its GitHub Action compiles the iOS Simulator target; it does not sign or publish an App Store build. Set the repository variable `MARSHGO_API_BASE_URL` before generating a usable native bundle.
 
-The focused repositories are snapshots of the same working tree, not independent releases. The umbrella repository's CI remains the end-to-end acceptance source. Production launch is still blocked on external service configuration and staging/device acceptance recorded in [`PRODUCTION_CHECKLIST.md`](PRODUCTION_CHECKLIST.md).
+The focused repositories have independent default branches and commits; matching feature names or a recent umbrella report do not prove that their contents match. Treat their commit SHAs as separate release inputs. The umbrella repository's CI remains the cross-repository end-to-end acceptance source.
+
+The iOS workflow now permits the Site `main` branch for development builds. A version-tagged iOS build fails closed unless repository variables pin full commit SHAs for Site and Server and specify the API-contract and database-migration versions. It embeds `release-manifest.json` in the app bundle, recording the exact iOS, Site, and Server revisions. Set these variables only after reviewing the corresponding canonical commits. This workflow compiles an unsigned simulator target; it does not sign or publish an App Store release.
+
+Production launch remains blocked on external service configuration and staging/device acceptance recorded in [`PRODUCTION_CHECKLIST.md`](PRODUCTION_CHECKLIST.md).

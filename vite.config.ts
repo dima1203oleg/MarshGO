@@ -2,7 +2,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import { fileURLToPath } from 'node:url';
-import {defineConfig} from 'vite';
+import { defineConfig } from 'vite';
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -11,6 +11,9 @@ export default defineConfig(() => {
     // Capacitor serves bundled files from its own scheme; relative assets keep
     // the packaged entry point independent of an HTTP origin.
     base: process.env.CAPACITOR_BUILD === 'true' ? './' : '/',
+    // MapLibre's isolated navigation chunk is ~1 MB raw, ~285 KB gzip. The
+    // separate gzip budget check keeps the transferred-size limit enforceable.
+    build: { chunkSizeWarningLimit: 1100 },
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {

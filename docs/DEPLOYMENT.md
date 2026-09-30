@@ -1,22 +1,25 @@
-# Deployment runbook (local foundation only)
+# Deployment
 
-## Local database and cache
+## Current status
 
-1. Copy `.env.example` to `.env`; replace the local sample password.
-2. Start only local dependencies: `docker compose up -d db redis`.
-3. Apply additive migrations: `npm run db:migrate`.
-4. Start the API in a second terminal: `npm run api`.
-5. Check `curl http://127.0.0.1:3002/readyz`.
-6. Start the PWA with `npm run dev`; Vite proxies `/api`, `/healthz`, and `/readyz` to the local API.
+There is no production/staging target configured in this repository or local environment. `docker-compose.yml` is loopback-only PostgreSQL/PostGIS and Redis for development/integration. Do not treat it, Vite preview, or localhost as staging/production. No production deploy was attempted because no host/domain/credentials or secret manager is available.
 
-The API binds to loopback by default. Set `API_HOST` explicitly for a private container/network binding in a deployment; do not expose the development bypass on a public interface.
+Production-ready multi-stage API/web Dockerfiles and `compose.production.yml` now define non-root API/web containers, PostgreSQL/PostGIS and password-protected Redis with persistent volumes, one-shot migrations before API startup, and Caddy-managed HTTPS. Compose refuses to render without explicit production configuration. Image builds and compose interpolation are validated separately; no production service was started against placeholder credentials.
 
-The example environment configures `REDIS_URL` for the local Redis container. Production API processes require a reachable shared Redis instance, the same managed `SESSION_SECRET` of at least 32 bytes, explicit HTTPS `CORS_ORIGINS` (plus `capacitor://localhost` only when serving the native app), and configured Twilio credentials. The server refuses to start with development OTP/bypass, wildcard/default origins, or missing SMS credentials. Keep all credentials outside source control. Redis Pub/Sub provides transient WebSocket fan-out and Redis `GETDEL` coordinates one-use socket tickets. PostgreSQL stores the durable messages, so clients reload from REST after reconnect.
+## Release sequence
 
-The compose ports bind to loopback. Volumes persist across container restarts. Do not use `docker compose down -v` if you need to retain local data.
+1. Provision HTTPS web/API origins, secret storage, private encrypted object storage, managed PostgreSQL with PostGIS, and managed Redis.
+2. Configure and verify contracted routing/geocoding providers and immutable MARSHGO style/data manifests.
+3. Build the web and API images from the same commit and retain image digests.
+4. Run migrations as a single pre-deploy job; check backward compatibility with the currently deployed API.
+5. Deploy API instances behind TLS; verify `/healthz`, `/readyz`, provider checks, and WebSocket upgrade through the public proxy.
+6. Deploy static web assets with immutable cache headers and SPA fallback. Keep API and websocket traffic on the configured HTTPS origin.
+7. Run authenticated staging browser tests with two independent accounts, physical iPhone acceptance, backup restore, Redis restart, and rollback rehearsal.
+8. Shift traffic gradually; monitor 5xx, latency, routing/geocoding errors, outbox age, websocket reconnects, and GPS freshness. Roll back the app image if health or critical flows regress; migrations must use expand/migrate/contract compatibility.
 
-## Production status
+## Release safety
 
-There is no production deployment target configured. Several first-party flows now use the API, PostgreSQL/PostGIS, and local Redis, including phone OTP in development, offer creation/search, transactional booking, passenger demand negotiation, booking chat, and foreground navigation/matching APIs. Real SMS, production geocoding/routing, private S3-compatible storage and bucket CORS, vehicle/staff operations, push notifications, partner integrations, CI deployment, TLS/domain, backups/restore, monitoring, and rollback remain unfinished. Before staging, choose a host and domain, provision private PostgreSQL/PostGIS and Redis, configure managed secrets, SMS, S3, routing and tiles, and validate same-site HTTPS routing for the API refresh cookie. Apply migrations only to a reviewed staging database first.
-
-No public deployment or production database operation has been performed.
+- Production startup fails closed for auth, SMS, URL, map-manifest and provider configuration.
+- Never run test cleanup or destructive migrations against a non-loopback database.
+- Keep database backups encrypted and test restore plus post-restore deletion processing.
+- No production deployment or production smoke test is evidenced in this workspace. Track it as `BLOCKED_EXTERNAL` until infrastructure and credentials exist.

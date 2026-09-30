@@ -22,7 +22,13 @@
 - [x] Production PWA OTP, server search, offer publishing, garage, booking/history, reverse-demand proposal, and booking-chat screens use authenticated APIs.
 - [x] Foreground iOS navigation uses real GPS and road geometry; opt-in match flow requires verified vehicle and mutual interest before opening a candidate-bound price proposal. Passenger acceptance stores waypoints and recomputes rider/driver geometry; the route-update outbox event refreshes the driver UI.
 - [x] Capacitor iOS target builds, installs, and launches on iPhone 15 Pro Max and iPhone 16 Pro Max / iOS 27 simulators; welcome-screen screenshots confirm the hero image, native status bar, and safe-area layout.
+- [x] Production navigation renders through the MapLibre adapter; mobile viewport E2E confirms the local test basemap and route renderer on iPhone 15/16 profiles. Production vector tiles/CDN remain a separate required staging gate.
+- [x] Precise navigation position is purged after two minutes without GPS activity while the active route remains resumable; abandoned sessions are cleared after 24 hours. Isolated integration covers both lifecycle boundaries.
+- [x] Marketplace departure/offer datetime handling is pinned to Europe/Kyiv across client time zones and DST transitions; logout best-effort ends active navigation and clears the offline route cache.
+- [x] Browser E2E runner provisions a fresh loopback-only database and applies migrations before running the browser suite.
 - [x] Native API CORS allows the Capacitor `capacitor://localhost` origin; integration test covers the response header.
+- [x] Production-profile API and web Docker images build as multi-stage, non-root images; a fresh local PostGIS/Redis/API Compose deployment applied migrations 001–026 and passed `/readyz` with database and Redis connected.
+- [x] Real-provider acceptance checked Nominatim forward/reverse geocoding, OSRM road geometry for Lviv → Stryi, and MapLibre GL JS rendering of a live OpenFreeMap vector style in Chromium.
 
 ## Required before staging
 
@@ -44,7 +50,7 @@
 - [ ] Add native QR generation/scanning and completion-review UI; navigation booking still requires foreground connectivity.
 - [ ] Configure production routing/geocoding services and generalized multi-passenger stop ordering/matching. The single-passenger proposal-acceptance flow uses the configured routing adapter.
 - [ ] Upgrade Rescue matching to road-route/time-window feasibility and include only externally contracted, freshly quoted partner inventory where agreements allow.
-- [ ] Configure a real map-tile provider. Navigation currently shows returned route geometry over a neutral canvas and displays an explicit missing-map warning.
+- [ ] Configure MARSHGO-owned immutable style/data manifests and contracted production tiles. The live OpenFreeMap probe demonstrates renderer/provider compatibility only; production asset hosting and SLA are not configured.
 - [x] Shared Redis rate limits for API and place search; cross-instance integration test sends requests through two API processes and observes one shared limit.
 - [ ] Private object storage, deletion/retention processing, trusted proxy configuration, Redis outage recovery/alerting, and security review.
 - [x] Local mobile-sized browser E2E: two independent contexts, local OTP/geocoder, server search, booking, shared seats, negotiation, role/ownership check, real-time chat delivery and persisted replay.

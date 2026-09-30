@@ -2,6 +2,7 @@ import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import { Pool } from 'pg';
+import { expireDueProposals } from '../server/proposals/expiry';
 
 const apiUrl = process.env.API_TEST_URL;
 const databaseUrl = process.env.API_TEST_DATABASE_URL;
@@ -125,6 +126,16 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
       body: JSON.stringify({ origin: [23.86, 49.25], destination: [24.03, 49.84] }),
     });
     assert.equal(unavailableRoute.status, 503);
+    const invalidCanonicalRoute = await fetch(`${apiUrl}/api/v1/routing/calculate`, {
+      method: 'POST', headers: authHeaders,
+      body: JSON.stringify({ origin: [23.86, 49.25], destination: [24.03, 49.84] }),
+    });
+    assert.equal(invalidCanonicalRoute.status, 400, 'canonical route endpoint runtime-validates its versioned request schema');
+    const unavailableCanonicalRoute = await fetch(`${apiUrl}/api/v1/routing/calculate`, {
+      method: 'POST', headers: authHeaders,
+      body: JSON.stringify({ origin: [23.86, 49.25], destination: [24.03, 49.84], profile: { mode: 'CAR' }, requestId: crypto.randomUUID() }),
+    });
+    assert.equal(unavailableCanonicalRoute.status, 503, 'canonical route endpoint fails gracefully when OSRM is not configured');
     const me = await fetch(`${apiUrl}/api/v1/users/me`, { headers: authHeaders });
     assert.equal(me.status, 200);
     const profile = await fetch(`${apiUrl}/api/v1/users/me`, {
@@ -1044,5 +1055,39 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     assert.equal(blockedChatSend.status, 404);
     const finalUnblock = await fetch(`${apiUrl}/api/v1/users/${ids.driver}/block`, { method: 'DELETE', headers: headers(passengerA) });
     assert.equal(finalUnblock.status, 204);
+
+    const expiryDemandResponse = await fetch(`${apiUrl}/api/v1/demands`, {
+      method: 'POST', headers: headers(passengerA),
+      body: JSON.stringify({
+        originName: 'Expiry Origin', destinationName: 'Expiry Destination', origin: [23.86, 49.25], destination: [24.03, 49.84],
+        earliestDeparture: earliest.toISOString(), latestDeparture: latest.toISOString(), passengers: 1,
+      }),
+    });
+    assert.equal(expiryDemandResponse.status, 201);
+    const expiryDemandId = (await expiryDemandResponse.json() as { data: { id: string } }).data.id;
+    const expiryProposalResponse = await fetch(`${apiUrl}/api/v1/demands/${expiryDemandId}/proposals`, {
+      method: 'POST', headers: headers(ids.driver),
+      body: JSON.stringify({ vehicleId: apiCreatedVehicleId, priceMinor: 12000, departureAt: earliest.toISOString() }),
+    });
+    assert.equal(expiryProposalResponse.status, 201);
+    const expiryProposalId = (await expiryProposalResponse.json() as { data: { id: string } }).data.id;
+    await pool.query('UPDATE proposals SET expires_at=now()-interval \'1 second\' WHERE id=$1', [expiryProposalId]);
+    await expireDueProposals(pool, async (client, proposal) => {
+      await client.query(
+        `INSERT INTO realtime_outbox(event_type,dedupe_key,recipient_ids,payload,created_at)
+         VALUES('proposal.expired',$1,$2,$3::jsonb,clock_timestamp()) ON CONFLICT(dedupe_key) DO NOTHING`,
+        [`proposal.expired:${proposal.id}`, [proposal.driver_id, proposal.passenger_id], JSON.stringify({ proposal_id: proposal.id, demand_id: proposal.demand_id, status: 'expired' })],
+      );
+    });
+    const expiredProposal = await pool.query<{ status: string }>('SELECT status FROM proposals WHERE id=$1', [expiryProposalId]);
+    assert.equal(expiredProposal.rows[0].status, 'expired');
+    const expiryEvent = await pool.query<{ event_type: string; recipient_ids: string[] }>(
+      'SELECT event_type,recipient_ids FROM realtime_outbox WHERE dedupe_key=$1', [`proposal.expired:${expiryProposalId}`],
+    );
+    assert.equal(expiryEvent.rows[0].event_type, 'proposal.expired');
+    assert.deepEqual(new Set(expiryEvent.rows[0].recipient_ids), new Set([ids.driver, passengerA]));
+    const expiredProposals = await fetch(`${apiUrl}/api/v1/demands/${expiryDemandId}/proposals`, { headers: headers(passengerA) });
+    const expiredProposalUiData = await expiredProposals.json() as { data: Array<{ id: string; status: string }> };
+    assert.equal(expiredProposalUiData.data.find((item) => item.id === expiryProposalId)?.status, 'expired');
   });
 });

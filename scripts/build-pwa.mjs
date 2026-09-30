@@ -7,7 +7,7 @@ delete env.CAPACITOR_BUILD;
 delete env.VITE_API_BASE_URL;
 // The tile provider used by Playwright is an isolated local fixture. Keep it in
 // the test build only; production/site/native release builds use provider config.
-env.VITE_MAP_TILE_URL = 'http://127.0.0.1:3306/tiles/{z}/{x}/{y}.svg';
+env.VITE_MAP_TILE_URL = 'http://127.0.0.1:3306/tiles/{z}/{x}/{y}.png';
 env.VITE_MAP_TILE_ATTRIBUTION = 'MARSHGO isolated E2E map fixture';
 
 const result = spawnSync('npm', ['run', 'build'], { env, stdio: 'inherit' });
