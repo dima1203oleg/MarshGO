@@ -1200,9 +1200,9 @@ The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max 
 
 **External blockers:** Provider feeds/contracts, staging credentials/infrastructure, SMS and routing/geocoding service credentials remain outstanding.
 
-**iOS simulator:** Rebuilt the current Site bundle in Capacitor, installed/launched on iPhone 15 Pro Max and iPhone 16 Pro Max simulators, and visually verified the Welcome screen. Cold WebKit launch needed about 20 seconds before first paint. Captures: `/tmp/marshgo-iphone15-after20.png`, `/tmp/marshgo-iphone16-after26.png`. This verifies packaging/startup/rendering only; login, live API booking and device GPS were not exercised in native UI on these simulators.
+**iOS simulator:** Rebuilt the current Site bundle in Capacitor, installed/launched on iPhone 15 Pro Max and iPhone 16 Pro Max simulators, and visually verified the Welcome screen. Cold WebKit launch needed about 20 seconds before first paint. Captures: `/tmp/marshgo-iphone15-production-latest.png`, `/tmp/marshgo-iphone16-production-latest.png`. This verifies packaging/startup/rendering only; login, live API booking and device GPS were not exercised in native UI on these simulators.
 
-**GitHub:** Server commit `2ff540e` is on `MarshGO-Server/main`; Site commit `bd16f35` is on `MarshGO-Site/main`; umbrella commit `f97b9a3` is on `MarshGO/codex/marshgo-production`. All corresponding GitHub workflows passed. Existing PR #1 remains a draft; no deployment occurred.
+**GitHub:** Server commit `5e3147d` is on `MarshGO-Server/main`; Site commit `57f1309` is on `MarshGO-Site/main`; umbrella commit `86575a9` is on `MarshGO/codex/marshgo-production`. Server CI [`36713598722`](https://github.com/dima1203oleg/MarshGO-Server/actions/runs/36713598722), Site CI [`36713619301`](https://github.com/dima1203oleg/MarshGO-Site/actions/runs/36713619301) and umbrella workflows [`36713641749`](https://github.com/dima1203oleg/MarshGO/actions/runs/36713641749) / [`36713636817`](https://github.com/dima1203oleg/MarshGO/actions/runs/36713636817) all passed. Existing PR #1 remains a draft; no deployment occurred.
 
 **Next step:** Continue future Community transfer matching using arrival uncertainty windows, then add predictive re-planning and provider-independent journey monitoring.
 
