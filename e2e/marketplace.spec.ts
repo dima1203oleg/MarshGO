@@ -647,6 +647,9 @@ test('Journey Planner ranks a persisted Community route and opens its current of
     await page.getByRole('button', { name: /Переглянути пропозицію й бронювання/ }).first().click();
     expect((await offerDetail).status()).toBe(200);
     await expect(page.getByRole('heading', { name: /Стрий.*Львів/ })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Стрий → Львів' })).toBeVisible();
+    await expect(page.getByText('Фото авто не додано')).toBeVisible();
+    await page.screenshot({ path: '/tmp/marshgo-offer-detail-mobile.png', fullPage: true });
     await expect(page.getByRole('button', { name: /Забронювати місце/ })).toBeVisible();
     const linkedBookingResponse = page.waitForResponse(response => response.url().endsWith('/api/v1/bookings') && response.request().method() === 'POST');
     await page.getByRole('button', { name: /Забронювати місце/ }).click();
