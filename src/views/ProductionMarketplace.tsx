@@ -383,7 +383,7 @@ export function ProductionMarketplace() {
     setBusy(true);
     try {
       await productionApi.acceptProposal(proposal.id); setStatusMessage('Домовленість підтверджено; бронювання створено на сервері.');
-      await Promise.all([refreshBookings(), refreshMyDemands(), refreshOpenDemands()]); setSelectedDemand(null); setTab('trips');
+      await Promise.all([refreshBookings(), refreshMyDemands()]); setSelectedDemand(null); setTab('trips');
     } catch (error) { setStatusMessage(error instanceof Error ? error.message : 'Не вдалося підтвердити бронювання.'); }
     finally { setBusy(false); }
   };
@@ -668,7 +668,7 @@ export function ProductionMarketplace() {
   const proposalCard = (proposal: ApiProposal) => {
     const myRole = selectedDemandIsOwned ? 'passenger' : 'driver';
     const isMyTurn = proposal.last_actor_role !== myRole && proposal.status === 'pending';
-    const needsDriverAgreement = selectedDemandIsOwned && proposal.last_actor_role === 'passenger' && proposal.status === 'pending';
+    const needsDriverAgreement = !selectedDemandIsOwned && proposal.last_actor_role === 'passenger' && proposal.status === 'pending';
     const passengerCanConfirm = selectedDemandIsOwned && proposal.last_actor_role === 'driver' && proposal.status === 'pending';
     return <article key={proposal.id} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm"><div className="flex items-start justify-between gap-3"><div><b className="text-sm">{proposal.driver_name}</b><p className="text-xs text-slate-500">{proposal.make} {proposal.model} · {proposal.model_year}</p></div><span className={`rounded-full px-2 py-1 text-[10px] font-bold ${proposal.status==='pending'?'bg-amber-50 text-amber-700':'bg-slate-100 text-slate-500'}`}>{proposal.status==='pending'?'Переговори':proposal.status}</span></div><div className="mt-3 flex items-center justify-between"><span className="text-xs text-slate-500">{formatDate(proposal.departure_at)}</span><b className="text-lg">{formatMoney(proposal.price_minor,proposal.currency)}</b></div>{proposal.last_comment&&<p className="mt-2 rounded-xl bg-slate-50 p-3 text-xs text-slate-600">{proposal.last_comment}</p>}
       <button onClick={()=>void loadProposalHistory(proposal.id)} className="mt-3 text-[11px] font-bold text-blue-600">Історія переговорів</button>

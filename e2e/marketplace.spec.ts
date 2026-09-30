@@ -70,13 +70,16 @@ test.beforeAll(async () => {
 test.afterAll(async () => {
   const passenger = await pool.query<{ id: string }>('SELECT id FROM users WHERE phone_e164=$1', [passengerPhone]);
   const userIds = [driverId, ...passenger.rows.map((row) => row.id)];
+  const testBookingQuery = `SELECT b.id FROM bookings b JOIN offers o ON o.id=b.offer_id WHERE b.passenger_id=ANY($1::uuid[]) OR o.driver_id=ANY($1::uuid[])`;
   await pool.query('DELETE FROM audit_events WHERE actor_id=ANY($1::uuid[]) OR entity_id=ANY($2::uuid[])', [userIds, [offerId, vehicleId]]);
-  await pool.query('DELETE FROM messages WHERE conversation_id IN (SELECT id FROM conversations WHERE booking_id IN (SELECT id FROM bookings WHERE offer_id=$1))', [offerId]);
-  await pool.query('DELETE FROM conversation_members WHERE conversation_id IN (SELECT id FROM conversations WHERE booking_id IN (SELECT id FROM bookings WHERE offer_id=$1))', [offerId]);
-  await pool.query('DELETE FROM conversations WHERE booking_id IN (SELECT id FROM bookings WHERE offer_id=$1)', [offerId]);
-  await pool.query('DELETE FROM booking_events WHERE booking_id IN (SELECT id FROM bookings WHERE offer_id=$1)', [offerId]);
-  await pool.query('DELETE FROM bookings WHERE offer_id=$1', [offerId]);
-  await pool.query('DELETE FROM offers WHERE id=$1', [offerId]);
+  await pool.query(`DELETE FROM messages WHERE conversation_id IN (SELECT id FROM conversations WHERE booking_id IN (${testBookingQuery}))`, [userIds]);
+  await pool.query(`DELETE FROM conversation_members WHERE conversation_id IN (SELECT id FROM conversations WHERE booking_id IN (${testBookingQuery}))`, [userIds]);
+  await pool.query(`DELETE FROM conversations WHERE booking_id IN (${testBookingQuery})`, [userIds]);
+  await pool.query(`DELETE FROM booking_events WHERE booking_id IN (${testBookingQuery})`, [userIds]);
+  await pool.query(`DELETE FROM bookings WHERE id IN (${testBookingQuery})`, [userIds]);
+  await pool.query('DELETE FROM proposals WHERE driver_id=ANY($1::uuid[]) OR demand_id IN (SELECT id FROM passenger_demands WHERE passenger_id=ANY($2::uuid[]))', [userIds, userIds]);
+  await pool.query('DELETE FROM passenger_demands WHERE passenger_id=ANY($1::uuid[])', [userIds]);
+  await pool.query('DELETE FROM offers WHERE id=$1 OR driver_id=ANY($2::uuid[])', [offerId, userIds]);
   await pool.query('DELETE FROM otp_challenges WHERE phone_e164=ANY($1::text[])', [[driverPhone, passengerPhone]]);
   await pool.query('DELETE FROM sessions WHERE user_id=ANY($1::uuid[])', [userIds]);
   await pool.query('DELETE FROM vehicles WHERE id=$1', [vehicleId]);
@@ -84,7 +87,7 @@ test.afterAll(async () => {
   await pool.end();
 });
 
-test('two independent accounts book seats, see shared inventory, and exchange persisted chat messages', async ({ browser, baseURL }) => {
+test('two independent accounts search, book, negotiate a demand, and exchange persisted chat messages', async ({ browser, baseURL }) => {
   expect(baseURL).toBeTruthy();
   const passengerContext = await browser.newContext();
   const driverContext = await browser.newContext();
@@ -142,12 +145,73 @@ test('two independent accounts book seats, see shared inventory, and exchange pe
     await passengerPage.getByRole('button', { name: /Написати/ }).click();
     await expect(passengerPage.getByText('Буду на місці о 08:45.')).toBeVisible();
 
+    await passengerPage.getByRole('button', { name: 'Створити' }).click();
+    await passengerPage.getByRole('button', { name: /Шукаю поїздку/ }).click();
+    const demandPlaceInputs = passengerPage.getByPlaceholder('Пошук адреси або міста');
+    await demandPlaceInputs.nth(0).fill('Стрий');
+    await passengerPage.getByRole('button', { name: 'Знайти', exact: true }).nth(0).click();
+    await passengerPage.getByRole('button', { name: /Стрий, Львівська область, Україна/ }).click();
+    await demandPlaceInputs.nth(1).fill('Львів');
+    await passengerPage.getByRole('button', { name: 'Знайти', exact: true }).nth(1).click();
+    await passengerPage.getByRole('button', { name: /Львів, Львівська область, Україна/ }).click();
+    const demandTimes = passengerPage.locator('input[type="datetime-local"]');
+    await demandTimes.nth(0).fill(`${tomorrowInKyiv()}T08:00`);
+    await demandTimes.nth(1).fill(`${tomorrowInKyiv()}T10:00`);
+    await passengerPage.getByLabel('Пасажири').selectOption('2');
+    await passengerPage.getByLabel('Бюджет, грн').fill('300');
+    await passengerPage.getByRole('button', { name: 'Опублікувати заявку' }).click();
+    await expect(passengerPage.getByRole('heading', { name: 'Пропозиції водіїв' })).toBeVisible();
+
     await signIn(driverPage, 'MARSHGO Driver', driverPhone);
     await driverPage.getByRole('button', { name: 'Поїздки', exact: true }).click();
     await expect(driverPage.getByText(/2\/4 місць/)).toBeVisible();
     await expect(driverPage.getByText(/2 місця/).first()).toBeVisible();
     await driverPage.getByRole('button', { name: /Написати/ }).click();
     await expect(driverPage.getByText('Буду на місці о 08:45.')).toBeVisible();
+
+    await driverPage.getByRole('button', { name: 'Створити' }).click();
+    await driverPage.getByRole('button', { name: /Знайти пасажира/ }).click();
+    const openDemand = driverPage.locator('article').filter({ hasText: /Стрий → Львів/ }).first();
+    await openDemand.getByRole('button', { name: /Запропонувати ціну/ }).click();
+    await driverPage.getByLabel('Перевірене авто').selectOption(vehicleId);
+    await driverPage.getByLabel('Ціна, грн').fill('350');
+    await driverPage.getByRole('button', { name: 'Надіслати пропозицію' }).click();
+    await expect(driverPage.getByText('350 грн')).toBeVisible();
+
+    await passengerPage.getByRole('button', { name: 'Створити' }).click();
+    await passengerPage.getByRole('button', { name: /Шукаю поїздку/ }).click();
+    await passengerPage.getByRole('button', { name: 'Мої заявки' }).click();
+    await passengerPage.getByRole('button').filter({ hasText: /Стрий → Львів/ }).first().click();
+    await passengerPage.getByRole('button', { name: 'Змінити ціну або час' }).click();
+    await passengerPage.getByLabel('Загальна сума, грн').fill('320');
+    await passengerPage.getByRole('button', { name: 'Надіслати зустрічну' }).click();
+    await expect(passengerPage.getByText('320 грн')).toBeVisible();
+
+    await driverPage.reload();
+    await expect(driverPage.getByText('Привіт, MARSHGO!')).toBeVisible();
+    await driverPage.getByRole('button', { name: 'Створити' }).click();
+    await driverPage.getByRole('button', { name: /Знайти пасажира/ }).click();
+    await driverPage.getByRole('button').filter({ hasText: /Стрий → Львів/ }).first().click();
+    await driverPage.getByRole('button', { name: 'Погодити зустрічну ціну' }).click();
+
+    await passengerPage.reload();
+    await expect(passengerPage.getByText('Привіт, E2E!')).toBeVisible();
+    await passengerPage.getByRole('button', { name: 'Створити' }).click();
+    await passengerPage.getByRole('button', { name: /Шукаю поїздку/ }).click();
+    await passengerPage.getByRole('button', { name: 'Мої заявки' }).click();
+    await passengerPage.getByRole('button').filter({ hasText: /Стрий → Львів/ }).first().click();
+    await passengerPage.getByRole('button', { name: 'Підтвердити домовленість і бронювання' }).click();
+    await expect(passengerPage.getByRole('heading', { name: 'Мої поїздки' })).toBeVisible();
+    const negotiatedBooking = await pool.query<{ seat_count: number; total_price_minor: number; status: string }>(
+      `SELECT seat_count,total_price_minor,status FROM bookings WHERE passenger_id=(SELECT id FROM users WHERE phone_e164=$1) AND idempotency_key LIKE 'proposal-accept:%'`,
+      [passengerPhone],
+    );
+    expect(negotiatedBooking.rows).toEqual([{ seat_count: 2, total_price_minor: 32000, status: 'confirmed' }]);
+
+    await driverPage.reload();
+    await expect(driverPage.getByText('Привіт, MARSHGO!')).toBeVisible();
+    await driverPage.getByRole('button', { name: 'Поїздки', exact: true }).click();
+    await expect(driverPage.getByText('320 грн')).toBeVisible();
 
     const messages = await pool.query<{ body: string }>(
       `SELECT m.body FROM messages m JOIN conversations c ON c.id=m.conversation_id

@@ -12,6 +12,7 @@ export default defineConfig({
   use: {
     ...devices['iPhone 16'],
     browserName: 'chromium',
+    timezoneId: 'Europe/Kyiv',
     baseURL: 'http://127.0.0.1:3300',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',

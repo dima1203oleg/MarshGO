@@ -400,6 +400,30 @@
 
 **Next implementation step:** Run the same state checks after a full logout/restart, add tested E2E coverage for demand counter-proposals and authorization denial, then validate the new sign-up path in the running iOS simulator once tap automation is available.
 
+### Verification update — Reverse Marketplace UI + iOS simulator
+
+**Phase:** 4 Reverse Marketplace and 5 Production UI replacement; iOS wrapper verification.
+
+**Status:** PARTIAL. The local two-account browser test now verifies booking, persisted chat, and the full demand price negotiation. iOS builds and launches in Simulator, but only startup rendering has been visually verified; tap-driven simulator acceptance is still unavailable.
+
+**Implemented:** Extended the iPhone-sized E2E path so a passenger publishes a Stryi → Lviv demand for two people with a 300 UAH total budget; a driver offers 350 UAH; the passenger counters 320 UAH; the driver explicitly agrees; the passenger confirms; the test verifies exactly one resulting booking for two seats at 32,000 minor units and the driver sees the matching booking. Fixed driver proposal action selection in the E2E flow, the production proposal turn indicator (driver must agree after a passenger counter-offer), and a post-confirmation UI refresh that incorrectly fetched a driver-only demand list from the passenger account. Both account contexts persist the same booking/chat state from API-backed storage.
+
+**Changed files:** `src/views/ProductionMarketplace.tsx`, `e2e/marketplace.spec.ts`, `playwright.config.ts`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** None. E2E used the isolated local PostGIS `marshgo_e2e` database and removed its account, booking, demand, proposal, and vehicle fixtures at test teardown.
+
+**Endpoints:** Existing `POST /api/v1/demands`, `GET /api/v1/demands/mine`, `GET /api/v1/demands`, `POST /api/v1/demands/:id/proposals`, `POST /api/v1/proposals/:id/counter`, `POST /api/v1/proposals/:id/agree`, `POST /api/v1/proposals/:id/accept`, `GET /api/v1/bookings` and persisted conversation messages exercised through UI.
+
+**Tests:** `npm run typecheck` passed; `npm run lint` passed; `npm test` passed 12/12; `npm run build` passed; `E2E_DATABASE_URL=postgres://marshgo:local_only_change_me@127.0.0.1:5434/marshgo_e2e npm run test:e2e` passed 1/1 including counter-offer and final booking verification. `SIMULATOR_UDID=95D35F57-0F2F-467B-95C1-109C223D18F0 SIMULATOR_API_BASE_URL=http://localhost:3002 SIMULATOR_SCREENSHOT_PATH=/tmp/marshgo-ios-iphone-reference.png npm run ios:simulator` built the Capacitor iOS app, installed/launched `ua.marshgo.app` on iPhone 18 Pro / iOS 27, and captured `/tmp/marshgo-ios-iphone-reference.png`. Visual inspection confirms the branded onboarding screen and native status/navigation shell render. Simulator taps and the authenticated workflows have not been exercised on-device.
+
+**DEMO/TRUTH status:** Negotiation, agreement, booking, and chat are server/PostGIS-backed in this isolated development E2E environment. OTP and geocoding are test adapters; no production SMS, external routing/map provider, photo-storage, push, or live partner is active. Simulator API pointed at the isolated local E2E database with development OTP; this is not a staging or production release.
+
+**Open issues:** Remaining Gate A E2E matrix (especially independent-device restart, authorization denial, concurrent last-seat booking, and GPS candidate mutual confirmation), interactive iOS flow, physical-device location behavior, routing/geocoding/map contracts, production SMS, object storage, HTTPS staging, push, backup/restore, and operational monitoring.
+
+**External dependencies:** Real SMS provider credentials, an owned/contracted routing and geocoding provider, map tiles and attribution, private object storage, a staging host/secret manager, push credentials, and a physical iOS device or interactive simulator controls for full tap/GPS testing.
+
+**Next implementation step:** Expand deterministic API/E2E coverage for role/ownership denial and concurrent booking; then add an interactive simulator/XCUITest path for sign-in and the actual home/search screens.
+
 ## Phase 6 — Foreground GPS navigation session
 
 **Phase:** 6 Navigation/Matching (foreground navigation slice).
