@@ -735,3 +735,27 @@
 **External dependencies:** SMS provider/sender approval, API/site domains, routing/geocoding/tile hosting, private object-storage configuration, managed database/cache and operational monitoring.
 
 **Next implementation step:** Provision staging with the listed providers, run the two-account acceptance scenario against that real environment, verify map tile attribution/rendering, and keep public production deployment gated until the final checklist is evidenced.
+
+## Phase 3 continuation — 20-way atomic last-seat contention
+
+**Phase:** 3 Offers/Booking; transaction acceptance E07.
+
+**Status:** PARTIAL. The local transaction criterion for simultaneous last-seat requests now matches the 20-request specification. Staging/two-physical-device acceptance remains pending.
+
+**Completed:** Expanded the isolated PostGIS booking integration fixture to 20 distinct passenger accounts. All 20 requests race for one available seat; the test proves one `201`, nineteen `409`, zero remaining seats, one confirmed booking, idempotent replay of the winner, rejection when the same idempotency key is reused with different seat parameters, and exactly one cancellation transition/inventory restoration after a repeated cancellation.
+
+**Modified files:** `tests/api-bookings.integration.test.ts`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_CHECKLIST.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** None; uses the existing isolated `marshgo_e2e` database and booking schema.
+
+**Endpoints:** Existing `POST /api/v1/bookings` and `POST /api/v1/bookings/:id/cancel`.
+
+**Tests:** `npm run typecheck`, `npm run lint`, and `npm run test:integration` passed. Booking/moderation: 6/6; navigation: 1/1; Redis realtime: 1/1. The contention case sent 20 concurrent API requests from different test users and verified exactly one winner. An initial fixture setup had an untyped SQL parameter and was corrected; the first rerun then exposed a stale display-name assertion, which was corrected. The final full integration rerun passed.
+
+**DEMO/TRUTH status:** This is local PostgreSQL/PostGIS API integration with isolated fixture identities. It verifies the database locking path, not staging load characteristics, managed-database behavior, or a public service.
+
+**Open issues:** Staging and physical two-device acceptance remain absent. Add true load-profile testing before relying on production SLOs; keep provider and release blockers visible.
+
+**External dependencies:** No credentials required for this test. Staging database/host and physical user accounts remain owner-provisioned.
+
+**Next implementation step:** Continue the P0 release-critical path by addressing remaining testable server invariants (offer expiry/status and idempotency persistence across process restart), then return to provider-backed route and staging acceptance when infrastructure is available.

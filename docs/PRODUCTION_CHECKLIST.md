@@ -12,7 +12,7 @@
 - [x] Participant-scoped persistent message history and send APIs.
 - [x] Staff-guarded vehicle verification queue, private evidence upload contract, document decisions, and vehicle gating after both required approvals.
 - [x] Private booking-scoped safety report intake, staff moderation queue, audited reviewer decisions, and administrator-only suspension.
-- [x] Local PostGIS migrations and transaction concurrency tests, including OTP/session and last-seat contention.
+- [x] Local PostGIS migration and booking concurrency tests, including 20 simultaneous independent users competing for the final seat, one idempotent winner, 19 controlled conflicts, parameter-mismatch rejection, and cancellation that restores inventory exactly once.
 - [x] Node 24.21.0 LTS runtime pin, CI lint/typecheck/unit-test/build, OSRM-compatible adapter contract test.
 - [x] Production PWA OTP, server search, offer publishing, garage, booking/history, reverse-demand proposal, and booking-chat screens use authenticated APIs.
 - [x] Foreground iOS navigation uses real GPS and road geometry; opt-in match flow requires verified vehicle and mutual interest before the existing proposal flow.
