@@ -8,6 +8,7 @@
 - [x] Additive schema includes users/roles/sessions/OTP, vehicles, geospatial offers/demands, bookings, proposals, conversations, messages, and audit events.
 - [x] API liveness/readiness and database-backed city/date/seat offer search.
 - [x] Transactional seat decrement, per-user idempotency, ownership checks, and idempotent cancellation API.
+- [x] Isolated local integration proves booking state, seat inventory, and idempotent replay survive a real API process stop/start against the same PostgreSQL database; managed staging restart/restore rehearsal remains open.
 - [x] Demand/proposal/counter history, driver agreement on passenger counters, and explicit passenger confirmation that atomically creates the booking.
 - [x] Participant-scoped persistent message history and send APIs.
 - [x] Staff-guarded vehicle verification queue, private evidence upload contract, document decisions, and vehicle gating after both required approvals.

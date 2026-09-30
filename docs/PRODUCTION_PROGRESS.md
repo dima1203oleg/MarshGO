@@ -783,3 +783,27 @@
 **External dependencies:** None for the invariant; staging and managed production infrastructure remain owner-provisioned blockers.
 
 **Next implementation step:** Sync the API and test change into `MarshGO-Server`, verify its clean install/CI, and continue remaining release-critical invariants without marking the release ready.
+
+## Phase 3 / 9 continuation — booking durability across API restart
+
+**Phase:** 3 Offers/Booking; 9 reliability and verification.
+
+**Status:** PARTIAL. The local integration suite now proves a persisted booking and its idempotency record survive an actual API process restart. Managed staging restart, backup restoration and multi-host acceptance remain outstanding.
+
+**Completed:** Added an isolated test that creates real PostgreSQL fixtures, starts the API as a child process, books one seat, sends SIGTERM and waits for process exit, starts a fresh API process against the same database, retries the identical idempotency key, and asserts the same booking ID/status, one booking total, and exactly three of four seats remaining. Reusing the key for different seat parameters still returns 409. The integration runner now runs this test after stopping its other API instances.
+
+**Modified files:** `tests/booking-restart.integration.test.ts`, `scripts/run-integration-tests.sh`, `package.json`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_CHECKLIST.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** None; test data is UUID-scoped in the loopback-only `marshgo_e2e` database and cleaned after the test.
+
+**Endpoints:** Existing `POST /api/v1/bookings`; no API contract change.
+
+**Tests:** `npm run typecheck`, `npm run lint`, and the full `npm run test:integration` passed. Booking API: 7/7; navigation: 1/1; Redis multi-instance: 1/1; restart durability: 1/1. The process restart is observed by the test harness; this is stronger than a page reload but does not verify managed staging availability or backup recovery.
+
+**DEMO/TRUTH status:** The booking and idempotency records are PostgreSQL-backed and verified across two separate server processes. Test identities and local Redis/PostGIS are isolated; no production data or provider credentials are involved.
+
+**Open issues:** Add explicit API-level restart coverage to the standalone server package and CI, then continue staging, restore drill, external route/map configuration, SMS, and physical-device release acceptance.
+
+**External dependencies:** None for local verification. Managed staging/database, backups and restore credentials still require owner-provisioned infrastructure.
+
+**Next implementation step:** Mirror the new restart test and runner command to `MarshGO-Server`, verify standalone CI, then inspect remaining P0 routes for any state transitions that can bypass expiry/capacity checks.
