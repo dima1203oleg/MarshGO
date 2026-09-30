@@ -392,7 +392,26 @@ test('foreground road route renders on iPhone 15 Pro Max and 16 Pro Max viewport
       sessionId = (await response.json()).data.id as string;
 
       await expect(page.getByText('До пункту призначення')).toBeVisible();
-      await expect(page.getByText('Підкладка карти не налаштована. Показано справжню геометрію маршруту без вулиць.')).toBeVisible();
+      await expect.poll(async () => page.locator('img.leaflet-tile').evaluateAll(tiles =>
+        tiles.filter(tile => (tile as HTMLImageElement).complete && (tile as HTMLImageElement).naturalWidth > 0).length,
+      )).toBeGreaterThan(0);
+      await expect(page.getByText('Підкладка карти не налаштована. Показано справжню геометрію маршруту без вулиць.')).toHaveCount(0);
+      const tileFixture = 'http://127.0.0.1:3306';
+      const initialTileStats = await page.request.get(`${tileFixture}/__test/stats`).then(response => response.json());
+      expect(initialTileStats.loaded).toBeGreaterThan(0);
+      expect(initialTileStats.failed).toBe(0);
+
+      await page.request.get(`${tileFixture}/__test/mode?value=mixed`);
+      await page.mouse.move(viewport.width / 2, 300);
+      await page.mouse.wheel(0, -550);
+      await expect(page.getByRole('alert')).toContainText('Не всі фрагменти карти завантажилися.');
+      await expect.poll(async () => page.request.get(`${tileFixture}/__test/stats`).then(response => response.json()).then(stats => stats.failed))
+        .toBeGreaterThan(0);
+
+      await page.request.get(`${tileFixture}/__test/mode?value=success`);
+      await page.getByRole('button', { name: 'Повторити завантаження карти' }).click();
+      await expect(page.getByRole('alert')).toHaveCount(0);
+
       const route = page.locator('.leaflet-overlay-pane path.leaflet-interactive').first();
       await expect(route).toBeVisible();
       expect((await route.getAttribute('d'))?.length).toBeGreaterThan(10);

@@ -918,6 +918,30 @@ The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max 
 
 **Next implementation step:** Publish the navigation screen health handling and refreshed-token E2E fix to the standalone Site repository, rebuild the standalone iOS app against that site revision, then add a configured tile-provider error simulation before proceeding with navigation rerouting and end-to-end confirmation.
 
+## Phase 6 continuation — per-tile map health and retry
+
+**Phase:** 6 Navigation; 9 mobile/reliability verification.
+
+**Status:** PARTIAL. Map health now reflects each currently loaded Leaflet tile: a successful tile cannot hide another visible tile's failure. Drivers can explicitly retry a degraded/failed map layer. Actual commercial map tiles still require an approved configured provider.
+
+**Completed:** Added keyed loaded/failed tile tracking and tile-unload cleanup. Added an isolated SVG tile HTTP fixture for E2E only; it can return all-success, mixed success/503, and recovery modes. Extended the two Pro Max viewport scenario to prove real test tiles load, a partial outage produces the degraded message, retry after provider recovery clears it, and route geometry remains rendered on both screen sizes. The first E2E retry attempt exposed that zooming did not guarantee failed visible tiles were re-requested; adding the explicit retry control fixed the user path and made recovery deterministic.
+
+**Modified files:** `src/services/mapTileStatus.ts`, `src/views/ProductionNavigation.tsx`, `tests/map-tile-status.test.ts`, `tests/fixtures/map-tile-server.mjs`, `scripts/build-pwa.mjs`, `playwright.config.ts`, `e2e/marketplace.spec.ts`, `package.json`.
+
+**Database changes:** None.
+
+**Endpoints:** None; the local fixture's `/__test/mode` and `/__test/stats` endpoints are test-only and not part of the app API.
+
+**Tests:** Added `npm run check:production` as the missing repeatable static release check. `npm run check:production` passed typecheck, lint, unit tests (16 passed, one opt-in API test skipped) and production build. Confirmed by searching `dist` that the local E2E tile URL is absent from the production bundle. `E2E_DATABASE_URL=postgres://marshgo:local_only_change_me@127.0.0.1:5434/marshgo_e2e REDIS_URL=redis://127.0.0.1:6380 npm run test:e2e` passed 2/2. It covers independent account booking/negotiation/chat, plus iPhone 15 Pro Max and iPhone 16 Pro Max viewport navigation with tile success → partial failure → retry recovery. The initial E2E recovery assertion failed; the new retry button was added and the full rerun passed. Fresh `npm run build:simulator` compiled with Xcode, installed/launched on iPhone 15 Pro Max and was installed/launched on iPhone 16 Pro Max. After allowing startup, both simulator screenshots show the branded welcome view with safe-area content. No API was running, so simulator screenshots verify first-screen rendering only.
+
+**DEMO/TRUTH status:** Browser E2E uses a deterministic local-only tile fixture; no test tile endpoint is included in standard `npm run build` or the production iOS bundle. This verifies UI failure/retry behavior, not a production basemap. Simulator/viewport routes use isolated local routing/geocoding fixtures and are not proof of live provider service or background GPS.
+
+**Open issues:** Configure contracted/self-hosted routing, geocoding and tile services with attribution; validate provider terms/availability. Implement turn guidance and route rerouting; validate live GPS on physical devices. No live maps provider or device GPS is available in this environment.
+
+**External dependencies:** Approved production map-tile, routing and geocoding provider configuration; physical-device location validation.
+
+**Next implementation step:** Publish this tested change to the umbrella repository, then confirm Site/iOS/umbrella GitHub Actions. Continue with contracted routing/map service setup and live navigation verification; these are external blockers.
+
 ## Phase 4 continuation — competing proposal acceptance race
 
 **Phase:** 4 Reverse Market; exclusive demand resolution.

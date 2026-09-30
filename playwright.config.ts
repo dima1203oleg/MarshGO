@@ -19,6 +19,13 @@ export default defineConfig({
   },
   webServer: [
     {
+      command: 'node tests/fixtures/map-tile-server.mjs',
+      url: 'http://127.0.0.1:3306/health',
+      reuseExistingServer: false,
+      timeout: 10_000,
+      env: { MAP_TILE_STUB_PORT: '3306' },
+    },
+    {
       command: 'node tests/fixtures/geocoder-stub.mjs',
       url: 'http://127.0.0.1:3304/health',
       reuseExistingServer: false,
