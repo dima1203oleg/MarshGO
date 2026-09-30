@@ -4,10 +4,10 @@
 
 ## Verified
 
-- Capacitor sync completed for the local iOS checkout.
-- Unsigned iOS Simulator compilation succeeded.
-- A prior iPhone 16 Pro Max Simulator launch reached the welcome screen. It did not cover authenticated navigation or the required trip lifecycle.
-- The Simulator build used Site commit `ed602ac73a7b2ce36b99bc60e0b8b3c10014c4d4`, not the newer local Site commit in the current release manifest.
+- Capacitor sync completed from exact local iOS `cb32564`, Site `e47538b`, and Server `363532c` revisions; the embedded release manifest was checked against all three.
+- Unsigned iOS Simulator compilation succeeded; the app installed and launched on the iPhone 16 Pro Max Simulator and rendered the MARSHGO welcome/onboarding screen. Screenshot: `/tmp/marshgo-ios-site-e475.png`.
+- Unsigned iOS Release device archive compilation succeeded with those pinned local sources.
+- The Simulator build uses `http://127.0.0.1:3002` as its API origin and does not represent a staging/production app.
 
 ## Not verified
 

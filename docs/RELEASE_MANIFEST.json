@@ -34,9 +34,11 @@
     },
     "ios": {
       "name": "dima1203oleg/MarshGO-iOS",
-      "commit": "28aa2acaa02b62732013e586576d898905099332",
+      "commit": "cb32564df286cdfd09e35d276e6857ae541277b4",
       "branch": "main",
-      "simulatorArtifactSiteCommit": "ed602ac73a7b2ce36b99bc60e0b8b3c10014c4d4",
+      "simulatorArtifactSiteCommit": "e47538b1281bc8fcab8dd3f4b646575caace5646",
+      "simulatorArtifactServerCommit": "363532c1e6bedd083b2f53c2449eeb6b34869ac6",
+      "simulatorArtifactApiBaseUrl": "http://127.0.0.1:3002",
       "unsignedReleaseArchiveCompiled": true,
       "pinnedReleaseSourceShaRequired": true
     }
@@ -45,10 +47,11 @@
     "localBuildAndTests": "PASS",
     "canonicalRepositoryCompatibility": "PASS_LOCAL_SOURCE_SYNC",
     "crossRepositoryBrowserE2E": "PASS_LOCAL_FIXTURES",
+    "iosSimulatorAndUnsignedArchive": "PASS_LOCAL_PINNED_SOURCES_LOOPBACK_API",
     "hostedStaging": "BLOCKED_EXTERNAL",
     "productionDeployment": "BLOCKED_EXTERNAL",
     "physicalIphoneAcceptance": "BLOCKED_EXTERNAL",
-    "unsignedReleaseArchive": "PASS_OLD_SITE_SHA",
+    "unsignedReleaseArchive": "PASS_PINNED_LOCAL_REVISIONS",
     "signedTestFlight": "BLOCKED_EXTERNAL",
     "productionReady": false
   }

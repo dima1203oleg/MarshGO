@@ -24,7 +24,7 @@
 | Payments | BLOCKED_EXTERNAL | Community direct payment remains 0% platform fee. No commercial PaymentProvider, webhook, refund or settlement is configured. |
 | Admin/moderation | PARTIAL | API role guards and local UI flows exist. Full security matrix, operating SLA and hosted audit evidence are incomplete. |
 | Web/browser | PASS for tested local matrix, not universal | Chromium E2E and Chromium/Firefox/WebKit responsive compatibility passed representative viewports. Not every browser version, OS or physical device is covered. |
-| iOS | PARTIAL | Simulator build/install/launch passed at welcome screen; unsigned Release archive compile passed against the older Site SHA `ed602ac`. Current Site SHA is not yet embedded in iOS artifact. Authenticated end-to-end flow, signing/TestFlight, APNs, background location and physical acceptance remain unverified. |
+| iOS | PARTIAL | Simulator build/install/launch and unsigned Release archive compile passed with exact local Site `e47538b`, Server `363532c` and iOS `cb32564`; embedded manifest was checked. Simulator app uses loopback API. Authenticated native flow, production API origin, signing/TestFlight, APNs, background location and physical acceptance remain unverified. |
 | Infrastructure/security/backup | BLOCKED_EXTERNAL | Local Docker bootstrap and health/readiness passed. No hosted HTTPS staging, managed services, monitoring/alerts, production security scan result, backup restore drill or rollback execution. |
 
 ## Production gates
@@ -42,7 +42,7 @@
 | Staging HTTPS / hosted production | BLOCKED_EXTERNAL |
 | Backup restore drill / monitoring | BLOCKED_EXTERNAL |
 | Physical two-iPhone acceptance | BLOCKED_EXTERNAL |
-| Unsigned iOS Release archive compile | PASS (older Site SHA) |
+| Unsigned iOS Release archive compile | PASS (pinned local Server/Site/iOS revisions; unsigned, loopback API) |
 | Full closed-loop multimodal golden path | FAIL / MISSING |
 | Local Server/Site source compatibility and fixture E2E | PASS |
 | Full four-repository pinned release artifact | PARTIAL |
