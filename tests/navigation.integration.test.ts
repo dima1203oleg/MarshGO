@@ -99,6 +99,12 @@ describe('foreground navigation session API (opt-in local integration test)', { 
       method: 'PATCH', headers: headers(driver), body: JSON.stringify({ enabled: true }),
     });
     assert.equal(optIn.status, 200);
+    const blockDriver = await fetch(`${apiUrl}/api/v1/users/${driver}/block`, { method: 'POST', headers: headers(passenger) });
+    assert.equal(blockDriver.status, 204);
+    const suppressed = await fetch(`${apiUrl}/api/v1/navigation/sessions/${sessionId}/matches/refresh`, { method: 'POST', headers: headers(driver) });
+    assert.equal((await suppressed.json() as { data: Array<{ demand_id: string }> }).data.some((item) => item.demand_id === forwardDemandId), false);
+    const unblockDriver = await fetch(`${apiUrl}/api/v1/users/${driver}/block`, { method: 'DELETE', headers: headers(passenger) });
+    assert.equal(unblockDriver.status, 204);
     const matchesResponse = await fetch(`${apiUrl}/api/v1/navigation/sessions/${sessionId}/matches/refresh`, { method: 'POST', headers: headers(driver) });
     assert.equal(matchesResponse.status, 200);
     const candidates = await matchesResponse.json() as { data: Array<{ id: string; demand_id: string; status: string; detour_distance_m: number; detour_duration_s: number }> };

@@ -155,6 +155,13 @@ function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunctio
 class ApiError extends Error {
   constructor(readonly status: number, message: string, readonly code = message.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')) { super(message); }
 }
+async function usersBlockEachOther(userA: string, userB: string, executor: Pick<Pool, 'query'> | Pick<PoolClient, 'query'> = pool) {
+  const { rows } = await executor.query<{ blocked: boolean }>(
+    'SELECT EXISTS(SELECT 1 FROM user_blocks WHERE (blocker_id=$1 AND blocked_id=$2) OR (blocker_id=$2 AND blocked_id=$1)) AS blocked',
+    [userA, userB],
+  );
+  return rows[0]?.blocked === true;
+}
 const asyncHandler = (handler: (req: AuthenticatedRequest, res: Response) => Promise<void>) =>
   (req: AuthenticatedRequest, res: Response, next: NextFunction) => { void handler(req, res).catch(next); };
 function requireRole(role: 'driver' | 'passenger') {
@@ -212,6 +219,7 @@ async function listNavigationMatches(sessionId: string, driverId: string) {
      JOIN passenger_demands d ON d.id=c.demand_id
      LEFT JOIN vehicles v ON v.id=s.vehicle_id
      WHERE c.navigation_session_id=$1 AND s.state IN ('active','paused') AND c.status NOT IN ('dismissed','expired') AND c.expires_at>now() AND d.status='open'
+       AND NOT EXISTS(SELECT 1 FROM user_blocks b WHERE (b.blocker_id=d.passenger_id AND b.blocked_id=s.driver_id) OR (b.blocker_id=s.driver_id AND b.blocked_id=d.passenger_id))
      ORDER BY c.status='driver_interested' DESC,c.detour_duration_s,c.pickup_eta LIMIT 20`, [sessionId, driverId],
   );
   return rows;
@@ -254,6 +262,7 @@ async function refreshNavigationMatches(sessionId: string, driverId: string) {
        d.earliest_departure,d.latest_departure,d.passenger_count
      FROM passenger_demands d JOIN navigation_sessions s ON s.id=$1 JOIN remaining r ON r.id=s.id
      WHERE s.driver_id=$2 AND s.state='active' AND s.opt_in=true AND d.status='open' AND d.passenger_id<>$2
+       AND NOT EXISTS(SELECT 1 FROM user_blocks b WHERE (b.blocker_id=d.passenger_id AND b.blocked_id=$2) OR (b.blocker_id=$2 AND b.blocked_id=d.passenger_id))
        AND d.latest_departure>now() AND d.earliest_departure<now()+interval '12 hours'
        AND d.passenger_count<=s.vehicle_seat_count
        AND ST_DWithin(s.route::geography,d.origin,$3)
@@ -442,6 +451,7 @@ app.post('/api/v1/navigation/sessions/:id/matches/:candidateId/interest', requir
      WHERE c.id=$1 AND c.navigation_session_id=$2 AND s.id=c.navigation_session_id AND s.driver_id=$3
        AND s.state='paused' AND s.opt_in=true AND s.current_location_at>now()-interval '2 minutes'
        AND d.id=c.demand_id AND d.status='open' AND c.status='suggested' AND c.expires_at>now()
+       AND NOT EXISTS(SELECT 1 FROM user_blocks b WHERE (b.blocker_id=d.passenger_id AND b.blocked_id=s.driver_id) OR (b.blocker_id=s.driver_id AND b.blocked_id=d.passenger_id))
      RETURNING c.id,c.demand_id,c.status,c.pickup_eta,c.detour_distance_m,c.detour_duration_s`,
     [req.params.candidateId, req.params.id, req.userId],
   );
@@ -460,6 +470,7 @@ app.get('/api/v1/demands/mine/navigation-matches', requireAuth, requireRole('pas
      JOIN navigation_sessions s ON s.id=c.navigation_session_id JOIN users u ON u.id=s.driver_id
      LEFT JOIN vehicles v ON v.id=s.vehicle_id
      WHERE d.passenger_id=$1 AND d.status='open' AND c.status IN ('driver_interested','passenger_confirmed')
+       AND NOT EXISTS(SELECT 1 FROM user_blocks b WHERE (b.blocker_id=d.passenger_id AND b.blocked_id=s.driver_id) OR (b.blocker_id=s.driver_id AND b.blocked_id=d.passenger_id))
        AND c.expires_at>now() AND s.state IN ('active','paused')
      ORDER BY c.status='passenger_confirmed' DESC,c.pickup_eta LIMIT 50`, [req.userId],
   );
@@ -470,11 +481,12 @@ app.post('/api/v1/navigation/matches/:candidateId/passenger-confirm', requireAut
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    const { rows } = await client.query<{ id: string; demand_id: string; passenger_id: string; status: string; expires_at: Date }>(
-      `SELECT c.id,c.demand_id,d.passenger_id,c.status,c.expires_at
+    const { rows } = await client.query<{ id: string; demand_id: string; passenger_id: string; driver_id: string; status: string; expires_at: Date }>(
+      `SELECT c.id,c.demand_id,d.passenger_id,s.driver_id,c.status,c.expires_at
        FROM navigation_match_candidates c JOIN passenger_demands d ON d.id=c.demand_id
        JOIN navigation_sessions s ON s.id=c.navigation_session_id
        WHERE c.id=$1 AND s.state='paused' AND s.opt_in=true AND s.current_location_at>now()-interval '2 minutes'
+         AND NOT EXISTS(SELECT 1 FROM user_blocks b WHERE (b.blocker_id=d.passenger_id AND b.blocked_id=s.driver_id) OR (b.blocker_id=s.driver_id AND b.blocked_id=d.passenger_id))
          AND d.status='open' FOR UPDATE OF c,d`, [req.params.candidateId],
     );
     const candidate = rows[0];
@@ -791,6 +803,45 @@ app.patch('/api/v1/users/me', requireAuth, asyncHandler(async (req, res) => {
   );
   if (!rows[0]) throw new ApiError(404, 'user unavailable');
   res.json({ data: rows[0] });
+}));
+
+app.get('/api/v1/users/me/blocks', requireAuth, asyncHandler(async (req, res) => {
+  const { rows } = await pool.query(
+    `SELECT b.blocked_id AS user_id,u.display_name,b.created_at
+       FROM user_blocks b JOIN users u ON u.id=b.blocked_id
+      WHERE b.blocker_id=$1 ORDER BY b.created_at DESC`, [req.userId],
+  );
+  res.json({ data: rows });
+}));
+
+app.post('/api/v1/users/:id/block', requireAuth, asyncHandler(async (req, res) => {
+  const targetId = req.params.id;
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(targetId) || targetId === req.userId) {
+    throw new ApiError(400, 'invalid user to block');
+  }
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows: users } = await client.query('SELECT id FROM users WHERE id=$1 AND account_status=\'active\'', [targetId]);
+    if (!users[0]) throw new ApiError(404, 'user unavailable');
+    await client.query('INSERT INTO user_blocks(blocker_id,blocked_id) VALUES($1,$2) ON CONFLICT DO NOTHING', [req.userId, targetId]);
+    await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES($1,$2,$3,$4)', [req.userId, 'user.blocked', 'user', targetId]);
+    await client.query('COMMIT');
+    res.status(204).end();
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally { client.release(); }
+}));
+
+app.delete('/api/v1/users/:id/block', requireAuth, asyncHandler(async (req, res) => {
+  const targetId = req.params.id;
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(targetId) || targetId === req.userId) {
+    throw new ApiError(400, 'invalid user to unblock');
+  }
+  const { rowCount } = await pool.query('DELETE FROM user_blocks WHERE blocker_id=$1 AND blocked_id=$2', [req.userId, targetId]);
+  if (rowCount) await pool.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES($1,$2,$3,$4)', [req.userId, 'user.unblocked', 'user', targetId]);
+  res.status(204).end();
 }));
 
 app.post('/api/v1/users/me/roles', requireAuth, asyncHandler(async (req, res) => {
@@ -1704,7 +1755,8 @@ app.post('/api/v1/demands/:id/cancel', requireAuth, requireRole('passenger'), as
 app.get('/api/v1/demands', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
   const { rows } = await pool.query(
     `SELECT id,origin_name,destination_name,earliest_departure,latest_departure,passenger_count,budget_minor,budget_type,notes,requirements,created_at
-       FROM passenger_demands WHERE status='open' AND latest_departure>now() AND passenger_id<>$1
+       FROM passenger_demands d WHERE status='open' AND latest_departure>now() AND passenger_id<>$1
+         AND NOT EXISTS(SELECT 1 FROM user_blocks b WHERE (b.blocker_id=d.passenger_id AND b.blocked_id=$1) OR (b.blocker_id=$1 AND b.blocked_id=d.passenger_id))
       ORDER BY earliest_departure LIMIT 100`, [req.userId],
   );
   res.json({ data: rows });
@@ -1719,6 +1771,7 @@ app.get('/api/v1/demands/:id/proposals', requireAuth, asyncHandler(async (req, r
        JOIN users u ON u.id=p.driver_id LEFT JOIN vehicles v ON v.id=p.vehicle_id
        LEFT JOIN LATERAL (SELECT actor_role,comment FROM proposal_revisions r WHERE r.proposal_id=p.id ORDER BY revision_number DESC LIMIT 1) latest ON true
       WHERE d.id=$1 AND (d.passenger_id=$2 OR p.driver_id=$2)
+        AND NOT EXISTS(SELECT 1 FROM user_blocks b WHERE (b.blocker_id=d.passenger_id AND b.blocked_id=p.driver_id) OR (b.blocker_id=p.driver_id AND b.blocked_id=d.passenger_id))
       ORDER BY p.created_at DESC`, [req.params.id, req.userId],
   );
   if (!rows.length) {
@@ -1746,6 +1799,7 @@ app.post('/api/v1/demands/:id/proposals', requireAuth, requireRole('driver'), as
     const demand = demands[0];
     if (!demand || demand.status !== 'open') throw new ApiError(404, 'demand unavailable');
     if (demand.passenger_id === req.userId) throw new ApiError(403, 'cannot propose to your own demand');
+    if (await usersBlockEachOther(req.userId!, demand.passenger_id, client)) throw new ApiError(404, 'demand unavailable');
     if (departure < new Date(demand.earliest_departure) || departure > new Date(demand.latest_departure)) throw new ApiError(400, 'departure is outside the demand time window');
     const { rows: vehicles } = await client.query<{ seat_count: number }>(
       "SELECT seat_count FROM vehicles WHERE id=$1 AND owner_id=$2 AND verification_status='verified' FOR SHARE", [vehicleId, req.userId],
@@ -1792,6 +1846,7 @@ app.post('/api/v1/proposals/:id/counter', requireAuth, asyncHandler(async (req, 
     );
     const proposal = rows[0];
     if (!proposal || proposal.demand_status !== 'open' || new Date(proposal.expires_at) <= new Date()) throw new ApiError(404, 'proposal unavailable');
+    if (await usersBlockEachOther(proposal.passenger_id, proposal.driver_id, client)) throw new ApiError(404, 'proposal unavailable');
     const role = proposal.passenger_id === req.userId ? 'passenger' : proposal.driver_id === req.userId ? 'driver' : null;
     if (!role) throw new ApiError(403, 'not a negotiation participant');
     const { rows: latestRevision } = await client.query<{ actor_role: string }>(
@@ -1833,6 +1888,7 @@ app.post('/api/v1/proposals/:id/agree', requireAuth, requireRole('driver'), asyn
     const proposal = rows[0];
     if (!proposal || proposal.demand_status !== 'open' || new Date(proposal.expires_at) <= new Date()) throw new ApiError(404, 'proposal unavailable');
     if (proposal.driver_id !== req.userId) throw new ApiError(403, 'only the proposing driver can agree');
+    if (await usersBlockEachOther(proposal.passenger_id, proposal.driver_id, client)) throw new ApiError(404, 'proposal unavailable');
     const { rows: latest } = await client.query<{ actor_id: string; actor_role: string }>(
       'SELECT actor_id,actor_role FROM proposal_revisions WHERE proposal_id=$1 ORDER BY revision_number DESC LIMIT 1', [proposal.id],
     );
@@ -1872,6 +1928,7 @@ app.post('/api/v1/proposals/:id/accept', requireAuth, asyncHandler(async (req, r
     }>('SELECT id,driver_id,vehicle_id,price_minor,departure_at,status,expires_at FROM proposals WHERE id=$1 AND demand_id=$2 FOR UPDATE', [req.params.id, demand.id]);
     const proposal = proposalRows[0];
     if (!proposal || proposal.status !== 'pending' || new Date(proposal.expires_at) <= new Date()) throw new ApiError(409, 'proposal is no longer available');
+    if (await usersBlockEachOther(proposal.driver_id, demand.passenger_id, client)) throw new ApiError(404, 'proposal unavailable');
     const { rows: latestRevisions } = await client.query<{ actor_role: string }>(
       'SELECT actor_role FROM proposal_revisions WHERE proposal_id=$1 ORDER BY revision_number DESC LIMIT 1', [proposal.id],
     );
@@ -1959,6 +2016,10 @@ app.get('/api/v1/conversations/:id/messages', requireAuth, asyncHandler(async (r
     'SELECT 1 FROM conversation_members WHERE conversation_id=$1 AND user_id=$2', [req.params.id, req.userId],
   );
   if (!membership[0]) throw new ApiError(404, 'conversation unavailable');
+  const { rows: peers } = await pool.query<{ user_id: string }>(
+    'SELECT user_id FROM conversation_members WHERE conversation_id=$1 AND user_id<>$2 LIMIT 1', [req.params.id, req.userId],
+  );
+  if (peers[0] && await usersBlockEachOther(req.userId!, peers[0].user_id)) throw new ApiError(404, 'conversation unavailable');
   res.json({ data: rows.reverse() });
 }));
 
@@ -1969,6 +2030,10 @@ app.post('/api/v1/conversations/:id/messages', requireAuth, asyncHandler(async (
     `INSERT INTO messages(conversation_id,sender_id,body)
      SELECT $1,$2,$3 WHERE EXISTS (
        SELECT 1 FROM conversation_members WHERE conversation_id=$1 AND user_id=$2
+     ) AND NOT EXISTS (
+       SELECT 1 FROM conversation_members peer JOIN user_blocks b
+         ON (b.blocker_id=$2 AND b.blocked_id=peer.user_id) OR (b.blocker_id=peer.user_id AND b.blocked_id=$2)
+        WHERE peer.conversation_id=$1 AND peer.user_id<>$2
      ) RETURNING id,conversation_id,sender_id,body,created_at`,
     [req.params.id, req.userId, body.trim()],
   );

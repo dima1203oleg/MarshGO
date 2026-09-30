@@ -49,7 +49,7 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     await pool.query('DELETE FROM sessions WHERE user_id = ANY($1::uuid[])', [[ids.driver, ids.passengerA, ids.passengerB]]);
     await pool.query('DELETE FROM verification_records WHERE user_id = ANY($1::uuid[]) OR id=ANY($2::uuid[])', [[ids.driver, ids.passengerA, ids.passengerB, ids.admin], verificationIds]);
     await pool.query('DELETE FROM otp_challenges WHERE phone_e164 LIKE $1', [`+38099${process.pid}%`]);
-    await pool.query("DELETE FROM audit_events WHERE actor_id = ANY($1::uuid[]) AND action IN ('vehicle.created','offer.created','demand.created','demand.cancelled','proposal.created','proposal.countered','proposal.agreed','proposal.accepted')", [[ids.driver, ids.passengerA]]);
+    await pool.query("DELETE FROM audit_events WHERE actor_id = ANY($1::uuid[]) AND action IN ('vehicle.created','offer.created','demand.created','demand.cancelled','proposal.created','proposal.countered','proposal.agreed','proposal.accepted','user.blocked','user.unblocked')", [[ids.driver, ids.passengerA]]);
     await pool.query("DELETE FROM audit_events WHERE (actor_id=ANY($1::uuid[]) AND action LIKE 'verification.%') OR entity_id=ANY($2::uuid[])", [[ids.driver, ids.admin], verificationIds]);
     await pool.query('DELETE FROM audit_events WHERE entity_id IN (SELECT id FROM bookings WHERE offer_id IN (SELECT id FROM offers WHERE driver_id = $1)) OR entity_id = ANY($2::uuid[])',
       [ids.driver, [ids.vehicle, ...(apiCreatedVehicleId ? [apiCreatedVehicleId] : []), ...extraVehicleIds, ...verificationIds]]);
@@ -368,6 +368,18 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     assert.equal(demand.data.notes, 'One suitcase');
     assert.equal(demand.data.requirements.luggage, true);
 
+    const blocked = await fetch(`${apiUrl}/api/v1/users/${ids.driver}/block`, { method: 'POST', headers: headers(ids.passengerA) });
+    assert.equal(blocked.status, 204);
+    const blocks = await fetch(`${apiUrl}/api/v1/users/me/blocks`, { headers: headers(ids.passengerA) });
+    assert.equal((await blocks.json() as { data: Array<{ user_id: string }> }).data[0]?.user_id, ids.driver);
+    const blockedProposal = await fetch(`${apiUrl}/api/v1/demands/${demand.data.id}/proposals`, {
+      method: 'POST', headers: headers(ids.driver),
+      body: JSON.stringify({ vehicleId: apiCreatedVehicleId, priceMinor: 17000, departureAt: earliest.toISOString() }),
+    });
+    assert.equal(blockedProposal.status, 404);
+    const unblocked = await fetch(`${apiUrl}/api/v1/users/${ids.driver}/block`, { method: 'DELETE', headers: headers(ids.passengerA) });
+    assert.equal(unblocked.status, 204);
+
     const ownDemands = await fetch(`${apiUrl}/api/v1/demands/mine`, { headers: headers(ids.passengerA) });
     assert.equal(ownDemands.status, 200);
     assert.equal((await ownDemands.json() as { data: Array<{ id: string; proposal_count: number }> }).data.find((item) => item.id === demand.data.id)?.proposal_count, 0);
@@ -516,5 +528,15 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
       method: 'POST', headers: headers(ids.passengerB), body: JSON.stringify({ body: 'I should not see this.' }),
     });
     assert.equal(outside.status, 404);
+    const blockAfterBooking = await fetch(`${apiUrl}/api/v1/users/${ids.driver}/block`, { method: 'POST', headers: headers(ids.passengerA) });
+    assert.equal(blockAfterBooking.status, 204);
+    const blockedHistory = await fetch(`${apiUrl}/api/v1/conversations/${conversation.data.id}/messages`, { headers: headers(ids.driver) });
+    assert.equal(blockedHistory.status, 404);
+    const blockedChatSend = await fetch(`${apiUrl}/api/v1/conversations/${conversation.data.id}/messages`, {
+      method: 'POST', headers: headers(ids.driver), body: JSON.stringify({ body: 'blocked chat should fail' }),
+    });
+    assert.equal(blockedChatSend.status, 404);
+    const finalUnblock = await fetch(`${apiUrl}/api/v1/users/${ids.driver}/block`, { method: 'DELETE', headers: headers(ids.passengerA) });
+    assert.equal(finalUnblock.status, 204);
   });
 });

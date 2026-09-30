@@ -51,6 +51,8 @@ The location feed runs only while the foreground PWA screen is visible. Matching
 
 `GET|PATCH /api/v1/users/me` reads and updates the authenticated profile. `POST /api/v1/users/me/roles` permits self-enabling only passenger/driver roles without changing user identity. `GET /api/v1/users/me/export` exports account records; `POST /api/v1/users/me/deletion-requests` creates a pending request without immediately disabling the account. `GET /api/v1/bookings` returns bookings where the caller is a passenger or driver.
 
+`GET /api/v1/users/me/blocks` lists accounts blocked by the signed-in user. `POST /api/v1/users/:id/block` and `DELETE /api/v1/users/:id/block` add/remove a private user-ID block; both directions are denied access to the blocked pair's demand proposals, booking chat history/messages, and navigation matches. Blocks do not cancel an existing booking; users must use booking cancellation rules separately.
+
 ## Reverse marketplace
 
 `POST /api/v1/demands` (passenger role) stores a passenger request with coordinates selected from the place geocoder, a maximum seven-day time window, passenger count, optional budget basis (`total_all` or `per_seat`), notes, and boolean requirements. `GET /api/v1/demands/mine` returns the caller's requests and pending proposal counts. `GET /api/v1/demands` (driver role) returns open requests other than the driver's own. `POST /api/v1/demands/:id/cancel` is owner-only and idempotent while cancelled. Driver demand results are not yet ranked by route compatibility.
