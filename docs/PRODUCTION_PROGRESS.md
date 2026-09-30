@@ -974,6 +974,30 @@ The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max 
 
 **Next implementation step:** Continue the navigation-match handshake into passenger-visible price negotiation and mutual booking, preserving consent and route-detour constraints. Production routing/geocoding/tiles, real SMS, private object storage, staging, Web Push, backups/monitoring, and physical-device GPS remain external or operational gates.
 
+## Phase 6 continuation — candidate-bound price proposal
+
+**Phase:** 6 Navigation/matching; 4 Reverse Market.
+
+**Status:** PARTIAL. The navigation match now opens a price proposal linked to the passenger-confirmed candidate. The server checks the current candidate/session consent, GPS freshness, route version and verified vehicle when creating the proposal, then rechecks them at passenger acceptance. It does not yet update navigation waypoints or recalculate the driver's route after booking.
+
+**Completed:** Added an optional `navigationCandidateId` to proposal creation and persisted it with a unique candidate constraint. The driver action is available from the passenger-confirmed candidate card while navigation is paused; the modal is prefilled from the passenger's demand and labels that the proposal is not a booking. The API rejects proposals before passenger confirmation, after expiry or opt-out, from a wrong driver/vehicle, with insufficient seats, or against a changed route. Passenger acceptance repeats consent/session/vehicle/route checks in the transaction. Added local integration assertions for premature, successful, duplicate, and revoked-consent cases.
+
+**Modified files:** `server/index.ts`, `server/migrations/016_navigation_candidate_proposals.sql`, `src/services/productionApi.ts`, `src/views/ProductionMarketplace.tsx`, `src/views/ProductionNavigation.tsx`, `tests/navigation.integration.test.ts`, `docs/API.md`, `docs/DATA_MODEL.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** Migrations `016_navigation_candidate_proposals.sql` and `017_navigation_candidate_proposal_restrict.sql`; add nullable `proposals.navigation_candidate_id` FK, a partial unique index, and a restrictive delete rule to preserve navigation provenance.
+
+**Endpoints:** `POST /api/v1/demands/:id/proposals` accepts optional `navigationCandidateId`; `POST /api/v1/proposals/:id/accept` revalidates candidate consent and route freshness for linked proposals.
+
+**Tests:** `npm run typecheck`, `npm run lint`, `npm test` (16 passed, 1 database test skipped), and `npm run build` passed. Migration applied to isolated local `marshgo_e2e`. Full `npm run test:integration` passed: booking/negotiation 9/9, navigation candidate-bound proposal flow 1/1, cross-instance realtime 1/1, restart durability 1/1, shared Redis rate limit 1/1. The navigation test verifies no proposal before passenger confirmation, one linked proposal after, duplicate rejection, and acceptance rejection after driver opt-out. The initial integration attempt exposed test cleanup still deleting demand rows before proposals; cleanup now removes the new FK rows first and the full suite passes.
+
+**DEMO/TRUTH status:** Candidate and price proposal are persisted in PostgreSQL and proposal creation is exposed in the PWA. The existing general proposal-accept endpoint still creates a booking, but this increment does not insert the navigation pickup/dropoff into the driver's itinerary or reroute the active session; do not describe navigation pickup as complete. External routing provider contract fixtures are local only.
+
+**Open issues:** Persist pickup/dropoff waypoints for the accepted booking, reroute from the driver's current GPS through those stops to their original destination, return the new route to the navigation UI and update ETA. Add browser E2E for two-account navigation negotiation and verify physical-device GPS behavior.
+
+**External dependencies:** Production routing/geocoding/tiles, real SMS, production Redis/storage/staging, and physical-device GPS permissions remain outstanding.
+
+**Next implementation step:** Complete transactional waypoint insertion and road-route recalculation on navigation-bound proposal acceptance; refuse to claim the driver navigation pickup is operational until both are verified.
+
 ## Phase 6 continuation — passenger confirmation returns to driver
 
 **Phase:** 6 Navigation/matching; 7 realtime delivery.
