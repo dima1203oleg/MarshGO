@@ -807,3 +807,27 @@
 **External dependencies:** None for local verification. Managed staging/database, backups and restore credentials still require owner-provisioned infrastructure.
 
 **Next implementation step:** Mirror the new restart test and runner command to `MarshGO-Server`, verify standalone CI, then inspect remaining P0 routes for any state transitions that can bypass expiry/capacity checks.
+
+## Phase 3 continuation — participant-authorized booking cancellation
+
+**Phase:** 3 Offers/Booking; cancellation authorization and inventory invariant.
+
+**Status:** PARTIAL. Either booking participant can cancel a confirmed booking; unrelated accounts remain denied. Platform cancellation terms and automated Rescue recovery remain unfinished.
+
+**Completed:** Changed `POST /api/v1/bookings/:id/cancel` to find and lock a booking only when the caller is its passenger or the offer's driver. The production trip UI now offers cancellation to both participants. Added an API integration case that proves a third account receives 404, the driver can cancel, a second request is reported as a replay, and exactly one cancellation event restores the seat once.
+
+**Modified files:** `server/index.ts`, `src/views/ProductionMarketplace.tsx`, `tests/api-bookings.integration.test.ts`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_CHECKLIST.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** None.
+
+**Endpoints:** `POST /api/v1/bookings/:id/cancel` now authorizes either participant; response contract is unchanged.
+
+**Tests:** `npm run typecheck`, `npm run lint`, and the full `npm run test:integration` passed. Booking API: 8/8; navigation: 1/1; Redis multi-instance: 1/1; process restart durability: 1/1. The cancellation test verifies an unrelated user cannot cancel and checks database event count and inventory after the driver cancels twice.
+
+**DEMO/TRUTH status:** The permission check and inventory state change are enforced and tested in the authenticated PostgreSQL API. The PWA exposes the action to both participants. No cancellation fee/refund or Rescue alternatives are implied by this change.
+
+**Open issues:** Mirror these API/UI/test changes to the standalone server/site repositories and run their CI; define cancellation timing rules and implement real Rescue search only against verified inventory.
+
+**External dependencies:** No credentials required for participant authorization. Refund handling depends on an actual payment provider/contract, which is not configured.
+
+**Next implementation step:** Publish and verify the mirrored server and site changes, then keep advancing Gate A test cases while preserving the outstanding staging/provider blockers.
