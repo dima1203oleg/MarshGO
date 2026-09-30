@@ -53,6 +53,7 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     await pool.query("DELETE FROM audit_events WHERE actor_id = ANY($1::uuid[]) AND action IN ('vehicle.created','offer.created','demand.created','demand.cancelled','proposal.created','proposal.countered','proposal.agreed','proposal.accepted','user.blocked','user.unblocked')", [[ids.driver, ids.passengerA]]);
     await pool.query("DELETE FROM audit_events WHERE entity_id=ANY($1::uuid[]) OR (actor_id=ANY($2::uuid[]) AND action LIKE 'moderation.%')", [moderationCaseIds, [ids.passengerA, ids.admin]]);
     await pool.query('DELETE FROM moderation_cases WHERE id=ANY($1::uuid[])', [moderationCaseIds]);
+    await pool.query('DELETE FROM realtime_outbox WHERE recipient_ids && $1::uuid[]', [[ids.driver, ids.passengerA, ids.passengerB, ids.admin]]);
     await pool.query("DELETE FROM audit_events WHERE (actor_id=ANY($1::uuid[]) AND action LIKE 'verification.%') OR entity_id=ANY($2::uuid[])", [[ids.driver, ids.admin], verificationIds]);
     await pool.query('DELETE FROM audit_events WHERE entity_id IN (SELECT id FROM bookings WHERE offer_id IN (SELECT id FROM offers WHERE driver_id = $1)) OR entity_id = ANY($2::uuid[])',
       [ids.driver, [ids.vehicle, ...(apiCreatedVehicleId ? [apiCreatedVehicleId] : []), ...extraVehicleIds, ...verificationIds]]);
@@ -68,6 +69,9 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
   });
 
   it('registers with development OTP, persists profile, and rotates refresh sessions', async () => {
+    const capacitorHealth = await fetch(`${apiUrl}/healthz`, { headers: { origin: 'capacitor://localhost' } });
+    assert.equal(capacitorHealth.headers.get('access-control-allow-origin'), 'capacitor://localhost');
+
     const phone = `+38099${process.pid}${crypto.randomInt(1000, 9999)}`;
     const requested = await fetch(`${apiUrl}/api/v1/auth/otp/request`, {
       method: 'POST', headers: { 'content-type': 'application/json' },
@@ -203,6 +207,16 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
 
     const forbiddenQueue = await fetch(`${apiUrl}/api/v1/admin/moderation?status=all`, { headers: { 'x-dev-user-id': ids.passengerB } });
     assert.equal(forbiddenQueue.status, 403);
+    const forbiddenRealtimeMetrics = await fetch(`${apiUrl}/api/v1/admin/ops/realtime`, { headers: { 'x-dev-user-id': ids.passengerB } });
+    assert.equal(forbiddenRealtimeMetrics.status, 403);
+    const realtimeMetrics = await fetch(`${apiUrl}/api/v1/admin/ops/realtime`, { headers: { 'x-dev-user-id': ids.admin } });
+    assert.equal(realtimeMetrics.status, 200);
+    const realtimeBody = await realtimeMetrics.json() as { data: { pending_count: number; retrying_count: number; max_attempt_count: number; redis: string; last_error?: string } };
+    assert.ok(realtimeBody.data.pending_count >= 0);
+    assert.ok(realtimeBody.data.retrying_count >= 0);
+    assert.ok(realtimeBody.data.max_attempt_count >= 0);
+    assert.equal(typeof realtimeBody.data.redis, 'string');
+    assert.equal('last_error' in realtimeBody.data, false, 'operational metrics must not expose raw provider errors');
     const queue = await fetch(`${apiUrl}/api/v1/admin/moderation?status=open`, { headers: { 'x-dev-user-id': ids.admin } });
     assert.equal(queue.status, 200);
     const queueBody = await queue.json() as { data: Array<{ id: string; reporter_name: string; reported_user_name: string }> };
@@ -484,6 +498,13 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     assert.equal(booking.data.total_price_minor, 15000);
     assert.equal(booking.data.seat_count, 2);
     assert.equal(booking.agreedTotalMinor, 15000);
+    const negotiationEvents = await pool.query<{ event_type: string; recipient_ids: string[]; payload: { proposal_id?: string } }>(
+      `SELECT event_type,recipient_ids,payload FROM realtime_outbox
+        WHERE dedupe_key LIKE $1 ORDER BY created_at,id`, [`%:${proposal.data.id}%`],
+    );
+    assert.deepEqual(negotiationEvents.rows.map((event) => event.event_type).sort(), ['proposal.accepted','proposal.countered','proposal.created','proposal.updated'].sort());
+    assert.ok(negotiationEvents.rows.every((event) => event.recipient_ids.includes(ids.passengerA) && event.recipient_ids.includes(ids.driver)));
+    assert.ok(negotiationEvents.rows.every((event) => event.payload.proposal_id === proposal.data.id));
 
     const cancellationDemand = await fetch(`${apiUrl}/api/v1/demands`, {
       method: 'POST', headers: headers(ids.passengerA),
@@ -493,8 +514,22 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
       }),
     });
     const cancellationDemandId = (await cancellationDemand.json() as { data: { id: string } }).data.id;
+    const cancellationProposalResponse = await fetch(`${apiUrl}/api/v1/demands/${cancellationDemandId}/proposals`, {
+      method: 'POST', headers: headers(ids.driver),
+      body: JSON.stringify({ vehicleId: apiCreatedVehicleId, priceMinor: 11000, departureAt: earliest.toISOString() }),
+    });
+    assert.equal(cancellationProposalResponse.status, 201);
+    const cancellationProposal = await cancellationProposalResponse.json() as { data: { id: string } };
     const cancelled = await fetch(`${apiUrl}/api/v1/demands/${cancellationDemandId}/cancel`, { method: 'POST', headers: headers(ids.passengerA) });
     assert.equal((await cancelled.json() as { data: { status: string } }).data.status, 'cancelled');
+    const closedProposal = await pool.query<{ status: string }>('SELECT status FROM proposals WHERE id=$1', [cancellationProposal.data.id]);
+    assert.equal(closedProposal.rows[0].status, 'rejected');
+    const cancelledProposalEvent = await pool.query<{ event_type: string; recipient_ids: string[]; payload: { reason: string } }>(
+      'SELECT event_type,recipient_ids,payload FROM realtime_outbox WHERE dedupe_key=$1', [`proposal.closed:${cancellationProposal.data.id}:demand_cancelled`],
+    );
+    assert.equal(cancelledProposalEvent.rows[0].event_type, 'proposal.closed');
+    assert.equal(cancelledProposalEvent.rows[0].payload.reason, 'demand_cancelled');
+    assert.deepEqual(new Set(cancelledProposalEvent.rows[0].recipient_ids), new Set([ids.driver, ids.passengerA]));
     const cancelledAgain = await fetch(`${apiUrl}/api/v1/demands/${cancellationDemandId}/cancel`, { method: 'POST', headers: headers(ids.passengerA) });
     assert.equal((await cancelledAgain.json() as { replayed: boolean }).replayed, true);
 

@@ -100,6 +100,8 @@ export function ProductionMarketplace() {
   const [showResults, setShowResults] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState<ApiOffer | null>(null);
   const [selectedBooking, setSelectedBooking] = useState<ApiBooking | null>(null);
+  const [visibleBookingTicket, setVisibleBookingTicket] = useState<{ bookingId: string; token: string } | null>(null);
+  const [boardingTicketInput, setBoardingTicketInput] = useState<Record<string, string>>({});
   const [messages, setMessages] = useState<ApiMessage[]>([]);
   const [realtimeConnected, setRealtimeConnected] = useState(false);
   const [messageDraft, setMessageDraft] = useState('');
@@ -160,12 +162,41 @@ export function ProductionMarketplace() {
   }, [refreshBlockedUsers, refreshBookings, refreshMyOffers, refreshPassengerNavigationMatches, refreshVehicles]);
 
   useEffect(() => {
+    if (!user) return;
+    return productionApi.subscribeRealtime((event) => {
+      if (event.type.startsWith('booking.')) {
+        void Promise.all([refreshBookings(), ...(user.roles.includes('driver') ? [refreshMyOffers()] : [])])
+          .catch((error: unknown) => setStatusMessage(error instanceof Error ? error.message : 'Стан бронювання не оновився.'));
+        return;
+      }
+      if (!event.type.startsWith('proposal.')) return;
+      const refreshes: Promise<unknown>[] = [];
+      if (user.roles.includes('driver')) refreshes.push(refreshOpenDemands());
+      if (user.roles.includes('passenger')) refreshes.push(refreshMyDemands());
+      if (selectedDemand) refreshes.push(productionApi.demandProposals(selectedDemand.id).then(setProposals));
+      void Promise.all(refreshes).catch((error: unknown) => setStatusMessage(error instanceof Error ? error.message : 'Цінова пропозиція змінилася. Оновіть список.'));
+    }, () => undefined);
+  }, [refreshBookings, refreshMyDemands, refreshMyOffers, refreshOpenDemands, selectedDemand?.id, user?.id, user?.roles.join(',')]);
+
+  useEffect(() => {
+    if (!user || tab !== 'trips') return;
+    // Keep the cross-device trip state fresh if a realtime connection is temporarily unavailable.
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        void refreshBookings().catch((error: unknown) => setStatusMessage(error instanceof Error ? error.message : 'Стан поїздок не оновився.'));
+      }
+    }, 3000);
+    return () => window.clearInterval(timer);
+  }, [refreshBookings, tab, user?.id]);
+
+  useEffect(() => {
     if (tab !== 'chat' || !selectedBooking) { setRealtimeConnected(false); return; }
     let disposed = false;
     let unsubscribe: () => void = () => { /* No socket exists until the conversation is resolved. */ };
     void productionApi.conversation(selectedBooking.id).then((conversation) => {
       if (disposed) return;
       unsubscribe = productionApi.subscribeRealtime((event) => {
+        if (event.type !== 'conversation.message.created') return;
         if (event.data.conversation_id !== conversation.id) return;
         setMessages((current) => current.some((message) => message.id === event.data.id)
           ? current : [...current, event.data]);
@@ -252,6 +283,48 @@ export function ProductionMarketplace() {
       await refreshBookings();
       setStatusMessage('Бронювання скасовано на сервері, місця повернено.');
     } catch (error) { setStatusMessage(error instanceof Error ? error.message : 'Не вдалося скасувати бронювання.'); }
+    finally { setBusy(false); }
+  };
+
+  const showBookingTicket = async (booking: ApiBooking) => {
+    setBusy(true); setStatusMessage('');
+    try {
+      const ticket = await productionApi.bookingTicket(booking.id);
+      setVisibleBookingTicket({ bookingId: booking.id, token: ticket.token });
+    } catch (error) { setStatusMessage(error instanceof Error ? error.message : 'Квиток недоступний.'); }
+    finally { setBusy(false); }
+  };
+
+  const confirmBoarding = async (booking: ApiBooking) => {
+    const ticket = boardingTicketInput[booking.id]?.trim();
+    if (!ticket) { setStatusMessage('Введіть підписаний токен квитка пасажира.'); return; }
+    setBusy(true); setStatusMessage('');
+    try {
+      await productionApi.markBoarding(booking.id, ticket);
+      setBoardingTicketInput((current) => ({ ...current, [booking.id]: '' }));
+      await refreshBookings();
+      setStatusMessage('Посадку підтверджено сервером.');
+    } catch (error) { setStatusMessage(error instanceof Error ? error.message : 'Не вдалося підтвердити посадку.'); }
+    finally { setBusy(false); }
+  };
+
+  const startTrip = async (booking: ApiBooking) => {
+    setBusy(true); setStatusMessage('');
+    try {
+      await productionApi.startTrip(booking.id);
+      await refreshBookings();
+      setStatusMessage('Початок поїздки збережено на сервері.');
+    } catch (error) { setStatusMessage(error instanceof Error ? error.message : 'Не вдалося розпочати поїздку.'); }
+    finally { setBusy(false); }
+  };
+
+  const confirmTripCompletion = async (booking: ApiBooking) => {
+    setBusy(true); setStatusMessage('');
+    try {
+      const result = await productionApi.confirmTripCompletion(booking.id);
+      await refreshBookings();
+      setStatusMessage(result.status === 'completed' ? 'Поїздку завершено за підтвердженнями обох учасників.' : `Завершення підтверджено вами · ${result.confirmations} з ${result.requiredConfirmations}. Очікуємо другого учасника.`);
+    } catch (error) { setStatusMessage(error instanceof Error ? error.message : 'Не вдалося підтвердити завершення.'); }
     finally { setBusy(false); }
   };
 
@@ -685,7 +758,18 @@ export function ProductionMarketplace() {
 
   const tripsScreen = <div className="mx-auto w-full max-w-xl px-5 pb-5"><div className="mb-5"><p className="text-xs font-bold uppercase tracking-[.16em] text-blue-600">Ваші бронювання</p><h1 className="mt-1 text-2xl font-extrabold">Мої поїздки</h1></div>
     {user.roles.includes('driver')&&<section className="mb-5"><div className="mb-2 flex items-center justify-between"><h2 className="font-extrabold">Мої оголошення</h2><button onClick={()=>void refreshMyOffers().catch(error=>setStatusMessage(error instanceof Error?error.message:'Оголошення недоступні.'))} className="text-xs font-bold text-blue-600">Оновити</button></div>{myOffers.length?<div className="space-y-2">{myOffers.map((offer)=><article key={offer.id} className="rounded-2xl bg-white p-4 shadow-sm"><div className="flex items-center justify-between"><b>{offer.origin_name} → {offer.destination_name}</b><span className="text-[10px] text-slate-500">{offer.status}</span></div><p className="mt-1 text-xs text-slate-500">{formatDate(offer.departure_at)} · {offer.available_seats}/{offer.total_seats} місць</p><p className="mt-1 text-xs font-bold text-blue-700">{formatMoney(offer.price_per_seat_minor,offer.currency)} за місце{offer.duration_s?` · ${Math.floor(offer.duration_s/3600)} год ${Math.round(offer.duration_s%3600/60)} хв`:''}</p></article>)}</div>:<p className="rounded-2xl bg-white p-4 text-sm text-slate-500">Опублікованих поїздок ще немає.</p>}</section>}
-    {bookings.length ? <div className="space-y-3">{bookings.map((booking)=><article key={booking.id} className="rounded-[1.4rem] bg-white p-4 shadow-sm"><div className="flex items-center justify-between"><span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${booking.status==='confirmed'?'bg-emerald-50 text-emerald-700':'bg-slate-100 text-slate-600'}`}>{booking.status==='confirmed'?'Підтверджено':booking.status}</span><span className="text-[10px] text-slate-400">{formatDate(booking.departure_at,{day:'numeric',month:'short'})}</span></div><h2 className="mt-3 text-lg font-extrabold">{booking.origin_name} <span className="text-blue-600">→</span> {booking.destination_name}</h2><p className="mt-1 text-xs text-slate-500">{formatDate(booking.departure_at)} · {booking.seat_count} місця · {formatMoney(booking.total_price_minor,booking.currency)}</p><div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3"><span className="text-xs text-slate-500">{booking.current_user_is_driver ? `Пасажир · ${booking.passenger_name}` : `Водій · ${booking.driver_name}`}</span><div className="flex items-center gap-2">{!booking.current_user_is_driver&&booking.status==='confirmed'&&<button disabled={busy} onClick={()=>void cancelTrip(booking)} className="rounded-xl bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700 disabled:opacity-50">Скасувати</button>}<button onClick={()=>void openChat(booking)} className="flex items-center gap-1 rounded-xl bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700"><MessageCircle size={14}/>Написати</button></div></div></article>)}</div> : <div className="rounded-2xl bg-white p-6 text-center"><Ticket className="mx-auto text-slate-300"/><p className="mt-2 font-bold">Поки немає поїздок</p><p className="mt-1 text-sm text-slate-500">Знайдіть маршрут і забронюйте місце.</p><button onClick={()=>setTab('home')} className="mt-4 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white">Знайти поїздку</button></div>}
+    {bookings.length ? <div className="space-y-3">{bookings.map((booking)=>{
+      const statusLabel: Record<string, string> = { confirmed: 'Підтверджено', boarding: 'Посадка', in_progress: 'У дорозі', completed: 'Завершено', cancelled: 'Скасовано' };
+      return <article key={booking.id} className="rounded-[1.4rem] bg-white p-4 shadow-sm">
+        <div className="flex items-center justify-between"><span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${booking.status==='confirmed'?'bg-emerald-50 text-emerald-700':booking.status==='completed'?'bg-blue-50 text-blue-700':'bg-slate-100 text-slate-600'}`}>{statusLabel[booking.status] ?? booking.status}</span><span className="text-[10px] text-slate-400">{formatDate(booking.departure_at,{day:'numeric',month:'short'})}</span></div>
+        <h2 className="mt-3 text-lg font-extrabold">{booking.origin_name} <span className="text-blue-600">→</span> {booking.destination_name}</h2><p className="mt-1 text-xs text-slate-500">{formatDate(booking.departure_at)} · {booking.seat_count} місця · {formatMoney(booking.total_price_minor,booking.currency)}</p>
+        {booking.status==='confirmed'&&!booking.current_user_is_driver&&<div className="mt-3 rounded-xl bg-blue-50 p-3"><button disabled={busy} onClick={()=>void showBookingTicket(booking)} className="text-xs font-bold text-blue-700">{visibleBookingTicket?.bookingId===booking.id?'Оновити квиток':'Показати квиток для посадки'}</button>{visibleBookingTicket?.bookingId===booking.id&&<div className="mt-2 rounded-lg bg-white p-2"><p className="text-[10px] font-semibold text-slate-500">Передайте цей підписаний токен водієві для підтвердження посадки</p><code data-testid="booking-ticket-token" className="mt-1 block max-h-20 overflow-auto break-all text-[9px] text-slate-700">{visibleBookingTicket.token}</code></div>}</div>}
+        {booking.status==='confirmed'&&booking.current_user_is_driver&&<div className="mt-3 rounded-xl bg-slate-50 p-3"><label className="block text-[10px] font-bold text-slate-600">Токен квитка пасажира<textarea value={boardingTicketInput[booking.id]??''} onChange={(event)=>setBoardingTicketInput((current)=>({...current,[booking.id]:event.target.value}))} className="mt-1.5 min-h-16 w-full rounded-lg border border-slate-200 bg-white p-2 text-[10px] font-normal" placeholder="Вставте підписаний токен квитка" /></label><button disabled={busy||!boardingTicketInput[booking.id]?.trim()} onClick={()=>void confirmBoarding(booking)} className="mt-2 w-full rounded-xl bg-blue-600 py-2.5 text-xs font-bold text-white disabled:opacity-50">Підтвердити посадку</button></div>}
+        {booking.status==='boarding'&&booking.current_user_is_driver&&<button disabled={busy} onClick={()=>void startTrip(booking)} className="mt-3 w-full rounded-xl bg-blue-600 py-3 text-xs font-bold text-white disabled:opacity-50">Почати поїздку</button>}
+        {booking.status==='in_progress'&&<div className="mt-3 rounded-xl bg-emerald-50 p-3"><p className="text-xs font-semibold text-emerald-800">Завершення: {booking.completion_confirmation_count}/2 учасники</p>{!booking.current_user_confirmed_completion&&<button disabled={busy} onClick={()=>void confirmTripCompletion(booking)} className="mt-2 w-full rounded-xl bg-emerald-600 py-2.5 text-xs font-bold text-white disabled:opacity-50">Підтвердити завершення</button>}{booking.current_user_confirmed_completion&&<p className="mt-1 text-[10px] text-emerald-700">Ваше підтвердження збережено на сервері.</p>}</div>}
+        <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3"><span className="text-xs text-slate-500">{booking.current_user_is_driver ? `Пасажир · ${booking.passenger_name}` : `Водій · ${booking.driver_name}`}</span><div className="flex items-center gap-2">{!booking.current_user_is_driver&&booking.status==='confirmed'&&<button disabled={busy} onClick={()=>void cancelTrip(booking)} className="rounded-xl bg-rose-50 px-3 py-2 text-xs font-bold text-rose-700 disabled:opacity-50">Скасувати</button>}<button onClick={()=>void openChat(booking)} className="flex items-center gap-1 rounded-xl bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700"><MessageCircle size={14}/>Написати</button></div></div>
+      </article>;
+    })}</div> : <div className="rounded-2xl bg-white p-6 text-center"><Ticket className="mx-auto text-slate-300"/><p className="mt-2 font-bold">Поки немає поїздок</p><p className="mt-1 text-sm text-slate-500">Знайдіть маршрут і забронюйте місце.</p><button onClick={()=>setTab('home')} className="mt-4 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white">Знайти поїздку</button></div>}
   </div>;
 
   const chatScreen = <div className="mx-auto flex min-h-[65svh] w-full max-w-xl flex-col px-5 pb-5"><div className="mb-4 flex items-center gap-3"><button onClick={()=>{setSelectedBooking(null);setTab('trips');}} className="grid h-10 w-10 place-items-center rounded-full bg-white"><ArrowLeft size={18}/></button><div className="min-w-0 flex-1"><h1 className="truncate font-extrabold">{selectedBooking ? (selectedBooking.current_user_is_driver ? selectedBooking.passenger_name : selectedBooking.driver_name) : 'Чати'}</h1><p className="truncate text-xs text-slate-500">{selectedBooking ? `${selectedBooking.origin_name} → ${selectedBooking.destination_name}` : 'Повідомлення за бронюваннями'}</p></div>{selectedBooking&&<><button disabled={busy} onClick={()=>{setReportCategory('safety');setReportDetails('');setShowReportForm(true);}} aria-label="Поскаржитися на співрозмовника" title="Поскаржитися" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-amber-50 text-amber-700 disabled:opacity-50"><Flag size={18}/></button><button disabled={busy} onClick={()=>void blockBookingContact()} aria-label="Заблокувати співрозмовника" title="Заблокувати співрозмовника" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-rose-50 text-rose-600 disabled:opacity-50"><Ban size={18}/></button></>}</div>

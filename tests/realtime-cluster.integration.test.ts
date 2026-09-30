@@ -15,7 +15,7 @@ if (enabled && database && !['127.0.0.1', 'localhost', '::1'].includes(database.
 
 type AuthResult = { data: { user: { id: string }; accessToken: string } };
 type ApiResult<T> = { data: T };
-type RealtimeEvent = { type: string; data: { id?: string; sender_id?: string; body?: string } };
+type RealtimeEvent = { type: string; data: { id?: string; booking_id?: string; status?: string; sender_id?: string; body?: string } };
 
 async function register(phone: string, displayName: string) {
   const requested = await fetch(`${primaryUrl}/api/v1/auth/otp/request`, {
@@ -42,6 +42,17 @@ function waitForSocketEvent(socket: WebSocket, type: string, timeoutMs = 5000) {
     });
     socket.once('error', (error) => { clearTimeout(timeout); reject(error); });
   });
+}
+
+async function waitForPublished(pool: Pool, dedupeKey: string) {
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    const result = await pool.query<{ published_at: Date | null }>(
+      'SELECT published_at FROM realtime_outbox WHERE dedupe_key=$1', [dedupeKey],
+    );
+    if (result.rows[0]?.published_at) return result.rows[0].published_at;
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  }
+  assert.fail(`Outbox row ${dedupeKey} did not reach published state`);
 }
 
 describe('Redis-backed realtime across API instances', { skip: !enabled }, () => {
@@ -124,6 +135,31 @@ describe('Redis-backed realtime across API instances', { skip: !enabled }, () =>
 
   it('consumes a Redis ticket on one API instance and delivers persisted messages from another', async () => {
     assert.ok(socket && driverId && passengerId && conversationId);
+    const retryKey = `integration-retry:${crypto.randomUUID()}`;
+    const retryEvent = waitForSocketEvent(socket, 'booking.changed');
+    await pool.query(
+      `INSERT INTO realtime_outbox(event_type,dedupe_key,recipient_ids,payload)
+       VALUES('integration.unsupported', $1, $2::uuid[], '{}'::jsonb)`, [retryKey, [passengerId]],
+    );
+    let attempts = 0;
+    for (let index = 0; index < 100; index += 1) {
+      const result = await pool.query<{ attempt_count: number; published_at: Date | null }>(
+        'SELECT attempt_count,published_at FROM realtime_outbox WHERE dedupe_key=$1', [retryKey],
+      );
+      attempts = Number(result.rows[0]?.attempt_count ?? 0);
+      if (attempts > 0 && !result.rows[0]?.published_at) break;
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    assert.equal(attempts, 1, 'a failed dispatch must record its attempt before retry');
+    await pool.query(
+      `UPDATE realtime_outbox SET event_type='booking.changed',payload=$2::jsonb,available_at=now()
+       WHERE dedupe_key=$1`, [retryKey, JSON.stringify({ booking_id: bookingId, status: 'retry_verified' })],
+    );
+    const retriedEvent = await retryEvent;
+    assert.equal(retriedEvent.data.booking_id, bookingId);
+    assert.equal(retriedEvent.data.status, 'retry_verified');
+    assert.ok(await waitForPublished(pool, retryKey));
+
     const messageWait = waitForSocketEvent(socket, 'conversation.message.created');
     const response = await fetch(`${primaryUrl}/api/v1/conversations/${conversationId}/messages`, {
       method: 'POST', headers: { 'x-dev-user-id': driverId, 'content-type': 'application/json' },
@@ -136,12 +172,31 @@ describe('Redis-backed realtime across API instances', { skip: !enabled }, () =>
     assert.equal(delivered.data.id, persisted.id);
     assert.equal(delivered.data.sender_id, driverId);
     assert.equal(delivered.data.body, persisted.body);
+    assert.ok(await waitForPublished(pool, `conversation.message.created:${persisted.id}`));
     const outbox = await pool.query<{ event_type: string; attempt_count: number; published_at: Date | null }>(
       'SELECT event_type,attempt_count,published_at FROM realtime_outbox WHERE dedupe_key=$1', [`conversation.message.created:${persisted.id}`],
     );
     assert.equal(outbox.rows[0]?.event_type, 'conversation.message.created');
     assert.ok(Number(outbox.rows[0]?.attempt_count) >= 1);
     assert.ok(outbox.rows[0]?.published_at);
+
+    const bookingCreated = await pool.query<{ event_type: string; published_at: Date | null; payload: { status: string; booking_id: string } }>(
+      'SELECT event_type,published_at,payload FROM realtime_outbox WHERE dedupe_key=$1', [`booking.confirmed:${bookingId}`],
+    );
+    assert.equal(bookingCreated.rows[0]?.event_type, 'booking.confirmed');
+    assert.equal(bookingCreated.rows[0]?.payload.status, 'confirmed');
+    assert.equal(bookingCreated.rows[0]?.payload.booking_id, bookingId);
+    assert.ok(bookingCreated.rows[0]?.published_at);
+
+    const cancellationWait = waitForSocketEvent(socket, 'booking.cancelled');
+    const cancellation = await fetch(`${primaryUrl}/api/v1/bookings/${bookingId}/cancel`, {
+      method: 'POST', headers: { authorization: `Bearer ${passengerAccessToken}` },
+    });
+    assert.equal(cancellation.status, 200);
+    const cancellationEvent = await cancellationWait;
+    assert.equal(cancellationEvent.data.booking_id, bookingId);
+    assert.equal(cancellationEvent.data.status, 'cancelled');
+    assert.ok(await waitForPublished(pool, `booking.cancelled:${bookingId}`));
 
     const replay = new WebSocket(usedTicketUrl);
     const replayStatus = await new Promise<number>((resolve, reject) => {

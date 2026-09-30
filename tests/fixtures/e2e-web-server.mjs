@@ -1,10 +1,17 @@
 import { createServer, request as proxyRequest } from 'node:http';
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import process from 'node:process';
 import { URL } from 'node:url';
 
 const root = normalize(join(process.cwd(), 'dist'));
+const bundles = await readdir(join(root, 'assets'));
+for (const bundle of bundles.filter((file) => file.endsWith('.js'))) {
+  const contents = await readFile(join(root, 'assets', bundle), 'utf8');
+  if (contents.includes('http://localhost:3002')) {
+    throw new Error('E2E must serve a PWA build without the iOS simulator API origin; run npm run test:e2e to rebuild it.');
+  }
+}
 const contentTypes = {
   '.css': 'text/css; charset=utf-8',
   '.html': 'text/html; charset=utf-8',
@@ -57,6 +64,11 @@ const server = createServer(async (incoming, outgoing) => {
     }
   }
 });
+
+// Browser teardown may reset an in-flight API/WebSocket connection. That is a
+// normal cancellation in E2E, so handle socket errors instead of crashing the
+// web server and turning later UI requests into misleading "Failed to fetch".
+server.on('connection', (socket) => socket.on('error', () => {}));
 
 server.on('upgrade', (incoming, clientSocket, head) => {
   const pathname = new URL(incoming.url ?? '/', 'http://localhost').pathname;

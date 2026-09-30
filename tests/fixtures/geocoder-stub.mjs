@@ -14,4 +14,6 @@ const server = http.createServer((request, response) => {
   response.end(JSON.stringify(results));
 });
 
+server.on('connection', (socket) => socket.on('error', () => {}));
+
 server.listen(Number(process.env.GEOCODER_STUB_PORT ?? 3004), '127.0.0.1');

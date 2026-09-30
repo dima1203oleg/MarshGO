@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { expect, test } from '@playwright/test';
+import { devices, expect, test } from '@playwright/test';
 import { Pool } from 'pg';
 
 const databaseUrl = process.env.E2E_DATABASE_URL;
@@ -15,6 +15,8 @@ const vehicleId = randomUUID();
 const offerId = randomUUID();
 const driverPhone = `+38050${String(Date.now()).slice(-7)}`;
 const passengerPhone = `+38067${String(Date.now() + 1).slice(-7)}`;
+const navigationPhone = `+38063${String(Date.now() + 2).slice(-7)}`;
+const navigationSecondPhone = `+38066${String(Date.now() + 3).slice(-7)}`;
 
 function tomorrowInKyiv() {
   const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Kyiv' }).format(new Date());
@@ -66,8 +68,9 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
-  const passenger = await pool.query<{ id: string }>('SELECT id FROM users WHERE phone_e164=$1', [passengerPhone]);
-  const userIds = [driverId, ...passenger.rows.map((row) => row.id)];
+  const testUsers = await pool.query<{ id: string }>('SELECT id FROM users WHERE phone_e164=ANY($1::text[])', [[passengerPhone, navigationPhone, navigationSecondPhone]]);
+  const userIds = [driverId, ...testUsers.rows.map((row) => row.id)];
+  await pool.query('DELETE FROM navigation_sessions WHERE driver_id=ANY($1::uuid[])', [userIds]);
   const testBookingQuery = `SELECT b.id FROM bookings b JOIN offers o ON o.id=b.offer_id WHERE b.passenger_id=ANY($1::uuid[]) OR o.driver_id=ANY($1::uuid[])`;
   await pool.query('DELETE FROM audit_events WHERE actor_id=ANY($1::uuid[]) OR entity_id=ANY($2::uuid[])', [userIds, [offerId, vehicleId]]);
   await pool.query(`DELETE FROM messages WHERE conversation_id IN (SELECT id FROM conversations WHERE booking_id IN (${testBookingQuery}))`, [userIds]);
@@ -78,7 +81,7 @@ test.afterAll(async () => {
   await pool.query('DELETE FROM proposals WHERE driver_id=ANY($1::uuid[]) OR demand_id IN (SELECT id FROM passenger_demands WHERE passenger_id=ANY($2::uuid[]))', [userIds, userIds]);
   await pool.query('DELETE FROM passenger_demands WHERE passenger_id=ANY($1::uuid[])', [userIds]);
   await pool.query('DELETE FROM offers WHERE id=$1 OR driver_id=ANY($2::uuid[])', [offerId, userIds]);
-  await pool.query('DELETE FROM otp_challenges WHERE phone_e164=ANY($1::text[])', [[driverPhone, passengerPhone]]);
+  await pool.query('DELETE FROM otp_challenges WHERE phone_e164=ANY($1::text[])', [[driverPhone, passengerPhone, navigationPhone, navigationSecondPhone]]);
   await pool.query('DELETE FROM sessions WHERE user_id=ANY($1::uuid[])', [userIds]);
   await pool.query('DELETE FROM vehicles WHERE id=$1', [vehicleId]);
   await pool.query('DELETE FROM users WHERE id=ANY($1::uuid[])', [userIds]);
@@ -176,6 +179,29 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     await driverPage.getByRole('button', { name: 'Поїздки', exact: true }).click();
     await expect(driverPage.getByText(/2\/4 місць/)).toBeVisible();
     await expect(driverPage.getByText(/2 місця/).first()).toBeVisible();
+    await passengerPage.getByRole('button', { name: 'Поїздки', exact: true }).click();
+    const passengerTripCard = passengerPage.locator('article').filter({ hasText: 'MARSHGO E2E Driver' }).first();
+    await passengerTripCard.getByRole('button', { name: /Показати квиток для посадки/ }).click();
+    const signedTicket = (await passengerTripCard.getByTestId('booking-ticket-token').innerText()).trim();
+    expect(signedTicket.length).toBeGreaterThan(40);
+    const driverTripCard = driverPage.locator('article').filter({ hasText: 'E2E Passenger' }).first();
+    await driverTripCard.getByLabel('Токен квитка пасажира').fill(signedTicket);
+    await driverTripCard.getByRole('button', { name: 'Підтвердити посадку' }).click();
+    await expect(driverTripCard.getByText('Посадка')).toBeVisible();
+    await driverTripCard.getByRole('button', { name: 'Почати поїздку' }).click();
+    await expect(passengerTripCard.getByText('У дорозі')).toBeVisible();
+    await passengerTripCard.getByRole('button', { name: 'Підтвердити завершення' }).click();
+    await expect(passengerTripCard.getByText('Завершення: 1/2 учасники')).toBeVisible();
+    await driverPage.bringToFront();
+    await expect(driverTripCard.getByText('Завершення: 1/2 учасники')).toBeVisible({ timeout: 12_000 });
+    await driverTripCard.getByRole('button', { name: 'Підтвердити завершення' }).click();
+    await expect(driverTripCard.getByText('Завершено')).toBeVisible();
+    const completedBooking = await pool.query<{ status: string; confirmation_count: number }>(
+      `SELECT b.status,(SELECT count(*)::int FROM booking_completion_confirmations cc WHERE cc.booking_id=b.id) AS confirmation_count
+         FROM bookings b WHERE b.offer_id=$1 AND b.passenger_id=(SELECT id FROM users WHERE phone_e164=$2)`, [offerId, passengerPhone],
+    );
+    expect(completedBooking.rows).toEqual([{ status: 'completed', confirmation_count: 2 }]);
+
     await driverPage.getByRole('button', { name: /Написати/ }).click();
     await expect(driverPage.getByText('Буду на місці о 08:45.')).toBeVisible();
 
@@ -186,6 +212,7 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     const passengerChatInput = passengerPage.getByPlaceholder('Напишіть повідомлення…');
     await passengerChatInput.fill(realtimeMessage);
     await passengerChatInput.press('Enter');
+    await driverPage.bringToFront();
     await expect(driverPage.getByText(realtimeMessage)).toBeVisible({ timeout: 10_000 });
 
     await driverPage.getByRole('button', { name: 'Створити' }).click();
@@ -267,5 +294,67 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
   } finally {
     await passengerContext.close();
     await driverContext.close();
+  }
+});
+
+test('foreground road route renders on iPhone 15 Pro Max and 16 Pro Max viewports', async ({ browser, baseURL }) => {
+  expect(baseURL).toBeTruthy();
+  for (const model of ['iPhone 15 Pro Max', 'iPhone 16 Pro Max'] as const) {
+    const context = await browser.newContext({
+      ...devices[model],
+      baseURL,
+      timezoneId: 'Europe/Kyiv',
+      geolocation: { latitude: 49.2567, longitude: 23.8561, accuracy: 8 },
+      permissions: ['geolocation'],
+    });
+    const page = await context.newPage();
+    let sessionId: string | undefined;
+    try {
+      const phone = model === 'iPhone 15 Pro Max' ? navigationPhone : navigationSecondPhone;
+      const accessToken = await signIn(page, 'MARSHGO Driver', phone);
+      const roleResponse = await page.evaluate(async (token) => fetch('/api/v1/users/me/roles', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ role: 'driver' }),
+      }).then((response) => response.status), accessToken);
+      expect(roleResponse).toBe(200);
+      await page.reload();
+      await expect(page.getByText('Привіт, MARSHGO!')).toBeVisible();
+      const viewport = await page.evaluate(() => ({ width: window.innerWidth, documentWidth: document.documentElement.scrollWidth }));
+      expect(viewport.documentWidth).toBeLessThanOrEqual(viewport.width + 1);
+      const modelFileName = model.toLowerCase().replaceAll(' ', '-');
+      await page.screenshot({ path: `/tmp/marshgo-${modelFileName}-home.png`, fullPage: true });
+      await page.getByRole('button', { name: 'Почати навігацію' }).click();
+      await page.getByPlaceholder('Наприклад, Львів').fill('Львів');
+      await page.getByRole('button', { name: 'Знайти', exact: true }).click();
+      await page.getByRole('button', { name: /Львів, Львівська область, Україна/ }).click();
+
+      const createdSession = page.waitForResponse((response) => response.url().endsWith('/api/v1/navigation/sessions') && response.request().method() === 'POST');
+      await page.getByRole('button', { name: 'Почати навігацію' }).click();
+      const response = await createdSession;
+      expect(response.status()).toBe(201);
+      sessionId = (await response.json()).data.id as string;
+
+      await expect(page.getByText('До пункту призначення')).toBeVisible();
+      await expect(page.getByText('Підкладка карти не налаштована. Показано справжню геометрію маршруту без вулиць.')).toBeVisible();
+      const route = page.locator('.leaflet-overlay-pane path.leaflet-interactive').first();
+      await expect(route).toBeVisible();
+      expect((await route.getAttribute('d'))?.length).toBeGreaterThan(10);
+      await expect(page.getByText('На маршруті', { exact: true })).toBeVisible({ timeout: 10_000 });
+      await test.info().attach(`${model.replaceAll(' ', '-')}-navigation-map`, {
+        body: await page.screenshot({ fullPage: true }), contentType: 'image/png',
+      });
+      await page.screenshot({ path: `/tmp/marshgo-${modelFileName}-route.png`, fullPage: true });
+
+      await page.getByRole('button', { name: /Завершити навігацію/ }).click();
+      await expect(page.getByText('Навігацію завершено. Точну геолокацію видалено із сервера.')).toBeVisible();
+      const ended = await pool.query<{ state: string; route: unknown; current_location: unknown }>(
+        'SELECT state,route,current_location FROM navigation_sessions WHERE id=$1', [sessionId],
+      );
+      expect(ended.rows).toEqual([{ state: 'ended', route: null, current_location: null }]);
+      sessionId = undefined;
+    } finally {
+      if (sessionId) await page.request.post(`/api/v1/navigation/sessions/${sessionId}/end`).catch(() => undefined);
+      await context.close();
+    }
   }
 });

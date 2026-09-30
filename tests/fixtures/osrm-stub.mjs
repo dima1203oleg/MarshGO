@@ -4,7 +4,13 @@ import process from 'node:process';
 import { URL } from 'node:url';
 
 const server = http.createServer((request, response) => {
-  const routePath = new URL(request.url ?? '/', 'http://localhost').pathname.split('/').at(-1) ?? '';
+  const parsed = new URL(request.url ?? '/', 'http://localhost');
+  if (parsed.pathname === '/health') {
+    response.writeHead(200, { 'content-type': 'application/json' });
+    response.end(JSON.stringify({ status: 'ok', fixture: true }));
+    return;
+  }
+  const routePath = parsed.pathname.split('/').at(-1) ?? '';
   const waypointTexts = routePath.split(';');
   const parsePoint = (value) => value?.split(',').map(Number);
   const waypoints = waypointTexts.map(parsePoint);
@@ -29,4 +35,5 @@ const server = http.createServer((request, response) => {
     routes: [{ distance, duration: distance / 12, geometry: { coordinates: waypoints } }],
   }));
 });
+server.on('connection', (socket) => socket.on('error', () => {}));
 server.listen(Number(process.env.OSRM_STUB_PORT ?? 3004), '127.0.0.1');

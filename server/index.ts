@@ -52,6 +52,24 @@ function deliverRealtime(userIds: string[], event: string) {
     }
   }
 }
+const supportedOutboxEvents = new Set([
+  'conversation.message.created', 'booking.confirmed', 'booking.cancelled', 'booking.changed',
+  'proposal.created', 'proposal.countered', 'proposal.updated', 'proposal.accepted', 'proposal.closed',
+]);
+async function insertRealtimeOutbox(
+  client: PoolClient,
+  eventType: string,
+  dedupeKey: string,
+  recipientIds: string[],
+  payload: Record<string, unknown>,
+) {
+  if (!supportedOutboxEvents.has(eventType) || recipientIds.length === 0) throw new Error('invalid realtime outbox event');
+  await client.query(
+    `INSERT INTO realtime_outbox(event_type,dedupe_key,recipient_ids,payload)
+     VALUES($1,$2,$3,$4::jsonb)`,
+    [eventType, dedupeKey, [...new Set(recipientIds)], JSON.stringify(payload)],
+  );
+}
 async function broadcastRealtime(userIds: string[], type: string, data: unknown) {
   const event = JSON.stringify({ type, data });
   if (process.env.REDIS_URL) {
@@ -95,7 +113,7 @@ async function dispatchRealtimeOutbox() {
 
   for (const row of rows) {
     try {
-      if (row.event_type !== 'conversation.message.created' || !Array.isArray(row.recipient_ids)) throw new Error('unsupported realtime outbox event');
+      if (!supportedOutboxEvents.has(row.event_type) || !Array.isArray(row.recipient_ids) || row.recipient_ids.length === 0) throw new Error('unsupported realtime outbox event');
       await broadcastRealtime(row.recipient_ids, row.event_type, row.payload);
       await pool.query('UPDATE realtime_outbox SET published_at=now(),locked_until=NULL,last_error=NULL WHERE id=$1', [row.id]);
     } catch (error) {
@@ -110,7 +128,7 @@ async function dispatchRealtimeOutbox() {
 }
 const port = Number(process.env.API_PORT || 3002);
 const host = process.env.API_HOST || '127.0.0.1';
-const allowedOrigins = new Set((process.env.CORS_ORIGINS || 'http://localhost:3000,http://127.0.0.1:3000').split(',').map((origin) => origin.trim()));
+const allowedOrigins = new Set((process.env.CORS_ORIGINS || 'http://localhost:3000,http://127.0.0.1:3000,capacitor://localhost').split(',').map((origin) => origin.trim()));
 const sessionSecret = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
 const accessLifetimeMs = 15 * 60 * 1000;
 const refreshLifetimeMs = 30 * 24 * 60 * 60 * 1000;
@@ -257,7 +275,34 @@ function requireStaff(req: AuthenticatedRequest, res: Response, next: NextFuncti
 app.get('/healthz', (_req, res) => res.json({ status: 'ok' }));
 app.get('/readyz', asyncHandler(async (_req, res) => {
   await pool.query('SELECT 1');
-  res.json({ status: 'ready', database: 'connected' });
+  const redisReady = !process.env.REDIS_URL || realtimeRedis?.isReady === true;
+  const status = redisReady ? 'ready' : 'degraded';
+  res.status(redisReady ? 200 : 503).json({ status, database: 'connected', realtime: redisReady ? 'connected' : 'disconnected' });
+}));
+
+app.get('/api/v1/admin/ops/realtime', requireAuth, requireStaff, asyncHandler(async (_req, res) => {
+  const { rows } = await pool.query<{
+    pending_count: string;
+    retrying_count: string;
+    max_attempt_count: number;
+    oldest_pending_seconds: number | null;
+    oldest_locked_seconds: number | null;
+    last_published_at: Date | null;
+  }>(
+    `SELECT count(*) FILTER (WHERE published_at IS NULL)::text AS pending_count,
+       count(*) FILTER (WHERE published_at IS NULL AND attempt_count>0)::text AS retrying_count,
+       COALESCE(max(attempt_count) FILTER (WHERE published_at IS NULL),0)::int AS max_attempt_count,
+       EXTRACT(EPOCH FROM (now()-min(created_at) FILTER (WHERE published_at IS NULL)))::int AS oldest_pending_seconds,
+       EXTRACT(EPOCH FROM (now()-(min(locked_until) FILTER (WHERE published_at IS NULL AND locked_until>now())-interval '30 seconds')))::int AS oldest_locked_seconds,
+       max(published_at) AS last_published_at
+     FROM realtime_outbox`,
+  );
+  res.json({ data: {
+    ...rows[0],
+    pending_count: Number(rows[0].pending_count),
+    retrying_count: Number(rows[0].retrying_count),
+    redis: process.env.REDIS_URL ? (realtimeRedis?.isReady ? 'connected' : 'disconnected') : 'single_process_development',
+  } });
 }));
 
 app.post('/api/v1/routing/route', requireAuth, asyncHandler(async (req, res) => {
@@ -1541,7 +1586,9 @@ app.get('/api/v1/bookings', requireAuth, asyncHandler(async (req, res) => {
   const { rows } = await pool.query(
     `SELECT b.id, b.offer_id, b.seat_count, b.total_price_minor, b.currency, b.status, b.created_at,
             o.origin_name, o.destination_name, o.departure_at, u.display_name AS driver_name, p.display_name AS passenger_name,
-            (o.driver_id=$1) AS current_user_is_driver
+            (o.driver_id=$1) AS current_user_is_driver,
+            (SELECT count(*)::int FROM booking_completion_confirmations cc WHERE cc.booking_id=b.id) AS completion_confirmation_count,
+            EXISTS(SELECT 1 FROM booking_completion_confirmations cc WHERE cc.booking_id=b.id AND cc.user_id=$1) AS current_user_confirmed_completion
        FROM bookings b JOIN offers o ON o.id = b.offer_id JOIN users u ON u.id = o.driver_id
        JOIN users p ON p.id=b.passenger_id
       WHERE b.passenger_id = $1 OR o.driver_id=$1 ORDER BY b.created_at DESC LIMIT 100`, [req.userId],
@@ -1606,6 +1653,11 @@ app.post('/api/v1/bookings', requireAuth, asyncHandler(async (req, res) => {
     await client.query('INSERT INTO conversation_members(conversation_id,user_id) SELECT id,$2 FROM conversations WHERE booking_id=$1', [booking.rows[0].id, currentOffer.driver_id]);
     await client.query('INSERT INTO conversation_members(conversation_id,user_id) SELECT id,$2 FROM conversations WHERE booking_id=$1', [booking.rows[0].id, userId]);
     await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [userId, 'booking.created', 'booking', booking.rows[0].id]);
+    await insertRealtimeOutbox(client, 'booking.confirmed', `booking.confirmed:${booking.rows[0].id}`,
+      [userId, currentOffer.driver_id], {
+        booking_id: booking.rows[0].id, offer_id: offerId, status: 'confirmed', seat_count: seats,
+        available_seats: Number(currentOffer.available_seats) - seats,
+      });
     await client.query('COMMIT');
     res.status(201).json({ data: booking.rows[0], replayed: false });
   } catch (error) {
@@ -1620,8 +1672,8 @@ app.post('/api/v1/bookings/:id/cancel', requireAuth, asyncHandler(async (req, re
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    const locked = await client.query<{ id: string; offer_id: string; seat_count: number; status: string }>(
-      'SELECT id, offer_id, seat_count, status FROM bookings WHERE id = $1 AND passenger_id = $2 FOR UPDATE', [req.params.id, req.userId],
+    const locked = await client.query<{ id: string; offer_id: string; seat_count: number; status: string; driver_id: string }>(
+      'SELECT b.id,b.offer_id,b.seat_count,b.status,o.driver_id FROM bookings b JOIN offers o ON o.id=b.offer_id WHERE b.id=$1 AND b.passenger_id=$2 FOR UPDATE OF b', [req.params.id, req.userId],
     );
     const booking = locked.rows[0];
     if (!booking) throw new ApiError(404, 'booking unavailable');
@@ -1633,8 +1685,13 @@ app.post('/api/v1/bookings/:id/cancel', requireAuth, asyncHandler(async (req, re
     if (booking.status !== 'confirmed') throw new ApiError(409, 'booking cannot be cancelled');
     await client.query("UPDATE bookings SET status='cancelled', cancelled_at=now() WHERE id=$1", [booking.id]);
     await client.query("INSERT INTO booking_events(booking_id,from_status,to_status,actor_id) VALUES ($1,'confirmed','cancelled',$2)", [booking.id, req.userId]);
-    await client.query("UPDATE offers SET available_seats=LEAST(total_seats,available_seats+$2) WHERE id=$1 AND status <> 'cancelled'", [booking.offer_id, booking.seat_count]);
+    const inventory = await client.query<{ available_seats: number }>("UPDATE offers SET available_seats=LEAST(total_seats,available_seats+$2) WHERE id=$1 AND status <> 'cancelled' RETURNING available_seats", [booking.offer_id, booking.seat_count]);
     await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'booking.cancelled', 'booking', booking.id]);
+    await insertRealtimeOutbox(client, 'booking.cancelled', `booking.cancelled:${booking.id}`,
+      [req.userId!, booking.driver_id], {
+        booking_id: booking.id, offer_id: booking.offer_id, status: 'cancelled', seat_count: booking.seat_count,
+        available_seats: inventory.rows[0]?.available_seats ?? null,
+      });
     await client.query('COMMIT');
     res.json({ data: { id: booking.id, status: 'cancelled' }, replayed: false });
   } catch (error) {
@@ -1675,6 +1732,8 @@ app.post('/api/v1/bookings/:id/boarding', requireAuth, asyncHandler(async (req, 
     await client.query("UPDATE bookings SET status='boarding' WHERE id=$1", [booking.id]);
     await client.query("INSERT INTO booking_events(booking_id,from_status,to_status,actor_id) VALUES ($1,'confirmed','boarding',$2)", [booking.id, req.userId]);
     await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'booking.boarding', 'booking', booking.id]);
+    await insertRealtimeOutbox(client, 'booking.changed', `booking.changed:${booking.id}:boarding`,
+      [booking.driver_id, booking.passenger_id], { booking_id: booking.id, status: 'boarding' });
     await client.query('COMMIT');
     res.json({ data: { id: booking.id, status: 'boarding' }, replayed: false });
   } catch (error) {
@@ -1687,8 +1746,8 @@ app.post('/api/v1/bookings/:id/start', requireAuth, asyncHandler(async (req, res
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    const { rows } = await client.query<{ id: string; driver_id: string; status: string }>(
-      'SELECT b.id,o.driver_id,b.status FROM bookings b JOIN offers o ON o.id=b.offer_id WHERE b.id=$1 FOR UPDATE OF b,o', [req.params.id],
+    const { rows } = await client.query<{ id: string; driver_id: string; passenger_id: string; status: string }>(
+      'SELECT b.id,o.driver_id,b.passenger_id,b.status FROM bookings b JOIN offers o ON o.id=b.offer_id WHERE b.id=$1 FOR UPDATE OF b,o', [req.params.id],
     );
     const booking = rows[0];
     if (!booking || booking.driver_id !== req.userId) throw new ApiError(404, 'booking unavailable');
@@ -1696,6 +1755,8 @@ app.post('/api/v1/bookings/:id/start', requireAuth, asyncHandler(async (req, res
     await client.query("UPDATE bookings SET status='in_progress' WHERE id=$1", [booking.id]);
     await client.query("INSERT INTO booking_events(booking_id,from_status,to_status,actor_id) VALUES ($1,'boarding','in_progress',$2)", [booking.id, req.userId]);
     await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'booking.started', 'booking', booking.id]);
+    await insertRealtimeOutbox(client, 'booking.changed', `booking.changed:${booking.id}:in_progress`,
+      [booking.driver_id, booking.passenger_id], { booking_id: booking.id, status: 'in_progress' });
     await client.query('COMMIT');
     res.json({ data: { id: booking.id, status: 'in_progress' } });
   } catch (error) {
@@ -1728,6 +1789,11 @@ app.post('/api/v1/bookings/:id/complete', requireAuth, asyncHandler(async (req, 
       await client.query("UPDATE bookings SET status='completed',completed_at=now() WHERE id=$1 AND status='in_progress'", [booking.id]);
       await client.query("INSERT INTO booking_events(booking_id,from_status,to_status,actor_id) VALUES ($1,'in_progress','completed',$2)", [booking.id, req.userId]);
       await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'booking.completed', 'booking', booking.id]);
+      await insertRealtimeOutbox(client, 'booking.changed', `booking.changed:${booking.id}:completed`,
+        [booking.driver_id, booking.passenger_id], { booking_id: booking.id, status: 'completed' });
+    } else {
+      await insertRealtimeOutbox(client, 'booking.changed', `booking.changed:${booking.id}:completion-confirmed:${req.userId}`,
+        [booking.driver_id, booking.passenger_id], { booking_id: booking.id, status: 'in_progress', completion_confirmation_count: count });
     }
     await client.query('COMMIT');
     res.json({ data: { id: booking.id, status, confirmations: count, requiredConfirmations: 2 } });
@@ -1807,19 +1873,37 @@ app.get('/api/v1/demands/mine', requireAuth, requireRole('passenger'), asyncHand
 }));
 
 app.post('/api/v1/demands/:id/cancel', requireAuth, requireRole('passenger'), asyncHandler(async (req, res) => {
-  const { rows } = await pool.query(
-    `UPDATE passenger_demands SET status='cancelled' WHERE id=$1 AND passenger_id=$2 AND status='open'
-     RETURNING id,status`, [req.params.id, req.userId],
-  );
-  if (!rows[0]) {
-    const existing = await pool.query('SELECT id,status FROM passenger_demands WHERE id=$1 AND passenger_id=$2', [req.params.id, req.userId]);
-    if (!existing.rows[0]) throw new ApiError(404, 'demand unavailable');
-    if (existing.rows[0].status !== 'cancelled') throw new ApiError(409, 'only an open demand can be cancelled');
-    res.json({ data: existing.rows[0], replayed: true });
-    return;
-  }
-  await pool.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'demand.cancelled', 'demand', rows[0].id]);
-  res.json({ data: rows[0], replayed: false });
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query<{ id: string; status: string }>(
+      'SELECT id,status FROM passenger_demands WHERE id=$1 AND passenger_id=$2 FOR UPDATE', [req.params.id, req.userId],
+    );
+    const demand = rows[0];
+    if (!demand) throw new ApiError(404, 'demand unavailable');
+    if (demand.status === 'cancelled') {
+      await client.query('COMMIT');
+      res.json({ data: demand, replayed: true });
+      return;
+    }
+    if (demand.status !== 'open') throw new ApiError(409, 'only an open demand can be cancelled');
+    await client.query("UPDATE passenger_demands SET status='cancelled' WHERE id=$1", [demand.id]);
+    const closedProposals = await client.query<{ id: string; driver_id: string }>(
+      "UPDATE proposals SET status='rejected' WHERE demand_id=$1 AND status='pending' RETURNING id,driver_id", [demand.id],
+    );
+    for (const proposal of closedProposals.rows) {
+      await insertRealtimeOutbox(client, 'proposal.closed', `proposal.closed:${proposal.id}:demand_cancelled`,
+        [req.userId!, proposal.driver_id], {
+          proposal_id: proposal.id, demand_id: demand.id, status: 'rejected', reason: 'demand_cancelled',
+        });
+    }
+    await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'demand.cancelled', 'demand', demand.id]);
+    await client.query('COMMIT');
+    res.json({ data: { id: demand.id, status: 'cancelled' }, replayed: false });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally { client.release(); }
 }));
 
 app.get('/api/v1/demands', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
@@ -1887,6 +1971,11 @@ app.post('/api/v1/demands/:id/proposals', requireAuth, requireRole('driver'), as
        VALUES ($1,1,$2,'driver',$3,$4,$5)`, [rows[0].id, req.userId, priceMinor, departure.toISOString(), comment?.trim() || null],
     );
     await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'proposal.created', 'proposal', rows[0].id]);
+    await insertRealtimeOutbox(client, 'proposal.created', `proposal.created:${rows[0].id}`,
+      [req.userId!, demand.passenger_id], {
+        proposal_id: rows[0].id, demand_id: req.params.id, status: 'pending', revision_number: 1,
+        price_minor: priceMinor, departure_at: departure.toISOString(),
+      });
     await client.query('COMMIT');
     res.status(201).json({ data: rows[0] });
   } catch (error) {
@@ -1933,6 +2022,11 @@ app.post('/api/v1/proposals/:id/counter', requireAuth, asyncHandler(async (req, 
        VALUES ($1,$2,$3,$4,$5,$6,$7)`, [proposal.id, revision, req.userId, role, priceMinor, departure.toISOString(), comment?.trim() || null],
     );
     await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'proposal.countered', 'proposal', proposal.id]);
+    await insertRealtimeOutbox(client, 'proposal.countered', `proposal.countered:${proposal.id}:${revision}`,
+      [proposal.driver_id, proposal.passenger_id], {
+        proposal_id: proposal.id, demand_id: proposal.demand_id, revision_number: revision,
+        price_minor: priceMinor, departure_at: departure.toISOString(),
+      });
     await client.query('COMMIT');
     res.json({ data: { id: proposal.id, price_minor: priceMinor, departure_at: departure.toISOString(), revision_number: revision } });
   } catch (error) {
@@ -1971,6 +2065,11 @@ app.post('/api/v1/proposals/:id/agree', requireAuth, requireRole('driver'), asyn
       [proposal.id, revision, req.userId, proposal.price_minor, new Date(proposal.departure_at).toISOString()],
     );
     await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'proposal.agreed', 'proposal', proposal.id]);
+    await insertRealtimeOutbox(client, 'proposal.updated', `proposal.updated:${proposal.id}:${revision}`,
+      [proposal.passenger_id, proposal.driver_id], {
+        proposal_id: proposal.id, demand_id: proposal.demand_id, status: 'awaiting_passenger_confirmation',
+        revision_number: revision, price_minor: proposal.price_minor, departure_at: new Date(proposal.departure_at).toISOString(),
+      });
     await client.query('COMMIT');
     res.json({ data: { id: proposal.id, price_minor: proposal.price_minor, departure_at: proposal.departure_at, revision_number: revision, status: 'awaiting_passenger_confirmation' } });
   } catch (error) {
@@ -2023,14 +2122,32 @@ app.post('/api/v1/proposals/:id/accept', requireAuth, asyncHandler(async (req, r
       [offers[0].id, req.userId, demand.passenger_count, Math.floor(agreedTotal / Number(demand.passenger_count)), agreedTotal, `proposal-accept:${proposal.id}`],
     );
     await client.query("INSERT INTO booking_events(booking_id,from_status,to_status,actor_id) VALUES ($1,NULL,'confirmed',$2)", [bookings[0].id, req.userId]);
-    await client.query('UPDATE offers SET available_seats=available_seats-$2 WHERE id=$1', [offers[0].id, demand.passenger_count]);
+    const { rows: remainingInventory } = await client.query<{ available_seats: number }>(
+      'UPDATE offers SET available_seats=available_seats-$2 WHERE id=$1 RETURNING available_seats', [offers[0].id, demand.passenger_count],
+    );
     await client.query("UPDATE proposals SET status='accepted' WHERE id=$1", [proposal.id]);
-    await client.query("UPDATE proposals SET status='rejected' WHERE demand_id=$1 AND id<>$2 AND status='pending'", [demand.id, proposal.id]);
+    const competing = await client.query<{ id: string; driver_id: string }>(
+      "UPDATE proposals SET status='rejected' WHERE demand_id=$1 AND id<>$2 AND status='pending' RETURNING id,driver_id", [demand.id, proposal.id],
+    );
     await client.query("UPDATE passenger_demands SET status='matched' WHERE id=$1 AND status='open'", [demand.id]);
     await client.query('INSERT INTO conversations(booking_id) VALUES ($1)', [bookings[0].id]);
     await client.query('INSERT INTO conversation_members(conversation_id,user_id) SELECT id,$2 FROM conversations WHERE booking_id=$1', [bookings[0].id, proposal.driver_id]);
     await client.query('INSERT INTO conversation_members(conversation_id,user_id) SELECT id,$2 FROM conversations WHERE booking_id=$1', [bookings[0].id, req.userId]);
     await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'proposal.accepted', 'proposal', proposal.id]);
+    await insertRealtimeOutbox(client, 'booking.confirmed', `booking.confirmed:${bookings[0].id}`,
+      [req.userId!, proposal.driver_id], {
+        booking_id: bookings[0].id, offer_id: offers[0].id, status: 'confirmed',
+        seat_count: demand.passenger_count, available_seats: remainingInventory[0]?.available_seats ?? null,
+      });
+    await insertRealtimeOutbox(client, 'proposal.accepted', `proposal.accepted:${proposal.id}`,
+      [req.userId!, proposal.driver_id], {
+        proposal_id: proposal.id, demand_id: demand.id, booking_id: bookings[0].id, status: 'accepted',
+        price_minor: agreedTotal, departure_at: departure.toISOString(),
+      });
+    for (const closed of competing.rows) {
+      await insertRealtimeOutbox(client, 'proposal.closed', `proposal.closed:${closed.id}:accepted:${proposal.id}`,
+        [req.userId!, closed.driver_id], { proposal_id: closed.id, demand_id: demand.id, status: 'rejected', reason: 'another_proposal_accepted' });
+    }
     await client.query('COMMIT');
     res.status(201).json({ data: bookings[0], proposalId: proposal.id, agreedTotalMinor: agreedTotal });
   } catch (error) {
@@ -2263,11 +2380,8 @@ app.post('/api/v1/conversations/:id/messages', requireAuth, asyncHandler(async (
     const { rows: members } = await client.query<{ user_id: string }>(
       'SELECT user_id FROM conversation_members WHERE conversation_id=$1', [message.conversation_id],
     );
-    await client.query(
-      `INSERT INTO realtime_outbox(event_type,dedupe_key,recipient_ids,payload)
-       VALUES($1,$2,$3,$4::jsonb)`,
-      ['conversation.message.created', `conversation.message.created:${message.id}`, members.map((member) => member.user_id), JSON.stringify(message)],
-    );
+    await insertRealtimeOutbox(client, 'conversation.message.created', `conversation.message.created:${message.id}`,
+      members.map((member) => member.user_id), message);
     await client.query('COMMIT');
   } catch (error) {
     await client.query('ROLLBACK');

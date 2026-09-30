@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint server tests e2e scripts/ensure-e2e-database.ts playwright.config.ts src/App.tsx src/components/AppHeader.tsx src/services/storage.ts src/services/productionApi.ts src/views/HomeView.tsx src/views/SearchView.tsx src/views/ProductionMarketplace.tsx src/views/ProductionNavigation.tsx vite.config.ts eslint.config.js",
     "test": "tsx --test tests/*.test.ts",
-    "test:e2e": "playwright test",
+    "test:e2e": "node scripts/build-pwa.mjs && playwright test",
     "test:integration:bookings": "tsx --test tests/api-bookings.integration.test.ts",
     "test:integration:navigation": "tsx --test tests/navigation.integration.test.ts",
     "test:integration:realtime": "tsx --test tests/realtime-cluster.integration.test.ts",

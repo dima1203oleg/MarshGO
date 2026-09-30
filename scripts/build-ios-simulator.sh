@@ -30,8 +30,9 @@ xcodebuild \
   build
 xcrun simctl install "$SIMULATOR_UDID" ios/build/Build/Products/Debug-iphonesimulator/App.app
 xcrun simctl launch "$SIMULATOR_UDID" ua.marshgo.app
-# Allow first-launch WebKit startup and the initial session refresh to settle.
-sleep 20
+# Allow first boot, WebKit startup and the initial session refresh to settle.
+# On a fresh iOS Simulator runtime this can take longer than 20 seconds.
+sleep 35
 xcrun simctl io "$SIMULATOR_UDID" screenshot "$SCREENSHOT_PATH"
 
 echo "MARSHGO launched on simulator $SIMULATOR_UDID using API $API_BASE_URL"

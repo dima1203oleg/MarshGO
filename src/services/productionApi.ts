@@ -49,6 +49,8 @@ export type ApiBooking = {
   driver_name: string;
   passenger_name: string;
   current_user_is_driver: boolean;
+  completion_confirmation_count: number;
+  current_user_confirmed_completion: boolean;
 };
 
 export type ApiVehicle = {
@@ -71,7 +73,12 @@ export type ApiVerificationQueueItem = ApiVerificationRecord & {
 };
 
 export type ApiMessage = { id: string; sender_id: string; sender_name: string; body: string; created_at: string };
-export type ApiRealtimeEvent = { type: 'conversation.message.created'; data: ApiMessage & { conversation_id: string } };
+export type ApiRealtimeEvent =
+  | { type: 'conversation.message.created'; data: ApiMessage & { conversation_id: string } }
+  | { type: 'booking.confirmed' | 'booking.cancelled' | 'booking.changed'; data: { booking_id: string; offer_id?: string; status: string; seat_count?: number; available_seats?: number | null } }
+  | { type: 'proposal.created' | 'proposal.countered' | 'proposal.updated'; data: { proposal_id: string; demand_id: string; status?: string; revision_number: number; price_minor: number; departure_at: string } }
+  | { type: 'proposal.accepted'; data: { proposal_id: string; demand_id: string; booking_id: string; status: string; price_minor: number; departure_at: string } }
+  | { type: 'proposal.closed'; data: { proposal_id: string; demand_id: string; status: string; reason: string } };
 export type ApiConversation = { id: string; booking_id: string; created_at: string };
 export type ApiPlace = { label: string; latitude: number; longitude: number; providerId: string };
 export type ApiNavigationSession = {
@@ -228,6 +235,18 @@ export const productionApi = {
   cancelBooking(bookingId: string) {
     return request<{ id: string; status: string; replayed?: boolean }>(`/bookings/${bookingId}/cancel`, { method: 'POST' });
   },
+  bookingTicket(bookingId: string) {
+    return request<{ format: string; token: string; expiresAt: string }>(`/bookings/${bookingId}/ticket`);
+  },
+  markBoarding(bookingId: string, ticket: string) {
+    return request<{ id: string; status: string; replayed?: boolean }>(`/bookings/${bookingId}/boarding`, { method: 'POST', body: JSON.stringify({ ticket }) });
+  },
+  startTrip(bookingId: string) {
+    return request<{ id: string; status: string }>(`/bookings/${bookingId}/start`, { method: 'POST' });
+  },
+  confirmTripCompletion(bookingId: string) {
+    return request<{ id: string; status: string; confirmations: number; requiredConfirmations: number; replayed?: boolean }>(`/bookings/${bookingId}/complete`, { method: 'POST' });
+  },
   blockedUsers() { return request<ApiBlockedUser[]>('/users/me/blocks'); },
   blockBookingOther(bookingId: string) { return request<void>(`/bookings/${bookingId}/block-other`, { method: 'POST' }); },
   unblockUser(userId: string) { return request<void>(`/users/${encodeURIComponent(userId)}/block`, { method: 'DELETE' }); },
@@ -325,7 +344,7 @@ export const productionApi = {
         next.onmessage = (message) => {
           try {
             const event = JSON.parse(String(message.data)) as ApiRealtimeEvent | { type: string };
-            if (event.type === 'conversation.message.created') onEvent(event as ApiRealtimeEvent);
+            if (event.type === 'conversation.message.created' || event.type.startsWith('booking.') || event.type.startsWith('proposal.')) onEvent(event as ApiRealtimeEvent);
           } catch { /* Ignore malformed realtime frames; persisted REST history remains authoritative. */ }
         };
         next.onerror = () => next.close();

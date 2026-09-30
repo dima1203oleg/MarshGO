@@ -24,7 +24,7 @@ In another terminal run `npm run dev`. Vite proxies `/api`, `/healthz`, and `/re
 * `npm run lint` — ESLint on backend, tests, and changed UI entry points.
 * `npm test` — unit tests; the API/PostGIS suite skips unless `API_TEST_URL` and a loopback `API_TEST_DATABASE_URL` are provided.
 * `npm run test:integration` — booking/lifecycle API integration against a loopback `marshgo_e2e` database, then opt-in navigation matching with a local OSRM contract fixture. Applies no migrations and refuses non-test databases.
-* `npm run test:e2e` — iPhone-sized Chromium browser flow against a dedicated local PostGIS database; requires Playwright Chromium, see below.
+* `npm run test:e2e` — builds a clean PWA bundle, then runs the iPhone-sized Chromium flow against a dedicated local PostGIS database; requires Playwright Chromium, see below.
 * `npm run build` — production PWA build.
 * `npm run db:migrate` — apply additive SQL migrations.
 * `npm run ios:sync` — build the web bundle and sync it into the Capacitor iOS target.
@@ -45,7 +45,6 @@ export E2E_DATABASE_URL=postgres://marshgo:local_only_change_me@127.0.0.1:5434/m
 E2E_DATABASE_URL="$E2E_DATABASE_URL" npx tsx scripts/ensure-e2e-database.ts
 DATABASE_URL="$E2E_DATABASE_URL" npm run db:migrate
 npx playwright install chromium
-npm run build
 npm run test:e2e
 ```
 
@@ -57,6 +56,10 @@ Never enable development OTP or identity bypass in production. Keep `.env` priva
 
 Production builds use the API-backed OTP sign-in, server offer search, transactional booking, and booking-history screen. The development build still includes the legacy demo UI. Production OTP requires a configured Twilio account and approved sender; without SMS configuration the login endpoint returns an unavailable error. Production offer creation requires a private or contracted OSRM-compatible endpoint configured through `ROUTING_ENGINE_URL`.
 
-The production PWA now includes server-backed driver/garage, demand negotiation, booking chat, and foreground GPS/passive matching flows. These depend on real SMS, private object storage, geocoding, and routing providers, which are not configured. Partner inventory, payment processing, realtime push/WebSockets, staging, and public deployment remain unavailable. See [`docs/PRODUCTION_CHECKLIST.md`](docs/PRODUCTION_CHECKLIST.md) for release gates and [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for local setup.
+The production PWA now includes server-backed driver/garage, demand negotiation, booking chat, and foreground GPS/passive matching flows. These depend on real SMS, private object storage, geocoding, and routing providers, which are not configured. Authenticated WebSocket events work across local API instances; Web Push, external partner inventory, online payments, staging, and public deployment remain unavailable. See [`docs/PRODUCTION_CHECKLIST.md`](docs/PRODUCTION_CHECKLIST.md) for release gates and [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for local setup.
 
 An iOS Capacitor target now packages the same API-backed production UI. See [`docs/IOS.md`](docs/IOS.md) for simulator setup and native release limitations; App Store signing and physical-device validation have not been completed.
+
+## GitHub repositories
+
+The API, PWA website and native iOS wrapper are also published separately: [Server](https://github.com/dima1203oleg/MarshGO-Server), [Site](https://github.com/dima1203oleg/MarshGO-Site), and [iOS](https://github.com/dima1203oleg/MarshGO-iOS). The original repository remains the umbrella source and end-to-end test suite. See [`docs/REPOSITORIES.md`](docs/REPOSITORIES.md) for package boundaries and release notes.

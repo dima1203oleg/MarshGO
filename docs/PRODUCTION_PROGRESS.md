@@ -615,3 +615,123 @@
 **External dependencies:** None for the date display. Native interactive verification requires simulator UI automation or a physical device run.
 
 **Next implementation step:** Continue production blocker work; authenticated native screen interaction remains to be exercised with an available simulator UI automation or physical-device run.
+
+## Phase 7 continuation — transactional booking and negotiation events
+
+**Phase:** 7 Realtime; domain-event delivery.
+
+**Status:** PARTIAL. Booking and proposal domain writes now enqueue participant-scoped realtime records transactionally, with Redis delivery across API instances. Push, missed-event replay, durable logout revocation and outbox monitoring remain open.
+
+**Completed:** Added a shared typed outbox insertion helper and dispatcher allowlist. Offer booking and cancellation persist `booking.confirmed` / `booking.cancelled`; boarding, trip start and completion persist `booking.changed`. Proposal creation, each counter revision, driver agreement, passenger acceptance and competitor closure persist proposal events in the same transaction as their state change. Passenger demand cancellation now uses a row-locked transaction, closes pending proposals, and outboxes a reasoned `proposal.closed` event to both negotiation parties. Production clients establish an authenticated event channel and reload booking/offer or demand/proposal data after relevant events; chat continues to deduplicate messages and recover history through REST.
+
+**Modified files:** `server/index.ts`, `src/services/productionApi.ts`, `src/views/ProductionMarketplace.tsx`, `tests/api-bookings.integration.test.ts`, `tests/realtime-cluster.integration.test.ts`, `docs/API.md`, `docs/ARCHITECTURE.md`, `docs/DATA_MODEL.md`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_CHECKLIST.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** No new migration; reuses the existing durable `realtime_outbox` schema from `014_realtime_outbox.sql`.
+
+**Endpoints/events:** Existing booking, lifecycle, demand cancellation and proposal endpoints now enqueue `booking.confirmed`, `booking.cancelled`, `booking.changed`, `proposal.created`, `proposal.countered`, `proposal.updated`, `proposal.accepted`, and `proposal.closed` events. REST remains canonical; clients treat events as resync triggers.
+
+**Tests:** `API_TEST_DATABASE_URL=postgres://marshgo:local_only_change_me@127.0.0.1:5434/marshgo_e2e REDIS_URL=redis://127.0.0.1:6380 npm run test:integration` passed booking/moderation 6/6, navigation 1/1, and realtime 1/1. Realtime integration verifies booking confirmation outbox persistence, remote socket delivery for cancellation, event publication acknowledgement, message fanout, single-use tickets, and remote logout closure. API integration verifies negotiation lifecycle event set/participants and proposal closure when demand is cancelled. `npm run typecheck`, `npm run lint`, `npm test` (12/12), `npm run build`, and `git diff --check` passed. `E2E_DATABASE_URL=postgres://marshgo:local_only_change_me@127.0.0.1:5434/marshgo_e2e REDIS_URL=redis://127.0.0.1:6380 npm run test:e2e` passed (1/1).
+
+**DEMO/TRUTH status:** Events are emitted from committed PostgreSQL outbox rows; clients refresh canonical REST records. Redis Pub/Sub is not a durable notification inbox, and this does not enable Web Push.
+
+**Open issues:** Outbox uses at-least-once delivery; consumers are idempotent refreshes, but events have no cursor/replay API. Add Redis/outbox queue age/depth/failed delivery metrics, fault-injected retry test, durable logout revocation, push/in-app notification storage, expiry worker, and staging verification.
+
+**External dependencies:** Production Redis, monitoring/alerting, staging and push provider still require owner infrastructure/credentials; no new key was needed for this local slice.
+
+**Next implementation step:** Continue operational hardening: prove outbox retry after Redis outage, add health/queue metrics and durable session revocation, then re-evaluate remaining Gate A launch dependencies.
+
+## Phase 5 / 6 continuation — Pro Max responsive route and native startup verification
+
+**Phase:** 5 UI replacement; 6 foreground navigation; 9 release validation.
+
+**Status:** PARTIAL. The app renders its launch and home screens on both requested Pro Max simulator profiles, and the mobile foreground route flow passes against isolated provider fixtures. The real road router, geocoder, map tiles, and interactive native GPS flow are not configured or verified, so this is not production route validation.
+
+**Completed:** Added iPhone 15 Pro Max and iPhone 16 Pro Max Playwright viewport coverage for authenticated home layout, horizontal overflow, foreground route start, Leaflet route geometry, GPS status, honest missing-basemap state, route end, and server-side location deletion. Fixed local OTP test isolation by using separate accounts and made the cross-device trip E2E bring the other simulated phone to foreground before asserting refreshed state or incoming chat. Added a 3-second bookings refresh while the trips view is visible as a recovery path if realtime delivery is suspended. Allowed `capacitor://localhost` in the default API CORS list and documented it in `.env.example`; the native WebView had been blocked from completing its initial API request. Captured and visually inspected the production welcome screen on both iOS 27 simulator profiles.
+
+**Modified files:** `server/index.ts`, `.env.example`, `src/views/ProductionMarketplace.tsx`, `e2e/marketplace.spec.ts`, `playwright.config.ts`, `tests/api-bookings.integration.test.ts`, `tests/realtime-cluster.integration.test.ts`, `tests/fixtures/e2e-web-server.mjs`, `tests/fixtures/geocoder-stub.mjs`, `tests/fixtures/osrm-stub.mjs`, `docs/PRODUCTION_CHECKLIST.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** None.
+
+**Endpoints:** No new endpoint. Existing `/api/v1/navigation/sessions`, `/api/v1/navigation/sessions/:id/location`, `/api/v1/navigation/sessions/:id/end`, `/api/v1/routing/route`, and bookings/realtime APIs are exercised.
+
+**Tests:** `npm run test:e2e` passed 2/2: the independent-account booking, reverse-demand negotiation, persistence, trip lifecycle and realtime chat flow; and Pro Max route-render coverage for both viewport profiles. The targeted Pro Max route test also passed after capturing screenshots. `npm run typecheck`, `npm run lint`, and `npm test` passed (12/12). `npm run test:integration` passed booking/moderation 6/6, foreground navigation 1/1, and Redis cross-instance realtime 1/1. One earlier realtime integration run exposed a test race: socket delivery precedes marking the outbox row published; the test now waits for the publication acknowledgement and the full rerun passed. `npm run ios:simulator` built, installed, and launched MARSHGO on iPhone 15 Pro Max / iOS 27. The same built app was installed/launched on iPhone 16 Pro Max / iOS 27. Visually inspected screenshots: `/tmp/marshgo-iphone-15-pro-max-loaded.png`, `/tmp/marshgo-iphone-16-pro-max-retry.png`, and browser route captures `/tmp/marshgo-iphone-15-pro-max-route.png`, `/tmp/marshgo-iphone-16-pro-max-route.png`.
+
+**DEMO/TRUTH status:** Simulator screenshots show the native iOS welcome screen. Browser route tests use local geocoder/OSRM contract fixtures; their route path and 72.6 km / 1h41 values are fixture output and do not prove a live road route. The navigation UI correctly warns that no basemap tile provider is configured. The server returns 503 for routing if no provider is configured. GPS used by the viewport test is Playwright-mocked; a native real-device or simulator GPS session was not run.
+
+**Open issues:** Configure and validate contracted/operated geocoding, road-routing, and map-tile providers; add navigation detour refresh and rerouting against actual routes; exercise native OTP, account flows, location permission and foreground GPS via UI automation or physical devices; implement push fallback for backgrounded clients. PWA/iOS background tracking remains outside this foreground test.
+
+**External dependencies:** Production geocoder/routing SLA and map tile source/attribution; production SMS provider and verified sender; physical-device acceptance for GPS and two-account trip lifecycle.
+
+**Next implementation step:** Add and contract-test provider configuration/diagnostics, then rerun route creation and foreground location on a provider-backed staging environment before the Gate A two-device sign-off.
+
+## Phase 7 continuation — realtime operations and retry visibility
+
+**Phase:** 7 Realtime; operations and retry visibility.
+
+**Status:** PARTIAL. Staff can inspect safe queue metrics and readiness reports Redis dependency state. The integration suite now proves the durable outbox records a failed dispatch and retries successfully after backoff; an actual Redis outage/recovery drill and external alerting are still outstanding.
+
+**Completed:** Added staff-only `GET /api/v1/admin/ops/realtime` with pending and retrying row counts, maximum attempts, oldest pending/lease ages, last successful publish timestamp, and Redis state. Raw `last_error`, recipients, and event payloads are omitted. `/readyz` now returns `503` with database/realtime dependency detail when configured Redis is disconnected. Extended the two-process integration test with a deliberately unsupported local outbox event: the worker records the failure and backoff, the isolated test repairs the event contract, and the worker publishes it to the authorized remote socket on retry. Fixed an E2E packaging regression where the simulator build's embedded `http://localhost:3002` API origin was being served to a browser on a different origin: `test:e2e` now rebuilds a clean PWA bundle, and the E2E web server refuses simulator-configured JS bundles. Revalidated the order iOS simulator build → browser E2E. Updated current API and audit records where prior prose still described booking/proposal outbox delivery as absent.
+
+**Modified files:** `server/index.ts`, `src/services/productionApi.ts`, `src/views/ProductionMarketplace.tsx`, `e2e/marketplace.spec.ts`, `tests/api-bookings.integration.test.ts`, `tests/realtime-cluster.integration.test.ts`, `tests/fixtures/e2e-web-server.mjs`, `scripts/build-pwa.mjs`, `package.json`, `README.md`, `docs/API.md`, `docs/ARCHITECTURE.md`, `docs/DATA_MODEL.md`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_CHECKLIST.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** None; uses existing `realtime_outbox` migration `014_realtime_outbox.sql`.
+
+**Endpoints:** `GET /api/v1/admin/ops/realtime`; `/readyz` now includes Redis readiness.
+
+**Tests:** Under pinned Node `v24.21.0`: `npm run typecheck`, `npm run lint`, `npm test` (12/12), `npm run build`, `git diff --check`, local integration (bookings/moderation 6/6, navigation 1/1, Redis cross-instance realtime and retry 1/1), and `E2E_DATABASE_URL=postgres://marshgo:local_only_change_me@127.0.0.1:5434/marshgo_e2e REDIS_URL=redis://127.0.0.1:6380 npm run test:e2e` (two independent accounts, 1/1) passed. E2E requires the explicit isolated database environment; without it the test stops before discovery. `npm run ios:simulator` completed Vite/Capacitor/Xcode build, install and launch on iPhone 18 Pro, iOS 27 under the host Node `v26.7.0`; screenshot `/tmp/marshgo-ios-lifecycle-final.png` shows the branded native welcome screen. This verifies compile/install/start/render only; no taps or authenticated native journey were tested. A later attempt to nest the simulator script inside the temporary Node 24 `npx` environment failed at nested `npx cap sync` resolution, before Xcode; it does not change the successful host-Node simulator result.
+
+**DEMO/TRUTH status:** Metrics and readiness are server-backed; outbox retry is exercised with a controlled invalid event in a loopback test database. This does not verify Redis network partition recovery, alert delivery or managed production operations. iOS remains the Capacitor native shell around the reference-aligned API client; the simulator screenshot covers welcome only. The graphical `Simulator.app` UI is unavailable in this host, so test credentials could not be entered through native controls.
+
+**Open issues:** Production remains blocked by missing SMS sender credentials, HTTPS staging host, managed PostGIS/Redis, geocoder/routing service, private object storage, security/backup/rollback/alerting runbooks, and physical two-device acceptance. Need Redis outage/recovery drill, durable logout revocation, Web Push/in-app inbox, and tap-driven iOS tests. The supplied composite reference contains partner/bus availability and full maps that are not enabled without real sources; the UI must not invent those results.
+
+**External dependencies:** SMS provider/sender; HTTPS staging/production infrastructure and monitoring; geocoding/routing hosting; private S3-compatible bucket; physical iPhones/two real accounts for release-gate verification.
+
+**Next implementation step:** Add privacy-safe QR rendering/scanning and completed-trip review UI; connect mutually confirmed navigation candidates to an explicit price/proposal and booking flow with real route/stop updates. Then provision staging services and run the two-device acceptance path. Do not mark Production release ready.
+
+## Phase 3 / 5 continuation — trip lifecycle in the mobile client
+
+**Phase:** 3 Offers/Booking; 5 Production UI replacement.
+
+**Status:** PARTIAL. The production mobile trip list now drives the server booking lifecycle end to end for boarded trips. QR camera handoff, review UI, and real-device interaction remain open.
+
+**Completed:** Added participant ticket retrieval and a private display of the signed, PII-free token; driver token entry confirms boarding through the server; driver can start the trip; either participant can confirm completion; the server persists each completion confirmation and only marks the booking complete after both participants confirm. Booking list DTOs expose server-derived confirmation count and caller confirmation state. First-party completion confirmation now emits an outbox invalidation so the other device refreshes its trip card. Status labels and button visibility follow canonical API state.
+
+**Modified files:** `server/index.ts`, `src/services/productionApi.ts`, `src/views/ProductionMarketplace.tsx`, `e2e/marketplace.spec.ts`, `docs/API.md`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_CHECKLIST.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** None; reuses existing booking completion confirmation and realtime outbox tables.
+
+**Endpoints:** `GET /api/v1/bookings` now includes completion count/current-user confirmation; existing `GET /api/v1/bookings/:id/ticket`, `POST /api/v1/bookings/:id/boarding`, `/start`, and `/complete` are wired to the app.
+
+**Tests:** Under Node `v24.21.0`, `npm run typecheck`, `npm run lint`, and the built-PWA two-account E2E passed. E2E verifies the signed token is accepted only by the driver, boarding/start are server-backed, each participant's completion confirmation synchronizes, and PostgreSQL ends at `completed` with exactly two confirmations. The test bundle now safely rebuilds the web target after iOS builds.
+
+**DEMO/TRUTH status:** Booking lifecycle state is server-backed and tested across independent browser contexts. The token is manually handed between the two screens; this is not a QR barcode/scanner implementation or native camera flow.
+
+**Open issues:** No QR code renderer or camera scanning; no rating form after completion; the trip detail remains a compact mobile card rather than every screen in the supplied storyboard. Simulator has only been visually checked at welcome/startup because the graphical simulator UI is unavailable.
+
+**External dependencies:** Interactive iOS simulator runner/physical devices for native camera, OTP and session tests. No new third-party credential is needed for this local flow.
+
+**Next implementation step:** Add privacy-safe QR rendering/scanning on the native client and rating UI backed by completed-trip reviews; continue Gate A navigation candidate-to-booking integration separately.
+
+## Phase 9 continuation — split GitHub packages and device smoke checks
+
+**Phase:** 9 Hardening; repository packaging and simulator verification.
+
+**Status:** PARTIAL. Prepared independently installable Server, Site, and iOS repositories from the existing codebase. All three have been pushed to GitHub; the original umbrella repository remains intact. Standalone builds/tests pass for the API, PWA, and iOS simulator target. Production remains blocked by configured provider and staging requirements above.
+
+**Completed:** Created focused `MarshGO-Server`, `MarshGO-Site`, and `MarshGO-iOS` public repositories with isolated manifests, lockfiles, CI workflows, and ownership documentation. iOS consumes the Site repository at build time rather than maintaining a duplicate React UI. Re-ran the API and cross-instance realtime integration suite, E2E two-account marketplace and route viewport tests, and native simulator build/install/launch on iPhone 15 Pro Max and iPhone 16 Pro Max. First iPhone 15 screenshot was captured before WebKit finished first-run initialization; relaunch after WebKit startup rendered correctly. Raised the simulator screenshot wait to 35 seconds for cold-start reliability.
+
+**Modified files:** `docs/REPOSITORIES.md`, `docs/PRODUCTION_PROGRESS.md`, `README.md`, `scripts/build-ios-simulator.sh`, plus the standalone manifests, lockfiles, CI and README files in each of the three GitHub repositories.
+
+**Database changes:** None.
+
+**Endpoints:** None.
+
+**Tests:** Root: `npm run typecheck`, `npm run lint`, `npm test` (12 passed), `npm run build`, `npm run test:integration` (bookings 6/6, navigation 1/1, Redis realtime 1/1), and `E2E_DATABASE_URL=postgres://.../marshgo_e2e npm run test:e2e` (2/2) passed. Standalone server: clean `npm ci`, typecheck, unit suite (8 passed; database-gated cases excluded), integration suite (same 6/1/1 passing). Standalone site: clean `npm ci`, scoped ESLint, typecheck, Vite production build passed. Standalone iOS: clean npm dependencies, Vite site build, `cap sync`, Capacitor doctor and generic iOS Simulator Xcode build passed. Native app launched on iPhone 15 Pro Max and iPhone 16 Pro Max simulators; screenshots `/tmp/marshgo-iphone-15-pro-max-retry.png` and `/tmp/marshgo-iphone-16-pro-max-verified.png` show the same MARSHGO welcome screen. Browser E2E verifies route screen behavior at both Pro Max viewports against a local OSRM fixture, not a contracted production map/routing provider.
+
+**DEMO/TRUTH status:** The core tested API scenarios are PostgreSQL-backed and exercised with isolated test accounts. The native screenshots verify install, launch and first-screen rendering only. No real SMS, live external routing/geocoding, map tile provider, two physical devices, or real-user release scenario was exercised.
+
+**Open issues:** Gate A still needs production SMS sender, HTTPS staging, managed PostGIS/Redis, contracted/self-hosted route/geocoder and map tiles with attribution, private S3 bucket, backup/restore, monitoring/rollback and two real device acceptance. Foreground PWA navigation is not background navigation.
+
+**External dependencies:** SMS provider/sender approval, API/site domains, routing/geocoding/tile hosting, private object-storage configuration, managed database/cache and operational monitoring.
+
+**Next implementation step:** Provision staging with the listed providers, run the two-account acceptance scenario against that real environment, verify map tile attribution/rendering, and keep public production deployment gated until the final checklist is evidenced.

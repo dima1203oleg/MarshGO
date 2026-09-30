@@ -26,6 +26,13 @@ export default defineConfig({
       env: { GEOCODER_STUB_PORT: '3304' },
     },
     {
+      command: 'node tests/fixtures/osrm-stub.mjs',
+      url: 'http://127.0.0.1:3305/health',
+      reuseExistingServer: false,
+      timeout: 10_000,
+      env: { OSRM_STUB_PORT: '3305' },
+    },
+    {
       command: 'npm run api',
       url: 'http://127.0.0.1:3302/healthz',
       reuseExistingServer: false,
@@ -39,6 +46,7 @@ export default defineConfig({
         SESSION_SECRET: process.env.SESSION_SECRET ?? 'test-only-marshgo-e2e-session-secret-32chars',
         AUTH_DEV_OTP: 'true',
         GEOCODING_ENGINE_URL: 'http://127.0.0.1:3304/search',
+        ROUTING_ENGINE_URL: 'http://127.0.0.1:3305/route/v1/driving',
         CORS_ORIGINS: 'http://127.0.0.1:3300',
       },
     },
