@@ -1,7 +1,7 @@
 # MARSHGO closed-loop audit
 
 **Audit date:** 2026-10-01  
-**Workspace:** `codex/marshgo-production`, HEAD `3f597f4`; local uncommitted work is preserved.  
+**Workspace:** `codex/marshgo-production`; exact local revisions are recorded in `RELEASE_MANIFEST.json`. Server/Site pass local source synchronization and fixture-backed browser acceptance; the signed iOS/staging release remains incomplete.
 **Rule:** a route or screen existing is not enough for `DONE`; the entire lifecycle including participant synchronization, failure/recovery, persistence and user-facing E2E must be verified.
 
 ## Product flow matrix
@@ -9,7 +9,7 @@
 | Flow | ENTRY | API | DB | Realtime | UI | Error | Recovery | Persistence | E2E | Status / evidence |
 |---|---|---|---|---|---|---|---|---|---|---|
 | OTP auth/session | PASS | PASS | PASS | N/A | PASS | PARTIAL | PASS refresh/reload | PASS | PASS | **PARTIAL** — isolated browser auth/refresh works; live SMS, device list/revoke UI and expired/revoked-session UX are not verified. |
-| Profile and role | PASS | PASS | PASS | N/A | PASS | PARTIAL | PASS | PASS | PARTIAL | **PARTIAL** — single identity and role activation persist. Personal JSON export is now reachable from production profile; UI download E2E is added and pending this run. |
+| Profile and role | PASS | PASS | PASS | N/A | PASS | PARTIAL | PASS | PASS | PASS locally | **PARTIAL** — single identity and role activation persist. Personal JSON export is reachable from profile; two-account download and ownership E2E passes. |
 | Account deletion | PASS request | PASS request/status/cancel | PASS cooling-off state | N/A | PASS request/status/cancel UI | PASS duplicate/terminal errors | PASS cancel/replay | PASS | PASS browser request/cancel | **PARTIAL / BLOCKED_EXTERNAL** — a configurable 7–90 day cooling-off interval (default 30) and cancellation are persisted; purge worker, legal retention, backup-erasure and processing decisions remain blocked pending approved policy. |
 | Vehicle and verification | PASS | PASS | PASS | notification/outbox | PASS | PARTIAL | PARTIAL resubmit | PASS | PARTIAL | **PARTIAL** — vehicle/document submissions and moderator decisions exist; verified private S3 lifecycle, malware scan and complete role-separated browser E2E are missing. |
 | Community offer | PASS | PASS | PASS | booking events | PASS | PASS | PARTIAL cancellation/rescue | PASS | PASS | **PARTIAL** — publish/search/book path and persistence work locally; editing/cancellation policy and complete two-party closeout/review UI need broader acceptance. |

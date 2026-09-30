@@ -14,5 +14,12 @@ export DATABASE_URL
 node scripts/ensure-e2e-database.ts
 npm run db:migrate
 node scripts/reset-e2e-otp.ts
-node scripts/build-pwa.mjs
+if [[ -n "${E2E_DIST_DIR:-}" ]]; then
+  if [[ ! -d "$E2E_DIST_DIR/assets" || ! -f "$E2E_DIST_DIR/index.html" ]]; then
+    echo "E2E_DIST_DIR must point to a built Site/PWA directory with index.html and assets/." >&2
+    exit 2
+  fi
+else
+  node scripts/build-pwa.mjs
+fi
 playwright test "$@"

@@ -1,40 +1,42 @@
 # MARSHGO Release Status — 2026-10-01
 
-## Current disposition
+## Disposition
 
-**NOT RELEASED. Production and staging are `BLOCKED_EXTERNAL`.** No public host/domain, production credentials, private map asset manifest, managed services, physical iPhone, or release approval account is configured in this workspace. Local services and public test endpoints must not be described as production.
+**NOT RELEASED.** Canonical Server and Site source are synchronized to the local integration implementation and pass local checks. Cross-repository browser tests pass with isolated deterministic routing/geocoding/map fixtures. This is not hosted staging or production. No real SMS, private production object storage, production monitoring, backup restore drill, signed iOS release, or physical-device acceptance is available.
 
-## Current verified scope
+## Local source revisions
 
-- Current umbrella check on 2026-10-01: `npm run check:production` passes typecheck, repository-wide lint, 71 unit tests, production build, and emitted-JavaScript gzip/demo-marker checks (one opt-in DB integration test is skipped by the unit-only command).
-- Full local integration run against PostgreSQL/PostGIS and Redis reports 17 passed, 0 failed across migration/index, booking/concurrency, navigation location, cross-instance realtime, process restart and shared rate-limit checks.
-- Current browser E2E reports 6/6 passed in Chromium on two-account and iPhone-sized contexts. It includes booking, negotiation, chat, matching/route insertion, active navigation restoration, GPS progress through Playwright geolocation, GPS deviation through the same browser location pipeline, server-confirmed off-route detection, reroute API execution and route-version replacement, and a persisted Community journey result; deterministic geocoder/OSRM/map fixtures are used for reproducibility.
-- Current browser-compatibility run reports 3/3 passed across Chromium, Firefox and WebKit, with authenticated API-backed UI coverage at 390×844, 820×1180 and 1440×1000 (9 engine/viewport combinations), plus desktop welcome. It checks top-level URL restoration, browser back and unknown routes. Screenshots and Playwright attachments were captured. This is representative responsive coverage, not every browser/device/OS version.
-- Current canonical-repository pass: `MarshGO-Site` commit `aaa038b` switched production navigation to the MapLibre adapter, added reroute API wiring, removed Leaflet/demo code from the production entry graph, and made lint cover the complete Site source. A follow-up `74f389b` aligns the raw-chunk warning threshold with the enforced per-file gzip budget. Site lint, typecheck, build and bundle check pass; the emitted production bundle has no Leaflet chunk and the largest JS file is 285.1 KB gzip.
-- Current `MarshGO-Server` pass: local commit `c6f13d4` adds a repository-wide ESLint CI gate. Lint, typecheck, 30 unit tests (one opt-in case skipped), 15 integration tests against local PostgreSQL/PostGIS and Redis, and high-severity dependency audit pass. The Server change is local and has not been pushed.
-- Current `MarshGO-iOS` pass: local commit `e247c71` makes tagged builds require pinned full Site/Server SHAs plus API/migration versions, and embeds a deterministic `release-manifest.json`. Capacitor sync and unsigned iOS Simulator compile pass. That compile used the current remote Site `main` SHA `ed602ac`, not the newer unpushed local Site commits; physical-device and signed release acceptance remain unverified.
-- At audit time the four remote default branches were `MarshGO` `1e7d0ee`, `MarshGO-Server` `ef9d105`, `MarshGO-Site` `ed602ac`, and `MarshGO-iOS` `647ffbb`. The local umbrella working tree is newer but contains substantial uncommitted work; it is not a reproducible release input yet. Open PRs remain on each repository and were not merged by this local pass.
-- Responsive screenshots exposed and verified a mobile passenger-counter overlap fix. Browser assertions now check that each counter control has space and does not overlap at phone width. E2E runners reset only OTP challenges inside the explicitly guarded loopback `marshgo_e2e*` database, preventing stale local test records from tripping the real OTP IP limit on repeated test runs.
-- The separate live-provider probe passed real Nominatim forward and reverse geocoding for Lviv/Stryi, a public OSRM road route (71.74 km, 1,022 geometry points, 18 maneuvers), and MapLibre vector rendering with 28 external style/tile asset requests and no browser errors. It is a one-time public-service smoke, not contracted production capacity; canonical Site currently has no approved immutable production style manifest configured.
-- Navigation replay passed all four checked-in goldens: clean route, location jump, offline section and weak GPS.
-- API/web production Docker images build. A clean local production-profile PostGIS/Redis/API Compose bootstrap applied migrations 001–026 and `/readyz` returned 200 with database and Redis connected. This used throwaway local values and example provider URLs, not a hosted deployment.
-- Latest iOS 27 iPhone 16 Pro Max simulator build/install/launch passed against the local API and rendered the welcome screen (`/tmp/marshgo-ios-simulator.png`). In-app login/navigation flow was not exercised in Simulator; no physical iPhone was attached.
-- The signed-out website welcome and responsive authenticated home were aligned to the supplied MARSHGO visual direction. Product data is no longer replaced by the local-storage demo by default; empty search state is stated plainly, and unavailable transport modes are marked as upcoming. The supplied composites are design references, not assets or pixel-perfect acceptance specifications, so web/iOS visual identity has not been certified as pixel-identical.
-- `git diff --check` passes. `npm run lint` now covers `src`, `server`, `shared`, `tests`, `e2e`, and the relevant scripts/configuration files; the earlier unused/dead-code findings were removed and this expanded lint passes.
-- Bun 1.3.5 vulnerability audit against the checked-in `bun.lock` passed with `No vulnerabilities found` (full audit and `--audit-level=high`). A focused secret-pattern scan found no known key/token/private-key patterns in the working tree or the 79 locally available commits; connection-string matches were local/test placeholders. These checks do not substitute for SAST, container image scanning, or provider-specific secret review.
-- `actionlint` 1.7.12 validates both current GitHub Actions workflow files; the workflows still require a push/PR run to verify hosted execution and permissions.
+| Repository | Local branch / commit | Working tree | Notes |
+|---|---|---|---|
+| MarshGO umbrella | `codex/marshgo-production` / `ec7f8a30e7241e7a4c1f6871fc585ba9eb8821e4` | clean; 1 commit ahead of remote branch | Integration tests exercised this checkout. |
+| MarshGO-Server | `main` / `363532c1e6bedd083b2f53c2449eeb6b34869ac6` | clean; 2 commits ahead of remote main | Synced integration API/domain code and migrations through `027`; its own lint/type/unit/integration tests pass locally. |
+| MarshGO-Site | `main` / `e47538b1281bc8fcab8dd3f4b646575caace5646` | clean; 3 commits ahead of remote main | Synced production UI/source; Leaflet component and dependencies removed. Full-source lint, typecheck, build and bundle checks pass. |
+| MarshGO-iOS | `main` / `28aa2acaa02b62732013e586576d898905099332` | clean; 2 commits ahead of remote main | Tagged CI now fails closed on missing/mismatched pinned inputs and compiles an unsigned Release archive. Local archive compile succeeded using old Site `ed602ac`, not the current Site SHA; signing/TestFlight remain unavailable. |
 
-## Open release gates
+These are local commits only. They have not been pushed, merged, signed, deployed, or accepted as a coordinated release. See [RELEASE_MANIFEST.json](RELEASE_MANIFEST.json).
 
-- Provision staging/production host, domain, TLS, secret manager, managed PostgreSQL/PostGIS and Redis; perform deploy/rollback/backup restore.
-- Configure real SMS credentials and verify an actual OTP send/verify cycle.
-- Select contracted/self-hosted routing and geocoding and host versioned MARSHGO map manifests/data.
-- Wire document storage/retention, alerting/metrics/error reporting, provider health, and operational incident response.
-- Run real browser golden path on staging with two users and production-like map/routing/geocoding, plus interactive iOS and physical-device acceptance.
-- Verify screenshots and complete user flows across the full supported browser/device/OS matrix; the automated compatibility run covers only three engines and three representative viewport sizes.
-- Release artifact signing and container image scanning remain incomplete. The CI workflow has been extended to run the lockfile-aware Bun vulnerability audit and the Chromium/Firefox/WebKit compatibility suite; a separate workflow now schedules CodeQL and Gitleaks on pushes, pull requests and weekly. These workflow changes have not yet run on GitHub Actions, so those gates remain unverified here.
-- Navigation transfer budget is close to the limit: MapLibre adapter is approximately 285 KB gzip and the separate worker approximately 142 KB gzip. The configured check applies the 350 KB limit per emitted JavaScript file; the combined navigation-triggered transfer has not been certified under a 350 KB aggregate budget.
-- The required continuous golden path (live route → GPS movement → passive match acceptance → route insertion → off-route recalculation → arrival and trip completion) has not been executed as one scenario. Isolated browser, integration, replay and live-provider checks do not substitute for that release gate.
-- The one browser reroute scenario uses controlled OSRM/map fixtures. The remaining golden-path gap is to continue the same scenario through actual pickup/arrival, booking completion/review and restart durability on hosted staging with real contracted providers.
+## Verified locally
 
-See [PRODUCTION_CHECKLIST.md](PRODUCTION_CHECKLIST.md) for detailed ownership/input checklist and [TEST_MATRIX.md](TEST_MATRIX.md) for scope/limits of each test tier.
+- Umbrella `npm run check:production`: typecheck, repository-wide lint, 71 unit tests, Vite production build, emitted JavaScript gzip/demo-marker checks all pass; 1 opt-in database test is skipped in the unit command.
+- Umbrella PostGIS/Redis integration: 17/17 pass.
+- Umbrella browser E2E: 6/6 pass in Chromium against the isolated local stack and deterministic provider fixtures.
+- Browser compatibility: Chromium, Firefox, WebKit pass representative phone/tablet/desktop viewports (9 engine/viewport combinations).
+- Site local clone: full-source lint, typecheck, production build and bundle checks pass; no Leaflet chunk is emitted; largest JavaScript file is 285.1 KB gzip.
+- Exact committed Site production bundle against synchronized Server API: 6/6 Chromium browser E2E and 3/3 browser compatibility projects (Chromium, Firefox, WebKit) pass at representative phone/tablet/desktop sizes. Tests use isolated local PostGIS/Redis and deterministic geocoder/OSRM/tile fixtures; they do not qualify live providers or hosted staging.
+- Server local clone: full-source lint, typecheck, 30 unit tests pass (1 opt-in test skipped), 15 integration tests pass, high-severity npm audit reports no vulnerabilities.
+- iOS local clone: Capacitor sync, unsigned Simulator compile and unsigned iOS Release archive compile pass. The archive used older Site `ed602ac`; it is not a signed/TestFlight artifact or physical-device acceptance. Workflow YAML parses; GitHub-hosted execution has not been run.
+- Current umbrella and standalone Server trees now share integration API/domain code and migrations through `027`; integrated frontend source and standalone Site `src/` are synchronized. Server checks pass (33 unit pass, 1 opt-in skip; 17 integration pass). Site against that Server API passes local browser E2E/compatibility tests. iOS Simulator artifact is still built from older remote Site `ed602ac`; there is no signed iOS artifact or hosted staging evidence.
+- A one-time live-provider smoke succeeded against public Nominatim, OSRM and OpenFreeMap endpoints. This does not qualify those shared public services for production use.
+- `git diff --check` passes in each of the four clean local checkouts.
+
+## Release blockers
+
+1. Publish/review the local Server/Site commits and set iOS release variables to their immutable SHAs; build/test a new iOS artifact and run hosted staging acceptance with the exact four-repository manifest.
+2. Publish/review the local commits and pin exact compatible Server/Site revisions in the iOS release build. Current iOS Simulator artifact used old remote Site `ed602ac`.
+3. Provision HTTPS staging, domain, secret management, managed Postgres/PostGIS and Redis; deploy API, worker and Site; exercise rollback and backup restore.
+4. Configure real SMS, contracted/self-hosted geocoding/routing/map data and private object storage with encryption, retention, logging and malware scanning.
+5. Implement/qualify Web Push and APNs, payment adapter as required, monitoring/alerts and operational incident procedures.
+6. Finish WALK and provider-fed multimodal Journey, GTFS/GTFS-RT, Journey Monitor/Replan/Rescue, and full multi-passenger/booking/rendezvous closeout. Current deterministic fixtures are test-only.
+7. Complete signed iOS archive/TestFlight, background location, deep links, camera QR and two physical iPhone acceptance. The connected physical iPhone was unavailable.
+
+Do not report **PRODUCTION READY** until the applicable release gates above have passed with environment-specific evidence.

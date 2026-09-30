@@ -1,10 +1,12 @@
 import { createServer, request as proxyRequest } from 'node:http';
 import { readFile, readdir } from 'node:fs/promises';
-import { extname, join, normalize } from 'node:path';
+import { extname, join, normalize, resolve } from 'node:path';
 import process from 'node:process';
 import { URL } from 'node:url';
 
-const root = normalize(join(process.cwd(), 'dist'));
+const root = process.env.E2E_DIST_DIR
+  ? resolve(process.env.E2E_DIST_DIR)
+  : normalize(join(process.cwd(), 'dist'));
 const bundles = await readdir(join(root, 'assets'));
 for (const bundle of bundles.filter((file) => file.endsWith('.js'))) {
   const contents = await readFile(join(root, 'assets', bundle), 'utf8');

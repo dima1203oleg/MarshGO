@@ -3,6 +3,8 @@
 **As of:** 2026-10-01  
 **Disposition: NOT RELEASED.** Local implementation and isolated test environments are not hosted production. This report distinguishes verified local behavior from external release gates.
 
+**Release-set compatibility:** PASS for the local Server/Site source combination; the production Site bundle passed local cross-repository browser E2E against the synchronized API with deterministic fixtures. The full four-repository release is still PARTIAL because iOS has not been built from the current Site SHA, and hosted staging/providers are unavailable.
+
 | Product area | Result | Evidence / remaining acceptance |
 |---|---|---|
 | Auth/session | PARTIAL | Local OTP/refresh/reload coverage. Real SMS and active device/session management are not verified. |
@@ -22,25 +24,28 @@
 | Payments | BLOCKED_EXTERNAL | Community direct payment remains 0% platform fee. No commercial PaymentProvider, webhook, refund or settlement is configured. |
 | Admin/moderation | PARTIAL | API role guards and local UI flows exist. Full security matrix, operating SLA and hosted audit evidence are incomplete. |
 | Web/browser | PASS for tested local matrix, not universal | Chromium E2E and Chromium/Firefox/WebKit responsive compatibility passed representative viewports. Not every browser version, OS or physical device is covered. |
-| iOS | PASS simulator launch only | Simulator build/install/launch passed at welcome screen. Authenticated end-to-end flow, TestFlight signing, APNs, background location and physical acceptance remain unverified. |
+| iOS | PARTIAL | Simulator build/install/launch passed at welcome screen; unsigned Release archive compile passed against the older Site SHA `ed602ac`. Current Site SHA is not yet embedded in iOS artifact. Authenticated end-to-end flow, signing/TestFlight, APNs, background location and physical acceptance remain unverified. |
 | Infrastructure/security/backup | BLOCKED_EXTERNAL | Local Docker bootstrap and health/readiness passed. No hosted HTTPS staging, managed services, monitoring/alerts, production security scan result, backup restore drill or rollback execution. |
 
 ## Production gates
 
 | Gate | Result |
 |---|---|
-| Clean local DB migration through current schema | PASS locally (migrations 001–027) |
+| Clean local DB migration through current schema | PASS locally (fresh isolated DB, migrations 001–027) |
 | Typecheck/lint/unit/build/bundle check | PASS locally (71 pass, 1 opt-in skip) |
 | PostGIS/Redis integration suite | PASS 17/17 after migration 027 |
-| Browser E2E | PASS 6/6; includes JSON download, deletion request → cancel → reload persistence, marketplace, matching, GPS deviation/reroute and responsive routes |
-| Browser compatibility | PASS 3 engines × phone/tablet/desktop representative sizes |
+| Browser E2E | PASS 6/6 on committed Site bundle + synchronized Server API; independent users, booking/negotiation/chat, matching, GPS deviation/reroute, map and Journey UI. Uses local deterministic providers. |
+| Browser compatibility | PASS 3 engines × phone/tablet/desktop representative sizes on committed Site production bundle |
 | Live contracted map/routing/geocoding | BLOCKED_EXTERNAL |
 | Real SMS | BLOCKED_EXTERNAL |
 | Private S3 and malware scanning | BLOCKED_EXTERNAL |
 | Staging HTTPS / hosted production | BLOCKED_EXTERNAL |
 | Backup restore drill / monitoring | BLOCKED_EXTERNAL |
 | Physical two-iPhone acceptance | BLOCKED_EXTERNAL |
+| Unsigned iOS Release archive compile | PASS (older Site SHA) |
 | Full closed-loop multimodal golden path | FAIL / MISSING |
+| Local Server/Site source compatibility and fixture E2E | PASS |
+| Full four-repository pinned release artifact | PARTIAL |
 
 ## Inputs needed for a real production release
 
