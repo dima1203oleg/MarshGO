@@ -1194,10 +1194,14 @@ The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max 
 
 **Database/API changes:** No migration required; the existing Journey foreign keys and Community booking fee snapshots are reused. Changed `POST /api/v1/bookings`, `POST /api/v1/bookings/:id/cancel`; added the supported realtime event `journey.updated`.
 
-**Tests:** Server typecheck passed; unit/build verification in progress. Real PostGIS/Redis integration passed: Journey schema 1/1, core booking/search/negotiation 10/10, navigation 1/1, cross-instance realtime 1/1, restart 1/1, rate-limit 1/1. These include 20 concurrent last-seat attempts, Journey price locking, idempotency mismatch rejection, double cancellation and Journey event privacy. Site typecheck/lint/build passed. The Playwright Journey flow now also books the selected leg and verifies persisted `READY` state; final umbrella suite is pending.
+**Tests:** Server typecheck and unit tests passed (24 passed, one opt-in DB-only test skipped). Real PostGIS/Redis integration passed: Journey schema 1/1, core booking/search/negotiation 10/10, navigation 1/1, cross-instance realtime 1/1, restart 1/1, rate-limit 1/1. These include 20 concurrent last-seat attempts, Journey price locking, idempotency mismatch rejection, double cancellation and Journey event privacy. Site typecheck/lint/build passed. Umbrella `npm run check:production` passed (31 unit tests, one opt-in DB-only test skipped), integration suites passed, and Playwright E2E passed 4/4 including persisted Journey `READY` after booking.
 
 **Demo/truth status:** Community search and booking use persisted database records. Bus, transit, taxi, rail, walking legs, future transfer matching, Journey monitor/replanning and push remain unavailable and are not presented as live options.
 
 **External blockers:** Provider feeds/contracts, staging credentials/infrastructure, SMS and routing/geocoding service credentials remain outstanding.
 
-**Next step:** Run umbrella E2E on an isolated local PostGIS/Redis database, publish the lifecycle changes to Server/Site and the umbrella integration branch, then proceed to future Community matching using arrival uncertainty windows.
+**iOS simulator:** Rebuilt the current Site bundle in Capacitor, installed/launched on iPhone 15 Pro Max and iPhone 16 Pro Max simulators, and visually verified the Welcome screen. Cold WebKit launch needed about 20 seconds before first paint. Captures: `/tmp/marshgo-iphone15-after20.png`, `/tmp/marshgo-iphone16-after26.png`. This verifies packaging/startup/rendering only; login, live API booking and device GPS were not exercised in native UI on these simulators.
+
+**GitHub:** Server commit `2ff540e` is on `MarshGO-Server/main`; Site commit `bd16f35` is on `MarshGO-Site/main`; umbrella commit `f97b9a3` is on `MarshGO/codex/marshgo-production`. All corresponding GitHub workflows passed. Existing PR #1 remains a draft; no deployment occurred.
+
+**Next step:** Continue future Community transfer matching using arrival uncertainty windows, then add predictive re-planning and provider-independent journey monitoring.
