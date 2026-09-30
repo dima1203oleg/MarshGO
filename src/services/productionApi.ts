@@ -170,6 +170,9 @@ export const productionApi = {
     return request<{ id: string; status: string }>(`/demands/${demandId}/cancel`, { method: 'POST' });
   },
   bookings() { return request<ApiBooking[]>('/bookings'); },
+  cancelBooking(bookingId: string) {
+    return request<{ id: string; status: string; replayed?: boolean }>(`/bookings/${bookingId}/cancel`, { method: 'POST' });
+  },
   me() { return request<ApiUser>('/users/me'); },
   vehicles() { return request<ApiVehicle[]>('/vehicles'); },
   enableRole(role: 'passenger' | 'driver') {

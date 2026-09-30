@@ -327,3 +327,27 @@
 **External blockers:** Contracted/self-hosted HTTPS geocoder and routing provider for production use.
 
 **Next implementation step:** Add route-corridor candidate evaluation using stored road geometry and measured detours; connect real provider configuration before claiming production search availability.
+
+## Phase 3 / 5 — Passenger booking cancellation in iOS
+
+**Phase:** 3 Offers/Booking; 5 Production UI replacement.
+
+**Status:** PARTIAL. A passenger can cancel a confirmed booking from the iOS trips screen through the existing server state transition.
+
+**Completed:** Added an explicit cancellation confirmation and status feedback. The UI refreshes canonical server bookings after cancellation; it does not locally invent an inventory update. The endpoint only permits the booking passenger and returns seats once transactionally; drivers do not receive a passenger cancellation action.
+
+**Modified files:** `src/services/productionApi.ts`, `src/views/ProductionMarketplace.tsx`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** None.
+
+**Endpoints:** Existing `POST /api/v1/bookings/:id/cancel`.
+
+**Tests:** `npm test` passed 16/16 including idempotent cancellation and exactly-once seat restoration; typecheck, lint and production build passed. `npm run ios:simulator` rebuilt, installed and launched on iPhone 18 Pro / iOS 27; screenshot `/tmp/marshgo-ios-booking-cancel.png` confirms successful native launch. The cancellation action itself is not tap-tested because this host only provides headless `simctl`.
+
+**DEMO/TRUTH status:** Cancellation and booking state remain server-authoritative.
+
+**Remaining issues:** Cancellation UI is not tap-tested on-device; refund behavior is intentionally not represented because no payment service exists. Driver boarding/start and two-party trip completion are API-backed but are not yet integrated into the iOS UI.
+
+**External blockers:** Tap-capable simulator/physical iPhone for interaction checks; payment provider contract for any future refunds.
+
+**Next implementation step:** Rebuild and launch in the iOS simulator, then implement driver trip lifecycle controls with clear participant-specific actions.
