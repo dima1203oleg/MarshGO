@@ -1217,3 +1217,23 @@ The local Capacitor bundle was also installed and launched on iPhone 15 Pro Max 
 **Tests:** Root typecheck/lint passed; `npm run check:production` passed (31 unit tests, one opt-in DB-only test skipped; production build passed); isolated PostgreSQL/PostGIS + Redis integration suites passed; Playwright E2E passed 4/4, including showing a persisted Journey as `Маршрут готовий`, cancelling its booking, and showing `REPLANNING` without the stale fare.
 
 **Next step:** Continue the future Community transfer matcher only when there is a real predecessor leg schedule and uncertainty source. No current Bus/GTFS partner feed exists, so Bus-to-Community future-transfer inventory remains unavailable.
+
+## Multimodal expansion — persistent notification inbox
+
+**Phase:** G (partial).
+
+**Completed:** Added persistent per-user inbox records projected idempotently from the transactional realtime outbox; authenticated pagination, unread counts, per-item and bulk read APIs; safe notification projection that excludes chat content and personal details; and a Site inbox sheet with unread badge and realtime refresh.
+
+**Changed files:** `server/migrations/021_user_notifications.sql`, `server/notifications.ts`, `server/index.ts`, `tests/notifications.test.ts`, `tests/api-bookings.integration.test.ts`, `src/services/productionApi.ts`, `src/views/ProductionMarketplace.tsx`, `docs/API.md`, `docs/MULTIMODAL_PROGRESS.md`.
+
+**Database/API changes:** Migration `021_user_notifications.sql`; `GET /api/v1/notifications`, `POST /api/v1/notifications/:id/read`, `POST /api/v1/notifications/read-all`.
+
+**Tests:** Root unit suite passed (33 passed, one opt-in DB test skipped); root and standalone Site typecheck/lint/build passed. Real PostGIS/Redis integration remains to be rerun with migration 021 before considering this slice verified end-to-end.
+
+**Demo/truth status:** Inbox items originate from server outbox events and persist in PostgreSQL; unread state is server-owned. No Web Push/APNs delivery is connected. Predictive Journey notifications are not yet available because live Journey monitoring/replanning is not implemented.
+
+**External dependencies:** APNs credentials and physical-device push entitlement/testing for iOS push; staging domain and HTTPS endpoints for real cross-device release tests.
+
+**Next implementation step:** Run the migration and API integration tests on an isolated PostGIS/Redis database, then implement a Journey monitor/event source before emitting future-transfer or predictive-rescue notifications.
+
+**Verification update:** Created fresh loopback database `marshgo_e2e_notifications` and applied migrations 001–021 successfully. Full `E2E_DATABASE_URL=postgres://…/marshgo_e2e_notifications REDIS_URL=redis://127.0.0.1:6380 npm run test:integration` passed: Journey schema 1/1, booking/search/negotiation/Journey inbox 10/10, navigation 1/1, Redis cross-instance realtime 1/1, restart durability 1/1, and rate limiting 1/1. Root unit tests/typecheck/lint/build and standalone Site typecheck/lint/build passed. Playwright E2E passed 4/4; the Journey test opens the inbox, checks saved booking/replanning events, and marks an item read. One test expectation was corrected from three to four notifications because the lifecycle emits booking confirmed/cancelled plus Journey READY/REPLANNING events; final rerun passed.

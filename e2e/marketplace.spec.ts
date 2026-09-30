@@ -642,6 +642,16 @@ test('Journey Planner ranks a persisted Community route and opens its current of
     expect((await cancelResponse).status()).toBe(200);
     await expect(page.getByText('Потрібне перепланування')).toBeVisible();
     await expect(page.getByText('Ціна оновиться після перепланування')).toBeVisible();
+
+    const inboxResponse = page.waitForResponse(response => response.url().includes('/api/v1/notifications?limit=30'));
+    await page.getByRole('button', { name: /Сповіщення/ }).click();
+    expect((await inboxResponse).status()).toBe(200);
+    await expect(page.getByRole('heading', { name: 'Сповіщення' })).toBeVisible();
+    await expect(page.getByText('План маршруту оновлено').first()).toBeVisible();
+    await expect(page.getByText('Бронювання підтверджено').first()).toBeVisible();
+    const markReadResponse = page.waitForResponse(response => /\/api\/v1\/notifications\/[0-9a-f-]+\/read$/.test(response.url()));
+    await page.getByRole('button').filter({ hasText: 'План маршруту оновлено' }).first().click();
+    expect((await markReadResponse).status()).toBe(200);
   } finally {
     await context.close();
   }
