@@ -759,3 +759,27 @@
 **External dependencies:** No credentials required for this test. Staging database/host and physical user accounts remain owner-provisioned.
 
 **Next implementation step:** Continue the P0 release-critical path by addressing remaining testable server invariants (offer expiry/status and idempotency persistence across process restart), then return to provider-backed route and staging acceptance when infrastructure is available.
+
+## Phase 3 continuation — expired offer booking guard
+
+**Phase:** 3 Offers/Booking; direct API expiry invariant.
+
+**Status:** PARTIAL. A new booking now fails closed when the published offer's departure has passed. An existing idempotent replay still returns its prior booking, preserving retry semantics.
+
+**Completed:** The transactional booking query locks and reads `departure_at`; before inventory changes or booking creation, the server returns HTTP 409 `offer_expired` for a new request against an elapsed departure. Added an isolated API/PostGIS test that attempts this direct request and proves both seat inventory and booking count remain unchanged.
+
+**Modified files:** `server/index.ts`, `tests/api-bookings.integration.test.ts`, `docs/PRODUCTION_AUDIT.md`, `docs/PRODUCTION_PROGRESS.md`.
+
+**Database changes:** None.
+
+**Endpoints:** `POST /api/v1/bookings` now returns `409 offer_expired` when a new booking targets an offer whose departure time is not in the future.
+
+**Tests:** `npm run typecheck`, `npm run lint`, `API_TEST_DATABASE_URL=postgres://marshgo:local_only_change_me@127.0.0.1:5434/marshgo_e2e npm run test:integration`, `npm test`, and `npm run build` passed. Booking suite: 7/7; navigation: 1/1; cross-instance Redis realtime: 1/1; unit: 12/12. Integration fixtures use only the isolated loopback test database.
+
+**DEMO/TRUTH status:** Expiry is enforced by the real API/PostgreSQL path and regression-tested locally. This does not establish staging uptime or independent-device acceptance.
+
+**Open issues:** Run the new integration case in the standalone server repository CI, then continue idempotency/process-restart and provider-backed route/staging checks.
+
+**External dependencies:** None for the invariant; staging and managed production infrastructure remain owner-provisioned blockers.
+
+**Next implementation step:** Sync the API and test change into `MarshGO-Server`, verify its clean install/CI, and continue remaining release-critical invariants without marking the release ready.
