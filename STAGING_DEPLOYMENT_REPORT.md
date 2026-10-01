@@ -21,7 +21,7 @@
 | Component | SHA | Deployment |
 |---|---|---|
 | MarshGO-Server | f0a6cdb2fd918733770f65f997dfea5d7c302b0c | Deployed from `codex/security-parse-bearer` (PR #2; not yet merged to `main`) |
-| MarshGO-Site | 779e29e0572d290ab1111d3cb5b7ba334d4fccdc | Rebuilt from the updated `codex/navigation-deep-link-alias` PR #2 head (main baseline remains `c7f76a4…`) |
+| MarshGO-Site | 085c9dbdbb3b8ae68f65db629895cbdff6b79c76 | Rebuilt from `codex/navigation-deep-link-alias` PR #2 head (main baseline remains `c7f76a4…`) |
 | MarshGO-iOS | b8b1fcbfe9997e1a7a27594b5759690147de75df | Not deployed to web staging |
 | MarshGO integration baseline | 904874f11eee6a19b77c2356230a82ab7c45569f | Test/deployment baseline |
 | Umbrella deployment/orchestration branch | 0127de32b125af0a7feb1ec85261582921cd6df3 | `codex/marshgo-production`; follow-up audit reports are being committed separately |
@@ -38,7 +38,7 @@ The locally materialized pinned Server and Site source trees contain untracked b
 | Driver navigation CTA copy | PASS | Updated production build now accurately says route matching requires driver consent and a verified vehicle; rebuilt bundle was served from staging over HTTPS. |
 | Driver vehicle form and private photo upload | PASS (test fixture only) | A clearly marked staging driver created a vehicle in the UI; a synthetic PNG passed the signed private S3 upload and was recorded as the primary photo in Postgres. The synthetic-document review rejected this test vehicle; it cannot publish. |
 | Driver dashboard after login | PASS | Independent driver test account reached the production dashboard after OTP verification; server-backed offers, demands, vehicles and navigation-match reads returned successfully. The test vehicle is unverified, so publishing/matching acceptance remains blocked by the real verification flow. |
-| Moderator authentication | PASS | Moderator test account authenticated and opened the admin verification screen through the direct URL. |
+| Moderator authentication and direct route | PASS | Moderator test account authenticated, opened `/admin/verification` directly, and the production UI automatically loaded its verification and moderation queues without a manual refresh. |
 | Verification submission/review/rejection | PASS (test-only evidence) | Driver UI uploaded two synthetic PNG fixtures; the moderator opened one in the protected UI and rejected it with a test-fixture reason. API confirmation appeared and both verification records ended as `rejected`; no synthetic evidence was approved. The automation then hit a strict-selector ambiguity on a redundant queue refresh. |
 | Login with development OTP | PASS | Separate Chromium contexts authenticated the staging driver and moderator test identities through the visible OTP flow; all post-login API reads returned 200. OTP values were not retained in output. |
 | Passenger demand creation | PASS | UI published Стрий → Львів, 2 passengers, 300 UAH total. |
@@ -79,6 +79,7 @@ Local, ignored artifacts (not committed or publicly linked):
 - .release/staging-driver-dashboard.png (driver test account after visible OTP login)
 - .release/staging-driver-dashboard-current.png (updated Site bundle; CTA opened navigation)
 - .release/staging-moderator-queue-current.png (protected queue before rejection)
+- .release/staging-admin-direct-url.png (direct staff route with automatic queue loading)
 - .release/staging-map-desktop.png
 - .release/staging-map-mobile.png
 - .release/staging-map-openfreemap-desktop.png
