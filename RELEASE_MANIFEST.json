@@ -14,10 +14,10 @@
   "source_repositories": {
     "server": "dima1203oleg/MarshGO-Server@codex/security-parse-bearer",
     "site": "dima1203oleg/MarshGO-Site@codex/navigation-deep-link-alias",
-    "ios": "dima1203oleg/MarshGO-iOS@main",
+    "ios": "dima1203oleg/MarshGO-iOS@codex/reliable-capacitor-sync",
     "integration": "dima1203oleg/MarshGO@codex/marshgo-production"
   },
-  "ios_simulator_site_sha": "3a8ce9af81a4986ecdc182ed12d86e70bbf4d8e7",
+  "ios_simulator_site_sha": "336787900c645277a7284568d573ce079fb05010",
   "verification": {
     "umbrella_unit_tests": "PASS: npm run check:production; 80 total, 79 passed, 0 failed, 1 opt-in local integration skip. Typecheck, full lint, production build and bundle gate also pass.",
     "umbrella_production_check": "PASS locally on current umbrella worktree: npm run check:production; TypeScript, repository-wide ESLint, production build and bundle gate pass; 79 unit tests pass, 0 fail, 1 opt-in integration test skipped.",
@@ -29,7 +29,7 @@
     "production_bundle_demo_isolation": "PASS: check:bundle rejects 11 known demo identity/inventory markers; negative probe confirmed usr_drv_alex injection fails the gate, clean production build passes; Site PR #2 CI passed",
     "multi_passenger_stop_limit": "PASS locally: stop optimizer supports a 30-stop plan; 5 optimizer tests pass including 15 riders, pickup-before-dropoff, per-stop seat invariants and the overflow limit; integration suite exercises two accepted riders on one route",
     "ios_simulator_ci": "PASS: GitHub iOS Simulator Build run 36903734023 on immutable branch commit 1f08e73e351ed0e7e7d4c522b47c0ed5cb06e8a0; npm ci, exact Site checkout, Capacitor sync and iPhone simulator compile passed.",
-    "umbrella_github_ci": "PASS: push Verify 36901515153 and PR Verify 36901523944 on tested umbrella product/test baseline eaa37b2cf2408bb6dd6d65748dad603877643983; dependency audit, repository lint, typecheck, unit, migrations, Server integration, production build/bundle, canonical Docker image build, Playwright E2E, and Chromium/Firefox/WebKit browser compatibility all passed. CodeQL and Gitleaks passed. Newer docs-only head 9b3fc73dad908f0f8575f5d8403570f559e688dc run 36905002674 has passed through image build and is still in Playwright browser installation; it is not yet green.",
+    "umbrella_github_ci": "PASS for product baseline eaa37b2cf2408bb6dd6d65748dad603877643983: push Verify 36901515153 and PR Verify 36901523944 passed all gates, including E2E/browser matrix; CodeQL and Gitleaks passed. Newer docs-only heads 9b3fc73dad908f0f8575f5d8403570f559e688dc (run 36905002674) and 861c80314de3676bde13401fd5388ca56c1bd9a9 (run 36906161758) are still in progress; the former is at Playwright browser install, the latter at repository lint. Do not treat the newest umbrella head as CI green until its run completes.",
     "local_browser_matrix": "PASS: npm run test:browser-compat against immutable Site 336787900c645277a7284568d573ce079fb05010; Chromium, Firefox, WebKit 3/3.",
     "backup_restore_drill": "PASS: prior disposable local PostGIS backup and restore drill; no off-host/production restore proof",
     "staging": "PARTIAL: temporary HTTPS tunnel https://superblessed-herlinda-epiphragmal.ngrok-free.dev; Server 699b1fa7e007f5f8b56e597922523cf4659dd942 / Site 336787900c645277a7284568d573ce079fb05010. Exact Site bundle rebuilt from SHA; /healthz and /readyz return 200, PostgreSQL/realtime connected. Public Chromium search/reload retained geocoded Стрий → Львів criteria, full mobile heading and honest empty state; no console errors/warnings. A synthetic staging account enabled driver role and selected geocoded Lviv destination. No real GPS permission granted and no public navigation session started; map tiles/polyline/live marker/reroute and full paired lifecycle remain unaccepted.",
@@ -52,7 +52,7 @@
     "provider": "local Docker services via temporary ngrok-free.dev HTTPS tunnel",
     "status": "PARTIAL; exact Server/Site candidate pair deployed. /readyz=200. Public browser verifies Photon geocoding, route search, refresh-safe URL criteria, and mobile route-heading wrapping; empty inventory shown honestly. Paired booking-to-completion/realtime rendezvous acceptance remains incomplete.",
     "deployed_server_sha": "699b1fa7e007f5f8b56e597922523cf4659dd942",
-    "deployed_site_sha": "ac15b3bd0650ed25a5166229ca1c3f2d2215b24c",
+    "deployed_site_sha": "336787900c645277a7284568d573ce079fb05010",
     "migration": "028",
     "checked_at": "2026-10-01 20:24 Europe/Kyiv"
   },

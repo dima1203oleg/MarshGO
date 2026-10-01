@@ -90,7 +90,11 @@ The same temporary public URL remained reachable: homepage HTTP 200 and `/readyz
 | Browser console | PASS for tested actions | `tab.dev.logs({levels:['error','warn']})` returned no errors or warnings after OTP, search and route navigation. The tab automation subsequently timed out on the cancellation click; it is recorded as an inconclusive UI attempt, not an app failure or a PASS. |
 | Current readiness | PARTIAL / `STAGING_READY=NO` | The public single-user search→booking→reload→chat-history slice passed. Paired independent driver/passenger, cancellation/Rescue, live realtime, GPS movement/reroute and complete booking lifecycle remain unaccepted. |
 
-Staging API provider configuration was switched by restarting the API and edge processes. The current API process (PID 63476) runs from the clean Server checkout at `23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46`; current Site assets are built from `3a8ce9af81a4986ecdc182ed12d86e70bbf4d8e7`. Edge PID: 64598; public ngrok tunnel PID: 57244. This differs from historical report entries that refer to the prior deployed Server `237d14f1b3e4d69936433f46f290d1cd4b920d9d`. The free tunnel remains temporary and has no uptime guarantee.
+## Historical append-only snapshots (superseded by the current deployment summary at the top)
+
+The following entries record earlier checks and revisions. Their old process IDs, SHAs, hostnames, and acceptance results are historical; the current deployed revisions are listed in the summary at the top of this report.
+
+Earlier staging API provider configuration was switched by restarting API and edge processes. The prior snapshot recorded API PID 63476 on Server `23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46`, Site assets `3a8ce9af81a4986ecdc182ed12d86e70bbf4d8e7`, edge PID 64598, and ngrok PID 57244. Those values are superseded. The free tunnel remains temporary and has no uptime guarantee.
 
 ## Latest cancellation and Rescue acceptance delta (2026-10-01 18:24 Europe/Kyiv)
 
