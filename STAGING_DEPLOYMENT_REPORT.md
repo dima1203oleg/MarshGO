@@ -1,21 +1,21 @@
 # MARSHGO Temporary Public Staging Report
 
-**Checked:** 2026-10-01 17:15 Europe/Kyiv
-**STAGING_URL:** https://0c7342d01f4706.lhr.life
+**Checked:** 2026-10-01 17:30 Europe/Kyiv
+**STAGING_URL:** https://ed296cad697b8c.lhr.life
 **STAGING_READY:** NO (public reachability and review UI slices verified; complete paired-user acceptance remains incomplete)
 **READY_FOR_SERVER_DEPLOYMENT:** NO
 **PRODUCTION_READY:** NO
 
 **Credential hygiene note:** A diagnostic process-environment inspection showed unrelated AI provider API keys inherited by the prior edge process. The edge did not use those keys for MARSHGO, but the diagnostic output included them. That process was stopped and the staging edge relaunched using an empty environment with only the staging Site/API/S3 port and path settings. See `OWNER_ACTIONS_REQUIRED.md`; if those were live keys, rotate them. No production SMS/payment/provider secret is configured in the current staging processes.
 
-**Latest reconnect:** 2026-10-01 17:04 Europe/Kyiv, temporary URL `https://0c7342d01f4706.lhr.life`. `/healthz`, `/readyz`, and Chromium homepage are currently 200; the tunnel rotates and expires. The prior `db75684bf2b067.lhr.life` hostname returned 503 after reconnect. localhost.run rotates hostnames; old URLs can return 503 after reconnect. The public edge proxies the production-built canonical Site and staging API; `/healthz` and `/readyz` returned 200 with PostgreSQL and Redis connected. Chromium visibly rendered the home page and the staging/test-only banner. An unauthenticated direct `/navigation` request retained its URL but showed the authentication welcome screen; the route itself is available after authentication, and unauthenticated protected deep-link restoration still needs explicit E2E acceptance. Passenger review submission and reload persistence passed in visible Chromium on the previous public hostname. A second OTP attempt for the seeded driver hit the shared public staging OTP rate limit. To complete the other participant's UI check without resetting the shared OTP bucket, the same production-built Site and the same staging PostgreSQL/Redis/S3Mock services were accessed through a temporary local edge/API process with an isolated staging-only rate-limit namespace. The driver submitted a 5-star review and saw the persisted reviewed state after reload. Both reviews were on a deliberately seeded completed test booking; this is review UI/state evidence, not acceptance of the real booking-to-completion lifecycle.
+**Latest reconnect:** 2026-10-01 17:29 Europe/Kyiv, temporary URL `https://ed296cad697b8c.lhr.life`. `/healthz`, `/readyz`, and homepage returned HTTP 200; readiness reported PostgreSQL and realtime connected. Chromium visibly rendered the homepage and staging/test-only banner; browser console had no warnings or errors. This anonymous localhost.run URL rotates and expires; the previous hostname returned 503. This refresh verifies reachability only and does not add paired-user lifecycle acceptance. Earlier route, OTP, review, and staff-route checks are recorded below with their exact scope and limitations.
 
 
-## Latest repository and deployment snapshot (2026-10-01 17:15 Europe/Kyiv)
+## Latest repository and deployment snapshot (2026-10-01 17:30 Europe/Kyiv)
 
-- Current public URL: `https://0c7342d01f4706.lhr.life`; `/healthz`, `/readyz` (PostgreSQL and Redis connected) and homepage return HTTP 200. The URL is an anonymous localhost.run tunnel and can rotate or expire.
-- Source candidates: umbrella `71cff14edc60f6182d8f05c25325144418e35444`, Server `23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46`, Site `c9a288162065a819864200da80fd5bcd1218af69`, iOS `b8b1fcbfe9997e1a7a27594b5759690147de75df`. Deployed staging Server is `237d14f1b3e4d69936433f46f290d1cd4b920d9d`; deployed Site is `c9a288162065a819864200da80fd5bcd1218af69`. iOS simulator build metadata pins Site, deployed Server, API `v1` and migration `028`.
-- GitHub umbrella CI passed on `71cff14edc60f6182d8f05c25325144418e35444`: both Verify runs (`36874015904`, `36874022374`), CodeQL and Gitleaks. Verify covers lint, typecheck, unit, migrations, PostGIS/Redis integration, Docker builds, Playwright E2E and browser compatibility.
+- Current public URL: `https://ed296cad697b8c.lhr.life`; `/healthz`, `/readyz` (PostgreSQL and Redis connected) and homepage return HTTP 200. Chromium rendered the staging homepage with no console warnings/errors. The URL is an anonymous localhost.run tunnel and can rotate or expire.
+- Source candidates: umbrella `27a4738b992acef60a438460fa9dd564eec901b8`, Server `23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46`, Site `c9a288162065a819864200da80fd5bcd1218af69`, iOS `b8b1fcbfe9997e1a7a27594b5759690147de75df`. Deployed staging Server is `237d14f1b3e4d69936433f46f290d1cd4b920d9d`; deployed Site is `c9a288162065a819864200da80fd5bcd1218af69`. iOS simulator build metadata pins Site, deployed Server, API `v1` and migration `028`.
+- On umbrella `27a4738b992acef60a438460fa9dd564eec901b8`, one Verify run (`36875070452`), CodeQL and Gitleaks passed; a duplicate Verify run (`36875061381`) remained pending at the last check. Earlier umbrella `71cff14edc60f6182d8f05c25325144418e35444` had both Verify runs pass. Verify covers lint, typecheck, unit, migrations, PostGIS/Redis integration, Docker builds, Playwright E2E and browser compatibility.
 - `STAGING_READY=NO`: public access, test OTP, search/address lookup, route/map slices and staff-route denial have passed in the stated scopes, but complete paired Passenger/Driver booking-to-completion, cancellation/Rescue, public simulated-GPS reroute and realtime recovery are not fully accepted.
 
 ## Latest hostname refresh (17:06 Europe/Kyiv)
@@ -25,6 +25,13 @@
 | Current public hostname | PASS, ephemeral | `https://0c7342d01f4706.lhr.life`; edge `/healthz` = 200, API `/readyz` = 200 (`database=connected`, `realtime=connected`), homepage = 200. Chromium visibly rendered the MARSHGO landing page and staging/test-only banner; no browser console errors or warnings. |
 | Staff-route guard | PASS on immediately preceding hostname | Passenger OTP login and 403 denial were checked on `https://db75684bf2b067.lhr.life` before that hostname expired. The same Site SHA `c9a288162065a819864200da80fd5bcd1218af69` is served by the refreshed edge. |
 | Overall acceptance | PARTIAL / `STAGING_READY=NO` | Host refresh validates reachability only; it adds no new paired-user lifecycle acceptance. |
+
+## Latest hostname refresh (17:30 Europe/Kyiv)
+
+| Check | Result | Evidence / limits |
+|---|---|---|
+| Current public hostname | PASS, ephemeral | `https://ed296cad697b8c.lhr.life`; `/healthz` = 200, `/readyz` reports database and realtime connected, homepage = 200. Chromium visibly rendered the title, primary actions and staging-only banner; no browser console warnings/errors. |
+| Overall acceptance | PARTIAL / `STAGING_READY=NO` | This verifies public reachability and the web landing screen only. Paired-user booking-to-completion, cancellation/Rescue, public simulated-GPS reroute and realtime recovery remain unaccepted. |
 
 ## Latest delta acceptance — protected staff route (16:57 Europe/Kyiv)
 
