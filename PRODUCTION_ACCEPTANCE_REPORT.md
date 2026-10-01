@@ -18,7 +18,7 @@
 | Production Compose syntax | PASS | `docker compose ... config --quiet` with non-production example values |
 | Staging / production / physical phone | BLOCKED_EXTERNAL | No host/domain/provider credentials or two-device acceptance environment |
 
-Adobe S3Mock is a test service, not proof of private production storage policy or an approved object store. The restore drill used a separately named disposable Compose project and did not modify the existing developer DB. The initial iOS capture at five seconds was a premature blank/splash screenshot; the capture wait was raised and the later screenshot shows the onboarding screen.
+Adobe S3Mock is a test service, not proof of private production storage policy or an approved object store. The restore drill used a separately named disposable Compose project and did not modify the existing developer DB. During local service setup, Docker Compose created the new test containers but left them in `Created`; explicit `docker start` was needed before the S3 and backup drills. This makes those individual drills valid, but means the one-command bootstrap/full-stack start is not yet rehearsed end to end. The initial iOS capture at five seconds was a premature blank/splash screenshot; the capture wait was raised and the later screenshot shows the onboarding screen.
 
 ## Product acceptance not complete
 

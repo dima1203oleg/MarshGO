@@ -6,7 +6,7 @@ Capability states use only `DONE`, `PARTIAL`, `BLOCKED_EXTERNAL`, or `FAILED`. A
 
 | Capability | Status | Evidence / remaining boundary |
 |---|---|---|
-| Canonical repository reconciliation | PARTIAL | Server, Site and iOS local `main` changes were pushed and CI passed. Umbrella docs/release branch push is in progress. Open PRs remain unreconciled/active. |
+| Canonical repository reconciliation | PARTIAL | Server, Site and iOS `main` commits are pushed and CI passed. Umbrella reconciliation/release metadata is committed on `codex/marshgo-production`; its push is the final step for this report. Open PRs remain active because their residual diffs were not wholesale merged. |
 | API/auth/session/database | PARTIAL | Real server/PostGIS/Redis logic and integration suite pass. Real SMS, complete account-deletion processing, security acceptance and hosted restart recovery remain open. |
 | Community offer/booking/capacity/chat/realtime | PARTIAL | API/browser slices pass including 20-account last-seat contention. Full verified-driver→pickup→boarding→completion→both reviews UI lifecycle is not E2E-accepted. |
 | Reverse Marketplace | PARTIAL | Server negotiation and atomic booking paths exist and web tests cover proposal negotiation; full post-accept booking/trip closeout is not release-accepted. |
@@ -15,7 +15,7 @@ Capability states use only `DONE`, `PARTIAL`, `BLOCKED_EXTERNAL`, or `FAILED`. A
 | Rendezvous | PARTIAL | Participant authorization, ephemeral location, domain status and UI controls exist; tested integration passes. Live rendezvous map/ETA and full paired-device flow are incomplete. |
 | Multimodal Journey / WALK / GTFS | PARTIAL | Planner/scoring/transfer feasibility exist. No real transit inventory, pedestrian router, GTFS/GTFS-RT or live schedule feed is connected. |
 | Journey monitor / replan / rescue | FAILED | Active server monitor, ETA cascade, predictive replan and replacement-journey workflow are not implemented end to end. |
-| Web/PWA | PARTIAL | Production build and Chromium E2E pass; browser viewport matrix pending rerun. Production screenshot parity with supplied references, complete SW/offline semantics, and full URL/auth coverage remain open. |
+| Web/PWA | PARTIAL | Production build, Chromium E2E and Chromium/Firefox/WebKit runs across six viewport widths pass. Production screenshot parity with supplied references, complete SW/offline semantics, and full URL/auth coverage remain open. |
 | iOS | PARTIAL | Simulator build, rendered onboarding screenshot and CI pass. No signed TestFlight, APNs, physical phone, background GPS, native QR or full authenticated acceptance. |
 | Object storage | PARTIAL | S3 SDK adapter tests and local Adobe S3Mock upload/head/download pass. Production private bucket, encryption policy, retention, audit logs and malware scanning are not proven. |
 | Payments/commercial providers | BLOCKED_EXTERNAL | No merchant or transport partner credentials/contracts; commercial API integrations are incomplete and must stay disabled. |
