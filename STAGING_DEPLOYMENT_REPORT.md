@@ -15,7 +15,7 @@ The local API candidate runs on the staging edge and the Site production bundle 
 
 ### Public browser delta — search URL persistence
 
-Through Chromium on this public URL, the authenticated staging user selected Photon place results for Стрий and Львів and ran route search. The browser navigated to `/journeys/search` with validated geocoded endpoint IDs/coordinates and criteria in the query string. After a hard reload, the page still displayed **Стрий → Львів**, date, and passenger count. At a 390×844 viewport the complete route label wrapped across lines instead of truncating. Search returned zero live offers and the UI displayed its empty state; no seeded/fake offer was presented. Screenshot inspection confirmed the route heading and empty-state presentation; `tab.dev.logs({levels:["error","warning"]})` returned an empty list.
+Through Chromium on this public URL, the authenticated staging user selected Photon place results for Стрий and Львів and ran route search. The browser navigated to `/journeys/search` with validated geocoded endpoint IDs/coordinates and criteria in the query string. After a hard reload, the page still displayed **Стрий → Львів**, date, and passenger count. At a 390×844 viewport the complete route label wrapped across lines instead of truncating. Search returned zero live offers and the UI displayed its empty state; no seeded/fake offer was presented. Screenshot inspection confirmed the route heading and empty-state presentation; `tab.dev.logs({levels:["error","warning"]})` returned an empty list. A separate signed-in `STAGING TEST` account was switched to driver role; `/navigation` opened, Photon suggestions for Львів rendered and the selected city was confirmed. No device location permission was granted and `Почати навігацію` was not invoked, so this public check does not accept GPS, map tiles, polyline, live marker or reroute; controlled simulated-GPS reroute remains locally verified.
 
 | Check | Result | Evidence / limits |
 |---|---|---|
@@ -24,9 +24,10 @@ Through Chromium on this public URL, the authenticated staging user selected Pho
 | Empty inventory state | PASS | API returned zero available offers; honest empty state shown, no demo inventory. |
 | Browser console | PASS | No console errors or warnings observed during this scenario. |
 | Mobile visual heading | PASS | Public browser at 390×844 displays both full geocoded endpoint names after hard reload; heading wraps naturally. |
+| Driver navigation entry | PARTIAL | Staging test account role enabled and destination suggestions selected through UI; no location permission was granted and no public map/GPS/reroute session started. |
 | Responsive browser compatibility | PASS | Chromium, Firefox, WebKit: 3/3 local browser compatibility checks against exact Site SHA `336787900c645277a7284568d573ce079fb05010`. |
 | Full local production E2E | PASS | Chromium Playwright: 7/7 scenarios on Server `699b1fa7e007f5f8b56e597922523cf4659dd942` / Site `336787900c645277a7284568d573ce079fb05010`, including independent-account chat, route search direct reload and Journey Rescue. |
-| Saved artifacts | PASS | `test-results/marketplace-route-search-U-105ac-riteria-after-direct-reload/search-url-restored.png` (450,477 bytes) and `trace.zip` (1,993,440 bytes). These are local test artifacts; the public staging screenshot was visually inspected in the browser. |
+| Saved artifacts | PASS | Local Playwright viewport captures are in `test-results/artifacts/marshgo-iphone-15-pro-max-route.png` and `test-results/artifacts/marshgo-iphone-16-pro-max-route.png`; the iOS simulator onboarding capture is `test-results/artifacts/ios-simulator-site-3367879.png`. Artifacts are local/ignored and are not committed. A public staging screenshot and trace were not exported. |
 | Public paired-user completion | PARTIAL | Booking-to-completion, cross-account message delivery, live GPS/rendezvous and recovery remain unaccepted on the public tunnel. |
 | Overall staging gate | NO | `STAGING_READY=NO`; this delta verifies one public search/reload flow only. |
 
