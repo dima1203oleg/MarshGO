@@ -22,6 +22,10 @@
     "umbrella_unit_tests": "80 tests: 79 passed, 1 skipped (opt-in local integration); 0 failed",
     "umbrella_integration_tests": "17 passed",
     "browser_e2e": "6 passed on Chromium production bundle; responsive phone/tablet/desktop, two-account marketplace/chat, route matching/GPS reroute, iPhone viewport and persisted Journey detail covered",
+    "latest_local_e2e_rerun": "PASS; npm run test:e2e 6/6, including ten gradual simulated GPS fixes at 80 m spacing, persisted coordinates within 20 m, server route-version increment, visible reroute, and matching pause pending renewed consent",
+    "latest_browser_compat_rerun": "PASS; npm run test:browser-compat 3/3 Chromium/Firefox/WebKit after serialized rerun (an initial parallel invocation collided on local port 3306)",
+    "latest_production_check": "PASS; npm run check:production, 80 tests (79 passed, 1 skipped, 0 failed), repository-wide lint/typecheck/build/bundle budget",
+    "latest_integration_rerun": "PASS; npm run test:integration, 17/17 PostGIS/Redis tests",
     "browser_matrix": "Chromium, Firefox and WebKit production UI smoke passed (3/3 browser projects; phone/tablet/desktop each); latest Site PR head CI passed",
     "canonical_server_site_images": "PASS; built from immutable Server bdfdf24941809f4581965b9847022c68e0b2f127 and Site c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7 after canonical-origin, pinned-worktree, and allowlisted Docker-context checks",
     "backup_restore_drill": "PASS on isolated disposable PostGIS database",
@@ -31,7 +35,8 @@
     "physical_iphone": "BLOCKED_EXTERNAL",
     "staging_site_bundle": "PASS; immutable Site SHA 3b9af2b61b093152d451271e398920e679cf4276 built and served by public temporary HTTPS; Chromium desktop/mobile homepage and health/readiness smoke verified",
     "integration_suite": "PASS; 17/17 PostGIS/Redis integration tests",
-    "public_staging_browser_refresh": "PASS with limitations; Chromium desktop 1440x900 and mobile 390x844 homepage plus six direct SPA routes; health/readiness PASS; 11 expected anonymous API 401 console resource errors, 0 page exceptions and 0 failed first-party transports"
+    "public_staging_browser_refresh": "PASS with limitations; Chromium desktop 1440x900 and mobile 390x844 homepage plus six direct SPA routes; health/readiness PASS; 11 expected anonymous API 401 console resource errors, 0 page exceptions and 0 failed first-party transports",
+    "public_staging_chromium_recheck": "PASS; current temporary HTTPS homepage and direct /navigation returned successfully, staging banner/title rendered, /readyz database+realtime connected, 0 browser page exceptions or failed requests"
   },
   "note": "Top-level Server/Site SHAs identify canonical main release baselines; staging contains explicit immutable PR-branch SHAs. integration_sha identifies the verified integration code revision; subsequent metadata-only commits do not change those build inputs. This manifest is not a deployment authorization.",
   "staging": {

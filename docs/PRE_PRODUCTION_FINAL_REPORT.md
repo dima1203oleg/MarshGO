@@ -57,7 +57,7 @@ The percentages below are engineering estimates across the requested capability 
 | Driver offer → passenger booking → seats → trip closure/reviews | BLOCKED / NOT ACCEPTED | No verified independent driver offer in staging. |
 | Reverse Marketplace negotiation to booking | BLOCKED / NOT ACCEPTED | Demand creation passed; paired independent driver/passenger negotiation did not complete. |
 | Passive matching and multiple passengers | BLOCKED / NOT ACCEPTED | Candidate/user consent/route insertion not fully accepted through public UI. |
-| Live GPS marker movement and reroute | BLOCKED / NOT ACCEPTED | Large teleport was rejected correctly; realistic gradual replay was not completed. |
+| Controlled live GPS marker movement and reroute | PASS LOCALLY / PUBLIC STAGING NOT ACCEPTED | The latest production-browser E2E drives ten gradual simulated GPS updates 80 m off-route, confirms persistence within 20 m, route-version increment, visible reroute, and matching pause pending renewed consent. Physical GPS and public staging movement are unaccepted. |
 | Chat, unread notifications, rendezvous, boarding, Rescue | BLOCKED / NOT ACCEPTED | No complete paired-user UI lifecycle was run. |
 | Public staging Firefox/WebKit matrix | NOT TESTED | Existing repository matrix does not count as hosted staging evidence. |
 | Physical iPhone, APNs, TestFlight | BLOCKED_EXTERNAL | Apple account/signing and physical devices are not present. |
@@ -73,8 +73,10 @@ The percentages below are engineering estimates across the requested capability 
 | Server `npm run typecheck` | PASS | TypeScript completed with 0 errors. |
 | Server `npm test` | PASS | 46 passed / 0 failed / 1 skipped (47 tests total). |
 | Server `npm run test:integration` | PASS | 17 passed / 0 failed; Journey schema, booking, navigation, realtime, API restart and Redis rate-limit tests. |
-| Umbrella Playwright E2E | PASS (scope-limited) | 6 passed on Chromium production bundle; not the complete public staging golden path. |
-| Browser compatibility | PASS (repo test only) | Chromium, Firefox and WebKit over six viewport widths; public staging was Chromium only. |
+| Umbrella `npm run test:e2e` | PASS (scope-limited) | 6 passed on Chromium production bundle, including independent-user matching/proposal/booking, controlled ten-step GPS reroute, MapLibre recovery, and iPhone viewport flows; not the complete public staging golden path. |
+| `npm run test:browser-compat` | PASS (repo test only) | Chromium, Firefox and WebKit production-bundle smoke each passed at phone/tablet/desktop sizes (3/3). Public staging was Chromium only. An initial parallel attempt collided on localhost port 3306; the serialized rerun passed. |
+| `npm run check:production` | PASS | Typecheck, repository-wide ESLint, 80 unit tests (79 passed, 1 skipped), production build and gzip bundle budget passed. |
+| `npm run test:integration` | PASS | 17/17 passed: Journey schema, booking, navigation, Redis realtime across API processes, API restart durability and shared rate limits. |
 | GitHub umbrella PR checks | PASS | Verify, CodeQL and Gitleaks pass on code head `41b9613b4f2bf13a178099f627769ea638a4f8e6`; report/manifest metadata head `b1b07d8ec6ac757de1ed1155ae8dfd1a6edd12f3` is in final CI validation. |
 | GitHub Server PR #2 checks | PASS at checked head | Verify on head `54ed3c85fd79807a7d7d0b539a587fffca259487`. |
 | Fresh staging DB migrations | PASS | Migrations 001–027 accepted. |
@@ -90,7 +92,7 @@ The percentages below are engineering estimates across the requested capability 
 
 1. Complete paired-user acceptance with a moderator-approved driver and passenger through booking, shared capacity, chat, rendezvous, boarding, trip completion, both reviews and cancellation recovery.
 2. Make the staging acceptance setup able to seed or moderate a verified driver safely without exposing an admin bypass in production.
-3. Run realistic controlled GPS route replay and accept off-route rerouting, stale GPS, route versioning and passenger stop insertion through visible UI.
+3. Extend navigation acceptance to more than one passenger/capacity, public-staging execution, stale-GPS recovery and physical-device location; local controlled off-route replay and reroute now pass.
 4. Complete full Reverse Marketplace negotiation and race acceptance on public staging.
 5. Complete WebSocket loss/reconnect, catch-up, event deduplication and notification persistence in paired-user journeys.
 6. Close major Journey gaps: real WALK routing, GTFS/GTFS-RT inventory, Journey Monitor, predictive replan and Rescue alternatives. Keep unconfigured modes disabled.
