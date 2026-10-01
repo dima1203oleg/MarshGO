@@ -4,14 +4,15 @@
 
 | Gate | Result | Evidence |
 |---|---|---|
-| Umbrella typecheck + full lint + unit + production build + bundle budget | PASS | `npm run check:production`; 72 unit pass, 1 opt-in test skipped; bundle gzip budget passed |
-| Server integration | PASS | `npm run test:integration`; 17/17 PostGIS/Redis/API checks |
-| Browser E2E | PASS | Production Site bundle; 6/6 Chromium tests through separate driver/passenger contexts, persisted demand/booking/chat, geolocation reroute and route version |
-| Browser engine/viewport matrix | PASS | Chromium/Firefox/WebKit, each test exercised 375, 430, 768, 1024, 1440, and 1920 widths; 3/3 engine projects passed with no overflow/unexpected console/server errors |
-| Standalone Site | PASS | full-source lint, typecheck, Vite build |
-| Standalone Server unit | PASS | full-source lint, typecheck; 44 pass, 1 opt-in skipped |
-| GitHub CI | PASS | Server `2fcdeed`, Site `c7f76a4`, iOS `b8b1fcb` workflows completed successfully |
-| iOS Simulator | PASS for build/launch/onboarding render only | Debug build from immutable local Site SHA; screenshot `/tmp/marshgo-ios-verified.png`; no authenticated server flow |
+| Umbrella typecheck + full lint + unit + production build + bundle budget | PASS | Latest local run: typecheck/lint pass; 74 unit passed, 1 opt-in integration skipped; production build and gzip budget passed |
+| Server integration | PASS | `npm run test:integration`; 17/17 PostGIS/Redis/API checks, including route-corridor Rescue matching |
+| Browser E2E | PASS | Production Site bundle; 6/6 Chromium tests across driver/passenger contexts, booking/cancel/rebook, persisted chat, route-match UI and geolocation reroute |
+| Browser engine/viewport matrix | PASS | Chromium/Firefox/WebKit, each run exercised 375, 430, 768, 1024, 1440, and 1920 widths; 3/3 projects passed |
+| Public staging browser smoke | PARTIAL / PASS for smoke | Headed Chromium OTP signup/login passed; 18 direct routes returned 200; 1440×900 and 390×844 captures had no overflow. No complete paired-user flow on public staging. |
+| Standalone Site | PASS | full-source lint, typecheck, production Vite build |
+| Standalone Server unit | PASS | full-source lint, typecheck; 46 pass, 1 opt-in integration skipped |
+| GitHub CI | PASS | Umbrella code baseline `172cf0e`; Server PR #2 `54ed3c8`; Site PR #2 `20a7579`; iOS `main` `b8b1fcb` checks passed |
+| iOS Simulator | PASS for build/launch/onboarding render only | `npm run ios:simulator` built Debug, installed and launched on iPhone 16 Pro Max Simulator using pinned Site code `20a7579`; screenshot `.release/staging-ios-simulator.png`; no authenticated/native-flow test |
 | S3-compatible local contract | PASS | Adobe S3Mock 5.2.2; AWS SDK upload, HEAD and download succeeded; synthetic test object retained |
 | Backup cipher | PASS | AES-256-GCM stream roundtrip; tamper rejected and no plaintext output exposed |
 | Isolated PostGIS backup/restore drill | PASS | Encrypted dump of synthetic schema/data restored into a separate empty database; integrity row `1|authenticated backup restore drill` verified |

@@ -31,6 +31,7 @@ This snapshot separates canonical `main` refs from active PR branches and the ex
 - Site: typecheck, full lint and production build passed.
 - Umbrella: typecheck/lint passed; unit tests 74 passed/1 skipped; Playwright production E2E 6/6 passed, including cancellation Rescue UI and route-corridor selection.
 - Browser compatibility: Chromium, Firefox and WebKit each passed the responsive suite (3/3); bundle budget passed.
+- iOS: Debug simulator build, install and launch passed on iPhone 16 Pro Max Simulator using Site SHA `20a7579`; onboarding screenshot rendered. No authenticated/native flow or physical device.
 - Public staging: headed Chromium OTP login passed; 18 direct route opens returned HTTP 200; Chromium screenshots captured at 1440×900 and 390×844 with zero overflow and no unexpected browser errors. An unauthenticated refresh probe returns the expected 401. Three direct routes were also captured in a Playwright trace.
 - Umbrella CI for SHA `172cf0e…` is awaiting completion; the preceding umbrella head CI/security checks passed. Server/Site PR #2 checks pass.
 

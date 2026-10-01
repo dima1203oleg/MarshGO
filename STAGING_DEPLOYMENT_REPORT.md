@@ -38,6 +38,7 @@ The active processes run from exact standalone worktrees at the Server and Site 
 | Current staging OTP login | PASS | A headed Chromium session completed the visible onboarding, dev OTP and account creation flow. It reached the authenticated dashboard with zero console/page/API 5xx errors. Test identity is `MARSHGO Staging Smoke`; OTP and phone were not retained. Screenshot: `.release/staging-current-login.png`. |
 | Direct URL refresh | PASS (browser smoke) | Chromium opened 18 primary application routes directly; all returned HTTP 200 with the application root present. This checks SPA fallback/deep-link delivery, not authorization or entity existence. |
 | Current desktop/mobile rendering | PASS (browser smoke) | Chromium 1440×900 and 390×844; mobile document width matched viewport (390 px). No unexpected page/console errors were recorded; the unauthenticated refresh probe returned its expected 401. Screenshots: `.release/staging-current-desktop.png`, `.release/staging-current-mobile.png`. |
+| iOS simulator build | PASS (simulator only) | `npm run ios:simulator` built, installed and launched the wrapper on iPhone 16 Pro Max Simulator against the local staging API, using Site source SHA `20a75798f2baffa4f3615e21799359e69ab6e651`. Onboarding rendered in `.release/staging-ios-simulator.png`; no authenticated/native-flow validation and no physical iPhone test. |
 | Rescue corridor selection copy | PASS (local production-browser E2E) | The production bundle displayed an endpoint alternative and a routed corridor alternative with distinct explanation and distance labels; both were selectable. Local E2E passed 6/6 against isolated PostGIS/Redis and deterministic providers. This is not a paired-user Rescue acceptance on the public staging database. |
 | Navigation direct link | PASS | `/navigation` previously returned the app's 404; the Site PR #2 alias now opens the navigation destination form on the public staging URL. Site PR checks pass. |
 | Driver navigation CTA copy | PASS | Updated production build now accurately says route matching requires driver consent and a verified vehicle; rebuilt bundle was served from staging over HTTPS. |
@@ -93,6 +94,7 @@ Local, ignored artifacts (not committed or publicly linked):
 - .release/staging-current-mobile.png (current pinned Site build, 390×844)
 - .release/staging-current-login.png (headed Chromium test OTP login)
 - .release/staging-current-routes.trace.zip (direct `/`, `/navigation`, `/admin/verification` opens; unauthenticated trace)
+- .release/staging-ios-simulator.png (iPhone 16 Pro Max Simulator onboarding render; not a physical-device artifact)
 - .release/staging-map-desktop.png
 - .release/staging-map-mobile.png
 - .release/staging-map-openfreemap-desktop.png

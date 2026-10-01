@@ -17,7 +17,7 @@
     "ios": "dima1203oleg/MarshGO-iOS@main",
     "integration": "dima1203oleg/MarshGO@codex/marshgo-production"
   },
-  "ios_simulator_site_sha": "c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7",
+  "ios_simulator_site_sha": "20a75798f2baffa4f3615e21799359e69ab6e651",
   "verification": {
     "umbrella_unit_tests": "74 passed, 1 skipped",
     "umbrella_integration_tests": "17 passed",
@@ -27,6 +27,7 @@
     "backup_restore_drill": "PASS on isolated disposable PostGIS database",
     "hosted_staging": "PARTIAL; latest pinned Web/API served over temporary HTTPS; visible dev OTP login, 18 direct routes and responsive smoke PASS; paired-user golden path incomplete",
     "production_deployment": "BLOCKED_EXTERNAL",
+    "ios_simulator": "PASS; Xcode Debug built, installed and launched iPhone 16 Pro Max Simulator; onboarding screenshot captured",
     "physical_iphone": "BLOCKED_EXTERNAL"
   },
   "note": "Top-level Server/Site SHAs identify canonical main release baselines; staging contains explicit immutable PR-branch SHAs. integration_sha identifies the verified integration code baseline. This manifest is not a deployment authorization.",
