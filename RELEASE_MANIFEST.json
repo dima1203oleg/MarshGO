@@ -8,7 +8,7 @@
   "server_sha": "699b1fa7e007f5f8b56e597922523cf4659dd942",
   "site_sha": "2031fdaba88662f4dec4669bdfa15de8bf29b800",
   "ios_sha": "1f08e73e351ed0e7e7d4c522b47c0ed5cb06e8a0",
-  "integration_sha": "eaa37b2cf2408bb6dd6d65748dad603877643983",
+  "integration_sha": "c1c14e3c87d00bf14e1190c7e97b7299f162247e",
   "database_migration": "028",
   "api_version": "v1",
   "source_repositories": {
@@ -29,7 +29,7 @@
     "production_bundle_demo_isolation": "PASS: check:bundle rejects 11 known demo identity/inventory markers; negative probe confirmed usr_drv_alex injection fails the gate, clean production build passes; Site PR #2 CI passed",
     "multi_passenger_stop_limit": "PASS locally: stop optimizer supports a 30-stop plan; 5 optimizer tests pass including 15 riders, pickup-before-dropoff, per-stop seat invariants and the overflow limit; integration suite exercises two accepted riders on one route",
     "ios_simulator_ci": "PASS: GitHub iOS Simulator Build run 36903734023 on immutable branch commit 1f08e73e351ed0e7e7d4c522b47c0ed5cb06e8a0; npm ci, exact Site checkout, Capacitor sync and iPhone simulator compile passed.",
-    "umbrella_github_ci": "FAIL then FIXED locally: umbrella CI run 36911773401 on d86a95bf624630ebd823861e8fa100a7a144fea2 failed only because Journey E2E asserted a transient booking toast after navigation to Trips; the durable booking UI/DB state is authoritative. Removed that timing-sensitive toast assertion, kept Trips/Journey/DB checks, verified the Journey flow 3/3 repeats and the full suite 8/8 locally. GitHub CI for the follow-up fix is pending.",
+    "umbrella_github_ci": "PASS: GitHub umbrella CI run 36914498051 and Security runs 36914498024 / 36914493601 passed on c1c14e3c87d00bf14e1190c7e97b7299f162247e. CI includes full lint, typecheck, unit, migrations, PostGIS/Redis integration, production build/bundle, Docker image build, Chromium Playwright E2E and Chromium/Firefox/WebKit compatibility. Earlier run 36911773401 failed only on a transient Journey toast assertion, removed in the tested follow-up; exact fixed suite passes locally and in CI.",
     "local_browser_matrix": "PASS: npm run test:browser-compat against immutable Site 336787900c645277a7284568d573ce079fb05010; Chromium, Firefox, WebKit 3/3.",
     "backup_restore_drill": "PASS: prior disposable local PostGIS backup and restore drill; no off-host/production restore proof",
     "staging": "PARTIAL: temporary HTTPS tunnel https://superblessed-herlinda-epiphragmal.ngrok-free.dev; Server 699b1fa7e007f5f8b56e597922523cf4659dd942 / Site 2031fdaba88662f4dec4669bdfa15de8bf29b800. Public /healthz and /readyz return 200 with PostgreSQL/realtime connected. Public Chromium hard reload displays localized GPS-unavailable guidance and enabled retry; no navigation session was created without location permission. Public staging build now configures HTTPS OpenStreetMap raster tiles with visible attribution for low-volume staging checks; the product map has not been opened with an authorized live route, so successful tile rendering remains unverified; public real tile rendering/polyline/live marker/reroute and full paired lifecycle remain unaccepted.",
