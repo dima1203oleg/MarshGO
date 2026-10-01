@@ -30,7 +30,7 @@ Exact repository refs: [root RELEASE_MANIFEST.json](../RELEASE_MANIFEST.json). E
 
 ## Temporary public staging (2026-10-01)
 
-- Public temporary HTTPS URL: https://0b141d38ff7147.lhr.life (ephemeral localhost.run tunnel).
+- Public temporary HTTPS URL: https://0931d476510892.lhr.life (ephemeral localhost.run tunnel).
 - Health/readiness and Chromium smoke checks passed; demand creation persisted across API restart and staging-only Redis stop/start recovery.
 - Full paired-user booking, matching, rendezvous, chat, Rescue and browser realtime flows did not pass acceptance. Therefore STAGING_READY=NO, READY_FOR_SERVER_DEPLOYMENT=NO, and PRODUCTION_READY=NO.
 - URL is anonymous localhost.run forwarding to the current local host and may rotate/expire. Details and evidence: STAGING_DEPLOYMENT_REPORT.md.
