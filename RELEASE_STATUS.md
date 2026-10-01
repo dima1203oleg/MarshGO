@@ -2,7 +2,15 @@
 
 This status records the tested candidate revisions and explicitly separates local/fixture checks from a real public production release. `DONE` means the stated software slice was verified; it does not imply the entire product is production-ready.
 
-## Latest delta — navigation GPS failure recovery
+## Current acceptance snapshot — 2026-10-01 20:30 Europe/Kyiv
+
+- Candidate refs: Server `533f500bd9fa821d6b8aea7048037d4b7f897486`, Site `029aae486e164f02660c36130114527b19898001`, iOS `1f08e73e351ed0e7e7d4c522b47c0ed5cb06e8a0`, integration E2E baseline `1afb04307c7d6ae619dfe8598dfc829169e73a71`. Workspace worktrees are clean; exact refs and open PR reconciliation are in `docs/REPOSITORY_STATE_FINAL.md`.
+- Local checks: production suite **79 passed / 0 failed / 1 opt-in skip**; browser E2E **8/8**; Chromium/Firefox/WebKit **3/3**; Server PostGIS/Redis integration **18/18**. Server and Site PR Verify checks pass. Umbrella CI run `36921463808` passed on the same test/code baseline; the later report-only commit's CI is still running.
+- Public staging: `https://superblessed-herlinda-epiphragmal.ngrok-free.dev`; `/healthz` and `/readyz` return 200, DB/realtime connected; the served Site JS SHA-256 matches the candidate production bundle. Public Chromium verified the staging banner and direct search URL reload with an honest zero-offer state.
+- iOS: current pinned Site/Server candidate compiled, synced, installed and launched on iPhone 16 Pro Max Simulator; screenshot `.release/staging-ios-current-029aae4-iphone16pm.png` shows onboarding only.
+- `STAGING_READY=NO`, `READY_FOR_SERVER_DEPLOYMENT=NO`, `PRODUCTION_READY=NO`. Public paired lifecycle, app-map tile/polyline/live-GPS acceptance, authenticated iOS flow, physical iPhone, production host/domain/SMS and provider credentials remain unaccepted or external.
+
+## Historical delta — navigation GPS failure recovery
 
 Site `2031fdaba88662f4dec4669bdfa15de8bf29b800` gives actionable Ukrainian guidance for denied/unavailable/stale/invalid/low-accuracy GPS and restores an enabled retry action. Site typecheck, full lint, production build and bundle budget pass locally and Site CI runs 36910256850, 36910251574 and 36910250303 pass. The umbrella Playwright suite passes 8/8 Chromium scenarios against Server `699b1fa7e007f5f8b56e597922523cf4659dd942` and the exact Site candidate, including simulated route match/reroute and tile-fixture failure/recovery. Public staging reload visibly verifies the localized GPS failure and retry UI, with no session created without location permission. The public Site bundle configures HTTPS OpenStreetMap raster tiles with visible attribution for low-volume staging; actual app-map tile rendering remains unaccepted. Umbrella GitHub CI run 36914498051 and Security runs 36914498024/36914493601 pass on `c1c14e3c87d00bf14e1190c7e97b7299f162247e`. `STAGING_READY=NO`, `READY_FOR_SERVER_DEPLOYMENT=NO`, and `PRODUCTION_READY=NO`.
 

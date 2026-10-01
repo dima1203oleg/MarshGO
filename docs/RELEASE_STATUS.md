@@ -2,6 +2,14 @@
 
 `READY_FOR_SERVER_DEPLOYMENT=NO` · `PRODUCTION_READY=NO`
 
+## Current acceptance snapshot — 2026-10-01 20:30 Europe/Kyiv
+
+- Candidate refs: Server `533f500bd9fa821d6b8aea7048037d4b7f897486`, Site `029aae486e164f02660c36130114527b19898001`, iOS `1f08e73e351ed0e7e7d4c522b47c0ed5cb06e8a0`, integration E2E baseline `1afb04307c7d6ae619dfe8598dfc829169e73a71`. Workspace worktrees are clean; exact refs and open PR reconciliation are in `docs/REPOSITORY_STATE_FINAL.md`.
+- Local checks: production suite **79 passed / 0 failed / 1 opt-in skip**; browser E2E **8/8**; Chromium/Firefox/WebKit **3/3**; Server PostGIS/Redis integration **18/18**. Server and Site PR Verify checks pass. Umbrella CI run `36921463808` passed on the same test/code baseline; the later report-only commit's CI is still running.
+- Public staging: `https://superblessed-herlinda-epiphragmal.ngrok-free.dev`; `/healthz` and `/readyz` return 200, DB/realtime connected; the served Site JS SHA-256 matches the candidate production bundle. Public Chromium verified the staging banner and direct search URL reload with an honest zero-offer state.
+- iOS: current pinned Site/Server candidate compiled, synced, installed and launched on iPhone 16 Pro Max Simulator; screenshot `.release/staging-ios-current-029aae4-iphone16pm.png` shows onboarding only.
+- `STAGING_READY=NO`, `READY_FOR_SERVER_DEPLOYMENT=NO`, `PRODUCTION_READY=NO`. Public paired lifecycle, app-map tile/polyline/live-GPS acceptance, authenticated iOS flow, physical iPhone, production host/domain/SMS and provider credentials remain unaccepted or external.
+
 **Latest staging recheck (2026-10-01 17:15 Europe/Kyiv):** `https://0c7342d01f4706.lhr.life` is currently reachable but ephemeral. Site `c9a288162065a819864200da80fd5bcd1218af69` and staging Server `237d14f1b3e4d69936433f46f290d1cd4b920d9d` serve the current local staging edge. `/healthz`, `/readyz`, and homepage return 200; visible Chromium completed test-only OTP login, and passenger access to `/admin/verification` now receives a 403 screen with no console warnings/errors. Prior review-form checks used a seeded completed-trip fixture, not a completed real lifecycle. `STAGING_READY=NO`; `READY_FOR_SERVER_DEPLOYMENT=NO`; `PRODUCTION_READY=NO`.
 
 Capability states use only `DONE`, `PARTIAL`, `BLOCKED_EXTERNAL`, or `FAILED`. A local fixture/simulator pass does not qualify a real provider or production integration as DONE.

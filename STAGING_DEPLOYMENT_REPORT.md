@@ -4,11 +4,11 @@
 
 **STAGING_URL:** `https://superblessed-herlinda-epiphragmal.ngrok-free.dev`
 
-**Server SHA:** `699b1fa7e007f5f8b56e597922523cf4659dd942`
+**Server SHA:** `533f500bd9fa821d6b8aea7048037d4b7f897486`
 
-**Site SHA:** `336787900c645277a7284568d573ce079fb05010`
+**Site SHA:** `029aae486e164f02660c36130114527b19898001`
 
-> Superseded by the latest delta below: public staging now serves Site `2031fdaba88662f4dec4669bdfa15de8bf29b800`. The new build intentionally has no tile provider configured; do not read local E2E tile-fixture coverage as public tile availability.
+The earlier GPS-recovery snapshot below is historical. The current served JavaScript hash, readiness response, exact revisions, browser check and test results are recorded under “Latest verified deployment — paginated chat and restored tunnel.” Public map tile/route-overlay acceptance remains unverified.
 
 **Provider:** local isolated Postgres/PostGIS, Redis, S3Mock and static Site, exposed by the temporary ngrok HTTPS tunnel
 **STAGING_READY:** NO · **READY_FOR_SERVER_DEPLOYMENT:** NO · **PRODUCTION_READY:** NO
