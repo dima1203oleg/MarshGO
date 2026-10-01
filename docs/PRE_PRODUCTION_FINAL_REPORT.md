@@ -173,7 +173,7 @@ This addendum supersedes older branch/URL/test snapshots above. Standalone workt
 **Remaining software/acceptance gaps:** full paired-user driver verification through booking, chat, rendezvous, boarding, completion and review; multi-passenger public acceptance; active Journey monitor/replan and real WALK/GTFS feeds; durable hosted stack/monitoring; complete push/payment/provider integrations. External release blockers include production server/domain/DNS, real SMS and provider credentials, Apple signing/physical devices, and commercial/payment accounts.
 
 
-## Latest candidate verification addendum — 2026-10-01 20:47 Europe/Kyiv
+## Latest candidate verification addendum — 2026-10-01 21:07 Europe/Kyiv
 
 This replaces prior SHAs/test snapshots above for the currently tested candidate.
 
@@ -187,4 +187,16 @@ This replaces prior SHAs/test snapshots above for the currently tested candidate
 | Umbrella CI | PASS | Push Verify `36901515153` and PR Verify `36901523944` pass on umbrella `eaa37b2cf2408bb6dd6d65748dad603877643983`, including Docker builds, E2E and browser matrix. A previous run on older pinned Site `573ebca…` failed the Journey Rescue UI assertion; current exact pair is green locally and in CI. |
 | Public staging | PARTIAL | Exact Site bundle rebuilt and reloaded from public Chromium; `/healthz` and `/readyz` = 200; readiness reports DB/realtime connected; no browser errors/warnings during search reload. Complete paired booking-to-review, GPS/rendezvous and service restart acceptance remain incomplete. |
 
-Candidate SHAs: umbrella product/test baseline `eaa37b2cf2408bb6dd6d65748dad603877643983`, Server `699b1fa7e007f5f8b56e597922523cf4659dd942`, Site `336787900c645277a7284568d573ce079fb05010`, iOS `b8b1fcbfe9997e1a7a27594b5759690147de75df`. The public URL is a temporary ngrok tunnel, so `STAGING_READY=NO` and `READY_FOR_SERVER_DEPLOYMENT=NO`. `PRODUCTION_READY=NO`. See `OWNER_ACTIONS_REQUIRED.md` for external dependencies and `RELEASE_STATUS.md` for remaining software/acceptance gaps.
+Candidate SHAs: umbrella product/test baseline `eaa37b2cf2408bb6dd6d65748dad603877643983`, Server `699b1fa7e007f5f8b56e597922523cf4659dd942`, Site `336787900c645277a7284568d573ce079fb05010`, iOS `1f08e73e351ed0e7e7d4c522b47c0ed5cb06e8a0`. The public URL is a temporary ngrok tunnel, so `STAGING_READY=NO` and `READY_FOR_SERVER_DEPLOYMENT=NO`. `PRODUCTION_READY=NO`. See `OWNER_ACTIONS_REQUIRED.md` for external dependencies and `RELEASE_STATUS.md` for remaining software/acceptance gaps.
+
+
+## iOS candidate simulator addendum — 2026-10-01 21:07 Europe/Kyiv
+
+| Check | Result | Detail |
+|---|---|---|
+| iOS GitHub simulator CI | PASS | Run `36903734023` passed on `codex/reliable-capacitor-sync` commit `1f08e73e351ed0e7e7d4c522b47c0ed5cb06e8a0`: dependency install, exact Site checkout, Capacitor sync and iOS Simulator compile. |
+| Local iOS candidate build | PASS, scoped | Node `24.21.0`; pinned Site `336787900c645277a7284568d573ce079fb05010`, Server `699b1fa7e007f5f8b56e597922523cf4659dd942`, API `v1`, migration `028`. Simulator installed/launched and rendered the onboarding page. Embedded build metadata records the same immutable refs. |
+| Local screenshot | SAVED | `test-results/artifacts/ios-simulator-site-3367879.png` (ignored local test artifact). |
+| iOS acceptance | PARTIAL | No authenticated flows, simulator GPS permission/navigation/rendezvous/chat, signed Release archive, TestFlight or physical-iPhone acceptance. |
+
+The iOS simulator build scripts now call the repository-local Capacitor binary and fail if an existing Site checkout does not match the provided full `SITE_REF`. A negative mismatch check returned the expected exit code 2. This candidate is simulator-only; `PRODUCTION_READY=NO`.

@@ -10,7 +10,7 @@ Canonical Server `699b1fa7e007f5f8b56e597922523cf4659dd942` now attaches an elig
 
 | Capability | Status | Evidence / remaining acceptance |
 |---|---|---|
-| Repository candidate CI | PARTIAL | Server `699b1fa…` and Site `3367879…` PR Verify checks pass. Umbrella Verify remains pending on the updated harness; its latest run is still on Playwright browser installation. |
+| Repository candidate CI | PARTIAL | Server `699b1fa…` and Site `3367879…` PR Verify checks pass. Umbrella full Verify passes on candidate code baseline `eaa37b2…`; a later report/CI-trigger-only head has a PR Verify pending at Playwright browser installation. |
 | Staging public reachability | PARTIAL | Temporary ngrok URL serves Server `699b1fa…` and Site `3367879…`; `/readyz` confirms service, PostgreSQL and Redis connected. Free tunnel has no uptime guarantee. |
 | Staging geocoding and road search | PARTIAL | Photon suggestions and OSRM-backed search were exercised through Chromium. These public demo endpoints are not contracted production providers. |
 | Passenger OTP/session | PARTIAL | Synthetic development OTP and protected route restore tested. No real SMS or two-account session acceptance. |
@@ -24,11 +24,11 @@ Canonical Server `699b1fa7e007f5f8b56e597922523cf4659dd942` now attaches an elig
 | Payment processing | BLOCKED_EXTERNAL | No merchant account/provider credentials; real payments disabled. |
 | Production hosting / domain / TLS | BLOCKED_EXTERNAL | Requires owner server, domain and DNS. The current URL is a temporary tunnel, not deployment infrastructure. |
 | Private production object storage | BLOCKED_EXTERNAL | Local S3-compatible test service is not production storage. |
-| iOS Simulator | PARTIAL | Pinned candidate Debug build/install/launch and onboarding render passed; no authenticated full flow. |
+| iOS Simulator | PARTIAL | iOS branch `codex/reliable-capacitor-sync` at `1f08e73…`: GitHub simulator CI passes; local Node 24.21 build used exact Site `3367879…`/Server `699b1fa…`, sync/install/launch and onboarding screenshot pass. No authenticated flow. |
 | Physical iPhone / TestFlight | BLOCKED_EXTERNAL | Requires Apple signing/App Store access and a physical device. |
 | Backup / restore and failure drills | PARTIAL | Local disposable backup/restore and selected Redis/Postgres drills passed; no off-host production restore evidence. |
 | Overall staging acceptance | PARTIAL | Temporary endpoint is reachable and exact candidate SHAs are deployed. Local production-bundle E2E is 7/7 against immutable canonical Server/Site; responsive Chromium/Firefox/WebKit smoke is 3/3. Public search URL reload and mobile heading wrap are verified; public full paired-user Golden Path is not accepted. `STAGING_READY=NO`. |
 | Overall server deployment readiness | PARTIAL | Production-like deployment artifacts and local checks exist, but outstanding software/acceptance gaps remain. `READY_FOR_SERVER_DEPLOYMENT=NO`. |
 | Production release | BLOCKED_EXTERNAL | Server/domain/DNS/TLS, production providers, operational verification and physical-device acceptance remain outstanding. `PRODUCTION_READY=NO`. |
 
-The last umbrella GitHub Verify used the older pinned Site `573ebca…` and failed the Journey Rescue UI assertion; the exact current pair passes locally, and a fresh umbrella CI run is pending. Current temporary URL, exact candidate/deployed SHAs, command/test results and browser evidence are maintained in `STAGING_DEPLOYMENT_REPORT.md` and `RELEASE_MANIFEST.json`.
+A prior umbrella run against old Site `573ebca…` failed the Journey Rescue UI assertion. The exact current Server/Site pair passes locally and umbrella CI on product candidate `eaa37b2…` passes; a later CI-trigger/docs-only head is still pending at browser dependency installation. Current temporary URL, exact candidate/deployed SHAs, command/test results and browser evidence are maintained in `STAGING_DEPLOYMENT_REPORT.md` and `RELEASE_MANIFEST.json`.
