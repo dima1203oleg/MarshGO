@@ -6,6 +6,24 @@
 **READY_FOR_SERVER_DEPLOYMENT:** NO
 **PRODUCTION_READY:** NO
 
+## Latest UI acceptance delta (2026-10-01 18:03 Europe/Kyiv)
+
+The same temporary public URL remained reachable: homepage HTTP 200 and `/readyz` HTTP 200 (`database=connected`, `realtime=connected`). Staging API was restarted with explicitly configured public demo providers for address lookup and road routing (`GEOCODING_PROVIDER=photon`, Photon search/reverse URLs and OSRM route URL); no production credentials were added. These public services are validation dependencies only and are not production SLA/contract integrations.
+
+| Check | Result | Evidence / limits |
+|---|---|---|
+| Address search / geocoding | PASS, Chromium UI | After choosing Стрий and Львів from Photon suggestions, the Site displayed normalized place names. |
+| Road routing | PASS, provider + UI search | OSRM returned a road route (direct provider probe: 71.8 km / about 73 min); the UI completed Journey search and showed route results. The displayed offer is clearly marked `STAGING TEST`; this is seeded staging inventory, not a real driver/provider result. |
+| Staging booking | PASS, single synthetic passenger | The visible “Забронювати місце” action succeeded; UI confirmed the booking and showed the Journey saved by the server. No real payment was involved. |
+| Reload/session recovery | PASS, scoped | Direct `/trips` opening/reload restored the protected session, Journey and confirmed booking. The UI showed three unread notifications. |
+| Chat persistence | PASS, single account | Sent `STAGING acceptance: чат іде` through the visible booking chat; after opening `/trips` again and revisiting chat, the message remained in history. Chat UI explicitly displayed `офлайн, історія збережена`; real-time cross-account delivery/reconnect is not accepted. |
+| Rendezvous | PARTIAL | Opening the meeting showed the scheduled pickup and a disabled location-sharing control until 08:45 before the scheduled pickup. Live two-party GPS/arrival/boarding was not exercised. |
+| Cancellation / Rescue | NOT ACCEPTED | Browser control timed out while attempting the staging-only booking cancellation, before a result could be observed. Do not infer seat restoration or Rescue from this attempt. |
+| Browser console | PASS for tested actions | `tab.dev.logs({levels:['error','warn']})` returned no errors or warnings after OTP, search and route navigation. The tab automation subsequently timed out on the cancellation click; it is recorded as an inconclusive UI attempt, not an app failure or a PASS. |
+| Current readiness | PARTIAL / `STAGING_READY=NO` | The public single-user search→booking→reload→chat-history slice passed. Paired independent driver/passenger, cancellation/Rescue, live realtime, GPS movement/reroute and complete booking lifecycle remain unaccepted. |
+
+Staging API provider configuration was switched by restarting the API and edge processes. The current API process (PID 63476) runs from the clean Server checkout at `23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46`; current Site assets are built from `3a8ce9af81a4986ecdc182ed12d86e70bbf4d8e7`. Edge PID: 64598; public ngrok tunnel PID: 57244. This differs from historical report entries that refer to the prior deployed Server `237d14f1b3e4d69936433f46f290d1cd4b920d9d`. The free tunnel remains temporary and has no uptime guarantee.
+
 **Credential hygiene note:** A diagnostic process-environment inspection showed unrelated AI provider API keys inherited by the prior edge process. The edge did not use those keys for MARSHGO, but the diagnostic output included them. That process was stopped and the staging edge relaunched using an empty environment with only the staging Site/API/S3 port and path settings. See `OWNER_ACTIONS_REQUIRED.md`; if those were live keys, rotate them. No production SMS/payment/provider secret is configured in the current staging processes.
 
 **Latest reconnect:** 2026-10-01 17:37 Europe/Kyiv, temporary URL `https://superblessed-herlinda-epiphragmal.ngrok-free.dev`. `/healthz`, `/readyz`, and homepage returned HTTP 200; readiness reported PostgreSQL and realtime connected. Chromium initially showed ngrok's one-time first-visit interstitial; after selecting “Visit Site,” Chromium rendered MARSHGO and the staging/test-only banner, with no browser console warnings or errors. In the visible UI, a synthetic staging account completed the development OTP flow; after login an unknown deep link displayed 404, and a passenger opening `/admin/verification` received 403. No real SMS was sent. The URL is tied to the running free ngrok tunnel and has no uptime guarantee. The previous anonymous localhost.run endpoint expired with HTTP 503. This refresh does not add paired-user booking lifecycle acceptance. Earlier route, OTP, review, and staff-route checks are recorded below with their exact scope and limitations.

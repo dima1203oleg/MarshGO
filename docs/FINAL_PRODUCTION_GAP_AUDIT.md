@@ -1,5 +1,11 @@
 # Final production gap audit — 2026-10-01
 
+## Latest public staging delta — 2026-10-01 18:03 Europe/Kyiv
+
+Temporary URL `https://superblessed-herlinda-epiphragmal.ngrok-free.dev` remains externally reachable: homepage and `/readyz` returned HTTP 200; PostgreSQL and Redis readiness are connected. API was restarted with staging-only Photon geocoding and OSRM road-routing URLs. In Chromium, Photon suggestions were selected, Journey search completed using OSRM-backed routing, a clearly labeled synthetic `STAGING TEST` offer was booked, and the protected `/trips` route restored the session, Journey, booking and notification badge after reload. A test chat message remained after navigation/reload; the chat explicitly displayed offline mode with persisted history. Attempting cancellation timed out in browser automation before a result was observed. This is a scoped single-user acceptance slice, not paired-user E2E. `STAGING_READY=NO`, `READY_FOR_SERVER_DEPLOYMENT=NO`, and `PRODUCTION_READY=NO` remain unchanged. Exact current URL, providers, actions, evidence and limits are in `STAGING_DEPLOYMENT_REPORT.md` and `RELEASE_MANIFEST.json`.
+
+The free ngrok hostname depends on a locally running tunnel and has no uptime guarantee; new users may encounter the provider interstitial. Photon/OSRM and vector map assets are public/demo endpoints, synthetic driver inventory is seeded and labeled as test data, and no live commercial provider or real SMS/payment service is enabled.
+
 ## Latest CI snapshot — 2026-10-01 17:15 Europe/Kyiv
 
 - Umbrella `71cff14edc60f6182d8f05c25325144418e35444`: both Verify runs, CodeQL and Gitleaks passed. The CI Verify includes Playwright E2E and browser compatibility. Site `c9a288162065a819864200da80fd5bcd1218af69` and Server `23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46` Verify checks pass.

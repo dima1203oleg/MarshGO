@@ -8,7 +8,7 @@
   "server_sha": "23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46",
   "site_sha": "3a8ce9af81a4986ecdc182ed12d86e70bbf4d8e7",
   "ios_sha": "b8b1fcbfe9997e1a7a27594b5759690147de75df",
-  "integration_sha": "854c93f9440be603810844c27889a84e21a0c0f6",
+  "integration_sha": "5fadc9e172587b50423ad7bde8b141bde30b0617",
   "database_migration": "028",
   "api_version": "v1",
   "source_repositories": {
@@ -38,18 +38,21 @@
     "umbrella_integration_tests": "PASS: npm run test:integration, 17/17 across Journey schema, booking, navigation, Redis realtime, restart durability and shared rate-limit suites",
     "current_staff_route_guard": "PASS: passenger direct-open of /admin/verification on public staging now renders 403; no console warnings/errors",
     "ios_pinned_candidate_simulator": "PASS: Debug simulator build/install/launch on iPhone 15 Pro Max Simulator using exact Site 3a8ce9af81a4986ecdc182ed12d86e70bbf4d8e7, Server 237d14f1b3e4d69936433f46f290d1cd4b920d9d, API v1, migration 028; 60-second screenshot shows onboarding at .release/staging-ios-3a-iphone15pm.png; no authenticated flow or physical-device acceptance. npm emitted non-fatal engine mismatch (required Node 24.21.0, host Node 25.4.0); npm audit found 0 vulnerabilities.",
-    "staging_current_url": "PASS at 2026-10-01 17:48 Europe/Kyiv: https://superblessed-herlinda-epiphragmal.ngrok-free.dev; /healthz 200, /readyz 200 (database/realtime connected), homepage 200. Chromium showed the staging banner with no application console warnings/errors after ngrok first-visit interstitial. Synthetic staging OTP passed; authenticated unknown route showed 404, passenger admin route showed 403, and journey-results back action returned to the search form. Free tunnel is temporary with no uptime guarantee.",
-    "staging_ready": "NO: only selected flows accepted; full paired-user booking lifecycle and recovery scenarios remain incomplete"
+    "staging_current_url": "PASS at 2026-10-01 18:03 Europe/Kyiv: temporary HTTPS URL remains reachable (homepage and /readyz 200; PostgreSQL/Redis connected). After configuring staging-only Photon and OSRM endpoints, Chromium completed geocoding, route search, one synthetic STAGING TEST booking, reload/session restoration, and persisted chat history. Chat reports offline; paired realtime delivery is not accepted. Cancellation click timed out without an observed result. STAGING_READY remains NO.",
+    "staging_ready": "NO: only selected flows accepted; full paired-user booking lifecycle and recovery scenarios remain incomplete",
+    "staging_geocoding_routing": "PASS, scoped: Photon place suggestions selected in visible search UI; OSRM direct route probe returned road geometry/distance/duration; UI completed search. Uses public demo endpoints and synthetic STAGING TEST inventory, not production providers.",
+    "staging_booking_chat_reload": "PASS, scoped to one synthetic passenger: visible booking succeeded; protected session/Journey/booking and test chat message survived direct opening/reload. Chat UI remained offline; no second-account delivery/reconnect accepted.",
+    "staging_cancellation_rescue": "NOT ACCEPTED: browser automation timed out on cancellation click before the result could be observed; no claim of cancellation, seat restoration, or Rescue."
   },
-  "note": "Immutable source revisions are feature-branch PR heads for candidate verification, not a production release. Passenger review UI was exercised through the public tunnel; driver review UI was exercised through a local edge against the same staging services after the public OTP rate limit. Both used a seeded completed-trip fixture, so the complete trip lifecycle is not accepted. integration_sha is the tested umbrella product-code baseline before report-only reconciliation edits. The temporary free tunnel has no uptime guarantee. This manifest is not a production deployment authorization. Pinned iOS candidate simulator build embeds exact Site/Server/API/migration metadata and reaches the onboarding screen; it is not authenticated or physical-device acceptance.",
+  "note": "Immutable source revisions are feature-branch PR heads for candidate verification, not a production release. Passenger review UI was exercised through the public tunnel; driver review UI was exercised through a local edge against the same staging services after the public OTP rate limit. Both used a seeded completed-trip fixture, so the complete trip lifecycle is not accepted. integration_sha is the tested umbrella product-code baseline before report-only reconciliation edits. The temporary free tunnel has no uptime guarantee. This manifest is not a production deployment authorization. Pinned iOS candidate simulator build embeds exact Site/Server/API/migration metadata and reaches the onboarding screen; it is not authenticated or physical-device acceptance. Latest public UI acceptance at 18:03 Kyiv verified one synthetic passenger booking and chat history reload after configuring Photon/OSRM; the booking is still a clearly labeled staging fixture. Browser chat reports offline, cancellation control timed out, and paired lifecycle remains incomplete.",
   "staging": {
     "url": "https://superblessed-herlinda-epiphragmal.ngrok-free.dev",
     "provider": "local Docker services via temporary ngrok-free.dev HTTPS tunnel",
-    "status": "PARTIAL; temporary hostname passed health/readiness, Chromium homepage, synthetic OTP and scoped direct-route checks at 2026-10-01 17:37 Europe/Kyiv; latest heartbeat at 17:48 also passed; paired-user lifecycle not accepted; free tunnel has no uptime guarantee",
-    "deployed_server_sha": "237d14f1b3e4d69936433f46f290d1cd4b920d9d",
+    "status": "PARTIAL; checked 2026-10-01 18:03 Europe/Kyiv. Public URL and readiness pass. Chromium UI: Photon address search, OSRM route search, clearly labeled synthetic offer booking, reload/session persistence, and chat history persistence passed. Chat realtime is offline; cancellation attempt inconclusive; paired driver/passenger lifecycle, live GPS/reroute, Rescue, and full realtime recovery remain unaccepted. Current API process runs from Server checkout 23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46 (replacing earlier runtime 237d14f1b3e4d69936433f46f290d1cd4b920d9d).",
+    "deployed_server_sha": "23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46",
     "deployed_site_sha": "3a8ce9af81a4986ecdc182ed12d86e70bbf4d8e7",
     "migration": "028",
-    "checked_at": "2026-10-01 17:48 Europe/Kyiv"
+    "checked_at": "2026-10-01 18:03 Europe/Kyiv"
   },
   "candidate_database_migration": "028 on Server PR #2; canonical release baseline remains 027 until merged"
 }
