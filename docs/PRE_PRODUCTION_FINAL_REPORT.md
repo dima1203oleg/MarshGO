@@ -1,8 +1,8 @@
 # MARSHGO pre-production completion report
 
-**As of:** 2026-10-01 16:08 Europe/Kyiv
+**As of:** 2026-10-01 16:57 Europe/Kyiv
 **Overall release decision:** `READY_FOR_SERVER_DEPLOYMENT=NO` · `PRODUCTION_READY=NO`
-**Staging:** temporary HTTPS URL `https://7c648c22161b2f.lhr.life` currently serves the test-only landing page; Chromium visibly rendered the staging banner, and `/healthz` plus `/readyz` returned HTTP 200 with PostgreSQL and Redis connected. The iPhone 15 Pro Max Simulator built, installed and launched against the staging API; first cold render stalled before eventually displaying onboarding. Console/network logs were not captured on this latest reconnect. The full two-sided product acceptance did not pass, so `STAGING_READY=NO`. See the latest verification addendum; older snapshots in this report are historical.
+**Staging:** current temporary URL `https://db75684bf2b067.lhr.life` serves Site `c9a288162065a819864200da80fd5bcd1218af69` and staging Server `237d14f1b3e4d69936433f46f290d1cd4b920d9d`. `/healthz`, `/readyz`, and homepage pass. Visible Chromium completed synthetic OTP and confirmed that passenger role is denied at `/admin/verification` with 403. A pinned iOS simulator build with complete Site/Server/API/migration metadata showed a blank 25-second capture and onboarding by the 120-second settle capture; no authenticated simulator flow passed. The complete paired product acceptance did not pass, so `STAGING_READY=NO`. The anonymous tunnel is ephemeral.
 
 The percentages below are engineering estimates across the requested capability groups. They are progress indicators only; a partial item is not a release pass and percentages do not override the release gates.
 

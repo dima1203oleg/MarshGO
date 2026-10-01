@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "product": "MARSHGO",
-  "release_candidate": "RC-2026-10-01-staging.6",
+  "release_candidate": "RC-2026-10-01-staging.7",
   "status": "NOT_RELEASED",
   "ready_for_server_deployment": false,
   "production_ready": false,
   "server_sha": "23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46",
-  "site_sha": "a9b4b7e4f156f72aa3a9dd10edca57f3a1a42df6",
+  "site_sha": "c9a288162065a819864200da80fd5bcd1218af69",
   "ios_sha": "b8b1fcbfe9997e1a7a27594b5759690147de75df",
   "integration_sha": "854c93f9440be603810844c27889a84e21a0c0f6",
   "database_migration": "028",
@@ -17,7 +17,7 @@
     "ios": "dima1203oleg/MarshGO-iOS@main",
     "integration": "dima1203oleg/MarshGO@codex/marshgo-production"
   },
-  "ios_simulator_site_sha": "150aa7ade03871cd12b80c6b3e205f345d37f996",
+  "ios_simulator_site_sha": "c9a288162065a819864200da80fd5bcd1218af69",
   "verification": {
     "umbrella_unit_tests": "PASS: 80 tests, 79 passed, 0 failed, 1 skipped (opt-in local integration)",
     "umbrella_production_check": "PASS: npm run check:production; repository-wide lint, typecheck, unit, build, bundle budget",
@@ -25,7 +25,7 @@
     "server_unit": "PASS: npm test on 23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46; 51 passed, 0 failed, 2 skipped",
     "server_integration": "PASS: npm run test:integration on 23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46; 18/18, isolated PostGIS/Redis, migrations 001-028; includes two-passenger navigation insertion",
     "server_typecheck_lint": "PASS: npm run typecheck and npm run lint:all; GitHub PR #2 Verify passes on 23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46",
-    "site_ci": "PASS: local typecheck, full lint, production build and bundle checks; GitHub PR #2 Verify passed on 10addc3093d9defea02496006741eb21cbd28b5f",
+    "site_ci": "PASS: Site c9a288162065a819864200da80fd5bcd1218af69; typecheck, repository-wide lint, production build, bundle budget and both GitHub PR #2 Verify runs pass",
     "production_bundle_demo_isolation": "PASS: check:bundle rejects 11 known demo identity/inventory markers; negative probe confirmed usr_drv_alex injection fails the gate, clean production build passes; Site PR #2 CI passed",
     "multi_passenger_stop_limit": "PASS locally: stop optimizer supports a 30-stop plan; 5 optimizer tests pass including 15 riders, pickup-before-dropoff, per-stop seat invariants and the overflow limit; integration suite exercises two accepted riders on one route",
     "ios_simulator_ci": "PASS: GitHub simulator-build on iOS main b8b1fcbfe9997e1a7a27594b5759690147de75df; physical device not tested",
@@ -35,17 +35,19 @@
     "staging": "PARTIAL: temporary HTTPS tunnel, current web and /readyz HTTP 200; current login/geocoding/session restore tested, full paired trip lifecycle not accepted",
     "production_deployment": "BLOCKED_EXTERNAL",
     "physical_iphone": "BLOCKED_EXTERNAL",
-    "umbrella_integration_tests": "PASS: npm run test:integration, 17/17 across Journey schema, booking, navigation, Redis realtime, restart durability and shared rate-limit suites"
+    "umbrella_integration_tests": "PASS: npm run test:integration, 17/17 across Journey schema, booking, navigation, Redis realtime, restart durability and shared rate-limit suites",
+    "current_staff_route_guard": "PASS: passenger direct-open of /admin/verification on public staging now renders 403; no console warnings/errors",
+    "ios_pinned_candidate_simulator": "PASS: Debug simulator build/install/launch using exact Site c9a288162065a819864200da80fd5bcd1218af69, Server 237d14f1b3e4d69936433f46f290d1cd4b920d9d, API v1, migration 028; screenshot at 120-second settle shows onboarding; no authenticated flow or physical-device acceptance"
   },
-    "note": "Immutable source revisions are feature-branch PR heads for candidate verification, not a production release. Passenger review UI was exercised through the public tunnel; driver review UI was exercised through a local edge against the same staging services after the public OTP rate limit. Both used a seeded completed-trip fixture, so the complete trip lifecycle is not accepted. integration_sha is the tested umbrella product-code baseline before report-only reconciliation edits. The tunnel hostname can rotate. This manifest is not a production deployment authorization.",
+  "note": "Immutable source revisions are feature-branch PR heads for candidate verification, not a production release. Passenger review UI was exercised through the public tunnel; driver review UI was exercised through a local edge against the same staging services after the public OTP rate limit. Both used a seeded completed-trip fixture, so the complete trip lifecycle is not accepted. integration_sha is the tested umbrella product-code baseline before report-only reconciliation edits. The tunnel hostname can rotate. This manifest is not a production deployment authorization. Pinned iOS candidate simulator build embeds exact Site/Server/API/migration metadata; it reaches onboarding only after a prolonged cold start and is not authenticated or physical-device acceptance.",
   "staging": {
-    "url": "https://7c648c22161b2f.lhr.life",
+    "url": "https://db75684bf2b067.lhr.life",
     "provider": "local Docker services via temporary anonymous localhost.run HTTPS tunnel",
-    "status": "PARTIAL; ephemeral; do not treat as durable hosting",
+    "status": "PARTIAL; ephemeral; health/home/test OTP and staff-route denial verified; full paired-user lifecycle not accepted",
     "deployed_server_sha": "237d14f1b3e4d69936433f46f290d1cd4b920d9d",
-    "deployed_site_sha": "a9b4b7e4f156f72aa3a9dd10edca57f3a1a42df6",
+    "deployed_site_sha": "c9a288162065a819864200da80fd5bcd1218af69",
     "migration": "028",
-    "checked_at": "2026-10-01 16:37 Europe/Kyiv"
+    "checked_at": "2026-10-01 16:57 Europe/Kyiv"
   },
   "candidate_database_migration": "028 on Server PR #2; canonical release baseline remains 027 until merged"
 }

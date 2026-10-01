@@ -1,14 +1,25 @@
 # MARSHGO Temporary Public Staging Report
 
-**Checked:** 2026-10-01 16:37 Europe/Kyiv
-**STAGING_URL:** https://7c648c22161b2f.lhr.life
+**Checked:** 2026-10-01 16:57 Europe/Kyiv
+**STAGING_URL:** https://db75684bf2b067.lhr.life
 **STAGING_READY:** NO (public reachability and review UI slices verified; complete paired-user acceptance remains incomplete)
 **READY_FOR_SERVER_DEPLOYMENT:** NO
 **PRODUCTION_READY:** NO
 
 **Credential hygiene note:** A diagnostic process-environment inspection showed unrelated AI provider API keys inherited by the prior edge process. The edge did not use those keys for MARSHGO, but the diagnostic output included them. That process was stopped and the staging edge relaunched using an empty environment with only the staging Site/API/S3 port and path settings. See `OWNER_ACTIONS_REQUIRED.md`; if those were live keys, rotate them. No production SMS/payment/provider secret is configured in the current staging processes.
 
-**Latest reconnect:** 2026-10-01 16:37 Europe/Kyiv, temporary URL `https://7c648c22161b2f.lhr.life`. localhost.run rotates hostnames; old URLs can return 503 after reconnect. The public edge proxies the production-built canonical Site and staging API; `/healthz` and `/readyz` returned 200 with PostgreSQL and Redis connected. Chromium visibly rendered the home page and the staging/test-only banner. An unauthenticated direct `/navigation` request retained its URL but showed the authentication welcome screen; the route itself is available after authentication, and unauthenticated protected deep-link restoration still needs explicit E2E acceptance. Passenger review submission and reload persistence passed in visible Chromium on the previous public hostname. A second OTP attempt for the seeded driver hit the shared public staging OTP rate limit. To complete the other participant's UI check without resetting the shared OTP bucket, the same production-built Site and the same staging PostgreSQL/Redis/S3Mock services were accessed through a temporary local edge/API process with an isolated staging-only rate-limit namespace. The driver submitted a 5-star review and saw the persisted reviewed state after reload. Both reviews were on a deliberately seeded completed test booking; this is review UI/state evidence, not acceptance of the real booking-to-completion lifecycle.
+**Latest reconnect:** 2026-10-01 16:45 Europe/Kyiv, temporary URL `https://db75684bf2b067.lhr.life` (checked again 16:57). localhost.run rotates hostnames; old URLs can return 503 after reconnect. The public edge proxies the production-built canonical Site and staging API; `/healthz` and `/readyz` returned 200 with PostgreSQL and Redis connected. Chromium visibly rendered the home page and the staging/test-only banner. An unauthenticated direct `/navigation` request retained its URL but showed the authentication welcome screen; the route itself is available after authentication, and unauthenticated protected deep-link restoration still needs explicit E2E acceptance. Passenger review submission and reload persistence passed in visible Chromium on the previous public hostname. A second OTP attempt for the seeded driver hit the shared public staging OTP rate limit. To complete the other participant's UI check without resetting the shared OTP bucket, the same production-built Site and the same staging PostgreSQL/Redis/S3Mock services were accessed through a temporary local edge/API process with an isolated staging-only rate-limit namespace. The driver submitted a 5-star review and saw the persisted reviewed state after reload. Both reviews were on a deliberately seeded completed test booking; this is review UI/state evidence, not acceptance of the real booking-to-completion lifecycle.
+
+## Latest delta acceptance — protected staff route (16:57 Europe/Kyiv)
+
+| Check | Result | Evidence / limits |
+|---|---|---|
+| Current public URL | PASS, ephemeral | `https://db75684bf2b067.lhr.life`; `/healthz` returned `staging-edge-ok`, `/readyz` returned `ready` with database and realtime connected, and the homepage returned HTTP 200. Chromium opened the homepage and showed the staging/test-only banner. |
+| Test-only OTP login | PASS | A synthetic staging-only passenger account completed the visible OTP flow. No real SMS was sent; the one-time code was shown by the staging development provider. |
+| Staff route authorization UI | FIXED / PASS | Before the patch, a passenger direct-open of `/admin/verification` displayed an empty staff queue because the staff-only fetch did not run. Site `c9a288162065a819864200da80fd5bcd1218af69` now renders `403 Доступ заборонено` for users without moderator/admin roles. Verified by reloading the live public staging URL in Chromium while signed in as a passenger. Browser console had no warnings or errors. Backend API authorization remains canonical. |
+| Site checks | PASS | On Site `c9a288162065a819864200da80fd5bcd1218af69`: typecheck, repository-wide lint, production build and bundle budget passed; both GitHub PR #2 Verify runs passed. |
+| iOS simulator candidate | PASS, PARTIAL UX | Debug build/install/launch pinned Site `c9a288162065a819864200da80fd5bcd1218af69`, Server `237d14f1b3e4d69936433f46f290d1cd4b920d9d`, API v1 and migration 028. Screenshot at 25 seconds was blank; the 120-second settle screenshot shows onboarding. No authenticated route was exercised; physical iPhone acceptance remains separate. Artifact: `.release/staging-ios-c9-iphone15pm.png`. |
+| Staging acceptance gate | PARTIAL / `STAGING_READY=NO` | Public health, homepage, synthetic OTP and the staff-route denial were verified. This does not complete paired-user booking, boarding, trip completion, cancellation/Rescue, GPS reroute or realtime recovery. |
 
 ## Latest delta acceptance — review flow
 
@@ -233,3 +244,11 @@ Trace archives can include staging authentication/session context. Keep them pri
 6. Real SMS, domain/TLS, production server, push, payments/commercial partners and physical iPhone acceptance remain external release gates.
 
 The local staging stack and renewed tunnel are left running. At the latest check, the current URL was `https://b017cccb204056.lhr.life`; localhost.run can rotate the hostname after reconnect. This URL serves Site SHA `150aa7a` and Server SHA `de2209b`. Public Chromium verified the staging landing page and test-only banner on b017; authenticated OTP, session restore, Photon suggestions and honest zero-inventory search/planning passed on the preceding hostname `e134c817e388ca.lhr.life`. That hostname expired. Migration 028 is applied; unread/read has not passed a two-user staging acceptance. The URL remains valid only while the host processes and this machine stay available.
+
+
+## Current exact staging snapshot (2026-10-01 16:57 Europe/Kyiv)
+
+The active anonymous tunnel URL is `https://db75684bf2b067.lhr.life`. It currently serves the locally rebuilt production Site from Git revision `c9a288162065a819864200da80fd5bcd1218af69` and the isolated staging API from Server revision `237d14f1b3e4d69936433f46f290d1cd4b920d9d` (migration 028). The next Server candidate `23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46` is not deployed. Current `/healthz`, `/readyz`, and homepage checks all pass; authenticated passenger access to `/admin/verification` renders the new 403 denial with no browser console warnings/errors. The anonymous hostname can expire or rotate and is not durable hosting. `STAGING_READY=NO`, `READY_FOR_SERVER_DEPLOYMENT=NO`, and `PRODUCTION_READY=NO`.
+
+
+Pinned simulator evidence: `.release/staging-ios-c9-iphone15pm.png` visually shows onboarding after the 120-second settle period. A blank 25-second capture exposes slow first rendering; report this as partial usability, not a clean startup-time PASS.
