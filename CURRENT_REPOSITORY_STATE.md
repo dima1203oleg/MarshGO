@@ -16,7 +16,7 @@ Repository state reconciled against local checkouts, GitHub `main` refs, open pu
 - iOS container/native integrations: MarshGO-iOS. Release builds must use an immutable Site revision.
 - Shared navigation types currently exist in both Server and Site repositories and are alignment-checked; a generated API-wide shared contract is still incomplete.
 - Cross-repository integration tests, deployment configuration, release metadata and docs: MarshGO umbrella.
-- Staging API SHA: `f0a6cdb2fd918733770f65f997dfea5d7c302b0c` (open Server PR #2); Site SHA: `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7`.
+- Staging Server revision: `f0a6cdb2fd918733770f65f997dfea5d7c302b0c` (open Server PR #2); Site revision: `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7`.
 
 ## Verification snapshot
 
