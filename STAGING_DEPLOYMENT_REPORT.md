@@ -1,19 +1,19 @@
 # MARSHGO Temporary Public Staging Report
 
 **Checked:** 2026-10-01 17:30 Europe/Kyiv
-**STAGING_URL:** https://ed296cad697b8c.lhr.life
+**STAGING_URL:** https://superblessed-herlinda-epiphragmal.ngrok-free.dev
 **STAGING_READY:** NO (public reachability and review UI slices verified; complete paired-user acceptance remains incomplete)
 **READY_FOR_SERVER_DEPLOYMENT:** NO
 **PRODUCTION_READY:** NO
 
 **Credential hygiene note:** A diagnostic process-environment inspection showed unrelated AI provider API keys inherited by the prior edge process. The edge did not use those keys for MARSHGO, but the diagnostic output included them. That process was stopped and the staging edge relaunched using an empty environment with only the staging Site/API/S3 port and path settings. See `OWNER_ACTIONS_REQUIRED.md`; if those were live keys, rotate them. No production SMS/payment/provider secret is configured in the current staging processes.
 
-**Latest reconnect:** 2026-10-01 17:29 Europe/Kyiv, temporary URL `https://ed296cad697b8c.lhr.life`. `/healthz`, `/readyz`, and homepage returned HTTP 200; readiness reported PostgreSQL and realtime connected. Chromium visibly rendered the homepage and staging/test-only banner; browser console had no warnings or errors. This anonymous localhost.run URL rotates and expires; the previous hostname returned 503. This refresh verifies reachability only and does not add paired-user lifecycle acceptance. Earlier route, OTP, review, and staff-route checks are recorded below with their exact scope and limitations.
+**Latest reconnect:** 2026-10-01 17:32 Europe/Kyiv, temporary URL `https://superblessed-herlinda-epiphragmal.ngrok-free.dev`. `/healthz`, `/readyz`, and homepage returned HTTP 200; readiness reported PostgreSQL and realtime connected. Chromium initially showed ngrok's one-time first-visit interstitial; after selecting “Visit Site,” Chromium visibly rendered MARSHGO and the staging/test-only banner, with no browser console warnings or errors. The URL is tied to the running free ngrok tunnel and has no uptime guarantee. The previous anonymous localhost.run endpoint expired with HTTP 503. This refresh verifies reachability only and does not add paired-user lifecycle acceptance. Earlier route, OTP, review, and staff-route checks are recorded below with their exact scope and limitations.
 
 
-## Latest repository and deployment snapshot (2026-10-01 17:30 Europe/Kyiv)
+## Latest repository and deployment snapshot (2026-10-01 17:32 Europe/Kyiv)
 
-- Current public URL: `https://ed296cad697b8c.lhr.life`; `/healthz`, `/readyz` (PostgreSQL and Redis connected) and homepage return HTTP 200. Chromium rendered the staging homepage with no console warnings/errors. The URL is an anonymous localhost.run tunnel and can rotate or expire.
+- Current public URL: `https://superblessed-herlinda-epiphragmal.ngrok-free.dev`; `/healthz`, `/readyz` (PostgreSQL and Redis connected) and homepage return HTTP 200. Chromium rendered the staging homepage after the one-time ngrok warning; no application console warnings/errors. The URL works only while the free tunnel process remains connected and has no uptime guarantee.
 - Source candidates: umbrella `27a4738b992acef60a438460fa9dd564eec901b8`, Server `23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46`, Site `c9a288162065a819864200da80fd5bcd1218af69`, iOS `b8b1fcbfe9997e1a7a27594b5759690147de75df`. Deployed staging Server is `237d14f1b3e4d69936433f46f290d1cd4b920d9d`; deployed Site is `c9a288162065a819864200da80fd5bcd1218af69`. iOS simulator build metadata pins Site, deployed Server, API `v1` and migration `028`.
 - On umbrella `27a4738b992acef60a438460fa9dd564eec901b8`, one Verify run (`36875070452`), CodeQL and Gitleaks passed; a duplicate Verify run (`36875061381`) remained pending at the last check. Earlier umbrella `71cff14edc60f6182d8f05c25325144418e35444` had both Verify runs pass. Verify covers lint, typecheck, unit, migrations, PostGIS/Redis integration, Docker builds, Playwright E2E and browser compatibility.
 - `STAGING_READY=NO`: public access, test OTP, search/address lookup, route/map slices and staff-route denial have passed in the stated scopes, but complete paired Passenger/Driver booking-to-completion, cancellation/Rescue, public simulated-GPS reroute and realtime recovery are not fully accepted.
@@ -32,6 +32,14 @@
 |---|---|---|
 | Current public hostname | PASS, ephemeral | `https://ed296cad697b8c.lhr.life`; `/healthz` = 200, `/readyz` reports database and realtime connected, homepage = 200. Chromium visibly rendered the title, primary actions and staging-only banner; no browser console warnings/errors. |
 | Overall acceptance | PARTIAL / `STAGING_READY=NO` | This verifies public reachability and the web landing screen only. Paired-user booking-to-completion, cancellation/Rescue, public simulated-GPS reroute and realtime recovery remain unaccepted. |
+
+## Latest external HTTPS tunnel (17:32 Europe/Kyiv)
+
+| Check | Result | Evidence / limits |
+|---|---|---|
+| Current public hostname | PASS, temporary | `https://superblessed-herlinda-epiphragmal.ngrok-free.dev`; `/healthz` and `/readyz` = 200, database and realtime connected; homepage = 200. |
+| Browser page | PASS, with provider interstitial | Chromium displayed ngrok's one-time warning, then MARSHGO rendered with its staging/test-only banner. No application console warnings/errors. Other visitors may see ngrok's interstitial once. |
+| Overall acceptance | PARTIAL / `STAGING_READY=NO` | Tunnel improves public access while this host session is alive; no additional paired-user lifecycle tests were completed. No uptime guarantee. |
 
 ## Latest delta acceptance — protected staff route (16:57 Europe/Kyiv)
 
@@ -91,9 +99,9 @@ Staging runs isolated PostGIS/Redis/S3Mock with dev OTP, Photon geocoding, OSRM 
 
 ## Deployment
 
-- **Provider:** Local Docker staging stack exposed over an anonymous localhost.run HTTPS reverse tunnel. No Vercel/Cloudflare/Render/Railway/Fly deployment credentials were available.
+- **Provider:** Local Docker staging stack exposed over a free ngrok HTTPS reverse tunnel (`ngrok-free.dev`). No authenticated Vercel/Cloudflare Pages/Render/Railway/Fly hosting account was available; an accountless Cloudflare quick-tunnel request timed out. The free ngrok tunnel has no uptime guarantee and its first visit shows an ngrok interstitial.
 - **Reachability:** Public HTTPS URL returned the staging web app, /healthz HTTP 200, and /readyz HTTP 200 (database=connected, realtime=connected) at report time.
-- **Lifetime:** Temporary URL and stack depend on the current host, Docker services and SSH tunnel session. localhost.run may rotate the hostname after a tunnel reconnect. This is not a durable hosted staging deployment.
+- **Lifetime:** Temporary URL and stack depend on the current host, Docker services and ngrok tunnel process. The endpoint is not a durable hosted staging deployment and has no uptime guarantee.
 - **Isolation:** Separate marshgo-staging PostgreSQL/PostGIS database/volume, Redis instance/volume, and private S3-compatible S3Mock bucket/volume. Staging uses dev OTP and test data. Payments and commercial providers are disabled. No production secrets or production records were used.
 - **Edge process isolation:** Current edge is launched with an allowlisted empty environment; the API uses staging-only Postgres/Redis/S3Mock settings and test OTP. Prior unrelated inherited AI-provider keys were not consumed by application logic and are noted for owner rotation if live.
 - **Services:** Production-built Site bundle; pinned API; PostgreSQL/PostGIS; Redis; S3Mock; Node edge/proxy; API process-hosted outbox/realtime worker. There is no separately deployed worker service in this stack.

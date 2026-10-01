@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "product": "MARSHGO",
-  "release_candidate": "RC-2026-10-01-staging.10",
+  "release_candidate": "RC-2026-10-01-staging.11",
   "status": "NOT_RELEASED",
   "ready_for_server_deployment": false,
   "production_ready": false,
@@ -38,18 +38,18 @@
     "umbrella_integration_tests": "PASS: npm run test:integration, 17/17 across Journey schema, booking, navigation, Redis realtime, restart durability and shared rate-limit suites",
     "current_staff_route_guard": "PASS: passenger direct-open of /admin/verification on public staging now renders 403; no console warnings/errors",
     "ios_pinned_candidate_simulator": "PASS: Debug simulator build/install/launch using exact Site c9a288162065a819864200da80fd5bcd1218af69, Server 237d14f1b3e4d69936433f46f290d1cd4b920d9d, API v1, migration 028; screenshot at 120-second settle shows onboarding; no authenticated flow or physical-device acceptance",
-    "staging_current_url": "PASS at 2026-10-01 17:30 Europe/Kyiv: https://ed296cad697b8c.lhr.life; /healthz 200, /readyz 200 (database/realtime connected), homepage 200; Chromium showed the staging banner and no console warnings/errors. Anonymous tunnel is ephemeral.",
+    "staging_current_url": "PASS at 2026-10-01 17:32 Europe/Kyiv: https://superblessed-herlinda-epiphragmal.ngrok-free.dev; /healthz 200, /readyz 200 (database/realtime connected), homepage 200; Chromium showed the staging banner and no application console warnings/errors after ngrok first-visit interstitial. Free tunnel is temporary with no uptime guarantee.",
     "staging_ready": "NO: only selected flows accepted; full paired-user booking lifecycle and recovery scenarios remain incomplete"
   },
   "note": "Immutable source revisions are feature-branch PR heads for candidate verification, not a production release. Passenger review UI was exercised through the public tunnel; driver review UI was exercised through a local edge against the same staging services after the public OTP rate limit. Both used a seeded completed-trip fixture, so the complete trip lifecycle is not accepted. integration_sha is the tested umbrella product-code baseline before report-only reconciliation edits. The tunnel hostname can rotate. This manifest is not a production deployment authorization. Pinned iOS candidate simulator build embeds exact Site/Server/API/migration metadata; it reaches onboarding only after a prolonged cold start and is not authenticated or physical-device acceptance.",
   "staging": {
-    "url": "https://ed296cad697b8c.lhr.life",
-    "provider": "local Docker services via temporary anonymous localhost.run HTTPS tunnel",
-    "status": "PARTIAL; temporary hostname passed health/readiness and Chromium homepage check at 2026-10-01 17:30 Europe/Kyiv; paired-user lifecycle not accepted",
+    "url": "https://superblessed-herlinda-epiphragmal.ngrok-free.dev",
+    "provider": "local Docker services via temporary ngrok-free.dev HTTPS tunnel",
+    "status": "PARTIAL; temporary hostname passed health/readiness and Chromium homepage check at 2026-10-01 17:32 Europe/Kyiv; paired-user lifecycle not accepted; free tunnel has no uptime guarantee",
     "deployed_server_sha": "237d14f1b3e4d69936433f46f290d1cd4b920d9d",
     "deployed_site_sha": "c9a288162065a819864200da80fd5bcd1218af69",
     "migration": "028",
-    "checked_at": "2026-10-01 17:30 Europe/Kyiv"
+    "checked_at": "2026-10-01 17:32 Europe/Kyiv"
   },
   "candidate_database_migration": "028 on Server PR #2; canonical release baseline remains 027 until merged"
 }
