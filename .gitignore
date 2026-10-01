@@ -11,3 +11,4 @@ playwright-report/
 .backup-key
 backups/
 *.dump.gpg
+/.release/

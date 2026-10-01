@@ -5,23 +5,16 @@ source "$(dirname "$0")/compose.sh"
 require_commands
 
 if [[ ! -f "$ROOT_DIR/.env.production" ]]; then echo "Missing .env.production" >&2; exit 2; fi
-compose config --quiet
-validate_production_env
 if [[ -n "$(git -C "$ROOT_DIR" status --porcelain)" ]]; then
   echo "Refusing deployment from a dirty working tree. Deploy an immutable, committed release checkout." >&2
   exit 2
 fi
-MARSHGO_RELEASE_TAG="${MARSHGO_RELEASE_TAG:-$(sed -n 's/^MARSHGO_RELEASE_TAG=//p' "$ENV_FILE" | tail -n 1)}"
+node "$ROOT_DIR/ops/scripts/materialize-release.mjs"
+compose config --quiet
+validate_production_env
+validate_release_ref
+MARSHGO_RELEASE_TAG="$(env_value MARSHGO_RELEASE_TAG)"
 export MARSHGO_RELEASE_TAG
-if [[ "$MARSHGO_RELEASE_TAG" != v* ]]; then
-  echo "Set MARSHGO_RELEASE_TAG to an immutable version tag (for example v1.2.3)." >&2
-  exit 2
-fi
-if ! git -C "$ROOT_DIR" rev-parse --verify "refs/tags/$MARSHGO_RELEASE_TAG^{commit}" >/dev/null; then
-  echo "Release tag is missing from this checkout: $MARSHGO_RELEASE_TAG" >&2
-  exit 2
-fi
-
 "$ROOT_DIR/ops/scripts/backup.sh"
 stamp="$(date -u +%Y%m%dT%H%M%SZ)"
 for service in api web; do

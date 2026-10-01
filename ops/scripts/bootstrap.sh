@@ -8,8 +8,10 @@ if [[ ! -f "$ENV_FILE" ]]; then
   echo "Create $ENV_FILE from ops/templates/production.env.example and provide all required production configuration." >&2
   exit 2
 fi
+node "$ROOT_DIR/ops/scripts/materialize-release.mjs"
 compose config --quiet
 validate_production_env
+validate_release_ref
 compose pull db redis proxy
 compose build --pull api web
 compose up -d db redis

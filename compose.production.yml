@@ -72,7 +72,7 @@ services:
     depends_on:
       db: { condition: service_healthy }
       redis: { condition: service_healthy }
-    command: ["node", "server/migrate.mjs"]
+    command: ["npm", "run", "db:migrate"]
     networks: [internal]
 
   api:

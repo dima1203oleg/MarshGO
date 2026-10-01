@@ -11,11 +11,13 @@ if [[ ! -f "$ENV_FILE" ]]; then
 fi
 
 compose() {
-  docker compose --project-name "$PROJECT_NAME" --env-file "$ENV_FILE" -f "$ROOT_DIR/compose.production.yml" "$@"
+  local compose_file="$ROOT_DIR/compose.production.yml"
+  if [[ -f "$ROOT_DIR/.release/compose.production.yml" ]]; then compose_file="$ROOT_DIR/.release/compose.production.yml"; fi
+  docker compose --project-name "$PROJECT_NAME" --env-file "$ENV_FILE" -f "$compose_file" "$@"
 }
 
 require_commands() {
-  for command_name in docker curl; do
+  for command_name in docker curl git node; do
     command -v "$command_name" >/dev/null 2>&1 || { echo "Missing prerequisite: $command_name" >&2; exit 2; }
   done
   docker compose version >/dev/null
@@ -48,4 +50,27 @@ validate_production_env() {
   secret_file="${BACKUP_KEY_FILE:-$(env_value BACKUP_KEY_FILE)}"
   secret_file="${secret_file:-$ROOT_DIR/.backup-key}"
   if [[ ! -r "$secret_file" ]]; then echo "Backup encryption key file is missing or unreadable: $secret_file" >&2; return 2; fi
+}
+
+validate_release_ref() {
+  local release_tag tag_commit head_commit
+  release_tag="$(env_value MARSHGO_RELEASE_TAG)"
+  if [[ ! "$release_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9.-]+)?$ ]]; then
+    echo "MARSHGO_RELEASE_TAG must be an immutable semantic version tag (for example v1.2.3)." >&2
+    return 2
+  fi
+  if [[ -n "$(git -C "$ROOT_DIR" status --porcelain)" ]]; then
+    echo "Refusing deployment from a dirty checkout." >&2
+    return 2
+  fi
+  if ! git -C "$ROOT_DIR" rev-parse --verify "refs/tags/$release_tag^{commit}" >/dev/null 2>&1; then
+    echo "Release tag $release_tag is not present in this checkout." >&2
+    return 2
+  fi
+  tag_commit="$(git -C "$ROOT_DIR" rev-parse "refs/tags/$release_tag^{commit}")"
+  head_commit="$(git -C "$ROOT_DIR" rev-parse HEAD)"
+  if [[ "$tag_commit" != "$head_commit" ]]; then
+    echo "Release tag $release_tag must point to the checked-out integration commit." >&2
+    return 2
+  fi
 }
