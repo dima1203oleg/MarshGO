@@ -1,7 +1,7 @@
 # MARSHGO Temporary Public Staging Report
 
 **Checked:** 2026-10-01 (Europe/Kyiv)
-**STAGING_URL:** https://0bb080eab43f29.lhr.life
+**STAGING_URL:** https://a44900e9e6cb7b.lhr.life
 **STAGING_READY:** NO
 **READY_FOR_SERVER_DEPLOYMENT:** NO
 **PRODUCTION_READY:** NO
@@ -35,7 +35,9 @@ The locally materialized pinned Server and Site source trees contain untracked b
 | Public homepage / staging banner | PASS | Real browser displayed MARSHGO STAGING · TEST DATA ONLY. |
 | API health/readiness | PASS | Public HTTPS /healthz and /readyz returned 200. |
 | Navigation direct link | PASS | `/navigation` previously returned the app's 404; the Site PR #2 alias now opens the navigation destination form on the public staging URL. Site PR checks pass. |
-| Login with development OTP | PASS | Browser authenticated isolated test user; dev OTP only, no SMS sent. |
+| Driver dashboard after login | PASS | Independent driver test account reached the production dashboard after OTP verification; server-backed offers, demands, vehicles and navigation-match reads returned successfully. No driver vehicle is verified, so publishing/matching acceptance remains blocked by the real verification flow. |
+| Moderator authentication | PASS (screen incomplete) | Moderator test account authenticated and read protected account/booking APIs. The admin verification decision flow was not completed through the UI. |
+| Login with development OTP | PASS | Separate Chromium contexts authenticated the staging driver and moderator test identities through the visible OTP flow; all post-login API reads returned 200. OTP values were not retained in output. |
 | Passenger demand creation | PASS | UI published Стрий → Львів, 2 passengers, 300 UAH total. |
 | API restart recovery | PASS | After API restart, browser reauthenticated and demand persisted in “Мої заявки”; the direct /demands/mine URL also survived reload. |
 | Redis restart recovery | PASS | Staging-only Redis stop made `/readyz` return 503 (`database=connected`, `realtime=disconnected`); after Redis restart readiness returned 200 and browser reload restored the same PostgreSQL-backed demand/session. |
@@ -71,6 +73,7 @@ Local, ignored artifacts (not committed or publicly linked):
 - .release/staging-desktop-home.png
 - .release/staging-passenger-desktop.png
 - .release/staging-passenger-mobile.png
+- .release/staging-driver-dashboard.png (driver test account after visible OTP login)
 - .release/staging-map-desktop.png
 - .release/staging-map-mobile.png
 - .release/staging-map-openfreemap-desktop.png
@@ -88,4 +91,4 @@ Trace archives can include staging authentication/session context. Keep them pri
 5. Replace S3Mock and public test geocoder/routing/map endpoints with configured production-grade services for production.
 6. Real SMS, domain/TLS, production server, push, payments/commercial partners and physical iPhone acceptance remain external release gates.
 
-The local staging stack and tunnel are left running. The current URL is `https://0bb080eab43f29.lhr.life`; localhost.run may rotate it when the tunnel reconnects. The URL remains valid only while those processes and this host stay available.
+The local staging stack and a renewed tunnel are left running. The current URL is `https://a44900e9e6cb7b.lhr.life`; localhost.run may rotate it when the tunnel reconnects. The replacement URL was checked over HTTPS after renewal and both health/readiness returned 200. The URL remains valid only while those processes and this host stay available.
