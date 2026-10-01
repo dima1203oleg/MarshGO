@@ -21,5 +21,7 @@ if [[ -n "${E2E_DIST_DIR:-}" ]]; then
   fi
 else
   node scripts/build-pwa.mjs
+  SITE_SHA="$(node -e 'process.stdout.write(JSON.parse(require("node:fs").readFileSync("RELEASE_MANIFEST.json","utf8")).site_sha)')"
+  export E2E_DIST_DIR="$PWD/.release/site-${SITE_SHA}/dist"
 fi
 playwright test "$@"

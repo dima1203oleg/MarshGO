@@ -431,14 +431,17 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     await expect(passengerPage.getByRole('heading', { name: 'MARSHGO E2E Driver' })).toBeVisible();
     await passengerPage.getByRole('button', { name: 'Поїздки', exact: true }).click();
     const rescueTripCard = passengerPage.locator('article').filter({ hasText: 'MARSHGO E2E Driver' }).first();
-    passengerPage.once('dialog', dialog => dialog.accept());
     await rescueTripCard.getByRole('button', { name: 'Скасувати' }).click();
+    const cancelBookingDialog = passengerPage.getByRole('alertdialog', { name: 'Скасувати бронювання?' });
+    await expect(cancelBookingDialog).toBeVisible();
+    await cancelBookingDialog.getByRole('button', { name: 'Так, скасувати' }).click();
     await expect(rescueTripCard.getByText('Інші поїздки MARSHGO поруч')).toBeVisible();
     const rescueAlternative = rescueTripCard.getByRole('button').filter({ hasText: 'Rescue E2E Origin' }).first();
     await expect(rescueAlternative).toContainText('MARSHGO Community');
     await expect(rescueAlternative).toContainText('220 грн');
     await expect(rescueAlternative).toHaveAttribute('data-offer-id', rescueAlternativeId);
     const corridorAlternative = rescueTripCard.getByRole('button').filter({ hasText: 'Rescue E2E Corridor Origin' }).first();
+    await expect(corridorAlternative).toContainText('4 вільних');
     await expect(corridorAlternative).toContainText('Початок уздовж вашого маршруту');
     await expect(corridorAlternative).toContainText('км від маршруту');
     await expect(corridorAlternative).toHaveAttribute('data-offer-id', rescueCorridorAlternativeId);
@@ -458,6 +461,13 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
       [rescueBookingPayload.data.id, rescueCorridorAlternativeId, passengerPhone],
     );
     expect(rescueBooking.rows).toEqual([{ status: 'confirmed', total_price_minor: 24000 }]);
+    const replacementInventory = await pool.query<{ available_seats: number }>(
+      'SELECT available_seats FROM offers WHERE id=$1', [rescueCorridorAlternativeId],
+    );
+    expect(replacementInventory.rows).toEqual([{ available_seats: 3 }]);
+    const refreshedRescueTripCard = passengerPage.locator('article').filter({ hasText: 'Інші поїздки MARSHGO поруч' }).first();
+    const refreshedRescueAlternative = refreshedRescueTripCard.locator(`[data-testid="rescue-alternative"][data-offer-id="${rescueCorridorAlternativeId}"]`);
+    await expect(refreshedRescueAlternative).toContainText('3 вільних');
   } finally {
     await passengerContext.close();
     await driverContext.close();
@@ -838,9 +848,11 @@ test('Journey Planner ranks a persisted Community route and opens its current of
     expect(linked.rows).toHaveLength(1);
     expect(linked.rows[0]).toMatchObject({ state: 'READY', confirmed_price_minor: 15000, leg_state: 'CONFIRMED', price_status: 'LOCKED' });
 
-    page.once('dialog', dialog => void dialog.accept());
     const cancelResponse = page.waitForResponse(response => response.url().endsWith(`/api/v1/bookings/${linkedBooking.data.id}/cancel`));
     await page.getByRole('button', { name: 'Скасувати', exact: true }).click();
+    const cancellationDialog = page.getByRole('alertdialog', { name: 'Скасувати бронювання?' });
+    await expect(cancellationDialog).toBeVisible();
+    await cancellationDialog.getByRole('button', { name: 'Так, скасувати' }).click();
     expect((await cancelResponse).status()).toBe(200);
     await expect(page.getByText('Потрібне перепланування')).toBeVisible();
     await expect(page.getByText('Ціна оновиться після перепланування')).toBeVisible();
