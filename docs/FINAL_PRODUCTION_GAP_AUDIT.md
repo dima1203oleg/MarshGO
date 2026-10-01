@@ -2,15 +2,15 @@
 
 ## Evidence basis
 
-- Server canonical `main` at `2fcdeed` includes planner and Rendezvous unit tests; repository CI passed. Local integration suite passed 17/17 against PostGIS/Redis.
-- Site canonical `main` at `c7f76a4` passed `lint:all`, TypeScript and production build. Umbrella production check passed: 72 unit tests, one opt-in skip, Vite build, gzip chunk budget.
+- Server canonical `main` at `bdfdf24941809f4581965b9847022c68e0b2f127` includes planner and Rendezvous unit tests; repository CI passed. Current local checkout is PR #2 head `54ed3c85fd79807a7d7d0b539a587fffca259487`. Local integration suite previously passed 17/17 against PostGIS/Redis.
+- Site canonical `main` at `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7` passed `lint:all`, TypeScript and production build. Current local checkout is PR #2 head `3b9af2b61b093152d451271e398920e679cf4276`. Umbrella production check on the current integration worktree passed TypeScript, repository-wide ESLint including `ops/`, 80 tests (79 passed, 1 skipped, 0 failed), Vite production build, and gzip chunk budget.
 - Umbrella production Browser E2E passed 6/6 in Chromium. It covers production-bundle boot, onboarding, separate passenger/driver contexts, booking/demand/chat persistence, browser GPS route deviation/rerouting, Journey offer detail, and a driver-led route match through mutual consent, proposal, booking, waypoint insertion and reroute. That route-match path uses a verified test vehicle fixture and still covers only one passenger; it does not cover the full release golden path.
 - iOS canonical `main` at `b8b1fcb` passed GitHub Simulator CI. Local simulator screenshot after adequate settle shows onboarding. This is not a physical-device acceptance.
 - Local Adobe S3Mock contract smoke passed an AWS SDK put/head/get. A disposable PostGIS backup/restore drill passed, but no hosted staging restore or production backup schedule has been verified. Production Compose syntax and shell script syntax pass.
 
 ## Architecture and state reconciliation
 
-The standalone repositories now receive canonical pushes, but the umbrella still contains synchronized copies of `server/` and `src/`; the Dockerfiles build those copies. The release manifest records standalone SHAs, but the production container build does not yet checkout/materialize them. This is a high-priority reproducibility gap. Do not label an umbrella-built container as the exact standalone-SHA release until this is fixed.
+The release materializer clones/checks out the immutable standalone Server/Site SHAs recorded in `RELEASE_MANIFEST.json`, then generates deployment inputs and builds from those checkouts. This was verified locally against Server `bdfdf24941809f4581965b9847022c68e0b2f127` and Site `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7`; the generated production Compose configuration validated and the API/Web images built. This turn hardened that path by rejecting tracked/staged/deleted or unexpected untracked changes in reused pinned checkouts, restricting Docker contexts with per-source `.dockerignore`, and recording SHA-256 digests for materialized build inputs. Integration PR #1 CI was green at its prior head; rerun CI is required for these new changes.
 
 Server PR #1's core planner/Rendezvous code already exists in canonical `main`; the omitted PR unit tests were ported and pushed. Site PR #1 functional rendezvous/onboarding code exists in canonical `main`, though its PR remains open for residual source diffs. iOS PR #1 screenshot settling behavior was ported and pushed; the old full PR cannot be merged wholesale because it removes current pinned release inputs.
 
@@ -33,12 +33,12 @@ Server PR #1's core planner/Rendezvous code already exists in canonical `main`; 
 | S3/storage | PARTIAL | Adapter unit tests and S3Mock put/head/get pass; S3Mock is a test implementation, not private production storage validation. |
 | Payments/commercial partners | BLOCKED_EXTERNAL | No live merchant/partner API config or credentials. |
 | Security | PARTIAL | Production config is fail-closed, server guards exist, security headers/rate limits and dependency checks are present. Full release SAST/secrets/container scans and staging abuse review are not complete. |
-| Operations/deployment | PARTIAL | Compose, Caddy, bootstrap/update, AES-GCM backups and guarded restore exist. No canonical source materialization, full service stack, monitoring/alerts or hosted restore drill. |
+| Operations/deployment | PARTIAL | Immutable standalone source materialization, worktree cleanliness checks, restricted Docker contexts, production Compose, Caddy, bootstrap/update, AES-GCM backups and guarded restore exist. Generated production Compose validates and pinned API/Web images build locally. Full hosted service stack, monitoring/alerts and hosted restore drill remain incomplete. |
 | Visual parity | PARTIAL | Cross-browser responsive testing exists; exact desktop/tablet/iPhone reference parity across supplied screenshots has not yet been completed. |
 
 ## High-priority software gaps
 
-1. Make release image builds consume the immutable standalone Server/Site revisions recorded in `RELEASE_MANIFEST.json`.
+1. Complete CI verification of the newly hardened immutable release materializer and retain build attestations as release artifacts.
 2. Add a single local/staging-like Compose topology with actual API, Site, worker, PostGIS, Redis, S3 emulator, proxy and monitoring; run migrations and all acceptance flows through it.
 3. Finish full community and reverse-marketplace lifecycle E2E from auth/vehicle review through trip closure/review, cancellation recovery and restart.
 4. Implement and test WALK/provider-fed multimodal Journey, Journey monitor, ETA cascade and predictive replan. Extend route-aware booking Rescue into a complete paired-user replacement-booking and trip-recovery flow. Keep absent external modes disabled.

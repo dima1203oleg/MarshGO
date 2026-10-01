@@ -10,7 +10,7 @@
     "dev": "vite --port=3000 --host=0.0.0.0",
     "typecheck": "tsc --noEmit",
     "lint": "npm run lint:all",
-    "lint:all": "eslint src server shared tests e2e scripts tools playwright.config.ts playwright.compat.config.ts vite.config.ts eslint.config.js",
+    "lint:all": "eslint src server shared tests e2e scripts ops tools playwright.config.ts playwright.compat.config.ts vite.config.ts eslint.config.js",
     "test": "tsx --test tests/*.test.ts",
     "test:e2e": "bash scripts/run-e2e.sh",
     "test:browser-compat": "bash scripts/run-browser-compat.sh",

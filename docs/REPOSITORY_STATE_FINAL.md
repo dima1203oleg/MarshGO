@@ -1,40 +1,22 @@
-# MARSHGO repository state — 2026-10-01
+# Repository state — 2026-10-01
 
-This is the audited source-of-truth map after comparing local working trees, canonical `main` heads, open PR heads, and the active integration branch. No canonical repository changes were discarded. The three standalone canonical `main` working trees were clean at audit start; current Server security work is committed on its own PR branch.
+The standalone repos are the canonical production sources. The umbrella repo owns release orchestration, integration tests and deployment materialization. Release images use immutable Server/Site SHAs from `RELEASE_MANIFEST.json`; staging may deliberately run newer PR revisions and must not be confused with that release baseline.
 
-## Repository inventory
+| Repository | Local branch / HEAD | `origin/main` | Purpose / source of truth | Open work | Local state |
+|---|---|---|---|---|---|
+| `MarshGO` | `codex/marshgo-production` / `5c4239de0cd5637a5b6ca13d24ad42a99f1ac078` before this change set | `1e7d0ee74f11121a7d5a29c6379944a5360581c4` | Integration E2E, release manifest, deployment orchestration and cross-repo docs | PR #1, draft, head `5c4239de0cd5637a5b6ca13d24ad42a99f1ac078`; checks at that head passed | This change set is in progress; must be committed and pushed before release use |
+| `MarshGO-Server` | `codex/security-parse-bearer` / `54ed3c85fd79807a7d7d0b539a587fffca259487` | `bdfdf24941809f4581965b9847022c68e0b2f127` | Canonical backend, migrations, API and workers | PR #2 head matches local; PR #1 Rendezvous head `f788a96a5365a8a7d7f1eef416868f97217706c4` | Clean |
+| `MarshGO-Site` | `codex/navigation-deep-link-alias` / `3b9af2b61b093152d451271e398920e679cf4276` | `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7` | Canonical Web/PWA | PR #2 head matches local; PR #1 Rendezvous head `045f138bd9c31cb8bcc40231da867db7d7e8e531` | Clean |
+| `MarshGO-iOS` | `main` / `b8b1fcbfe9997e1a7a27594b5759690147de75df` | same | Native container and native integrations | PR #1 Simulator capture head `328d9af2b3f7095d3f9afca8fcbe4e9c5e1df0ad` | Clean |
 
-| Repository | Branch / HEAD | Purpose | Source of truth | CI status | Open work | Production relevance |
-|---|---|---|---|---|---|---|
-| `dima1203oleg/MarshGO` | `codex/marshgo-production` / `0127de32b125af0a7feb1ec85261582921cd6df3` | Cross-repo integration, deployment, E2E, release docs | Integration/deployment orchestration only | Latest CI, CodeQL and Gitleaks pass | Draft PR #1 remains open; merge-state has prior history to reconcile | Release manifests and deployment artifacts; not canonical API or Site implementation |
-| `dima1203oleg/MarshGO-Server` | `main` / `bdfdf24941809f4581965b9847022c68e0b2f127` | API, workers, domain logic, migrations, runtime validation | Canonical backend and database source | Latest Server CI passes | PR #1 rendezvous branch is stale; security fix PR #2 is `f0a6cdb2fd918733770f65f997dfea5d7c302b0c` and its CI passes | Production backend source; security fix is not yet merged to `main` |
-| `dima1203oleg/MarshGO-Site` | `main` / `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7` | Web/PWA production frontend | Canonical Web/PWA source | Latest Site CI passes | Navigation direct-link alias is in PR #2 (`97b29ed…`, CI passes); older PR #1 remains divergent and dirty | Production web client source; staging uses PR #2 build for its navigation-link smoke |
-| `dima1203oleg/MarshGO-iOS` | `main` / `b8b1fcbfe9997e1a7a27594b5759690147de75df` | Capacitor/iOS shell and native integrations | Canonical iOS source | Latest simulator CI passes | PR #1 simulator-capture branch contains a small residual script change and is behind `main` | iOS release wrapper; consumes immutable Site ref for release builds |
+## Deployment source of truth
 
-Open PRs and heads were read from GitHub on 2026-10-01. The rendezvous and simulator PRs must not be merged wholesale: their feature work is partly represented in canonical `main`, but the PR branches diverged and GitHub marks them dirty. Compare each residual change against the canonical implementation before closing or porting it.
+- Backend code and migrations: `MarshGO-Server`.
+- Web/PWA: `MarshGO-Site`.
+- iOS wrapper/native code: `MarshGO-iOS`; release Web content must be pinned to an exact Site SHA.
+- Integration/release/deployment orchestration: `MarshGO`.
+- Release image source: immutable `server_sha` and `site_sha` in root `RELEASE_MANIFEST.json`, materialized into `.release/` and guarded against local edits.
 
-## Canonical ownership
+## Staging versus release baseline
 
-| Area | Canonical owner | Current caveat |
-|---|---|---|
-| Backend API behavior and runtime schemas | MarshGO-Server | API-wide generated OpenAPI/client contract is not complete. `docs/openapi/navigation-v1.yaml` in the umbrella is navigation-only. |
-| Web/PWA implementation | MarshGO-Site | Production API DTOs are still partly hand-maintained; contract drift checks need expansion. |
-| iOS shell/native capability | MarshGO-iOS | Release CI pins Site input; signing and physical-device acceptance remain external. |
-| Database migrations | MarshGO-Server `server/migrations` | Latest canonical migration is 027; never edit applied migrations. |
-| Shared navigation DTOs | Duplicated `shared/navigation` packages in Server and Site | Types/schema files are kept aligned by integration verification, not yet published as one generated package. |
-| Deployment, compose, proxy, backups, monitoring templates | MarshGO integration repository `ops/`, `deploy/`, `compose.production.yml` | The running public test staging overlay is temporary and is not a production deployment. |
-| Release pins and cross-repo verification | `RELEASE_MANIFEST.json` in integration repository | Manifest records a verified baseline; it does not authorize production release. |
-
-## Verified local state
-
-- Umbrella branch `codex/marshgo-production` is pushed and clean at `0127de32b125af0a7feb1ec85261582921cd6df3`.
-- Server `main`, Site `main`, and iOS `main` were clean at their audited heads. Server fix branch `codex/security-parse-bearer` is pushed and clean at `f0a6cdb2fd918733770f65f997dfea5d7c302b0c`.
-- `npm run lint:all`, `npm run typecheck`, and `npm test` passed in the umbrella: 74 passed, 1 skipped.
-- Server `npm run lint:all`, `npm run typecheck`, and `npm test` passed: 46 passed, 1 skipped.
-- Server `npm run test:integration` passed all 17 integration tests across Journey schema, bookings, navigation, multi-instance realtime, API restart durability and shared Redis rate limits.
-- Latest umbrella GitHub CI, CodeQL and Gitleaks checks pass. The former umbrella CodeQL findings for backtracking-prone auth parsing and substring tile-host matching were fixed and re-scanned successfully.
-- See [STAGING_DEPLOYMENT_REPORT.md](../STAGING_DEPLOYMENT_REPORT.md) for the active temporary HTTPS test URL, actual browser evidence and acceptance gaps.
-
-## Release boundary
-
-Passing CI and temporary staging smoke tests do not imply full pre-production acceptance. The public two-account booking, matching, navigation update, chat, rendezvous, cancellation/Rescue, and complete passenger/driver lifecycle still need browser acceptance. Production server/domain/TLS, real SMS and provider configuration, push, payment, iOS signing and physical device remain separate release gates.
+The temporary public staging service uses Server `54ed3c85fd79807a7d7d0b539a587fffca259487` and Site `3b9af2b61b093152d451271e398920e679cf4276`, while the release manifest canonical baseline uses Server `bdfdf24941809f4581965b9847022c68e0b2f127` and Site `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7`. Keep these identities explicit in reports and build metadata.

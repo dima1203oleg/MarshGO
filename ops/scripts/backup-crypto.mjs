@@ -1,13 +1,15 @@
 import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'node:crypto';
+import { Buffer } from 'node:buffer';
 import { createReadStream, createWriteStream } from 'node:fs';
 import { open, readFile, rename, rm } from 'node:fs/promises';
 import { once } from 'node:events';
+import process from 'node:process';
 
 const [operation, keyFile, inputPath, outputPath] = process.argv.slice(2);
 const magic = Buffer.from('MGBACKUP1');
 const headerBytes = magic.length + 16 + 12;
 if (!['encrypt', 'decrypt'].includes(operation) || !keyFile || !inputPath || !outputPath || outputPath === '-') {
-  console.error('Usage: node backup-crypto.mjs <encrypt|decrypt> <passphrase-file> <input-file|-> <output-file>');
+  process.stderr.write('Usage: node backup-crypto.mjs <encrypt|decrypt> <passphrase-file> <input-file|-> <output-file>\n');
   process.exit(2);
 }
 

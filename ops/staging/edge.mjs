@@ -2,6 +2,8 @@ import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
 import { createServer, request as httpRequest } from 'node:http';
 import { createConnection } from 'node:net';
 import { extname, resolve, sep } from 'node:path';
+import { URL } from 'node:url';
+import process from 'node:process';
 import { createGzip, gzipSync } from 'node:zlib';
 
 const siteRoot = resolve(process.env.STAGING_SITE_DIST || '.release/site/dist');
