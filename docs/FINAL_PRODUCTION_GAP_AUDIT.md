@@ -1,16 +1,24 @@
 # Final production gap audit — 2026-10-01
 
-## Latest cancellation / Rescue delta — 2026-10-01
+## Latest verified delta — 2026-10-01
+
+Canonical Server `699b1fa7e007f5f8b56e597922523cf4659dd942` and Site `573ebca115f50c1762be4d0d26e9759b195d2fa2` close the saved Journey Rescue rebooking link. The replacement is validated against the cancelled route/time window and user blocks, booked transactionally with inventory, records the original leg as `REPLACED`, inserts the replacement leg, recomputes the Journey price, and returns the Journey to `READY`. The Site refreshes Journey data after cancellation and keeps the leg association through the offer URL change. Regression coverage confirms concurrent attempts produce one booking, idempotent replay returns the winner, and duplicate attachment conflicts.
+
+Verification on the exact candidate pair: Server `npm test` 51 passed / 0 failed / 2 opt-in skips; `npm run test:integration` 18/18; Server typecheck/lint and updated Verify pass. Site typecheck, repository-wide lint, production build/bundle gate and updated Verify pass. Umbrella `npm run check:production` passes (79 passed / 0 failed / 1 opt-in skip); pinned-canonical production browser E2E passes 6/6, including Journey cancel → Rescue replacement → Journey READY; Chromium/Firefox/WebKit compatibility passes 3/3. Public temporary staging runs the candidate pair and `/readyz` returns 200, but repeated OTP/test mutations currently hit staging rate limits. Full public paired-role acceptance remains partial. `STAGING_READY=NO`, `READY_FOR_SERVER_DEPLOYMENT=NO`, `PRODUCTION_READY=NO`.
+
+The sections below retain earlier dated observations; use this latest delta and `STAGING_DEPLOYMENT_REPORT.md` for the current candidate state.
+
+## Earlier cancellation / Rescue candidate — 2026-10-01
 
 Site candidate `98fc439807c3870b52720ff780a988435a215821` explicitly refreshes the newly cancelled passenger booking's Rescue candidates, fixing a stale state-snapshot bug. The code is committed/pushed to Site PR #2; Site Verify passes. Local Site typecheck, repository-wide lint, production build and bundle gate pass. Umbrella production-bundle E2E passes 6/6 on this exact immutable Site SHA, with an assertion that restored inventory (four seats) is visible immediately after cancel; responsive compatibility smoke passes Chromium/Firefox/WebKit 3/3. The local edge behind the current temporary staging URL serves this SHA, and a real Chromium reload rendered the new bundle plus persisted booking/Rescue state. Public paired-user completion, live chat, GPS and full lifecycle remain partial. `STAGING_READY=NO`, `READY_FOR_SERVER_DEPLOYMENT=NO`, `PRODUCTION_READY=NO`. Evidence and limits: `STAGING_DEPLOYMENT_REPORT.md`.
 
-## Latest public staging delta — 2026-10-01 18:03 Europe/Kyiv
+## Earlier public staging snapshot — 2026-10-01 18:03 Europe/Kyiv
 
 Temporary URL `https://superblessed-herlinda-epiphragmal.ngrok-free.dev` remains externally reachable: homepage and `/readyz` returned HTTP 200; PostgreSQL and Redis readiness are connected. API was restarted with staging-only Photon geocoding and OSRM road-routing URLs. In Chromium, Photon suggestions were selected, Journey search completed using OSRM-backed routing, a clearly labeled synthetic `STAGING TEST` offer was booked, and the protected `/trips` route restored the session, Journey, booking and notification badge after reload. A test chat message remained after navigation/reload; the chat explicitly displayed offline mode with persisted history. Attempting cancellation timed out in browser automation before a result was observed. This is a scoped single-user acceptance slice, not paired-user E2E. `STAGING_READY=NO`, `READY_FOR_SERVER_DEPLOYMENT=NO`, and `PRODUCTION_READY=NO` remain unchanged. Exact current URL, providers, actions, evidence and limits are in `STAGING_DEPLOYMENT_REPORT.md` and `RELEASE_MANIFEST.json`.
 
 The free ngrok hostname depends on a locally running tunnel and has no uptime guarantee; new users may encounter the provider interstitial. Photon/OSRM and vector map assets are public/demo endpoints, synthetic driver inventory is seeded and labeled as test data, and no live commercial provider or real SMS/payment service is enabled.
 
-## Latest CI snapshot — 2026-10-01 17:15 Europe/Kyiv
+## Earlier CI snapshot — 2026-10-01 17:15 Europe/Kyiv
 
 - Umbrella `71cff14edc60f6182d8f05c25325144418e35444`: both Verify runs, CodeQL and Gitleaks passed. The CI Verify includes Playwright E2E and browser compatibility. Site `c9a288162065a819864200da80fd5bcd1218af69` and Server `23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46` Verify checks pass.
 - Current staging `https://0c7342d01f4706.lhr.life`: `/healthz`, `/readyz` and homepage return 200. This temporary hostname is not durable. Paired trip closure remains unaccepted, so `STAGING_READY=NO`.

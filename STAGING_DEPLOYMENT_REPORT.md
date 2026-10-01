@@ -1,5 +1,31 @@
 # MARSHGO Temporary Public Staging Report
 
+## Latest candidate deployment — 2026-10-01
+
+**STAGING_URL:** `https://superblessed-herlinda-epiphragmal.ngrok-free.dev`
+
+**Server SHA:** `699b1fa7e007f5f8b56e597922523cf4659dd942`
+
+**Site SHA:** `573ebca115f50c1762be4d0d26e9759b195d2fa2`
+
+**Provider:** local isolated Postgres/PostGIS, Redis, S3Mock and static Site, exposed by the temporary ngrok HTTPS tunnel
+**STAGING_READY:** NO · **READY_FOR_SERVER_DEPLOYMENT:** NO · **PRODUCTION_READY:** NO
+
+The local API candidate runs on the staging edge and the current Site production bundle is served from the canonical Site build. `GET /readyz` returned HTTP 200 with PostgreSQL and Redis connected; homepage and health routes returned HTTP 200. No production SMS/payment/storage credentials are configured. The public UI reload on the previously authenticated Journey hit the staging rate limit, so no public Journey Rescue action is claimed for this deployment.
+
+The same exact Server/Site pair passed the local production-browser suite using isolated PostGIS/Redis and deterministic provider fixtures: 6/6 Playwright scenarios. The Journey scenario performs search, link booking to the saved Journey, cancellation, selects a route-corridor Rescue alternative, books it, and verifies persisted `REPLACED` + `CONFIRMED` legs and `READY` Journey state. Server isolated PostGIS/Redis integration passed 18/18 and includes concurrent Rescue booking attempts with exactly one winner. Browser compatibility passed Chromium/Firefox/WebKit 3/3. Screenshot evidence from the local Journey offer view: `/tmp/marshgo-offer-detail-mobile.png`; Playwright traces are retained under `test-results/` (git-ignored).
+
+| Check | Result | Limit |
+|---|---|---|
+| Public HTTPS reachability | PASS | Temporary free tunnel; may expire and has no uptime guarantee. |
+| Public readiness | PASS | `/readyz` HTTP 200, PostgreSQL and Redis connected. |
+| Server/Site candidate deployment | PASS | Exact feature branch SHAs above; no production credentials. |
+| Local Journey Rescue closed loop | PASS | Production Vite bundle + canonical pinned Server/Site, isolated DB/Redis, fixture inventory. |
+| Public Journey Rescue UI retest | BLOCKED (temporary) | Staging rate limiter is returning a retry-after message after repeated acceptance mutations; do not treat local E2E as public staging acceptance. |
+| Full paired public Golden Path | PARTIAL | Driver/passenger complete lifecycle, realtime rendezvous, live GPS and restart recovery not accepted end-to-end on public UI. |
+
+## Earlier staging snapshots
+
 ## Latest public and local candidate check — 2026-10-01
 
 **STAGING_URL:** `https://superblessed-herlinda-epiphragmal.ngrok-free.dev`
