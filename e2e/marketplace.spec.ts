@@ -207,8 +207,9 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     const restoredSession = await refreshResponse;
     expect(restoredSession.status(), 'refresh should restore the session after a page reload').toBe(200);
     await refreshTokenResponses;
-    // URL restoration keeps the user on the chat they reloaded from.
-    await expect(passengerPage.getByRole('heading', { name: 'Чати' })).toBeVisible();
+    // Entity deep links restore the specific server-owned conversation after reload.
+    await expect(passengerPage).toHaveURL(/\/messages\/[A-Za-z0-9_-]+$/);
+    await expect(passengerPage.getByRole('heading', { name: 'MARSHGO E2E Driver' })).toBeVisible();
     await passengerPage.getByRole('button', { name: 'Поїздки', exact: true }).click();
     await expect(passengerPage.getByText(/2 місця/).first()).toBeVisible();
     await passengerPage.getByRole('button', { name: 'Відкрити зустріч' }).click();
@@ -233,6 +234,12 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     await passengerPage.getByLabel('Бюджет, грн').fill('300');
     await passengerPage.getByRole('button', { name: 'Опублікувати заявку' }).click();
     await expect(passengerPage.getByRole('heading', { name: 'Пропозиції водіїв' })).toBeVisible();
+    const createdDemandQuery = await pool.query<{ id: string }>(
+      'SELECT id FROM passenger_demands WHERE passenger_id=(SELECT id FROM users WHERE phone_e164=$1) ORDER BY created_at DESC LIMIT 1',
+      [passengerPhone],
+    );
+    const createdDemandId = createdDemandQuery.rows[0]?.id;
+    expect(createdDemandId, 'the passenger demand must persist before the driver searches for it').toBeTruthy();
 
     await signIn(driverPage, 'MARSHGO Driver', driverPhone);
     await driverPage.getByRole('button', { name: 'Поїздки', exact: true }).click();
@@ -276,7 +283,7 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
 
     await driverPage.getByRole('button', { name: 'Створити' }).click();
     await driverPage.getByRole('button', { name: /Знайти пасажира/ }).click();
-    const openDemand = driverPage.locator('article').filter({ hasText: /Стрий → Львів/ }).first();
+    const openDemand = driverPage.getByTestId(`open-demand-${createdDemandId}`);
     await openDemand.getByRole('button', { name: /Запропонувати ціну/ }).click();
     await driverPage.getByLabel('Перевірене авто').selectOption(vehicleId);
     await driverPage.getByLabel('Ціна, грн').fill('350');
@@ -286,25 +293,27 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     await passengerPage.getByRole('button', { name: 'Створити' }).click();
     await passengerPage.getByRole('button', { name: /Шукаю поїздку/ }).click();
     await passengerPage.getByRole('button', { name: 'Мої заявки' }).click();
-    await passengerPage.getByRole('button').filter({ hasText: /Стрий → Львів/ }).first().click();
+    await passengerPage.getByTestId(`owned-demand-${createdDemandId}`).click();
     await passengerPage.getByRole('button', { name: 'Змінити ціну або час' }).click();
     await passengerPage.getByLabel('Загальна сума, грн').fill('320');
     await passengerPage.getByRole('button', { name: 'Надіслати зустрічну' }).click();
     await expect(passengerPage.getByText('320 грн')).toBeVisible();
 
     await driverPage.reload();
-    await expect(driverPage.getByRole('heading', { name: 'Заявки пасажирів' })).toBeVisible();
+    await expect(driverPage).toHaveURL(/\/demands\/[A-Za-z0-9_-]+$/);
+    await expect(driverPage.getByRole('heading', { name: 'Стрий → Львів' })).toBeVisible();
     await driverPage.getByRole('button', { name: 'Створити' }).click();
     await driverPage.getByRole('button', { name: /Знайти пасажира/ }).click();
-    await driverPage.getByRole('button').filter({ hasText: /Стрий → Львів/ }).first().click();
+    await driverPage.getByTestId(`open-demand-${createdDemandId}`).getByRole('button').first().click();
     await driverPage.getByRole('button', { name: 'Погодити зустрічну ціну' }).click();
 
     await passengerPage.reload();
-    await expect(passengerPage.getByRole('heading', { name: /Заявки пасажирів|Мої заявки/ })).toBeVisible();
+    await expect(passengerPage).toHaveURL(/\/demands\/[A-Za-z0-9_-]+$/);
+    await expect(passengerPage.getByRole('heading', { name: 'Стрий → Львів' })).toBeVisible();
     await passengerPage.getByRole('button', { name: 'Створити' }).click();
     await passengerPage.getByRole('button', { name: /Шукаю поїздку/ }).click();
     await passengerPage.getByRole('button', { name: 'Мої заявки' }).click();
-    await passengerPage.getByRole('button').filter({ hasText: /Стрий → Львів/ }).first().click();
+    await passengerPage.getByTestId(`owned-demand-${createdDemandId}`).click();
     await passengerPage.getByRole('button', { name: 'Підтвердити домовленість і бронювання' }).click();
     await expect(passengerPage.getByRole('heading', { name: 'Мої поїздки' })).toBeVisible();
     const negotiatedBooking = await pool.query<{ seat_count: number; total_price_minor: number; status: string }>(
@@ -314,7 +323,8 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     expect(negotiatedBooking.rows).toEqual([{ seat_count: 2, total_price_minor: 32000, status: 'confirmed' }]);
 
     await driverPage.reload();
-    await expect(driverPage.getByRole('heading', { name: 'Заявки пасажирів' })).toBeVisible();
+    await expect(driverPage).toHaveURL(/\/demands\/[A-Za-z0-9_-]+$/);
+    await expect(driverPage.getByRole('heading', { name: 'Стрий → Львів' })).toBeVisible();
     await driverPage.getByRole('button', { name: 'Поїздки', exact: true }).click();
     await expect(driverPage.getByText('320 грн')).toBeVisible();
     await driverPage.getByRole('button', { name: /Написати/ }).last().click();
@@ -384,7 +394,8 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     }, { targetOfferId: offerId, accessToken: passengerAccessToken });
     expect(cancelledBooking.status).toBe(201);
     await passengerPage.reload();
-    await expect(passengerPage.getByRole('heading', { name: 'Чати' })).toBeVisible();
+    await expect(passengerPage).toHaveURL(/\/messages\/[A-Za-z0-9_-]+$/);
+    await expect(passengerPage.getByRole('heading', { name: 'MARSHGO E2E Driver' })).toBeVisible();
     await passengerPage.getByRole('button', { name: 'Поїздки', exact: true }).click();
     const rescueTripCard = passengerPage.locator('article').filter({ hasText: 'MARSHGO E2E Driver' }).first();
     passengerPage.once('dialog', dialog => dialog.accept());

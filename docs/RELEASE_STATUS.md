@@ -8,22 +8,22 @@
 
 | Repository | Local branch / commit | Working tree | Notes |
 |---|---|---|---|
-| MarshGO umbrella | `codex/marshgo-production` / `d5f9f67defdd6a377468162a86a79c245b68b930` | clean; local commits unpushed | Integration code and acceptance harness exercised this checkout. |
-| MarshGO-Server | `main` / `363532c1e6bedd083b2f53c2449eeb6b34869ac6` | clean; 2 commits ahead of remote main | Synced integration API/domain code and migrations through `027`; its own lint/type/unit/integration tests pass locally. |
-| MarshGO-Site | `main` / `e47538b1281bc8fcab8dd3f4b646575caace5646` | clean; 3 commits ahead of remote main | Synced production UI/source; Leaflet component and dependencies removed. Full-source lint, typecheck, build and bundle checks pass. |
+| MarshGO umbrella | `codex/marshgo-production` / pending commit | modified; local commits unpushed | This slice adds authorized entity deep links, route hydration and E2E regression coverage. |
+| MarshGO-Server | `main` / pending commit | modified; local commits unpushed | Adds authorized demand/conversation lookup endpoints; migrations remain through `027`. |
+| MarshGO-Site | `main` / pending commit | modified; local commits unpushed | Adds refresh-safe entity routes and reload restoration for offer, demand, booking, Journey and conversation views. |
 | MarshGO-iOS | `main` / `cb32564df286cdfd09e35d276e6857ae541277b4` | clean; local commits unpushed | Tagged CI requires and verifies immutable Site/Server revisions; unsigned Release archive and Simulator build passed with Site `e47538b` + Server `363532c`. The app embeds a localhost test API origin; signing/TestFlight and physical-device acceptance remain unavailable. |
 
 These are local commits only. They have not been pushed, merged, signed, deployed, or accepted as a coordinated release. See [RELEASE_MANIFEST.json](RELEASE_MANIFEST.json).
 
 ## Verified locally
 
-- Umbrella `npm run check:production`: typecheck, repository-wide lint, 71 unit tests, Vite production build, emitted JavaScript gzip/demo-marker checks all pass; 1 opt-in database test is skipped in the unit command.
+- Umbrella `npm run check:production`: typecheck, repository-wide lint, 72 unit tests, Vite production build, emitted JavaScript gzip/demo-marker checks all pass; one opt-in database test is skipped in the unit command.
 - Umbrella PostGIS/Redis integration: 17/17 pass.
 - A newly created isolated local database applied migrations `001–027`; all 17 PostGIS/Redis integration checks then passed.
-- Umbrella browser E2E: 6/6 pass in Chromium against the isolated local stack and deterministic provider fixtures.
+- Umbrella browser E2E: 6/6 pass in Chromium against the isolated local stack and deterministic provider fixtures, including negotiation/booking persistence through entity URLs and the post-agreement reload flow.
 - Browser compatibility: Chromium, Firefox, WebKit pass representative phone/tablet/desktop viewports (9 engine/viewport combinations).
 - Site local clone: full-source lint, typecheck, production build and bundle checks pass; no Leaflet chunk is emitted; largest JavaScript file is 285.1 KB gzip.
-- Exact committed Site production bundle against synchronized Server API: 6/6 Chromium browser E2E and 3/3 browser compatibility projects (Chromium, Firefox, WebKit) pass at representative phone/tablet/desktop sizes. Tests use isolated local PostGIS/Redis and deterministic geocoder/OSRM/tile fixtures; they do not qualify live providers or hosted staging.
+- Site production bundle against synchronized Server API: 6/6 Chromium browser E2E pass at phone/tablet/desktop sizes. The full E2E includes independent passenger/driver browser contexts, demand negotiation, confirmation to a booking, route reloads and persistent chat. Tests use isolated local PostGIS/Redis and deterministic geocoder/OSRM/tile fixtures; they do not qualify live providers or hosted staging.
 - Server local clone: full-source lint, typecheck, 33 unit tests pass (1 opt-in test skipped), 17 integration tests pass, high-severity npm audit reports no vulnerabilities.
 - iOS local clone: Capacitor sync, Simulator build/install/launch and unsigned iOS Release archive compile pass using exact local Site/Server/iOS SHAs; embedded `release-manifest.json` matches these commits, API `v1` and migration `027`. The Simulator build points to loopback and is not deployable as-is. It is not signed/TestFlight or physical-device acceptance. Workflow YAML parses; GitHub-hosted execution has not been run.
 - Current umbrella and standalone Server trees share integration API/domain code and migrations through `027`; integrated frontend source and standalone Site `src/` are synchronized. Site E2E/compatibility passes against that API. The iOS app now embeds the exact local Server/Site/iOS revisions; no signed iOS artifact or hosted staging evidence exists.
