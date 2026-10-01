@@ -107,3 +107,8 @@ Historical staging snapshot: at that time the temporary HTTPS endpoint was `http
 ### Latest exact candidate test matrix
 
 On Server `699b1fa7e007f5f8b56e597922523cf4659dd942` and Site `336787900c645277a7284568d573ce079fb05010`, sequential local verification passed: `npm run test:e2e` 7/7, `npm run test:browser-compat` 3/3 across Chromium/Firefox/WebKit, and `npm run check:production` (typecheck, repository-wide lint, build, bundle gate, 79 unit tests passed, 0 failed, 1 opt-in integration skip). The public temporary staging bundle was rebuilt from the exact Site SHA; after browser reload, `/healthz` and `/readyz` returned 200 and readiness reported database/realtime connected. The older umbrella GitHub Verify run `36894539895` used pinned Site `573ebca…` and failed one Journey Rescue UI assertion; latest local exact pair passes and refreshed umbrella CI remains pending.
+
+
+## Latest iOS simulator candidate check — 2026-10-01
+
+The current iOS candidate `1f08e73e351ed0e7e7d4c522b47c0ed5cb06e8a0` was rebuilt in a clean detached worktree using immutable Site `029aae486e164f02660c36130114527b19898001`, Server metadata `533f500bd9fa821d6b8aea7048037d4b7f897486`, API `v1` and migration `028`. Capacitor sync, Xcode Simulator compilation, install and launch succeeded on the iPhone 16 Pro Max Simulator. The screenshot `.release/staging-ios-current-029aae4-iphone16pm.png` visibly renders the onboarding welcome screen. This is simulator smoke only: no authenticated booking flow, physical iPhone, signed archive, APNs or TestFlight acceptance. npm warned that host Node `25.4.0` differs from pinned Node `24.21.0`; dependency install reported zero vulnerabilities.

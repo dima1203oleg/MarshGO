@@ -424,3 +424,8 @@ Pinned simulator evidence: `.release/staging-ios-c9-iphone15pm.png` visually sho
 - **Not accepted:** complete paired public user lifecycle; map tile rendering/route overlay with live session; public GPS/reroute; public two-user realtime chat/rendezvous/boarding/completion; durable hosting. The 8/8 local E2E is isolated browser evidence, not proof that these public flows work.
 - **Screenshots/traces:** existing Playwright traces and screenshots under ignored `test-results/` and `.release/` are local artifacts; no new public trace was produced in this recheck. Treat authenticated traces as private.
 - **Flags:** `STAGING_READY=NO`; `READY_FOR_SERVER_DEPLOYMENT=NO`; `PRODUCTION_READY=NO`. Real SMS, production hosting/domain/TLS, push, payment/partner credentials and physical-device acceptance remain external gates.
+
+
+## Latest iOS simulator candidate check — 2026-10-01
+
+The current iOS candidate `1f08e73e351ed0e7e7d4c522b47c0ed5cb06e8a0` was rebuilt in a clean detached worktree using immutable Site `029aae486e164f02660c36130114527b19898001`, Server metadata `533f500bd9fa821d6b8aea7048037d4b7f897486`, API `v1` and migration `028`. Capacitor sync, Xcode Simulator compilation, install and launch succeeded on the iPhone 16 Pro Max Simulator. The screenshot `.release/staging-ios-current-029aae4-iphone16pm.png` visibly renders the onboarding welcome screen. This is simulator smoke only: no authenticated booking flow, physical iPhone, signed archive, APNs or TestFlight acceptance. npm warned that host Node `25.4.0` differs from pinned Node `24.21.0`; dependency install reported zero vulnerabilities.
