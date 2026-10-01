@@ -36,10 +36,10 @@ The locally materialized pinned Server and Site source trees contain untracked b
 | API health/readiness | PASS | Public HTTPS /healthz and /readyz returned 200. |
 | Navigation direct link | PASS | `/navigation` previously returned the app's 404; the Site PR #2 alias now opens the navigation destination form on the public staging URL. Site PR checks pass. |
 | Driver navigation CTA copy | PASS | Updated production build now accurately says route matching requires driver consent and a verified vehicle; rebuilt bundle was served from staging over HTTPS. |
-| Driver vehicle form and private photo upload | PASS (test fixture only) | A clearly marked staging driver created a vehicle in the UI; a synthetic PNG passed the signed private S3 upload and was recorded as the primary photo in Postgres. Vehicle verification remains pending. |
+| Driver vehicle form and private photo upload | PASS (test fixture only) | A clearly marked staging driver created a vehicle in the UI; a synthetic PNG passed the signed private S3 upload and was recorded as the primary photo in Postgres. The synthetic-document review rejected this test vehicle; it cannot publish. |
 | Driver dashboard after login | PASS | Independent driver test account reached the production dashboard after OTP verification; server-backed offers, demands, vehicles and navigation-match reads returned successfully. The test vehicle is unverified, so publishing/matching acceptance remains blocked by the real verification flow. |
 | Moderator authentication | PASS | Moderator test account authenticated and opened the admin verification screen through the direct URL. |
-| Verification submission/review queue | PASS (decision incomplete) | Driver UI uploaded two clearly synthetic test documents to private storage and left both records pending; moderator refreshed the protected queue and saw both entries. The test documents were not approved. |
+| Verification submission/review/rejection | PASS (test-only evidence) | Driver UI uploaded two synthetic PNG fixtures; the moderator opened one in the protected UI and rejected it with a test-fixture reason. API confirmation appeared and both verification records ended as `rejected`; no synthetic evidence was approved. The automation then hit a strict-selector ambiguity on a redundant queue refresh. |
 | Login with development OTP | PASS | Separate Chromium contexts authenticated the staging driver and moderator test identities through the visible OTP flow; all post-login API reads returned 200. OTP values were not retained in output. |
 | Passenger demand creation | PASS | UI published Стрий → Львів, 2 passengers, 300 UAH total. |
 | API restart recovery | PASS | After API restart, browser reauthenticated and demand persisted in “Мої заявки”; the direct /demands/mine URL also survived reload. |
@@ -50,7 +50,7 @@ The locally materialized pinned Server and Site source trees contain untracked b
 | Desktop rendering | PASS | Chromium at 1440×900; no horizontal overflow observed. |
 | Mobile rendering | PASS | Chromium at 430×932; document width matched viewport (430 px), no horizontal overflow. |
 | Private upload adapter smoke | PASS (staging emulator only) | Browser uploaded a generated test vehicle image; UI confirmed private S3-compatible staging storage upload. S3Mock is not production S3. |
-| Driver test profile/vehicle | PASS (staging only) | Test user enabled driver role and created a four-seat test vehicle. This vehicle is not verified and cannot establish a real driver inventory. |
+| Driver test profile/vehicle | PASS (staging only) | Test user enabled driver role and created a four-seat test vehicle. This synthetic test vehicle was rejected by moderation and cannot publish or establish a real driver inventory. |
 | Reverse Marketplace demand | PASS (creation only) | Server-backed demand persisted. No independent driver proposal/negotiation was available to complete. |
 | Full passenger booking lifecycle | BLOCKED / NOT ACCEPTED | No verified, independent driver offer in staging, so booking → boarding → completion → reviews could not be exercised through UI. |
 | Passive matching / multi-passenger | BLOCKED / NOT ACCEPTED | Product UI reports matching during navigation unavailable pending verified vehicle; route-overlap end-to-end was not demonstrated. |
@@ -78,6 +78,7 @@ Local, ignored artifacts (not committed or publicly linked):
 - .release/staging-passenger-mobile.png
 - .release/staging-driver-dashboard.png (driver test account after visible OTP login)
 - .release/staging-driver-dashboard-current.png (updated Site bundle; CTA opened navigation)
+- .release/staging-moderator-queue-current.png (protected queue before rejection)
 - .release/staging-map-desktop.png
 - .release/staging-map-mobile.png
 - .release/staging-map-openfreemap-desktop.png
