@@ -298,11 +298,21 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     await passengerPage.getByRole('button', { name: /Написати/ }).click();
     await expect(passengerPage.getByText(/онлайн/)).toBeVisible();
     const realtimeMessage = 'Чекаю біля центрального входу.';
+    await driverPage.getByRole('button', { name: 'Поїздки', exact: true }).click();
     const passengerChatInput = passengerPage.getByPlaceholder('Напишіть повідомлення…');
     await passengerChatInput.fill(realtimeMessage);
     await passengerChatInput.press('Enter');
     await driverPage.bringToFront();
+    const unreadChatButton = driverPage.getByRole('button', { name: 'Написати · 1 непрочитаних' });
+    await expect(unreadChatButton).toBeVisible({ timeout: 10_000 });
+    await unreadChatButton.click();
     await expect(driverPage.getByText(realtimeMessage)).toBeVisible({ timeout: 10_000 });
+    const readCursor = await pool.query<{ last_read_message_id: string | null }>(
+      `SELECT cm.last_read_message_id FROM conversation_members cm JOIN conversations c ON c.id=cm.conversation_id
+        JOIN bookings b ON b.id=c.booking_id WHERE b.offer_id=$1 AND cm.user_id=(SELECT id FROM users WHERE phone_e164=$2)`,
+      [offerId, driverPhone],
+    );
+    expect(readCursor.rows[0]?.last_read_message_id).toBeTruthy();
 
     await driverPage.getByRole('button', { name: 'Створити' }).click();
     await driverPage.getByRole('button', { name: /Знайти пасажира/ }).click();
