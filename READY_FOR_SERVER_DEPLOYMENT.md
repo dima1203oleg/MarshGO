@@ -2,14 +2,15 @@
 
 **READY_FOR_SERVER_DEPLOYMENT = NO**
 
-Deployment assets now include production Compose, Caddy HTTPS routing for the app and `api.<domain>`, loopback-only API health port, environment template, bootstrap/update scripts, pinned canonical Server/Site materialization from the release manifest, Dockerfiles built from those canonical contexts, authenticated encrypted backup format, empty-target restore guard, and a self-hosted deployment/rollback guide. Production Compose parsing and canonical Server/Site image builds passed. Local app/source gates also passed.
+Deployment preparation exists and has been exercised in part: production Compose/Caddy templates, pinned Server/Site source materialization, Dockerfiles, fail-fast environment validation, bootstrap/update/rollback scripts, encrypted database backup and guarded restore, and home-server/runbook documentation. A separate local Docker staging stack is currently reachable through a temporary HTTPS tunnel and passed core browser smoke plus API/Redis recovery checks.
 
-The software is not yet ready for a server handoff because:
+The handoff gate remains NO for concrete reasons:
 
-1. Pinned Server/Site source materialization and canonical Docker build contexts are implemented, but only image builds have been verified so far; the complete services have not passed a container runtime smoke test together.
-2. A full local Compose stack with API, web, worker, monitoring, and a private S3-compatible service has not passed together. Local developers currently run the API/Web through host scripts/browser E2E; PostGIS/Redis and S3Mock run in Compose.
-3. Backup/restore is being verified on an isolated database, but there is no scheduled off-host backup, RPO/RTO, monitoring/alerts, or successful staging recovery drill.
-4. Product gaps remain in provider-fed multimodal Journey, GTFS, WALK provider, Journey monitor/replan, Web Push/APNs, commercial payments, background iOS GPS, Universal Links and native QR.
-5. Real provider, security, hosting, and physical-device release acceptance remains outstanding.
+1. The staging stack is an ad hoc local stack, not a clean-host rehearsal of the production bootstrap script and production Compose topology.
+2. The public tunnel is ephemeral and anonymous. A persistent, access-controlled staging hostname and operator monitoring/alerts are not configured.
+3. Full paired-user booking, chat, rendezvous, boarding, trip completion, reviews, cancellation/Rescue and WebSocket recovery did not pass staging UI acceptance. See [STAGING_DEPLOYMENT_REPORT.md](STAGING_DEPLOYMENT_REPORT.md).
+4. Production operations still lack scheduled off-host backup/PITR, measured RPO/RTO, alerting and a production restore/rollback drill. The local disposable PostGIS restore and Redis recovery drills do not satisfy those gates.
+5. Multimodal GTFS/WALK/replanning, reliable background iOS location, native QR/push, and commercial provider/payment flows remain incomplete or externally gated.
+6. Server security fix PR #2 is deployed to staging and CI-green but is not yet in Server `main`; the release baseline must be deliberately advanced and reverified before tagging.
 
-The scripts require real configuration and deliberately fail closed. Do not run production Compose with the example values. See [OWNER_ACTIONS_REQUIRED.md](OWNER_ACTIONS_REQUIRED.md) for the external inputs, and [RELEASE_STATUS.md](RELEASE_STATUS.md) for capability statuses.
+See [docs/PRE_PRODUCTION_FINAL_REPORT.md](docs/PRE_PRODUCTION_FINAL_REPORT.md) for current evidence, [OWNER_ACTIONS_REQUIRED.md](OWNER_ACTIONS_REQUIRED.md) for owner-only inputs, and [docs/RELEASE_STATUS.md](docs/RELEASE_STATUS.md) for capability states. Do not run production bootstrap with example values.

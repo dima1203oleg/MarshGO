@@ -51,6 +51,6 @@ See [RELEASE_STATUS.md](RELEASE_STATUS.md) for status values and [READY_FOR_SERV
 
 ## Temporary public staging result (2026-10-01)
 
-A temporary HTTPS tunnel at https://92dcb80f09f946.lhr.life exposed an isolated local staging stack. Health/readiness, dev OTP login, geocoding, OSRM road route, MapLibre/OpenFreeMap tile/style loading, responsive Chromium desktop/mobile rendering, private S3Mock test upload, and a passenger demand surviving API restart were verified through browser UI.
+A temporary HTTPS tunnel at https://0b141d38ff7147.lhr.life exposed an isolated local staging stack. Health/readiness, dev OTP login, geocoding, OSRM road route, MapLibre/OpenFreeMap tile/style loading, responsive Chromium desktop/mobile rendering, private S3Mock test upload, and a passenger demand surviving API restart and a staging-only Redis stop/start recovery drill were verified through browser UI. The deployed API SHA is `f0a6cdb2fd918733770f65f997dfea5d7c302b0c` from the open Server security-fix PR branch; this is not the Server `main` release baseline.
 
 This does not close the production gaps. The full two-sided booking, chat, notifications, rendezvous, boarding/completion/review, passive matching, realistic GPS reroute, Rescue and WebSocket reconnect paths were not accepted. The public hostname is ephemeral; S3Mock and public routing/geocoding/map services are not production infrastructure. Do not set STAGING_READY or PRODUCTION_READY to YES. See STAGING_DEPLOYMENT_REPORT.md.

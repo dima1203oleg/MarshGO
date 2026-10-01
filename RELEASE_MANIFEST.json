@@ -19,22 +19,22 @@
   },
   "ios_simulator_site_sha": "c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7",
   "verification": {
-    "umbrella_unit_tests": "72 passed, 1 skipped",
+    "umbrella_unit_tests": "74 passed, 1 skipped",
     "umbrella_integration_tests": "17 passed",
     "browser_e2e": "6 passed on Chromium production bundle",
     "browser_matrix": "Chromium, Firefox, WebKit across 6 viewport widths",
     "canonical_server_site_images": "PASS; built from the pinned Server and Site revisions",
     "backup_restore_drill": "PASS on isolated disposable PostGIS database",
-    "hosted_staging": "PARTIAL; public temporary URL reachable, core paired-user E2E incomplete",
+    "hosted_staging": "PARTIAL; temporary public URL reachable, Redis recovery PASS, core paired-user E2E incomplete",
     "production_deployment": "BLOCKED_EXTERNAL",
     "physical_iphone": "BLOCKED_EXTERNAL"
   },
   "note": "integration_sha identifies the verified code/deployment baseline. Subsequent integration-branch commits may update release metadata and reports only; this manifest is not a deployment authorization.",
   "staging": {
-    "url": "https://92dcb80f09f946.lhr.life",
+    "url": "https://0b141d38ff7147.lhr.life",
     "provider": "local Docker stack via anonymous localhost.run HTTPS tunnel",
     "web_sha": "c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7",
-    "server_sha": "bdfdf24941809f4581965b9847022c68e0b2f127",
+    "server_sha": "f0a6cdb2fd918733770f65f997dfea5d7c302b0c",
     "ready": false,
     "production_ready": false,
     "report": "STAGING_DEPLOYMENT_REPORT.md"

@@ -1,7 +1,7 @@
 # MARSHGO Temporary Public Staging Report
 
 **Checked:** 2026-10-01 (Europe/Kyiv)
-**STAGING_URL:** https://92dcb80f09f946.lhr.life
+**STAGING_URL:** https://0b141d38ff7147.lhr.life
 **STAGING_READY:** NO
 **READY_FOR_SERVER_DEPLOYMENT:** NO
 **PRODUCTION_READY:** NO
@@ -20,11 +20,11 @@
 
 | Component | SHA | Deployment |
 |---|---|---|
-| MarshGO-Server | bdfdf24941809f4581965b9847022c68e0b2f127 | Deployed |
+| MarshGO-Server | f0a6cdb2fd918733770f65f997dfea5d7c302b0c | Deployed from `codex/security-parse-bearer` (PR #2; not yet merged to `main`) |
 | MarshGO-Site | c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7 | Production build deployed |
 | MarshGO-iOS | b8b1fcbfe9997e1a7a27594b5759690147de75df | Not deployed to web staging |
 | MarshGO integration baseline | 904874f11eee6a19b77c2356230a82ab7c45569f | Test/deployment baseline |
-| Current umbrella branch head | 65eb3082913d250afdc9bded1184fa6c679eec5d | Staging ops/report changes were uncommitted at report creation |
+| Umbrella deployment/orchestration branch | 0127de32b125af0a7feb1ec85261582921cd6df3 | `codex/marshgo-production`; follow-up audit reports are being committed separately |
 
 The locally materialized pinned Server and Site source trees contain untracked build/deployment materialization files. The staging overlay itself is under ops/staging/; no changes were made to the canonical Server or Site commits.
 
@@ -37,6 +37,7 @@ The locally materialized pinned Server and Site source trees contain untracked b
 | Login with development OTP | PASS | Browser authenticated isolated test user; dev OTP only, no SMS sent. |
 | Passenger demand creation | PASS | UI published Стрий → Львів, 2 passengers, 300 UAH total. |
 | API restart recovery | PASS | After API restart, browser reauthenticated and demand persisted in “Мої заявки”; the direct /demands/mine URL also survived reload. |
+| Redis restart recovery | PASS | Staging-only Redis stop made `/readyz` return 503 (`database=connected`, `realtime=disconnected`); after Redis restart readiness returned 200 and browser reload restored the same PostgreSQL-backed demand/session. |
 | Geocoding | PASS | UI address search returned and selected geocoded Стрий and Львів place results. |
 | Route calculation | PASS | OSRM road route returned 98.9 km / 2 h 2 min and geometry. |
 | MapLibre / tiles | PASS | Chromium loaded MapLibre canvas, OpenFreeMap style/sprites/vector tiles/fonts, attribution and route geometry. |
@@ -86,4 +87,4 @@ Trace archives can include staging authentication/session context. Keep them pri
 5. Replace S3Mock and public test geocoder/routing/map endpoints with configured production-grade services for production.
 6. Real SMS, domain/TLS, production server, push, payments/commercial partners and physical iPhone acceptance remain external release gates.
 
-The local staging stack and tunnel are left running. The URL remains valid only while those processes and this host stay available.
+The local staging stack and tunnel are left running. The current URL is `https://0b141d38ff7147.lhr.life`; localhost.run may rotate it when the tunnel reconnects. The URL remains valid only while those processes and this host stay available.
