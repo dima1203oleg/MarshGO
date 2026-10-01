@@ -8,7 +8,7 @@
   "server_sha": "bdfdf24941809f4581965b9847022c68e0b2f127",
   "site_sha": "c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7",
   "ios_sha": "b8b1fcbfe9997e1a7a27594b5759690147de75df",
-  "integration_sha": "92f10ccb05ae118cbead9092c09c06e7386e4237",
+  "integration_sha": "fca2c5fcccb5be5f8350e9006e89e8f6102f3339",
   "database_migration": "027",
   "api_version": "v1",
   "source_repositories": {
@@ -19,19 +19,20 @@
   },
   "ios_simulator_site_sha": "20a75798f2baffa4f3615e21799359e69ab6e651",
   "verification": {
-    "umbrella_unit_tests": "75 tests: 74 passed, 1 skipped (opt-in local integration); 0 failed",
+    "umbrella_unit_tests": "80 tests: 79 passed, 1 skipped (opt-in local integration); 0 failed",
     "umbrella_integration_tests": "17 passed",
-    "browser_e2e": "6 passed on Chromium production bundle; route-aware Rescue and passive matching consent/proposal/booking/waypoint reroute covered via independent UI contexts; proposal confirmation feedback fix revalidated in targeted two-account E2E (1/1)",
+    "browser_e2e": "6 passed on Chromium production bundle; responsive phone/tablet/desktop, two-account marketplace/chat, route matching/GPS reroute, iPhone viewport and persisted Journey detail covered",
     "browser_matrix": "Chromium, Firefox and WebKit production UI smoke passed (3/3 browser projects; phone/tablet/desktop each); latest Site PR head CI passed",
-    "canonical_server_site_images": "PASS; built from the pinned Server and Site revisions",
+    "canonical_server_site_images": "PASS; built from immutable Server bdfdf24941809f4581965b9847022c68e0b2f127 and Site c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7 after materialized worktree and Docker-context checks",
     "backup_restore_drill": "PASS on isolated disposable PostGIS database",
     "hosted_staging": "PARTIAL; latest pinned Web/API served over temporary HTTPS; visible dev OTP login, 18 direct routes and responsive smoke PASS; paired-user golden path incomplete",
     "production_deployment": "BLOCKED_EXTERNAL",
-    "ios_simulator": "PASS; Xcode Debug built, installed and launched iPhone 16 Pro Max Simulator; onboarding screenshot captured",
+    "ios_simulator": "PASS; Debug built, installed, launched and screenshot visually inspected on iPhone 16 Pro Max Simulator (iOS 27.0); not a physical-device acceptance",
     "physical_iphone": "BLOCKED_EXTERNAL",
-    "staging_site_bundle": "PASS; immutable Site SHA 3b9af2b61b093152d451271e398920e679cf4276 built and served by public temporary HTTPS; Chromium desktop/mobile homepage and health/readiness smoke verified"
+    "staging_site_bundle": "PASS; immutable Site SHA 3b9af2b61b093152d451271e398920e679cf4276 built and served by public temporary HTTPS; Chromium desktop/mobile homepage and health/readiness smoke verified",
+    "integration_suite": "PASS; 17/17 PostGIS/Redis integration tests"
   },
-  "note": "Top-level Server/Site SHAs identify canonical main release baselines; staging contains explicit immutable PR-branch SHAs. integration_sha identifies the verified integration code baseline. This manifest is not a deployment authorization.",
+  "note": "Top-level Server/Site SHAs identify canonical main release baselines; staging contains explicit immutable PR-branch SHAs. integration_sha identifies the verified integration code baseline before this manifest metadata-only commit. This manifest is not a deployment authorization.",
   "staging": {
     "url": "https://deb6a9ad4ae4c7.lhr.life",
     "provider": "local Docker stack via anonymous localhost.run HTTPS tunnel",
