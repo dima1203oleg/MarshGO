@@ -2,7 +2,7 @@
 
 **As of:** 2026-10-01 (Europe/Kyiv)
 **Overall release decision:** `READY_FOR_SERVER_DEPLOYMENT=NO` · `PRODUCTION_READY=NO`
-**Staging:** temporary HTTPS URL is reachable at `https://56d3cf129fa0c4.lhr.life`, but `STAGING_READY=NO` because the full two-sided product acceptance did not pass.
+**Staging:** temporary HTTPS URL is reachable at `https://c6d521646ab933.lhr.life`, but `STAGING_READY=NO` because the full two-sided product acceptance did not pass.
 
 The percentages below are engineering estimates across the requested capability groups. They are progress indicators only; a partial item is not a release pass and percentages do not override the release gates.
 
@@ -38,7 +38,7 @@ The percentages below are engineering estimates across the requested capability 
 - Added parser tests and verified umbrella and Server CI plus the Server integration suite.
 - Reconciled the current standalone main SHAs, open PR heads, and canonical ownership in [docs/REPOSITORY_STATE_FINAL.md](REPOSITORY_STATE_FINAL.md).
 - Added [docs/SECURITY_FINAL_AUDIT.md](SECURITY_FINAL_AUDIT.md) and a staging-only Redis outage/recovery record in [docs/REDIS_RECOVERY.md](REDIS_RECOVERY.md).
-- Refreshed the expired anonymous tunnel to `https://56d3cf129fa0c4.lhr.life`; the new URL, staging SHA pair, public Chromium screenshots and expected anonymous 401 responses are recorded in the manifest and staging report.
+- Refreshed the expired anonymous tunnel to `https://c6d521646ab933.lhr.life`; the new URL, staging SHA pair, public Chromium screenshots and expected anonymous 401 responses are recorded in the manifest and staging report.
 - Hardened immutable release materialization: canonical GitHub origin and real-directory checks, rejection of untracked/modified pinned sources, strict Server/Site Docker contexts, and SHA-256 materialization metadata. Canonical API/Web images build locally and in CI.
 - Updated the deployment-readiness decision and release gap audit to reflect performed staging and Redis checks while retaining `NO` for incomplete acceptance.
 
@@ -58,7 +58,8 @@ The percentages below are engineering estimates across the requested capability 
 | Reverse Marketplace negotiation to booking | BLOCKED / NOT ACCEPTED | Demand creation passed; paired independent driver/passenger negotiation did not complete. |
 | Passive matching and multiple passengers | PARTIAL | One-passenger match, consent, booking, insertion and reroute pass in local Chromium E2E. Public-staging matching and more-than-one-passenger capacity acceptance remain incomplete. |
 | Controlled live GPS marker movement and reroute | PASS LOCALLY / PUBLIC STAGING NOT ACCEPTED | The latest production-browser E2E drives ten gradual simulated GPS updates 80 m off-route, confirms persistence within 20 m, route-version increment, visible reroute, and matching pause pending renewed consent. Physical GPS and public staging movement are unaccepted. |
-| Chat, unread notifications, rendezvous, boarding, Rescue | BLOCKED / NOT ACCEPTED | Paired booking is confirmed, but follow-up chat/cancellation/rescue harness selectors did not resolve the intended booking card; no pass is claimed. |
+| Chat unread/read | PASS LOCALLY / PUBLIC STAGING NOT ACCEPTED | Migration 028, participant-only unread counts, persistent read cursors and the trips-screen unread badge pass integration and two-account production-bundle E2E. Public staging still runs the earlier Site/Server revisions. |
+| Notifications, rendezvous, boarding, Rescue | BLOCKED / NOT ACCEPTED | Paired booking is confirmed, but cancellation/rescue selectors did not resolve the intended booking card; no public-staging pass is claimed. |
 | Public staging Firefox/WebKit matrix | NOT TESTED | Existing repository matrix does not count as hosted staging evidence. |
 | Physical iPhone, APNs, TestFlight | BLOCKED_EXTERNAL | Apple account/signing and physical devices are not present. |
 
@@ -72,14 +73,15 @@ The percentages below are engineering estimates across the requested capability 
 | Server `npm run lint:all` | PASS | ESLint completed with 0 errors. |
 | Server `npm run typecheck` | PASS | TypeScript completed with 0 errors. |
 | Server `npm test` | PASS | 46 passed / 0 failed / 1 skipped (47 tests total). |
-| Server `npm run test:integration` | PASS | 17 passed / 0 failed; Journey schema, booking, navigation, realtime, API restart and Redis rate-limit tests. |
+| Server `npm run test:integration` | PASS | 17 passed / 0 failed; includes migration 028 unread cursor/unread-count assertions, plus Journey schema, booking, navigation, realtime, API restart and Redis rate-limit tests. |
 | Umbrella `npm run test:e2e` | PASS (scope-limited) | 6 passed on Chromium production bundle, including independent-user matching/proposal/booking, controlled ten-step GPS reroute, MapLibre recovery, and iPhone viewport flows; not the complete public staging golden path. |
 | `npm run test:browser-compat` | PASS (repo test only) | Chromium, Firefox and WebKit production-bundle smoke each passed at phone/tablet/desktop sizes (3/3). Public staging was Chromium only. An initial parallel attempt collided on localhost port 3306; the serialized rerun passed. |
 | `npm run check:production` | PASS | Typecheck, repository-wide ESLint, 80 unit tests (79 passed, 1 skipped), production build and gzip bundle budget passed. |
 | `npm run test:integration` | PASS | 17/17 passed: Journey schema, booking, navigation, Redis realtime across API processes, API restart durability and shared rate limits. |
-| GitHub umbrella PR checks | PASS | Verify, CodeQL and Gitleaks pass on code head `41b9613b4f2bf13a178099f627769ea638a4f8e6`; report/manifest metadata head `b1b07d8ec6ac757de1ed1155ae8dfd1a6edd12f3` is in final CI validation. |
-| GitHub Server PR #2 checks | PASS at checked head | Verify on head `54ed3c85fd79807a7d7d0b539a587fffca259487`. |
-| Fresh staging DB migrations | PASS | Migrations 001–027 accepted. |
+| GitHub umbrella PR checks | PASS | Current code head `cf9da4f6f4e4e0e22417da090d2bd9d8bf83cb3e`: Verify, CodeQL and Gitleaks all passed (push run `36842334925`, PR run `36842341524`, security runs `36842334891`/`36842341518`). Verify includes install/audit, repository-wide lint, typecheck, unit, DB migration, PostGIS/Redis integration, production build, Docker image builds, Playwright E2E and Chromium/Firefox/WebKit compatibility. |
+| GitHub Server PR #2 checks | PASS | Verify passed on head `6c069dda22030a74928227097f699491e5e89cd3` (runs `36841631191`, `36841637798`). |
+| GitHub Site PR #2 checks | PASS | Verify passed on head `1488e627abb6c7bbc9f1abe6fa7cde4c6b4c7ae7` (runs `36841631752`, `36841636825`). |
+| Fresh staging DB migrations | PASS | Migrations 001–027 accepted on the deployed staging revision; candidate integration applies migration 028. |
 | Local encrypted PostGIS backup/restore | PASS (isolated disposable DB) | Synthetic row restored and verified; no production RPO/RTO claim. |
 | Staging Redis failure drill | PASS | Ready 200 → Redis stop → ready 503/degraded → Redis restart → ready 200; browser demand persisted. |
 | Public staging browser smoke | PASS (partial) | Homepage/auth, demand, geocoder, routing, MapLibre, screenshot and console checks. |
@@ -131,7 +133,7 @@ Then verify app/API HTTPS routes, database migration version, SMS, map/routing/g
 
 ## Exact refs in this report
 
-- Umbrella checked-out HEAD: `b1b07d8ec6ac757de1ed1155ae8dfd1a6edd12f3`; verified integration code baseline in `RELEASE_MANIFEST.json`: `41b9613b4f2bf13a178099f627769ea638a4f8e6`.
+- Umbrella integration code SHA: `cf9da4f6f4e4e0e22417da090d2bd9d8bf83cb3e` (passed local and GitHub checks); report/manifest documentation updates are recorded in the follow-up commit.
 - Server canonical `main`: `bdfdf24941809f4581965b9847022c68e0b2f127`.
 - Server staging PR #2 branch: `codex/security-parse-bearer` at `54ed3c85fd79807a7d7d0b539a587fffca259487`.
 - Site `main`: `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7`.

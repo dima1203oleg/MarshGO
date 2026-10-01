@@ -13,7 +13,7 @@
 | Vehicles/verification | PARTIAL | API/UI/moderator review exist. Private production object storage, malware scanning and hosted evidence lifecycle are not configured. |
 | Community offers/bookings | PARTIAL | Local API/DB/browser coverage exists. Full release acceptance across real users, restart and all cancellation/refund policies remains incomplete. |
 | Reverse Marketplace | PARTIAL; proposal expiry PASS locally | Browser tests exercise negotiation and acceptance. A real-DB integration check verifies expiry state and transactional event delivery to both participants. Full follow-through into active trip still needs hosted golden-path coverage. |
-| Chat/realtime | PARTIAL | Persisted message and two-account realtime/reload tests pass locally. Read receipts/unread counts and hosted WebSocket resilience remain incomplete. |
+| Chat/realtime | PARTIAL | Persisted message/realtime/reload and unread-count/read-cursor tests pass locally. Two-account E2E verifies the driver sees an unread badge while outside chat and that opening chat advances the persisted cursor. Delivery receipts, offline-send queue and hosted WebSocket resilience remain incomplete. |
 | Navigation/passive matching | PARTIAL | Browser GPS replay, off-route, reroute and matching route insertion pass in isolated local stack. Physical navigation, full pickup-to-arrival route and background iOS GPS are not verified. |
 | Multi-passenger | PARTIAL | Server optimizer/capacity foundation exists; full visible UI and golden E2E are missing. |
 | Journey / WALK / public transit | PARTIAL / NEEDS_REAL_PROVIDER | Community planning foundation exists. No authorized walking, GTFS/GTFS-RT, rail, bus or taxi inventory is configured. |
