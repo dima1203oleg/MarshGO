@@ -1,10 +1,10 @@
-# Current MARSHGO repository state — 2026-10-01 16:00 Europe/Kyiv
+# Current MARSHGO repository state — 2026-10-01 16:08 Europe/Kyiv
 
 Repository heads and open PRs were re-read from GitHub. The four canonical worktrees are clean and match their remote branches. Open PR branches remain separate candidates; no divergent PR was merged wholesale.
 
 | Repository | Main SHA | Local active branch / SHA | Ahead / behind main | Local state | Open work and CI |
 |---|---|---|---:|---|---|
-| `dima1203oleg/MarshGO` | `1e7d0ee74f11121a7d5a29c6379944a5360581c4` | `codex/marshgo-production` / `ac6c0ffd8b0e59dfc4ebcbb352e102dc2e6a3147` | 149 / 0 | Clean | Draft PR #1. Latest Verify, CodeQL, Gitleaks checks were pending just after the report-only commit. |
+| `dima1203oleg/MarshGO` | `1e7d0ee74f11121a7d5a29c6379944a5360581c4` | `codex/marshgo-production` / `326423e95779e9b69f7b6d6b047462caf6ebf57c` | 157 / 0 | Clean | Draft PR #1. Verify, CodeQL and Gitleaks pass on this exact head. |
 | `dima1203oleg/MarshGO-Server` | `bdfdf24941809f4581965b9847022c68e0b2f127` | `codex/security-parse-bearer` / `23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46` | 8 / 0 | Clean | PR #2 adds a tested 30-stop navigation limit. Unit/integration/typecheck/lint pass locally; GitHub PR #2 Verify passes. Rendezvous PR #1 also open at `f788a96a5365a8a7d7f1eef416868f97217706c4`; not merged wholesale. |
 | `dima1203oleg/MarshGO-Site` | `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7` | `codex/navigation-deep-link-alias` / `10addc3093d9defea02496006741eb21cbd28b5f` | 15 / 0 | Clean | PR #2 adds production bundle denylist for demo identities/inventory. Local checks and GitHub PR #2 Verify pass. Rendezvous PR #1 also open at `045f138bd9c31cb8bcc40231da867db7d7e8e531`; not merged wholesale. |
 | `dima1203oleg/MarshGO-iOS` | `b8b1fcbfe9997e1a7a27594b5759690147de75df` | `main` / same SHA | 0 / 0 | Clean | Simulator CI passes. Simulator-capture PR #1 remains open at `328d9af2b3f7095d3f9afca8fcbe4e9c5e1df0ad`; no physical device/TestFlight acceptance. |
@@ -19,7 +19,7 @@ Repository heads and open PRs were re-read from GitHub. The four canonical workt
 
 ## Staging refs
 
-- Current temporary URL: https://7ebc6d14f05d36.lhr.life (anonymous localhost.run tunnel; hostname may rotate).
+- Current temporary URL: https://7d11d5b28051e8.lhr.life (anonymous localhost.run tunnel; hostname may rotate). Edge `/healthz`, API `/readyz`, and Chromium home/staging banner verified at 2026-10-01 16:08 Europe/Kyiv.
 - Deployed Server: `237d14f1b3e4d69936433f46f290d1cd4b920d9d`; current source candidate `23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46` supports up to 30 ordered navigation stops.
 - Deployed Site: `79222d65beecb8bba5d234acfab47bb34070453e`; current source candidate `10addc3093d9defea02496006741eb21cbd28b5f` adds a build-time denylist only, leaving runtime assets unchanged.
 - iOS is not deployed to web staging; current main SHA is `b8b1fcbfe9997e1a7a27594b5759690147de75df`.

@@ -2,6 +2,8 @@
 
 ## Evidence basis
 
+- Latest staging recheck (2026-10-01 16:08 Europe/Kyiv): `https://7d11d5b28051e8.lhr.life` served the home page with an explicit staging banner; `/healthz` and `/readyz` returned 200 with PostgreSQL and Redis connected. This anonymous localhost.run hostname is temporary. Direct unauthenticated `/navigation` preserved the requested path but rendered the auth welcome flow; deep-link restoration after authentication still requires an E2E check. No paired booking-to-completion acceptance was performed in this reconnect. `STAGING_READY=NO`.
+
 - Current public staging: `https://b017cccb204056.lhr.life`; homepage, staging banner and readiness returned HTTP 200 with PostgreSQL and Redis connected at 2026-10-01 14:43 Europe/Kyiv. Deployed Server `de2209bc71557a14b20afac07b5067a7139b8b42`, Site `150aa7ade03871cd12b80c6b3e205f345d37f996`, migration `028`. Public Chromium OTP/geocoder/Journey search/navigation role checks passed on the preceding renewed hostname `e134c817e388ca.lhr.life`, which later expired. The tunnel is ephemeral and paired booking-to-completion acceptance is incomplete; `STAGING_READY=NO`.
 - Server PR #2 exact head passes Verify, `typecheck`, repository-wide lint, unit tests (49 passed, 0 failed, 2 skipped), and isolated PostGIS/Redis integration (18/18; migrations 001–028).
 - Site PR #2 exact head passes Verify; local `typecheck`, repository-wide lint and production build pass. It fixes the stale Home navigation state when returning from result screens.
