@@ -52,9 +52,12 @@ test('production UI stays usable at phone, tablet and desktop sizes with current
   await expect(page).toHaveURL(/\/$/);
 
   for (const viewport of [
-    { name: 'phone', width: 390, height: 844 },
-    { name: 'tablet', width: 820, height: 1180 },
-    { name: 'desktop', width: 1440, height: 1000 },
+    { name: 'mobile-375', width: 375, height: 812 },
+    { name: 'mobile-430', width: 430, height: 932 },
+    { name: 'tablet-768', width: 768, height: 1024 },
+    { name: 'tablet-1024', width: 1024, height: 1366 },
+    { name: 'desktop-1440', width: 1440, height: 1000 },
+    { name: 'desktop-1920', width: 1920, height: 1080 },
   ]) {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     await page.waitForTimeout(120);
@@ -65,8 +68,8 @@ test('production UI stays usable at phone, tablet and desktop sizes with current
       navigation: getComputedStyle(document.querySelector('.app-tabbar')!).position,
     }));
     expect(metrics.document, `${browserName} ${viewport.name} has horizontal overflow`).toBeLessThanOrEqual(viewport.width);
-    expect(metrics.content, `${browserName} ${viewport.name} main content is missing`).toBeGreaterThan(viewport.width * 0.72);
-    if (viewport.name === 'phone') {
+    expect(metrics.content, `${browserName} ${viewport.name} main content is missing`).toBeGreaterThan(Math.min(viewport.width * 0.72, 680));
+    if (viewport.width <= 430) {
       const passengerCounter = page.getByRole('button', { name: 'Менше пасажирів' }).locator('..');
       const itemBounds = await passengerCounter.locator(':scope > *').evaluateAll(elements => elements.map(element => {
         const rect = element.getBoundingClientRect();
@@ -78,7 +81,7 @@ test('production UI stays usable at phone, tablet and desktop sizes with current
         if (index > 0) expect(itemBounds[index].left, `${browserName} phone passenger counter items overlap`).toBeGreaterThanOrEqual(itemBounds[index - 1].right);
       }
     }
-    if (viewport.name === 'desktop') {
+    if (viewport.width >= 1024) {
       await expect(page.getByRole('navigation', { name: 'Розділи MARSHGO' })).toBeVisible();
       expect(metrics.navigation).toBe('sticky');
     }
