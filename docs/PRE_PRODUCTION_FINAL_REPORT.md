@@ -2,7 +2,7 @@
 
 **As of:** 2026-10-01 (Europe/Kyiv)
 **Overall release decision:** `READY_FOR_SERVER_DEPLOYMENT=NO` · `PRODUCTION_READY=NO`
-**Staging:** temporary HTTPS URL is reachable at `https://c6d521646ab933.lhr.life`, but `STAGING_READY=NO` because the full two-sided product acceptance did not pass.
+**Staging:** temporary HTTPS URL is reachable at `https://6fc2e0f67fc4ad.lhr.life`, but `STAGING_READY=NO` because the full two-sided product acceptance did not pass.
 
 The percentages below are engineering estimates across the requested capability groups. They are progress indicators only; a partial item is not a release pass and percentages do not override the release gates.
 
@@ -38,7 +38,7 @@ The percentages below are engineering estimates across the requested capability 
 - Added parser tests and verified umbrella and Server CI plus the Server integration suite.
 - Reconciled the current standalone main SHAs, open PR heads, and canonical ownership in [docs/REPOSITORY_STATE_FINAL.md](REPOSITORY_STATE_FINAL.md).
 - Added [docs/SECURITY_FINAL_AUDIT.md](SECURITY_FINAL_AUDIT.md) and a staging-only Redis outage/recovery record in [docs/REDIS_RECOVERY.md](REDIS_RECOVERY.md).
-- Refreshed the expired anonymous tunnel to `https://c6d521646ab933.lhr.life`; the new URL, staging SHA pair, public Chromium screenshots and expected anonymous 401 responses are recorded in the manifest and staging report.
+- Refreshed the anonymous tunnel to `https://6fc2e0f67fc4ad.lhr.life`; staging now runs Server PR #2 `6c069dda22030a74928227097f699491e5e89cd3` and Site PR #2 `bc4b254bbaae09ba8de96352cf7790f756e51312`, with migration 028 applied to the isolated DB. Browser verified health/readiness, authenticated profile direct-open/session restore and the unauthenticated `/navigation` deep-link path. Full two-user acceptance remains incomplete.
 - Hardened immutable release materialization: canonical GitHub origin and real-directory checks, rejection of untracked/modified pinned sources, strict Server/Site Docker contexts, and SHA-256 materialization metadata. Canonical API/Web images build locally and in CI.
 - Updated the deployment-readiness decision and release gap audit to reflect performed staging and Redis checks while retaining `NO` for incomplete acceptance.
 
@@ -58,7 +58,7 @@ The percentages below are engineering estimates across the requested capability 
 | Reverse Marketplace negotiation to booking | BLOCKED / NOT ACCEPTED | Demand creation passed; paired independent driver/passenger negotiation did not complete. |
 | Passive matching and multiple passengers | PARTIAL | One-passenger match, consent, booking, insertion and reroute pass in local Chromium E2E. Public-staging matching and more-than-one-passenger capacity acceptance remain incomplete. |
 | Controlled live GPS marker movement and reroute | PASS LOCALLY / PUBLIC STAGING NOT ACCEPTED | The latest production-browser E2E drives ten gradual simulated GPS updates 80 m off-route, confirms persistence within 20 m, route-version increment, visible reroute, and matching pause pending renewed consent. Physical GPS and public staging movement are unaccepted. |
-| Chat unread/read | PASS LOCALLY / PUBLIC STAGING NOT ACCEPTED | Migration 028, participant-only unread counts, persistent read cursors and the trips-screen unread badge pass integration and two-account production-bundle E2E. Public staging still runs the earlier Site/Server revisions. |
+| Chat unread/read | PASS LOCALLY / STAGING ACCEPTANCE PENDING | Migration 028, participant-only unread counts, persistent read cursors and the trips-screen unread badge pass integration and two-account production-bundle E2E. Candidate code and migration are now deployed to staging; a two-user staging read/unread walkthrough remains unverified. |
 | Notifications, rendezvous, boarding, Rescue | BLOCKED / NOT ACCEPTED | Paired booking is confirmed, but cancellation/rescue selectors did not resolve the intended booking card; no public-staging pass is claimed. |
 | Public staging Firefox/WebKit matrix | NOT TESTED | Existing repository matrix does not count as hosted staging evidence. |
 | Physical iPhone, APNs, TestFlight | BLOCKED_EXTERNAL | Apple account/signing and physical devices are not present. |
@@ -80,7 +80,7 @@ The percentages below are engineering estimates across the requested capability 
 | `npm run test:integration` | PASS | 17/17 passed: Journey schema, booking, navigation, Redis realtime across API processes, API restart durability and shared rate limits. |
 | GitHub umbrella PR checks | PASS | Current code head `cf9da4f6f4e4e0e22417da090d2bd9d8bf83cb3e`: Verify, CodeQL and Gitleaks all passed (push run `36842334925`, PR run `36842341524`, security runs `36842334891`/`36842341518`). Verify includes install/audit, repository-wide lint, typecheck, unit, DB migration, PostGIS/Redis integration, production build, Docker image builds, Playwright E2E and Chromium/Firefox/WebKit compatibility. |
 | GitHub Server PR #2 checks | PASS | Verify passed on head `6c069dda22030a74928227097f699491e5e89cd3` (runs `36841631191`, `36841637798`). |
-| GitHub Site PR #2 checks | PASS | Verify passed on head `1488e627abb6c7bbc9f1abe6fa7cde4c6b4c7ae7` (runs `36841631752`, `36841636825`). |
+| GitHub Site PR #2 checks | PASS | Verify passed on latest head `bc4b254bbaae09ba8de96352cf7790f756e51312` (runs `36844082741`, `36844087531`). |
 | Fresh staging DB migrations | PASS | Migrations 001–027 accepted on the deployed staging revision; candidate integration applies migration 028. |
 | Local encrypted PostGIS backup/restore | PASS (isolated disposable DB) | Synthetic row restored and verified; no production RPO/RTO claim. |
 | Staging Redis failure drill | PASS | Ready 200 → Redis stop → ready 503/degraded → Redis restart → ready 200; browser demand persisted. |
@@ -135,9 +135,9 @@ Then verify app/API HTTPS routes, database migration version, SMS, map/routing/g
 
 - Umbrella integration code SHA: `cf9da4f6f4e4e0e22417da090d2bd9d8bf83cb3e` (passed local and GitHub checks); report/manifest documentation updates are recorded in the follow-up commit.
 - Server canonical `main`: `bdfdf24941809f4581965b9847022c68e0b2f127`.
-- Server staging PR #2 branch: `codex/security-parse-bearer` at `54ed3c85fd79807a7d7d0b539a587fffca259487`.
+- Server staging PR #2 branch: `codex/security-parse-bearer` at `6c069dda22030a74928227097f699491e5e89cd3`.
 - Site `main`: `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7`.
-- Site staging PR #2: `3b9af2b61b093152d451271e398920e679cf4276`.
+- Site staging PR #2: `bc4b254bbaae09ba8de96352cf7790f756e51312`.
 - iOS `main`: `b8b1fcbfe9997e1a7a27594b5759690147de75df`.
 
 The temporary URL and test data are documented in [STAGING_DEPLOYMENT_REPORT.md](../STAGING_DEPLOYMENT_REPORT.md). The repository-backed release baseline is recorded in [RELEASE_MANIFEST.json](../RELEASE_MANIFEST.json); neither document authorizes production traffic.
