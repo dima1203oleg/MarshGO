@@ -2,7 +2,7 @@
 
 **As of:** 2026-10-01 (Europe/Kyiv)
 **Overall release decision:** `READY_FOR_SERVER_DEPLOYMENT=NO` · `PRODUCTION_READY=NO`
-**Staging:** temporary HTTPS URL is reachable at `https://78ba949ed82fea.lhr.life`, but `STAGING_READY=NO` because the full two-sided product acceptance did not pass.
+**Staging:** temporary HTTPS URL `https://e134c817e388ca.lhr.life` currently returns HTTP 200 at `/readyz`; `STAGING_READY=NO` because the full two-sided product acceptance did not pass. See the current verification addendum below; older snapshots in this report are historical.
 
 The percentages below are engineering estimates across the requested capability groups. They are progress indicators only; a partial item is not a release pass and percentages do not override the release gates.
 
@@ -141,3 +141,22 @@ Then verify app/API HTTPS routes, database migration version, SMS, map/routing/g
 - iOS `main`: `b8b1fcbfe9997e1a7a27594b5759690147de75df`.
 
 The temporary URL and test data are documented in [STAGING_DEPLOYMENT_REPORT.md](../STAGING_DEPLOYMENT_REPORT.md). The repository-backed release baseline is recorded in [RELEASE_MANIFEST.json](../RELEASE_MANIFEST.json); neither document authorizes production traffic.
+
+## Latest verification addendum — 2026-10-01 14:23 Europe/Kyiv
+
+This addendum supersedes older branch/URL/test snapshots above. Standalone worktrees are clean. Current feature refs and PR/CI state are in [REPOSITORY_STATE_FINAL.md](REPOSITORY_STATE_FINAL.md); release SHAs are in [RELEASE_MANIFEST.json](../RELEASE_MANIFEST.json).
+
+| Check | Result | Detail |
+|---|---|---|
+| Umbrella `npm run check:production` | PASS | Typecheck, repository-wide lint, 80 unit tests (79 passed, 0 failed, 1 skipped opt-in integration), production build and bundle budget. |
+| Umbrella `npm run test:integration` | PASS | 17/17 across Journey schema, booking, navigation, Redis realtime, restart durability and shared rate limits. |
+| Umbrella `npm run test:e2e` | PASS | 6/6 Chromium scenarios against production Vite build, isolated PostGIS/Redis and deterministic test providers. |
+| Server exact deployed SHA | PASS | `de2209bc71557a14b20afac07b5067a7139b8b42`: typecheck, full lint, 49 unit tests passed / 2 skipped, integration 18/18. |
+| Site exact deployed SHA | PASS | `150aa7ade03871cd12b80c6b3e205f345d37f996`: GitHub Verify, local typecheck, full lint and production build. |
+| iOS simulator | PASS / PARTIAL | GitHub simulator CI passes on `b8b1fcbfe9997e1a7a27594b5759690147de75df`; physical iPhone, signing, push and background GPS are not accepted. |
+| Umbrella latest GitHub PR checks | PASS | `verify`, CodeQL and Gitleaks passed on the immediately preceding report-only checkpoint `7e6a4e24f0a2e06c98191e66f4c4b7f69efdf134`; this addendum changes documentation only. |
+| Current temporary staging | PARTIAL | `e134c817e388ca.lhr.life`: Chromium test OTP login, Photon Kyiv/Lviv suggestions, direct Journey search with truthful empty inventory, and navigation driver-role gate pass; public `/readyz` returns 200. No verified driver inventory exists, so paired booking/boarding/completion/review is not accepted. Hostname is ephemeral. |
+
+**Tested source refs:** umbrella product-code baseline `854c93f9440be603810844c27889a84e21a0c0f6`; Server `de2209bc71557a14b20afac07b5067a7139b8b42`; Site `150aa7ade03871cd12b80c6b3e205f345d37f996`; iOS `b8b1fcbfe9997e1a7a27594b5759690147de75df`.
+
+**Remaining software/acceptance gaps:** full paired-user driver verification through booking, chat, rendezvous, boarding, completion and review; multi-passenger public acceptance; active Journey monitor/replan and real WALK/GTFS feeds; durable hosted stack/monitoring; complete push/payment/provider integrations. External release blockers include production server/domain/DNS, real SMS and provider credentials, Apple signing/physical devices, and commercial/payment accounts.
