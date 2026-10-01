@@ -31,10 +31,11 @@
   },
   "note": "integration_sha identifies the verified code/deployment baseline. Subsequent integration-branch commits may update release metadata and reports only; this manifest is not a deployment authorization.",
   "staging": {
-    "url": "https://e8a95b9e7976f6.lhr.life",
+    "url": "https://f11b9ded66e729.lhr.life",
     "provider": "local Docker stack via anonymous localhost.run HTTPS tunnel",
-    "web_sha": "085c9dbdbb3b8ae68f65db629895cbdff6b79c76",
-    "server_sha": "f0a6cdb2fd918733770f65f997dfea5d7c302b0c",
+    "web_sha": "2c22b3aefd9a7364391fbba96c70de03b827382a",
+    "server_sha": "3b22047f2643ef07e1d9da9e2a974b0e9351d4cc",
+    "integration_sha": "c0e57b944a88b779f7d84e6b04cbd10e15edfbc6",
     "ready": false,
     "production_ready": false,
     "report": "STAGING_DEPLOYMENT_REPORT.md"

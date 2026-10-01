@@ -1,7 +1,7 @@
 # MARSHGO Temporary Public Staging Report
 
 **Checked:** 2026-10-01 (Europe/Kyiv)
-**STAGING_URL:** https://e8a95b9e7976f6.lhr.life
+**STAGING_URL:** https://f11b9ded66e729.lhr.life
 **STAGING_READY:** NO
 **READY_FOR_SERVER_DEPLOYMENT:** NO
 **PRODUCTION_READY:** NO
@@ -20,11 +20,11 @@
 
 | Component | SHA | Deployment |
 |---|---|---|
-| MarshGO-Server | f0a6cdb2fd918733770f65f997dfea5d7c302b0c | Deployed from `codex/security-parse-bearer` (PR #2; not yet merged to `main`) |
-| MarshGO-Site | 085c9dbdbb3b8ae68f65db629895cbdff6b79c76 | Rebuilt from `codex/navigation-deep-link-alias` PR #2 head (main baseline remains `c7f76a4…`) |
+| MarshGO-Server | 3b22047f2643ef07e1d9da9e2a974b0e9351d4cc | Deployed from `codex/security-parse-bearer` (PR #2; not yet merged to `main`) |
+| MarshGO-Site | 2c22b3aefd9a7364391fbba96c70de03b827382a | Rebuilt from `codex/navigation-deep-link-alias` PR #2 head (main baseline remains `c7f76a4…`) |
 | MarshGO-iOS | b8b1fcbfe9997e1a7a27594b5759690147de75df | Not deployed to web staging |
 | MarshGO integration baseline | 904874f11eee6a19b77c2356230a82ab7c45569f | Test/deployment baseline |
-| Umbrella deployment/orchestration branch | 0127de32b125af0a7feb1ec85261582921cd6df3 | `codex/marshgo-production`; follow-up audit reports are being committed separately |
+| Umbrella deployment/orchestration branch | c0e57b944a88b779f7d84e6b04cbd10e15edfbc6 | `codex/marshgo-production`; includes synchronized verification-owner reason fields |
 
 The locally materialized pinned Server and Site source trees contain untracked build/deployment materialization files. The staging overlay itself is under ops/staging/; no changes were made to the canonical Server or Site commits.
 
@@ -40,6 +40,8 @@ The locally materialized pinned Server and Site source trees contain untracked b
 | Driver dashboard after login | PASS | Independent driver test account reached the production dashboard after OTP verification; server-backed offers, demands, vehicles and navigation-match reads returned successfully. The test vehicle is unverified, so publishing/matching acceptance remains blocked by the real verification flow. |
 | Moderator authentication and direct route | PASS | Moderator test account authenticated, opened `/admin/verification` directly, and the production UI automatically loaded its verification and moderation queues without a manual refresh. |
 | Verification submission/review/rejection | PASS (test-only evidence) | Driver UI uploaded two synthetic PNG fixtures; the moderator opened one in the protected UI and rejected it with a test-fixture reason. API confirmation appeared and both verification records ended as `rejected`; no synthetic evidence was approved. The automation then hit a strict-selector ambiguity on a redundant queue refresh. |
+| Driver rejection recovery UI | PASS (staging fixture) | A separate driver test account enabled the driver role through UI. Its explicitly seeded rejected test vehicle displayed the moderator reason and the “Надіслати повторно” action through the direct profile route; browser reported zero page errors. This validates owner-visible recovery UI, not a production verification approval or full resubmission. |
+| Verification resubmission | PASS (staging fixtures) | From the driver UI, the test account uploaded two clearly marked 1×1 PNG fixtures to the private S3-compatible staging store and resubmitted. The API returned 202; Postgres contains replacement vehicle and licence records as `pending`, the vehicle is pending, the old rejection reason is hidden, and the UI shows “Документи на перевірці”. Nothing was approved. The browser harness counted two page/request error events but did not preserve their details; investigate before claiming a clean browser run. |
 | Login with development OTP | PASS | Separate Chromium contexts authenticated the staging driver and moderator test identities through the visible OTP flow; all post-login API reads returned 200. OTP values were not retained in output. |
 | Passenger demand creation | PASS | UI published Стрий → Львів, 2 passengers, 300 UAH total. |
 | API restart recovery | PASS | After API restart, browser reauthenticated and demand persisted in “Мої заявки”; the direct /demands/mine URL also survived reload. |
@@ -65,7 +67,7 @@ STAGING_READY=NO follows the acceptance definition: public reachability and foun
 ## Browser errors and limitations
 
 - An unauthenticated fresh session probes /api/v1/auth/refresh; the API returns 401 as expected, and Chromium may surface that expected probe as a failed-resource console entry. No other unexpected console/API failure was observed in the final route/map run.
-- Browser console capture on the final direct-URL reload had no console errors or warnings.
+- The direct staff deep-link check had no browser console errors. The later resubmission run recorded two page/request error events without retaining their details; the upload POSTs returned 200, the API resubmission returned 202, the database state was pending, and the success/pending UI was captured. Treat those two events as unresolved until a detailed rerun.
 - A route display screenshot shows the road polyline over real vector tiles. The current navigation UI also reports stale GPS after long acceptance delays; live movement marker and reroute behavior remain unaccepted.
 - The temporary staging banner states development OTP is exposed for acceptance and real payments are disabled. Use only fake staging identities/data.
 
@@ -80,6 +82,8 @@ Local, ignored artifacts (not committed or publicly linked):
 - .release/staging-driver-dashboard-current.png (updated Site bundle; CTA opened navigation)
 - .release/staging-moderator-queue-current.png (protected queue before rejection)
 - .release/staging-admin-direct-url.png (direct staff route with automatic queue loading)
+- .release/staging-verification-rejection-reason.png (driver profile shows fixture rejection reason and retry action)
+- .release/staging-verification-resubmitted.png (success notice and pending-review state after UI resubmission)
 - .release/staging-map-desktop.png
 - .release/staging-map-mobile.png
 - .release/staging-map-openfreemap-desktop.png
@@ -97,4 +101,4 @@ Trace archives can include staging authentication/session context. Keep them pri
 5. Replace S3Mock and public test geocoder/routing/map endpoints with configured production-grade services for production.
 6. Real SMS, domain/TLS, production server, push, payments/commercial partners and physical iPhone acceptance remain external release gates.
 
-The local staging stack and a renewed tunnel are left running. The current URL is `https://e8a95b9e7976f6.lhr.life`; localhost.run may rotate it when the tunnel reconnects. The replacement URL was checked over HTTPS after renewal, returned the staging app in a visible browser, and both health/readiness returned 200. The URL remains valid only while those processes and this host stay available.
+The local staging stack and a renewed tunnel are left running. The current URL is `https://f11b9ded66e729.lhr.life`; localhost.run may rotate it when the tunnel reconnects. The replacement URL was checked over HTTPS after renewal, returned the staging app in a visible browser, and both health/readiness returned 200. The URL remains valid only while those processes and this host stay available.
