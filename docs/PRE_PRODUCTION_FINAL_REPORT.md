@@ -2,7 +2,7 @@
 
 **As of:** 2026-10-01 (Europe/Kyiv)
 **Overall release decision:** `READY_FOR_SERVER_DEPLOYMENT=NO` · `PRODUCTION_READY=NO`
-**Staging:** temporary HTTPS URL is reachable at `https://6fc2e0f67fc4ad.lhr.life`, but `STAGING_READY=NO` because the full two-sided product acceptance did not pass.
+**Staging:** temporary HTTPS URL is reachable at `https://78ba949ed82fea.lhr.life`, but `STAGING_READY=NO` because the full two-sided product acceptance did not pass.
 
 The percentages below are engineering estimates across the requested capability groups. They are progress indicators only; a partial item is not a release pass and percentages do not override the release gates.
 
@@ -38,7 +38,7 @@ The percentages below are engineering estimates across the requested capability 
 - Added parser tests and verified umbrella and Server CI plus the Server integration suite.
 - Reconciled the current standalone main SHAs, open PR heads, and canonical ownership in [docs/REPOSITORY_STATE_FINAL.md](REPOSITORY_STATE_FINAL.md).
 - Added [docs/SECURITY_FINAL_AUDIT.md](SECURITY_FINAL_AUDIT.md) and a staging-only Redis outage/recovery record in [docs/REDIS_RECOVERY.md](REDIS_RECOVERY.md).
-- Refreshed the anonymous tunnel to `https://6fc2e0f67fc4ad.lhr.life`; staging now runs Server PR #2 `6c069dda22030a74928227097f699491e5e89cd3` and Site PR #2 `bc4b254bbaae09ba8de96352cf7790f756e51312`, with migration 028 applied to the isolated DB. Browser verified health/readiness, authenticated profile direct-open/session restore and the unauthenticated `/navigation` deep-link path. Full two-user acceptance remains incomplete.
+- Refreshed the anonymous tunnel to `https://78ba949ed82fea.lhr.life`; staging runs Server PR #2 `6c069dda22030a74928227097f699491e5e89cd3` and Site PR #2 `bc4b254bbaae09ba8de96352cf7790f756e51312`, with migration 028 applied to the isolated DB. Browser verified health/readiness, authenticated profile direct-open/session restore and the unauthenticated `/navigation` deep-link path. Full two-user acceptance remains incomplete.
 - Hardened immutable release materialization: canonical GitHub origin and real-directory checks, rejection of untracked/modified pinned sources, strict Server/Site Docker contexts, and SHA-256 materialization metadata. Canonical API/Web images build locally and in CI.
 - Updated the deployment-readiness decision and release gap audit to reflect performed staging and Redis checks while retaining `NO` for incomplete acceptance.
 

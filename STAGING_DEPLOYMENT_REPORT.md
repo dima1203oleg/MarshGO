@@ -1,12 +1,12 @@
 # MARSHGO Temporary Public Staging Report
 
-**Checked:** 2026-10-01 12:53 Europe/Kyiv
-**STAGING_URL:** https://6fc2e0f67fc4ad.lhr.life
+**Checked:** 2026-10-01 13:06 Europe/Kyiv
+**STAGING_URL:** https://78ba949ed82fea.lhr.life
 **STAGING_READY:** NO (public smoke and partial paired booking verified; complete paired-user acceptance remains incomplete)
 **READY_FOR_SERVER_DEPLOYMENT:** NO
 **PRODUCTION_READY:** NO
 
-**Latest local production-browser rerun:** 2026-10-01, umbrella HEAD `d4ed14e65c70f97254b14a1dc6e852fc358ec31d`; `npm run test:e2e` PASS, 6/6 (Chromium, production Vite bundle, isolated local PostGIS/Redis).
+**Latest local production-browser rerun:** 2026-10-01, product code SHA `cf9da4f6f4e4e0e22417da090d2bd9d8bf83cb3e` (current umbrella HEAD `4fed349bd554e954e802eb2d58c315fddf2d4195` contains documentation-only updates); `npm run test:e2e` PASS, 6/6 (Chromium, production Vite bundle, isolated local PostGIS/Redis). Latest umbrella CI/Security runs for the report commit passed (36846173057, 36846172967).
 
 ## Deployment
 
@@ -44,7 +44,7 @@ The active processes run from exact standalone worktrees at the Server and Site 
 | Public Chromium direct `/navigation` | PASS (route delivery) | Direct navigation returned the SPA root and preserved `/navigation`; screenshot: `.release/staging-current-validation-navigation.png`. This is route delivery evidence, not the authenticated user flow. |
 | Public readiness | PASS | `/readyz` returned 200 with database and realtime connected. |
 | Browser errors during logged validation | PASS | Zero page exceptions or failed browser requests in this Chromium check. Earlier anonymous route refreshes still produce the expected protected-session 401s noted above. |
-| Latest staging refresh | PASS (partial) | Anonymous localhost.run hostname rotated; current `https://6fc2e0f67fc4ad.lhr.life` returns HTTP 200 and `/readyz` reports Postgres/realtime connected. Deployed Site SHA `bc4b254bbaae09ba8de96352cf7790f756e51312` and Server SHA `6c069dda22030a74928227097f699491e5e89cd3`. Candidate migration 028 is applied to the isolated staging DB. |
+| Prior staging refresh (2026-10-01 12:53 Europe/Kyiv) | PASS (partial) | At that time `https://6fc2e0f67fc4ad.lhr.life` returned HTTP 200 and `/readyz` reported Postgres/realtime connected. This hostname later expired; the currently active hostname is recorded below. Deployed candidate SHAs and staging migration remain unchanged. |
 | Paired booking attempt (2026-10-01) | PARTIAL | Three visible dev-OTP sign-ins created explicitly named `STAGING TEST` accounts. A test-only verified vehicle/offer fixture was inserted into the isolated staging DB; it did not pass moderator verification and must not be treated as a real verified driver. The passenger UI geocoded Striy/Lviv and created a confirmed booking. Postgres records 1 passenger seat and 3/4 available; the driver's `/trips` UI visibly shows the confirmed booking and `Скасувати`/`Написати` actions. Screenshot: `.release/staging-paired-driver-trips.png`. |
 | Paired chat and Rescue follow-up | NOT ACCEPTED | Follow-up browser harness locators did not resolve the intended booking card. No successful chat/cancellation/replacement booking is claimed. |
 | Live Nominatim result handling | PASS (lookup only) | Staging returned actual city labels with administrative areas. One acceptance selector expected the local-fixture label exactly; the staging geocoder itself returned HTTP 200. |
@@ -59,6 +59,15 @@ The active processes run from exact standalone worktrees at the Server and Site 
 | Authenticated direct profile URL / session restore | PASS | A fresh visible browser tab opened `/profile`; after the protected-session restoration state, it displayed the authenticated profile, JSON export/delete request controls, empty vehicle garage, and driver-role action. This is one browser account, not a two-user product acceptance. |
 | Direct `/navigation` in isolated unauthenticated tab | PASS / AUTH FLOW | A new browser tab opened the direct URL and received the welcome/sign-in view while retaining `/navigation`. Authenticated driver navigation and map/GPS behavior were not exercised in this check. |
 | Candidate unread API anonymous probe | RATE LIMITED | An unauthenticated request returned 429 after repeated staging probes. This does not verify participant authorization or the unread/read UI flow; candidate pair E2E remains local-only evidence. |
+
+| Latest Playwright public route matrix (2026-10-01 12:58 Europe/Kyiv) | Result | Evidence |
+|---|---|---|
+| Direct route delivery | PASS | Chromium opened `/`, `/search`, `/journeys/search`, `/profile`, `/trips`, `/navigation`, `/notifications`, and `/admin/verification` at desktop 1440×900 and mobile 390×844. All 16 responses returned HTTP 200, correct MARSHGO title, and staging banner. This verifies SPA delivery/render shell, not route authorization or entity-level functionality. |
+| Responsive landing view | PASS (visual smoke) | Screenshots `.release/staging-candidate-desktop.png` (1440×900) and `.release/staging-candidate-mobile.png` (390×844) were visually inspected. No horizontal overflow or clipped primary CTAs were visible. |
+| Browser runtime/network | PASS with expected protected-session responses | Playwright recorded 0 uncaught page errors and 0 failed requests. It recorded 16 console resource errors for expected unauthenticated HTTP 401 session refreshes (one per direct route per viewport); this is not a clean-console pass. |
+| Browser traces / machine-readable results | SAVED | `.release/staging-candidate-desktop.trace.zip`, `.release/staging-candidate-mobile.trace.zip`, `.release/staging-candidate-browser-matrix.json`. Traces may include staging session context; keep local/private. |
+| Public readiness after browser run | PASS | The prior hostname `https://6fc2e0f67fc4ad.lhr.life/readyz` returned `ready`, `database=connected`, `realtime=connected` before it expired. The renewed current hostname is rechecked below. |
+| Renewed temporary hostname (2026-10-01 13:06 Europe/Kyiv) | PASS | Previous anonymous hostname expired; the same local edge/API pair was re-exposed at `https://78ba949ed82fea.lhr.life`. Browser rendered the staging banner and welcome page; `/readyz` returned ready with DB and realtime connected. Deployed Server/Site SHAs are unchanged. |
 
 | Manual public browser acceptance (2026-10-01 12:30 Europe/Kyiv) | Result | Evidence |
 |---|---|---|
@@ -143,8 +152,13 @@ Local, ignored artifacts (not committed or publicly linked):
 - .release/staging-current-desktop.png (previous pinned Site build, 1440×900)
 - .release/staging-current-mobile.png (previous pinned Site build, 390×844)
 - .release/staging-current-login.png (previous headed Chromium test OTP login)
-- .release/staging-3b9af2b-desktop.png (latest public Site SHA 3b9af2b, Chromium, 1440×900)
-- .release/staging-3b9af2b-mobile.png (latest public Site SHA 3b9af2b, Chromium, 390×844)
+- .release/staging-3b9af2b-desktop.png (previous public Site SHA 3b9af2b, Chromium, 1440×900)
+- .release/staging-3b9af2b-mobile.png (previous public Site SHA 3b9af2b, Chromium, 390×844)
+- .release/staging-candidate-desktop.png (current Site SHA bc4b254, Chromium, 1440×900; visually inspected)
+- .release/staging-candidate-mobile.png (current Site SHA bc4b254, Chromium, 390×844; visually inspected)
+- .release/staging-candidate-desktop.trace.zip (8 direct routes at desktop viewport)
+- .release/staging-candidate-mobile.trace.zip (8 direct routes at mobile viewport)
+- .release/staging-candidate-browser-matrix.json (route status, console, page-error and failed-request summary)
 - .release/staging-public-desktop.png (refreshed public tunnel, Chromium, 1440×900)
 - .release/staging-public-mobile.png (refreshed public tunnel, Chromium, 390×844)
 - .release/staging-current-routes.trace.zip (direct `/`, `/navigation`, `/admin/verification` opens; unauthenticated trace)
@@ -166,4 +180,4 @@ Trace archives can include staging authentication/session context. Keep them pri
 5. Replace S3Mock and public test geocoder/routing/map endpoints with configured production-grade services for production.
 6. Real SMS, domain/TLS, production server, push, payments/commercial partners and physical iPhone acceptance remain external release gates.
 
-The local staging stack and renewed tunnel are left running. At 2026-10-01 12:53 Europe/Kyiv, the current URL is `https://6fc2e0f67fc4ad.lhr.life`; localhost.run may rotate the hostname when the tunnel reconnects. This URL serves Site SHA `bc4b254bbaae09ba8de96352cf7790f756e51312` and Server SHA `6c069dda22030a74928227097f699491e5e89cd3`. Public Chromium verified visible test OTP login/logout, authenticated profile direct-open/session restore, unauthenticated navigation deep-link handling, and public readiness. Migration 028 is applied to staging, but unread/read has not passed a two-user staging acceptance. The URL remains valid only while the host processes and this machine stay available.
+The local staging stack and renewed tunnel are left running. At 2026-10-01 13:06 Europe/Kyiv, the current URL is `https://78ba949ed82fea.lhr.life`; localhost.run may rotate the hostname when the tunnel reconnects. This URL serves Site SHA `bc4b254bbaae09ba8de96352cf7790f756e51312` and Server SHA `6c069dda22030a74928227097f699491e5e89cd3`. Public Chromium verified the desktop/mobile route shell, authenticated profile direct-open/session restore, unauthenticated navigation deep-link handling, and public readiness. Migration 028 is applied to staging, but unread/read has not passed a two-user staging acceptance. The URL remains valid only while the host processes and this machine stay available.

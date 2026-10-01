@@ -26,7 +26,7 @@
     "latest_browser_compat_rerun": "PASS; npm run test:browser-compat 3/3 Chromium/Firefox/WebKit after serialized rerun (an initial parallel invocation collided on local port 3306)",
     "latest_production_check": "PASS; npm run check:production, 80 tests (79 passed, 1 skipped, 0 failed), repository-wide lint/typecheck/build/bundle budget",
     "latest_integration_rerun": "PASS; npm run test:integration, 17/17 PostGIS/Redis tests",
-    "current_umbrella_github_ci": "PASS on integration code SHA cf9da4f6f4e4e0e22417da090d2bd9d8bf83cb3e; Verify, CodeQL and Gitleaks passed (push run 36842334925; PR run 36842341524; security runs 36842334891 and 36842341518)",
+    "current_umbrella_github_ci": "PASS; metadata-only report commit 4fed349bd554e954e802eb2d58c315fddf2d4195 passed push CI/Security (36846168146, 36846168154) and PR CI/Security (36846173057, 36846172967); integration code SHA remains cf9da4f6f4e4e0e22417da090d2bd9d8bf83cb3e",
     "candidate_server_site_github_ci": "PASS; Server PR #2 SHA 6c069dda22030a74928227097f699491e5e89cd3 Verify passed; Site PR #2 SHA bc4b254bbaae09ba8de96352cf7790f756e51312 Verify passed (runs 36844082741 and 36844087531)",
     "browser_matrix": "Chromium, Firefox and WebKit production UI smoke passed (3/3 browser projects; phone/tablet/desktop each); latest Site PR head CI passed",
     "canonical_server_site_images": "PASS; built from immutable Server bdfdf24941809f4581965b9847022c68e0b2f127 and Site c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7 after canonical-origin, pinned-worktree, and allowlisted Docker-context checks",
@@ -38,7 +38,7 @@
     "staging_site_bundle": "PASS; immutable Site SHA bc4b254bbaae09ba8de96352cf7790f756e51312 built and served by public temporary HTTPS; Chromium verified direct profile/navigation routes, auth logout, localized driver-role guidance, home copy and health/readiness",
     "integration_suite": "PASS; 17/17 PostGIS/Redis integration tests",
     "public_staging_browser_refresh": "PASS with limitations; Chromium desktop 1440x900 and mobile 390x844 homepage plus six direct SPA routes; health/readiness PASS; 11 expected anonymous API 401 console resource errors, 0 page exceptions and 0 failed first-party transports",
-    "public_staging_chromium_recheck": "PASS with scope limits; current temporary HTTPS /profile restored the authenticated staging session and rendered privacy/export/delete and garage states; /readyz database+realtime connected. A new isolated tab direct to /navigation returned the welcome state. Full authenticated navigation/GPS flow not accepted",
+    "public_staging_chromium_recheck": "PASS with scope limits; current temporary HTTPS Chromium route matrix returned HTTP 200 and the staging banner on 8 direct routes at desktop 1440x900 and mobile 390x844; 0 page exceptions and 0 failed requests, with 16 expected anonymous-session 401 console resource errors. Authenticated /profile session restoration and /readyz passed. Full authenticated navigation/GPS flow not accepted",
     "public_staging_paired_booking": "PARTIAL; three visible dev-OTP test identities; passenger booked one test-only fixture offer, driver /trips UI displayed confirmed booking, DB showed 3/4 seats; fixture vehicle was inserted as staging-only verified data and was not moderator-approved; chat/cancel/Rescue follow-up not accepted",
     "conversation_unread_read": "PASS locally; migration 028, participant-only unread-count/read APIs, persistent cursor and two-account UI badge verified by Server integration tests and production-bundle browser E2E. Candidate code is now deployed to staging, but two-account staging read/unread acceptance remains unverified",
     "candidate_server_pr_2_head": "6c069dda22030a74928227097f699491e5e89cd3",
@@ -46,7 +46,7 @@
   },
   "note": "Top-level Server/Site SHAs identify canonical main release baselines; staging contains explicit immutable PR-branch SHAs. integration_sha identifies the verified integration code revision; subsequent metadata-only commits do not change those build inputs. This manifest is not a deployment authorization.",
   "staging": {
-    "url": "https://6fc2e0f67fc4ad.lhr.life",
+    "url": "https://78ba949ed82fea.lhr.life",
     "provider": "local Docker stack via anonymous localhost.run HTTPS tunnel",
     "web_sha": "bc4b254bbaae09ba8de96352cf7790f756e51312",
     "server_sha": "6c069dda22030a74928227097f699491e5e89cd3",
@@ -54,7 +54,7 @@
     "ready": false,
     "production_ready": false,
     "report": "STAGING_DEPLOYMENT_REPORT.md",
-    "last_verified_at": "2026-10-01T09:53:40Z"
+    "last_verified_at": "2026-10-01T10:06:44Z"
   },
   "candidate_database_migration": "028 on Server PR #2; canonical release baseline remains 027 until merged"
 }
