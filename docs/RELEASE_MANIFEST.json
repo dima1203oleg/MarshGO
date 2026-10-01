@@ -10,25 +10,25 @@
   "integrationVerification": {
     "repository": "MarshGO",
     "branch": "codex/marshgo-production",
-    "commit": "d5f9f67defdd6a377468162a86a79c245b68b930",
+    "commit": "1deae257e305d83604e85e512b07460f5025f02c",
     "workingTreeClean": true
   },
   "repositories": {
     "umbrella": {
       "name": "dima1203oleg/MarshGO",
-      "commit": "d5f9f67defdd6a377468162a86a79c245b68b930",
+      "commit": "1deae257e305d83604e85e512b07460f5025f02c",
       "branch": "codex/marshgo-production"
     },
     "server": {
       "name": "dima1203oleg/MarshGO-Server",
-      "commit": "363532c1e6bedd083b2f53c2449eeb6b34869ac6",
+      "commit": "ca760526fad9dd7e1e0d9e7e4a07e59e67e42b3a",
       "branch": "main",
       "schemaVersion": 27,
       "sourceSyncedWithIntegrationServer": true
     },
     "site": {
       "name": "dima1203oleg/MarshGO-Site",
-      "commit": "e47538b1281bc8fcab8dd3f4b646575caace5646",
+      "commit": "c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7",
       "branch": "main",
       "sourceSyncedWithIntegration": true
     },
@@ -36,8 +36,8 @@
       "name": "dima1203oleg/MarshGO-iOS",
       "commit": "cb32564df286cdfd09e35d276e6857ae541277b4",
       "branch": "main",
-      "simulatorArtifactSiteCommit": "e47538b1281bc8fcab8dd3f4b646575caace5646",
-      "simulatorArtifactServerCommit": "363532c1e6bedd083b2f53c2449eeb6b34869ac6",
+      "simulatorArtifactSiteCommit": "c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7",
+      "simulatorArtifactServerCommit": "ca760526fad9dd7e1e0d9e7e4a07e59e67e42b3a",
       "simulatorArtifactApiBaseUrl": "http://127.0.0.1:3002",
       "unsignedReleaseArchiveCompiled": true,
       "pinnedReleaseSourceShaRequired": true
@@ -47,7 +47,8 @@
     "localBuildAndTests": "PASS",
     "canonicalRepositoryCompatibility": "PASS_LOCAL_SOURCE_SYNC",
     "crossRepositoryBrowserE2E": "PASS_LOCAL_FIXTURES",
-    "iosSimulatorAndUnsignedArchive": "PASS_LOCAL_PINNED_SOURCES_LOOPBACK_API",
+    "iosSimulator": "PASS_LOCAL_PINNED_SOURCES_LOOPBACK_API",
+    "iosUnsignedReleaseArchive": "PASS_OLDER_PINNED_SOURCES",
     "hostedStaging": "BLOCKED_EXTERNAL",
     "productionDeployment": "BLOCKED_EXTERNAL",
     "physicalIphoneAcceptance": "BLOCKED_EXTERNAL",
