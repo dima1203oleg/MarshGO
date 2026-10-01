@@ -1,24 +1,25 @@
 # MARSHGO Temporary Public Staging Report
 
-**Checked:** 2026-10-01 14:13 Europe/Kyiv
-**STAGING_URL:** https://839af757d628d4.lhr.life
+**Checked:** 2026-10-01 14:23 Europe/Kyiv
+**STAGING_URL:** https://e134c817e388ca.lhr.life
 **STAGING_READY:** NO (public smoke and partial paired booking verified; complete paired-user acceptance remains incomplete)
 **READY_FOR_SERVER_DEPLOYMENT:** NO
 **PRODUCTION_READY:** NO
 
-**Latest reconnect:** 2026-10-01, temporary URL `https://839af757d628d4.lhr.life`. localhost.run rotates hostnames; old URLs can return 503 after reconnect. The current hostname returned homepage HTTP 200 and `/readyz` HTTP 200 at last check.
+**Latest reconnect:** 2026-10-01, temporary URL `https://e134c817e388ca.lhr.life`. localhost.run rotates hostnames; old URLs can return 503 after reconnect. Previous hostname `839af757d628d4.lhr.life` expired during browser acceptance and its API request returned 503. The renewed URL now returns homepage HTTP 200 and `/readyz` HTTP 200; UI retest on this hostname is pending.
 
 ## Latest delta acceptance
 
 | Check | Result | Evidence / limits |
 |---|---|---|
+| Renewed URL Chromium retry | PASS (partial) | On `e134c817e388ca.lhr.life`, visible development OTP login succeeded; Photon returned selectable Kyiv/Lviv suggestions; direct `/journeys/search` rendered the honest zero-inventory state; direct `/navigation` rendered and correctly stated that driver role is required. No GPS permission was granted and no navigation was started. |
 | Trusted proxy rate-limit isolation | PASS | Server requires bounded `TRUST_PROXY_HOPS` in production, defaults to zero in development, and configures Express trust explicitly. Two API instances with Redis verified different forwarded client IPs receive independent buckets and the same client still receives 429. |
 | Server quality gates | PASS | Exact Server head `de2209bc71557a14b20afac07b5067a7139b8b42`: typecheck and full ESLint pass; unit tests 49 passed / 0 failed / 2 skipped; isolated PostGIS/Redis integration 18/18 passes, including migrations 001–028, bookings, navigation, realtime, restart durability and shared rate limits. |
 | Public UI OTP | PASS | Visible Chromium completed development OTP login on the then-current tunnel. A fresh browser tab restored the authenticated profile after API restart. OTP and phone are omitted. |
-| Ukrainian address lookup | PASS | Authenticated Chromium queried Photon and returned selectable Kyiv/Lviv suggestions. Backend filters Photon results to Ukraine. This public demo endpoint is low-volume staging only and has no uptime guarantee. |
+| Ukrainian address lookup | PASS | Authenticated Chromium on the renewed URL queried Photon and returned selectable Kyiv/Lviv suggestions. Backend filters Photon results to Ukraine. This public demo endpoint is low-volume staging only and has no uptime guarantee. |
 | Offer search / Journey planner | PARTIAL | Selected real geocoder place IDs; server search/planning returned a truthful zero-results state because staging has no suitable current inventory. No fake offer was shown. |
 | Navigation deep link | PARTIAL | Direct `/navigation` opening returned the production navigation screen and correctly required an activated driver role. GPS route, movement and reroute were not completed in this browser session. |
-| Public readiness | PASS | Current tunnel homepage and `/readyz` returned HTTP 200; PostgreSQL and Redis were connected. URL is ephemeral and needs rechecking after reconnect. |
+| Public readiness | PASS | Renewed tunnel homepage and `/readyz` returned HTTP 200; PostgreSQL and Redis were connected. URL is ephemeral and needs rechecking after reconnect. |
 | Return-home navigation | FIXED; build gates PASS | Fixed the stale `showResults` UI state on Site `150aa7a`; typecheck, full lint and production build pass. Browser click regression was not rerun on the current tunnel. |
 | Local production-browser E2E | PASS | `npm run test:e2e`: 6/6 on Chromium against the production Vite bundle with isolated PostGIS/Redis and deterministic test providers. Covers responsive smoke, onboarding, independent passenger/driver contexts, search/booking/demand negotiation/persisted chat, simulated GPS reroute, route rendering and Journey result details. This does not establish public-staging real-provider or full trip-closure acceptance. |
 
@@ -29,11 +30,11 @@
 | MarshGO-Server | `de2209bc71557a14b20afac07b5067a7139b8b42` | `codex/security-parse-bearer`; migration 028 |
 | MarshGO-Site | `150aa7ade03871cd12b80c6b3e205f345d37f996` | `codex/navigation-deep-link-alias`; Home navigation fix, OpenFreeMap build configuration |
 | MarshGO-iOS | `b8b1fcbfe9997e1a7a27594b5759690147de75df` | Not deployed to web staging |
-| Umbrella code baseline | `854c93f9440be603810844c27889a84e21a0c0f6` | `codex/marshgo-production`; report update is documentation only |
+| Umbrella code baseline | `854c93f9440be603810844c27889a84e21a0c0f6` | `codex/marshgo-production`; report-only commits follow this product-code baseline, latest `2125eb28964d2c57a1c704257bc823711662a528` |
 
 Staging runs isolated PostGIS/Redis/S3Mock with dev OTP, Photon geocoding, OSRM demo routing and OpenFreeMap vector tiles. These public services are staging-only and best-effort; production SMS, storage, routing and commercial providers remain disabled. Prior MapLibre/tiles acceptance artifacts: `.release/staging-map-openfreemap-desktop.png` and `.release/staging-map-openfreemap.trace.zip`. Current browser session exercised address lookup but did not render a route because staging had no matching inventory.
 
-**Latest local production-browser rerun:** 2026-10-01, umbrella product-code baseline `854c93f9440be603810844c27889a84e21a0c0f6` (current pending changes are documentation/configuration only); `npm run test:e2e` PASS, 6/6 (Chromium, production Vite bundle, isolated local PostGIS/Redis). Umbrella PR #1 checks pass at the GitHub head recorded in `docs/REPOSITORY_STATE_FINAL.md`.
+**Latest local production-browser rerun:** 2026-10-01, umbrella product-code baseline `854c93f9440be603810844c27889a84e21a0c0f6` (report-only commits follow); `npm run test:e2e` PASS, 6/6 (Chromium, production Vite bundle, isolated local PostGIS/Redis). Umbrella PR #1 CI for the latest metadata commit is pending at time of this update.
 
 ## Deployment
 
@@ -210,4 +211,4 @@ Trace archives can include staging authentication/session context. Keep them pri
 5. Replace S3Mock and public test geocoder/routing/map endpoints with configured production-grade services for production.
 6. Real SMS, domain/TLS, production server, push, payments/commercial partners and physical iPhone acceptance remain external release gates.
 
-The local staging stack and renewed tunnel are left running. At the latest check, the current URL was `https://839af757d628d4.lhr.life`; localhost.run can rotate the hostname after reconnect. This URL serves Site SHA `150aa7a` and Server SHA `de2209b`. Public Chromium verified OTP login, profile/session restoration after API restart, Photon address suggestions and honest zero-inventory search/planning states. Migration 028 is applied to staging, but unread/read has not passed a two-user staging acceptance. The URL remains valid only while the host processes and this machine stay available.
+The local staging stack and renewed tunnel are left running. At the latest check, the current URL was `https://e134c817e388ca.lhr.life`; localhost.run can rotate the hostname after reconnect. This URL serves Site SHA `150aa7a` and Server SHA `de2209b`. Public Chromium verified OTP login, profile/session restoration after API restart, Photon address suggestions and honest zero-inventory search/planning states on the previous hostname. That hostname expired during the latest UI check and caused a 503; the new hostname passes HTTP health/readiness, but the failed UI action has not yet been retried there. Migration 028 is applied; unread/read has not passed a two-user staging acceptance. The URL remains valid only while the host processes and this machine stay available.

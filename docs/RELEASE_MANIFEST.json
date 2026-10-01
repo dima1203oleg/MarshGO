@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "product": "MARSHGO",
-  "release_candidate": "RC-2026-10-01-staging.4",
+  "release_candidate": "RC-2026-10-01-staging.5",
   "status": "NOT_RELEASED",
   "ready_for_server_deployment": false,
   "production_ready": false,
@@ -37,13 +37,13 @@
   },
   "note": "Immutable source revisions are feature-branch PR heads for staging, not a production release. integration_sha is the tested umbrella product-code baseline before report-only reconciliation edits. The tunnel hostname can rotate. This manifest is not a production deployment authorization.",
   "staging": {
-    "url": "https://839af757d628d4.lhr.life",
+    "url": "https://e134c817e388ca.lhr.life",
     "provider": "local Docker services via temporary anonymous localhost.run HTTPS tunnel",
     "status": "PARTIAL; ephemeral; do not treat as durable hosting",
     "deployed_server_sha": "de2209bc71557a14b20afac07b5067a7139b8b42",
     "deployed_site_sha": "150aa7ade03871cd12b80c6b3e205f345d37f996",
     "migration": "028",
-    "checked_at": "2026-10-01 14:13 Europe/Kyiv"
+    "checked_at": "2026-10-01 14:23 Europe/Kyiv"
   },
   "candidate_database_migration": "028 on Server PR #2; canonical release baseline remains 027 until merged"
 }
