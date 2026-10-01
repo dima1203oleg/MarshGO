@@ -25,3 +25,21 @@ All four local worktrees were checked with `git status`; each is clean and at it
 - Native iOS shell/integrations: MarshGO-iOS; Release builds must pin exact `SITE_REF`.
 - Cross-repository integration, deployment definitions and release evidence: MarshGO umbrella.
 - Open PR branches are candidates, not automatically canonical/main. The two rendezvous PRs remain separate and require integration review; standalone repositories currently remain authoritative.
+
+
+## Latest reconciliation — 2026-10-01 20:47 Europe/Kyiv
+
+All four local working trees are clean and pushed. Ahead/behind counts below are relative to each repository's current `origin/main`. No PR was merged.
+
+| Repository | Main SHA | Active branch / HEAD | Ahead / behind | Open PR / CI | Source of truth |
+|---|---|---|---:|---|---|
+| MarshGO | `1e7d0ee74f11121a7d5a29c6379944a5360581c4` | `codex/marshgo-production` / `eaa37b2cf2408bb6dd6d65748dad603877643983` | 176 / 0 | Draft PR #1; push Verify `36901515153` and PR Verify `36901523944` pass; CodeQL and Gitleaks pass. | Cross-repository E2E, deployment definitions, release evidence. |
+| MarshGO-Server | `bdfdf24941809f4581965b9847022c68e0b2f127` | `codex/security-parse-bearer` / `699b1fa7e007f5f8b56e597922523cf4659dd942` | 9 / 0 | PR #2 Verify passes; rendezvous PR #1 remains separate/open. | Backend, API, database and migrations. |
+| MarshGO-Site | `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7` | `codex/navigation-deep-link-alias` / `336787900c645277a7284568d573ce079fb05010` | 26 / 0 | PR #2 Verify passes twice on this exact SHA; rendezvous PR #1 remains separate/open. | Web/PWA. |
+| MarshGO-iOS | `b8b1fcbfe9997e1a7a27594b5759690147de75df` | `main` / same SHA | 0 / 0 | Simulator CI passes; simulator-capture PR #1 remains open. | Native shell/integrations. |
+
+### Canonical candidate and public staging
+
+Release candidate `RC-2026-10-01-staging.22` pins Server `699b1fa7e007f5f8b56e597922523cf4659dd942`, Site `336787900c645277a7284568d573ce079fb05010`, iOS `b8b1fcbfe9997e1a7a27594b5759690147de75df`, and the umbrella product/test baseline `eaa37b2cf2408bb6dd6d65748dad603877643983`. Public temporary staging is `https://superblessed-herlinda-epiphragmal.ngrok-free.dev`; bundle was rebuilt from the exact Site SHA. Public health/readiness returned 200 and browser reload retained geocoded search state. This URL is a temporary tunnel and does not meet `STAGING_READY` acceptance.
+
+Latest local sequential checks: `npm run test:e2e` = 7/7 Chromium; `npm run test:browser-compat` = 3/3 Chromium/Firefox/WebKit; `npm run check:production` = typecheck/lint/build/bundle pass, 79 unit tests pass, 0 fail, 1 opt-in integration skip. Server integration remains 18/18. Umbrella push Verify `36901515153` and PR Verify `36901523944` both pass, including E2E and browser matrix. Exact SHAs and limitations are in `RELEASE_MANIFEST.json` and `STAGING_DEPLOYMENT_REPORT.md`.

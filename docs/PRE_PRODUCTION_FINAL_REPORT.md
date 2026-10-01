@@ -171,3 +171,20 @@ This addendum supersedes older branch/URL/test snapshots above. Standalone workt
 **Tested source refs:** umbrella product-code baseline `854c93f9440be603810844c27889a84e21a0c0f6`; Server `de2209bc71557a14b20afac07b5067a7139b8b42`; Site `150aa7ade03871cd12b80c6b3e205f345d37f996`; iOS `b8b1fcbfe9997e1a7a27594b5759690147de75df`.
 
 **Remaining software/acceptance gaps:** full paired-user driver verification through booking, chat, rendezvous, boarding, completion and review; multi-passenger public acceptance; active Journey monitor/replan and real WALK/GTFS feeds; durable hosted stack/monitoring; complete push/payment/provider integrations. External release blockers include production server/domain/DNS, real SMS and provider credentials, Apple signing/physical devices, and commercial/payment accounts.
+
+
+## Latest candidate verification addendum — 2026-10-01 20:47 Europe/Kyiv
+
+This replaces prior SHAs/test snapshots above for the currently tested candidate.
+
+| Check | Result | Evidence |
+|---|---|---|
+| Umbrella production check | PASS | `npm run check:production`: typecheck, full ESLint, build, bundle gate, 79 unit tests passed, 0 failed, 1 opt-in integration skip. |
+| Canonical Server integration | PASS | `npm run test:integration` on Server `699b1fa7e007f5f8b56e597922523cf4659dd942`: 18/18. |
+| Chromium production E2E | PASS | `npm run test:e2e` on Server `699b1fa7e007f5f8b56e597922523cf4659dd942` / Site `336787900c645277a7284568d573ce079fb05010`: 7/7. |
+| Cross-browser responsive smoke | PASS | `npm run test:browser-compat` on Site `336787900c645277a7284568d573ce079fb05010`: Chromium/Firefox/WebKit 3/3. |
+| Site CI | PASS | PR #2 Verify passes twice on exact Site SHA `336787900c645277a7284568d573ce079fb05010`. |
+| Umbrella CI | PASS | Push Verify `36901515153` and PR Verify `36901523944` pass on umbrella `eaa37b2cf2408bb6dd6d65748dad603877643983`, including Docker builds, E2E and browser matrix. A previous run on older pinned Site `573ebca…` failed the Journey Rescue UI assertion; current exact pair is green locally and in CI. |
+| Public staging | PARTIAL | Exact Site bundle rebuilt and reloaded from public Chromium; `/healthz` and `/readyz` = 200; readiness reports DB/realtime connected; no browser errors/warnings during search reload. Complete paired booking-to-review, GPS/rendezvous and service restart acceptance remain incomplete. |
+
+Candidate SHAs: umbrella product/test baseline `eaa37b2cf2408bb6dd6d65748dad603877643983`, Server `699b1fa7e007f5f8b56e597922523cf4659dd942`, Site `336787900c645277a7284568d573ce079fb05010`, iOS `b8b1fcbfe9997e1a7a27594b5759690147de75df`. The public URL is a temporary ngrok tunnel, so `STAGING_READY=NO` and `READY_FOR_SERVER_DEPLOYMENT=NO`. `PRODUCTION_READY=NO`. See `OWNER_ACTIONS_REQUIRED.md` for external dependencies and `RELEASE_STATUS.md` for remaining software/acceptance gaps.
