@@ -2,7 +2,7 @@
 
 **As of:** 2026-10-01 (Europe/Kyiv)
 **Overall release decision:** `READY_FOR_SERVER_DEPLOYMENT=NO` · `PRODUCTION_READY=NO`
-**Staging:** temporary HTTPS URL is reachable at `https://fce39bf5bb297b.lhr.life`, but `STAGING_READY=NO` because the full two-sided product acceptance did not pass.
+**Staging:** temporary HTTPS URL is reachable at `https://56d3cf129fa0c4.lhr.life`, but `STAGING_READY=NO` because the full two-sided product acceptance did not pass.
 
 The percentages below are engineering estimates across the requested capability groups. They are progress indicators only; a partial item is not a release pass and percentages do not override the release gates.
 
@@ -38,7 +38,7 @@ The percentages below are engineering estimates across the requested capability 
 - Added parser tests and verified umbrella and Server CI plus the Server integration suite.
 - Reconciled the current standalone main SHAs, open PR heads, and canonical ownership in [docs/REPOSITORY_STATE_FINAL.md](REPOSITORY_STATE_FINAL.md).
 - Added [docs/SECURITY_FINAL_AUDIT.md](SECURITY_FINAL_AUDIT.md) and a staging-only Redis outage/recovery record in [docs/REDIS_RECOVERY.md](REDIS_RECOVERY.md).
-- Refreshed the expired anonymous tunnel to `https://fce39bf5bb297b.lhr.life`; the new URL, staging SHA pair, public Chromium screenshots and expected anonymous 401 responses are recorded in the manifest and staging report.
+- Refreshed the expired anonymous tunnel to `https://56d3cf129fa0c4.lhr.life`; the new URL, staging SHA pair, public Chromium screenshots and expected anonymous 401 responses are recorded in the manifest and staging report.
 - Hardened immutable release materialization: canonical GitHub origin and real-directory checks, rejection of untracked/modified pinned sources, strict Server/Site Docker contexts, and SHA-256 materialization metadata. Canonical API/Web images build locally and in CI.
 - Updated the deployment-readiness decision and release gap audit to reflect performed staging and Redis checks while retaining `NO` for incomplete acceptance.
 
