@@ -35,15 +35,15 @@
     "physical_iphone": "BLOCKED_EXTERNAL",
     "umbrella_integration_tests": "PASS: npm run test:integration, 17/17 across Journey schema, booking, navigation, Redis realtime, restart durability and shared rate-limit suites"
   },
-  "note": "Immutable source revisions are feature-branch PR heads for candidate verification, not a production release. The review-flow commits are not deployed to the temporary public staging tunnel yet. integration_sha is the tested umbrella product-code baseline before report-only reconciliation edits. The tunnel hostname can rotate. This manifest is not a production deployment authorization.",
+    "note": "Immutable source revisions are feature-branch PR heads for candidate verification, not a production release. Passenger review UI was exercised through the public tunnel; driver review UI was exercised through a local edge against the same staging services after the public OTP rate limit. Both used a seeded completed-trip fixture, so the complete trip lifecycle is not accepted. integration_sha is the tested umbrella product-code baseline before report-only reconciliation edits. The tunnel hostname can rotate. This manifest is not a production deployment authorization.",
   "staging": {
-    "url": "https://aeee84a436c69d.lhr.life",
+    "url": "https://d399d7d0ed6b9b.lhr.life",
     "provider": "local Docker services via temporary anonymous localhost.run HTTPS tunnel",
     "status": "PARTIAL; ephemeral; do not treat as durable hosting",
     "deployed_server_sha": "237d14f1b3e4d69936433f46f290d1cd4b920d9d",
     "deployed_site_sha": "79222d65beecb8bba5d234acfab47bb34070453e",
     "migration": "028",
-    "checked_at": "2026-10-01 15:13 Europe/Kyiv"
+    "checked_at": "2026-10-01 15:26 Europe/Kyiv"
   },
   "candidate_database_migration": "028 on Server PR #2; canonical release baseline remains 027 until merged"
 }

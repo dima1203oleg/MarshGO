@@ -1,25 +1,25 @@
 # MARSHGO Temporary Public Staging Report
 
-**Checked:** 2026-10-01 15:13 Europe/Kyiv
-**STAGING_URL:** https://aeee84a436c69d.lhr.life
-**STAGING_READY:** NO (public smoke and partial paired booking verified; complete paired-user acceptance remains incomplete)
+**Checked:** 2026-10-01 15:26 Europe/Kyiv
+**STAGING_URL:** https://d399d7d0ed6b9b.lhr.life
+**STAGING_READY:** NO (public reachability and review UI slices verified; complete paired-user acceptance remains incomplete)
 **READY_FOR_SERVER_DEPLOYMENT:** NO
 **PRODUCTION_READY:** NO
 
 **Credential hygiene note:** A diagnostic process-environment inspection showed unrelated AI provider API keys inherited by the prior edge process. The edge did not use those keys for MARSHGO, but the diagnostic output included them. That process was stopped and the staging edge relaunched using an empty environment with only the staging Site/API/S3 port and path settings. See `OWNER_ACTIONS_REQUIRED.md`; if those were live keys, rotate them. No production SMS/payment/provider secret is configured in the current staging processes.
 
-**Latest reconnect:** 2026-10-01, temporary URL `https://aeee84a436c69d.lhr.life`. localhost.run rotates hostnames; old URLs can return 503 after reconnect. The current edge proxies the production-built canonical Site and the API from the current Server PR head. `/healthz` and `/readyz` return 200. Public Chromium logged in a staging passenger, opened an explicitly seeded completed test trip, submitted a 4-star test review and confirmed that the reviewed state survives a page reload. This does not count as full-trip acceptance because the booking was a staging-only DB fixture. A second OTP login attempt for the seeded driver hit the shared staging OTP rate limit; the driver-side review UI remains unverified in public browser.
+**Latest reconnect:** 2026-10-01, temporary URL `https://d399d7d0ed6b9b.lhr.life`. localhost.run rotates hostnames; old URLs can return 503 after reconnect. The public edge proxies the production-built canonical Site and current Server PR head; `/healthz` and `/readyz` returned 200. Passenger review submission and reload persistence passed in visible Chromium on the public URL. A second OTP attempt for the seeded driver hit the shared public staging OTP rate limit. To complete the other participant's UI check without resetting the shared OTP bucket, the same production-built Site and the same staging PostgreSQL/Redis/S3Mock services were accessed through a temporary local edge/API process with an isolated staging-only rate-limit namespace. The driver submitted a 5-star review and saw the persisted reviewed state after reload. Both reviews were on a deliberately seeded completed test booking; this is review UI/state evidence, not acceptance of the real booking-to-completion lifecycle.
 
 ## Latest delta acceptance — review flow
 
 | Check | Result | Evidence / limits |
 |---|---|---|
-| Current staging deployment | PASS | `https://aeee84a436c69d.lhr.life`; `/healthz` and `/readyz` returned 200 with Postgres and Redis connected. |
+| Current staging deployment | PASS | `https://d399d7d0ed6b9b.lhr.life`; `/healthz` and `/readyz` returned 200 with Postgres and Redis connected. |
 | Current source revisions | PASS | Server `237d14f1b3e4d69936433f46f290d1cd4b920d9d`; Site `79222d65beecb8bba5d234acfab47bb34070453e`. The public edge now points at these candidate builds. |
 | Passenger review UI | PASS (staging test fixture) | Visible Chromium completed OTP, opened a clearly labeled completed fixture booking, selected 4/5 and submitted a test comment; UI displayed the saved acknowledgement. |
 | Review persistence after reload | PASS (staging test fixture) | After reloading the direct `/trips` URL, the booking remained completed and showed “Дякуємо! Ваш відгук збережено.” from server-owned review state. |
-| Driver review UI | FAILED / RETRY AFTER RATE WINDOW | A second UI login attempt was rate-limited after repeated staging OTP requests. No driver review was submitted. Server integration covers the two-party review API and Site rendering is shared by role. |
-| Full user-flow acceptance | PARTIAL | This validates review UI/API persistence only. The completed booking was inserted as a staging-only fixture; public UI booking → boarding → trip → both-party review has not been completed. `STAGING_READY=NO`. |
+| Driver review UI | PASS (same staging services; local edge) | Public driver OTP was rate-limited, so the same Site build and staging DB/Redis/S3Mock were reached via an isolated local staging edge. Driver submitted a 5-star review and the reviewed state returned after reload. Screenshot: `.release/staging-paired-driver-trips.png`. |
+| Full user-flow acceptance | PARTIAL | This validates both participants' review UI/API persistence only. The completed booking was inserted as a staging-only fixture; public UI booking → boarding → trip → both-party review has not been completed. `STAGING_READY=NO`. |
 
 ## Latest delta acceptance
 
@@ -48,7 +48,7 @@
 
 Staging runs isolated PostGIS/Redis/S3Mock with dev OTP, Photon geocoding, OSRM demo routing and OpenFreeMap vector tiles. These public services are staging-only and best-effort; production SMS, storage, routing and commercial providers remain disabled. Prior MapLibre/tiles acceptance artifacts: `.release/staging-map-openfreemap-desktop.png` and `.release/staging-map-openfreemap.trace.zip`. Current browser session exercised address lookup but did not render a route because staging had no matching inventory.
 
-**Latest local production-browser rerun:** 2026-10-01, umbrella product-code baseline `854c93f9440be603810844c27889a84e21a0c0f6` (report-only commits follow); `npm run test:e2e` PASS, 6/6 (Chromium, production Vite bundle, isolated local PostGIS/Redis). Umbrella PR #1 CI for the latest metadata commit is pending at time of this update.
+**Latest local production-browser rerun:** 2026-10-01, umbrella product-code baseline `854c93f9440be603810844c27889a84e21a0c0f6` (report-only commits follow); `npm run test:e2e` PASS, 6/6 (Chromium, production Vite bundle, isolated local PostGIS/Redis). This suite is not the full hosted acceptance path.
 
 ## Deployment
 
