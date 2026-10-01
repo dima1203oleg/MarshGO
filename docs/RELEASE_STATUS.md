@@ -2,7 +2,7 @@
 
 `READY_FOR_SERVER_DEPLOYMENT=NO` · `PRODUCTION_READY=NO`
 
-**Staging recheck (2026-10-01 14:23 Europe/Kyiv):** temporary public HTTPS currently resolves to `https://e134c817e388ca.lhr.life`; localhost.run can rotate the hostname after reconnect. API `/readyz` is 200. Deployed Server `de2209bc71557a14b20afac07b5067a7139b8b42` and Site `150aa7ade03871cd12b80c6b3e205f345d37f996`. On the renewed host Chromium completed development OTP login, selected Photon Kyiv/Lviv results, direct `/journeys/search` displayed honest zero inventory, and `/navigation` enforced driver-role requirements. Previous-host session restoration after API restart was also verified. Full paired driver/passenger lifecycle remains unaccepted, therefore `STAGING_READY=NO`.
+**Staging recheck (2026-10-01 14:43 Europe/Kyiv):** temporary public HTTPS currently resolves to `https://b017cccb204056.lhr.life`; localhost.run can rotate the hostname after reconnect. API `/readyz` and visible Chromium landing page/test banner are 200. Deployed Server `de2209bc71557a14b20afac07b5067a7139b8b42` and Site `150aa7ade03871cd12b80c6b3e205f345d37f996`. Chromium on the preceding host `e134c817e388ca.lhr.life` completed development OTP login, selected Photon Kyiv/Lviv results, direct `/journeys/search` showed honest zero inventory, and `/navigation` enforced driver-role requirements. Previous-host session restoration after API restart was also verified. Full paired driver/passenger lifecycle remains unaccepted, therefore `STAGING_READY=NO`.
 
 Capability states use only `DONE`, `PARTIAL`, `BLOCKED_EXTERNAL`, or `FAILED`. A local fixture/simulator pass does not qualify a real provider or production integration as DONE.
 

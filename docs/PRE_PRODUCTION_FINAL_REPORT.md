@@ -2,7 +2,7 @@
 
 **As of:** 2026-10-01 (Europe/Kyiv)
 **Overall release decision:** `READY_FOR_SERVER_DEPLOYMENT=NO` · `PRODUCTION_READY=NO`
-**Staging:** temporary HTTPS URL `https://e134c817e388ca.lhr.life` currently returns HTTP 200 at `/readyz`; `STAGING_READY=NO` because the full two-sided product acceptance did not pass. See the current verification addendum below; older snapshots in this report are historical.
+**Staging:** temporary HTTPS URL `https://b017cccb204056.lhr.life` currently returns the test-only landing page and HTTP 200 at `/readyz`; the public Chromium login/search checks passed on its immediately preceding tunnel hostname. `STAGING_READY=NO` because the full two-sided product acceptance did not pass. See the current verification addendum below; older snapshots in this report are historical.
 
 The percentages below are engineering estimates across the requested capability groups. They are progress indicators only; a partial item is not a release pass and percentages do not override the release gates.
 
@@ -142,7 +142,7 @@ Then verify app/API HTTPS routes, database migration version, SMS, map/routing/g
 
 The temporary URL and test data are documented in [STAGING_DEPLOYMENT_REPORT.md](../STAGING_DEPLOYMENT_REPORT.md). The repository-backed release baseline is recorded in [RELEASE_MANIFEST.json](../RELEASE_MANIFEST.json); neither document authorizes production traffic.
 
-## Latest verification addendum — 2026-10-01 14:23 Europe/Kyiv
+## Latest verification addendum — 2026-10-01 14:43 Europe/Kyiv
 
 This addendum supersedes older branch/URL/test snapshots above. Standalone worktrees are clean. Current feature refs and PR/CI state are in [REPOSITORY_STATE_FINAL.md](REPOSITORY_STATE_FINAL.md); release SHAs are in [RELEASE_MANIFEST.json](../RELEASE_MANIFEST.json).
 
@@ -155,7 +155,7 @@ This addendum supersedes older branch/URL/test snapshots above. Standalone workt
 | Site exact deployed SHA | PASS | `150aa7ade03871cd12b80c6b3e205f345d37f996`: GitHub Verify, local typecheck, full lint and production build. |
 | iOS simulator | PASS / PARTIAL | GitHub simulator CI passes on `b8b1fcbfe9997e1a7a27594b5759690147de75df`; physical iPhone, signing, push and background GPS are not accepted. |
 | Umbrella latest GitHub PR checks | PASS | `verify`, CodeQL and Gitleaks passed on the immediately preceding report-only checkpoint `7e6a4e24f0a2e06c98191e66f4c4b7f69efdf134`; this addendum changes documentation only. |
-| Current temporary staging | PARTIAL | `e134c817e388ca.lhr.life`: Chromium test OTP login, Photon Kyiv/Lviv suggestions, direct Journey search with truthful empty inventory, and navigation driver-role gate pass; public `/readyz` returns 200. No verified driver inventory exists, so paired booking/boarding/completion/review is not accepted. Hostname is ephemeral. |
+| Current temporary staging | PARTIAL | `b017cccb204056.lhr.life` homepage and `/readyz` return 200. On prior hostname `e134c817e388ca.lhr.life`, Chromium test OTP login, Photon Kyiv/Lviv suggestions, direct Journey search with truthful empty inventory, and navigation driver-role gate pass. No verified driver inventory exists, so paired booking/boarding/completion/review is not accepted. Hostname is ephemeral. |
 
 **Tested source refs:** umbrella product-code baseline `854c93f9440be603810844c27889a84e21a0c0f6`; Server `de2209bc71557a14b20afac07b5067a7139b8b42`; Site `150aa7ade03871cd12b80c6b3e205f345d37f996`; iOS `b8b1fcbfe9997e1a7a27594b5759690147de75df`.
 

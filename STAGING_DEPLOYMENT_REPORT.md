@@ -1,18 +1,19 @@
 # MARSHGO Temporary Public Staging Report
 
-**Checked:** 2026-10-01 14:23 Europe/Kyiv
-**STAGING_URL:** https://e134c817e388ca.lhr.life
+**Checked:** 2026-10-01 14:43 Europe/Kyiv
+**STAGING_URL:** https://b017cccb204056.lhr.life
 **STAGING_READY:** NO (public smoke and partial paired booking verified; complete paired-user acceptance remains incomplete)
 **READY_FOR_SERVER_DEPLOYMENT:** NO
 **PRODUCTION_READY:** NO
 
-**Latest reconnect:** 2026-10-01, temporary URL `https://e134c817e388ca.lhr.life`. localhost.run rotates hostnames; old URLs can return 503 after reconnect. Previous hostname `839af757d628d4.lhr.life` expired during browser acceptance and its API request returned 503. The renewed URL now returns homepage HTTP 200 and `/readyz` HTTP 200; UI retest on this hostname is pending.
+**Latest reconnect:** 2026-10-01, temporary URL `https://b017cccb204056.lhr.life`. localhost.run rotates hostnames; old URLs can return 503 after reconnect. Chromium UI acceptance passed on the previous renewed hostname `e134c817e388ca.lhr.life`; it later expired. The latest hostname `b017cccb204056.lhr.life` returns the staging landing page with the staging banner and `/readyz` HTTP 200; authenticated product-flow checks were performed on the preceding hostname.
 
 ## Latest delta acceptance
 
 | Check | Result | Evidence / limits |
 |---|---|---|
-| Renewed URL Chromium retry | PASS (partial) | On `e134c817e388ca.lhr.life`, visible development OTP login succeeded; Photon returned selectable Kyiv/Lviv suggestions; direct `/journeys/search` rendered the honest zero-inventory state; direct `/navigation` rendered and correctly stated that driver role is required. No GPS permission was granted and no navigation was started. |
+| Current hostname landing smoke | PASS | Visible Chromium loaded `b017cccb204056.lhr.life`, rendered the MARSHGO staging landing page and explicit test-only banner; `/readyz` returned HTTP 200. Authenticated checks below were on the immediately preceding hostname. |
+| Previous renewed URL Chromium retry | PASS (partial) | On `e134c817e388ca.lhr.life`, visible development OTP login succeeded; Photon returned selectable Kyiv/Lviv suggestions; direct `/journeys/search` rendered the honest zero-inventory state; direct `/navigation` rendered and correctly stated that driver role is required. This hostname later expired. No GPS permission was granted and no navigation was started. |
 | Trusted proxy rate-limit isolation | PASS | Server requires bounded `TRUST_PROXY_HOPS` in production, defaults to zero in development, and configures Express trust explicitly. Two API instances with Redis verified different forwarded client IPs receive independent buckets and the same client still receives 429. |
 | Server quality gates | PASS | Exact Server head `de2209bc71557a14b20afac07b5067a7139b8b42`: typecheck and full ESLint pass; unit tests 49 passed / 0 failed / 2 skipped; isolated PostGIS/Redis integration 18/18 passes, including migrations 001–028, bookings, navigation, realtime, restart durability and shared rate limits. |
 | Public UI OTP | PASS | Visible Chromium completed development OTP login on the then-current tunnel. A fresh browser tab restored the authenticated profile after API restart. OTP and phone are omitted. |
@@ -211,4 +212,4 @@ Trace archives can include staging authentication/session context. Keep them pri
 5. Replace S3Mock and public test geocoder/routing/map endpoints with configured production-grade services for production.
 6. Real SMS, domain/TLS, production server, push, payments/commercial partners and physical iPhone acceptance remain external release gates.
 
-The local staging stack and renewed tunnel are left running. At the latest check, the current URL was `https://e134c817e388ca.lhr.life`; localhost.run can rotate the hostname after reconnect. This URL serves Site SHA `150aa7a` and Server SHA `de2209b`. Public Chromium verified OTP login, profile/session restoration after API restart, Photon address suggestions and honest zero-inventory search/planning states on the previous hostname. That hostname expired during the latest UI check and caused a 503; the new hostname passes HTTP health/readiness, but the failed UI action has not yet been retried there. Migration 028 is applied; unread/read has not passed a two-user staging acceptance. The URL remains valid only while the host processes and this machine stay available.
+The local staging stack and renewed tunnel are left running. At the latest check, the current URL was `https://b017cccb204056.lhr.life`; localhost.run can rotate the hostname after reconnect. This URL serves Site SHA `150aa7a` and Server SHA `de2209b`. Public Chromium verified the staging landing page and test-only banner on b017; authenticated OTP, session restore, Photon suggestions and honest zero-inventory search/planning passed on the preceding hostname `e134c817e388ca.lhr.life`. That hostname expired. Migration 028 is applied; unread/read has not passed a two-user staging acceptance. The URL remains valid only while the host processes and this machine stay available.
