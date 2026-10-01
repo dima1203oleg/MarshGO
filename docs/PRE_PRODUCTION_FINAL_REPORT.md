@@ -2,7 +2,7 @@
 
 **As of:** 2026-10-01 16:08 Europe/Kyiv
 **Overall release decision:** `READY_FOR_SERVER_DEPLOYMENT=NO` · `PRODUCTION_READY=NO`
-**Staging:** temporary HTTPS URL `https://7d11d5b28051e8.lhr.life` currently serves the test-only landing page; Chromium visibly rendered the staging banner, and `/healthz` plus `/readyz` returned HTTP 200 with PostgreSQL and Redis connected. Console/network logs were not captured on this latest reconnect. The full two-sided product acceptance did not pass, so `STAGING_READY=NO`. See the latest verification addendum; older snapshots in this report are historical.
+**Staging:** temporary HTTPS URL `https://e8672109d3f307.lhr.life` currently serves the test-only landing page; Chromium visibly rendered the staging banner, and `/healthz` plus `/readyz` returned HTTP 200 with PostgreSQL and Redis connected. The iPhone 15 Pro Max Simulator built, installed and launched against the staging API; first cold render stalled before eventually displaying onboarding. Console/network logs were not captured on this latest reconnect. The full two-sided product acceptance did not pass, so `STAGING_READY=NO`. See the latest verification addendum; older snapshots in this report are historical.
 
 The percentages below are engineering estimates across the requested capability groups. They are progress indicators only; a partial item is not a release pass and percentages do not override the release gates.
 

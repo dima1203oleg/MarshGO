@@ -6,7 +6,7 @@
   "ready_for_server_deployment": false,
   "production_ready": false,
   "server_sha": "23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46",
-  "site_sha": "10addc3093d9defea02496006741eb21cbd28b5f",
+  "site_sha": "a9b4b7e4f156f72aa3a9dd10edca57f3a1a42df6",
   "ios_sha": "b8b1fcbfe9997e1a7a27594b5759690147de75df",
   "integration_sha": "854c93f9440be603810844c27889a84e21a0c0f6",
   "database_migration": "028",
@@ -39,13 +39,13 @@
   },
     "note": "Immutable source revisions are feature-branch PR heads for candidate verification, not a production release. Passenger review UI was exercised through the public tunnel; driver review UI was exercised through a local edge against the same staging services after the public OTP rate limit. Both used a seeded completed-trip fixture, so the complete trip lifecycle is not accepted. integration_sha is the tested umbrella product-code baseline before report-only reconciliation edits. The tunnel hostname can rotate. This manifest is not a production deployment authorization.",
   "staging": {
-    "url": "https://7d11d5b28051e8.lhr.life",
+    "url": "https://e8672109d3f307.lhr.life",
     "provider": "local Docker services via temporary anonymous localhost.run HTTPS tunnel",
     "status": "PARTIAL; ephemeral; do not treat as durable hosting",
     "deployed_server_sha": "237d14f1b3e4d69936433f46f290d1cd4b920d9d",
-    "deployed_site_sha": "79222d65beecb8bba5d234acfab47bb34070453e",
+    "deployed_site_sha": "a9b4b7e4f156f72aa3a9dd10edca57f3a1a42df6",
     "migration": "028",
-    "checked_at": "2026-10-01 16:08 Europe/Kyiv"
+    "checked_at": "2026-10-01 16:23 Europe/Kyiv"
   },
   "candidate_database_migration": "028 on Server PR #2; canonical release baseline remains 027 until merged"
 }
