@@ -1,7 +1,7 @@
 # MARSHGO Temporary Public Staging Report
 
 **Checked:** 2026-10-01 (Europe/Kyiv)
-**STAGING_URL:** https://f11b9ded66e729.lhr.life
+**STAGING_URL:** https://68c5275490212d.lhr.life
 **STAGING_READY:** NO
 **READY_FOR_SERVER_DEPLOYMENT:** NO
 **PRODUCTION_READY:** NO
@@ -20,13 +20,13 @@
 
 | Component | SHA | Deployment |
 |---|---|---|
-| MarshGO-Server | 3b22047f2643ef07e1d9da9e2a974b0e9351d4cc | Deployed from `codex/security-parse-bearer` (PR #2; not yet merged to `main`) |
-| MarshGO-Site | 2c22b3aefd9a7364391fbba96c70de03b827382a | Rebuilt from `codex/navigation-deep-link-alias` PR #2 head (main baseline remains `c7f76a4…`) |
+| MarshGO-Server | 54ed3c85fd79807a7d7d0b539a587fffca259487 | Deployed from `codex/security-parse-bearer` (PR #2; not yet merged to `main`) |
+| MarshGO-Site | 20a75798f2baffa4f3615e21799359e69ab6e651 | Deployed from `codex/navigation-deep-link-alias` PR #2 head (main baseline remains `c7f76a4…`) |
 | MarshGO-iOS | b8b1fcbfe9997e1a7a27594b5759690147de75df | Not deployed to web staging |
 | MarshGO integration baseline | 904874f11eee6a19b77c2356230a82ab7c45569f | Test/deployment baseline |
-| Umbrella deployment/orchestration branch | c0e57b944a88b779f7d84e6b04cbd10e15edfbc6 | `codex/marshgo-production`; includes synchronized verification-owner reason fields |
+| Umbrella deployment/orchestration branch | 172cf0e2087d557938df4aa9dcefc1bfd0fbe345 | `codex/marshgo-production`; synchronized source mirrors and verified rescue UI E2E |
 
-The locally materialized pinned Server and Site source trees contain untracked build/deployment materialization files. The staging overlay itself is under ops/staging/; no changes were made to the canonical Server or Site commits.
+The active processes run from exact standalone worktrees at the Server and Site SHAs listed above. Their generated build output and local-only staging `.env` are ignored and are not committed. The source revisions themselves are committed and pushed on their respective feature branches.
 
 ## Verification
 
@@ -34,6 +34,11 @@ The locally materialized pinned Server and Site source trees contain untracked b
 |---|---|---|
 | Public homepage / staging banner | PASS | Real browser displayed MARSHGO STAGING · TEST DATA ONLY. |
 | API health/readiness | PASS | Public HTTPS /healthz and /readyz returned 200. |
+| Latest production Site/Server revisions | PASS | Chromium loaded the currently deployed standalone bundle and API after moving the staging tunnel. The API CORS preflight from the current staging origin returned 204 with the matching allow-origin header. |
+| Current staging OTP login | PASS | A headed Chromium session completed the visible onboarding, dev OTP and account creation flow. It reached the authenticated dashboard with zero console/page/API 5xx errors. Test identity is `MARSHGO Staging Smoke`; OTP and phone were not retained. Screenshot: `.release/staging-current-login.png`. |
+| Direct URL refresh | PASS (browser smoke) | Chromium opened 18 primary application routes directly; all returned HTTP 200 with the application root present. This checks SPA fallback/deep-link delivery, not authorization or entity existence. |
+| Current desktop/mobile rendering | PASS (browser smoke) | Chromium 1440×900 and 390×844; mobile document width matched viewport (390 px). No unexpected page/console errors were recorded; the unauthenticated refresh probe returned its expected 401. Screenshots: `.release/staging-current-desktop.png`, `.release/staging-current-mobile.png`. |
+| Rescue corridor selection copy | PASS (local production-browser E2E) | The production bundle displayed an endpoint alternative and a routed corridor alternative with distinct explanation and distance labels; both were selectable. Local E2E passed 6/6 against isolated PostGIS/Redis and deterministic providers. This is not a paired-user Rescue acceptance on the public staging database. |
 | Navigation direct link | PASS | `/navigation` previously returned the app's 404; the Site PR #2 alias now opens the navigation destination form on the public staging URL. Site PR checks pass. |
 | Driver navigation CTA copy | PASS | Updated production build now accurately says route matching requires driver consent and a verified vehicle; rebuilt bundle was served from staging over HTTPS. |
 | Driver vehicle form and private photo upload | PASS (test fixture only) | A clearly marked staging driver created a vehicle in the UI; a synthetic PNG passed the signed private S3 upload and was recorded as the primary photo in Postgres. The synthetic-document review rejected this test vehicle; it cannot publish. |
@@ -57,7 +62,7 @@ The locally materialized pinned Server and Site source trees contain untracked b
 | Full passenger booking lifecycle | BLOCKED / NOT ACCEPTED | No verified, independent driver offer in staging, so booking → boarding → completion → reviews could not be exercised through UI. |
 | Passive matching / multi-passenger | BLOCKED / NOT ACCEPTED | Product UI reports matching during navigation unavailable pending verified vehicle; route-overlap end-to-end was not demonstrated. |
 | Rerouting after realistic GPS replay | BLOCKED / NOT ACCEPTED | One large synthetic GPS jump was correctly rejected by anti-teleport validation. No gradual replay/off-route reroute acceptance was completed. |
-| Chat / notifications / rendezvous / Rescue | BLOCKED / NOT ACCEPTED | Full paired independent-user UI lifecycle was not completed. |
+| Chat / notifications / rendezvous / full Rescue journey | BLOCKED / NOT ACCEPTED | The route-corridor candidate search and UI explanation now pass local PostGIS and browser E2E, but the public staging did not complete the paired-user cancellation → alternative booking → continued trip flow. |
 | WebSocket reconnect | NOT TESTED | No accepted paired-user realtime lifecycle to drive this acceptance. |
 | Firefox / WebKit over public staging | NOT TESTED | Public staging acceptance used Chromium. Existing repository browser-matrix results are separate and are not evidence for this public deployment. |
 | Physical iPhone / production push / SMS | BLOCKED_EXTERNAL | Requires Apple signing/device and provider credentials. |
@@ -84,6 +89,10 @@ Local, ignored artifacts (not committed or publicly linked):
 - .release/staging-admin-direct-url.png (direct staff route with automatic queue loading)
 - .release/staging-verification-rejection-reason.png (driver profile shows fixture rejection reason and retry action)
 - .release/staging-verification-resubmitted.png (success notice and pending-review state after UI resubmission)
+- .release/staging-current-desktop.png (current pinned Site build, 1440×900)
+- .release/staging-current-mobile.png (current pinned Site build, 390×844)
+- .release/staging-current-login.png (headed Chromium test OTP login)
+- .release/staging-current-routes.trace.zip (direct `/`, `/navigation`, `/admin/verification` opens; unauthenticated trace)
 - .release/staging-map-desktop.png
 - .release/staging-map-mobile.png
 - .release/staging-map-openfreemap-desktop.png
@@ -101,4 +110,4 @@ Trace archives can include staging authentication/session context. Keep them pri
 5. Replace S3Mock and public test geocoder/routing/map endpoints with configured production-grade services for production.
 6. Real SMS, domain/TLS, production server, push, payments/commercial partners and physical iPhone acceptance remain external release gates.
 
-The local staging stack and a renewed tunnel are left running. The current URL is `https://f11b9ded66e729.lhr.life`; localhost.run may rotate it when the tunnel reconnects. The replacement URL was checked over HTTPS after renewal, returned the staging app in a visible browser, and both health/readiness returned 200. The URL remains valid only while those processes and this host stay available.
+The local staging stack and renewed tunnel are left running. The current URL is `https://68c5275490212d.lhr.life`; localhost.run may rotate it when the tunnel reconnects. The new URL served the Site build and API over HTTPS, passed direct-route Chromium checks, and returned 200 for health/readiness. The URL remains valid only while the host processes and this machine stay available.

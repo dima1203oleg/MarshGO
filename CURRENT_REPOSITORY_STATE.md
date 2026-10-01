@@ -1,31 +1,37 @@
 # Current MARSHGO repository state — 2026-10-01
 
-Repository state reconciled against local checkouts, GitHub `main` refs, open pull requests, and the active staging deployment. Umbrella app/deployment source remains at its audited baseline; subsequent commits on that branch update release and verification records. The worktrees were clean after those report commits.
+This snapshot separates canonical `main` refs from active PR branches and the exact revisions currently deployed to temporary staging. No open PR was merged wholesale; divergent Rendezvous/simulator changes remain available for review.
 
-| Repository | Canonical branch / SHA | Local branch | Working tree | Source of truth | CI / open work | Production relevance |
-|---|---|---|---|---|---|---|
-| `dima1203oleg/MarshGO` | `main` / `1e7d0ee74f11121a7d5a29c6379944a5360581c4` | `codex/marshgo-production` / app/deployment baseline `0127de32b125af0a7feb1ec85261582921cd6df3`, with report-only descendants | Clean after report commits; exact latest branch head is recorded in the task's final report. | Cross-repo orchestration, deployment, E2E and release records. | Draft PR #1 includes later report commits; verify, CodeQL and Gitleaks pass; merge state CLEAN. | Integration/deployment only, not canonical Server/Site source. |
-| `dima1203oleg/MarshGO-Server` | `main` / `bdfdf24941809f4581965b9847022c68e0b2f127` | `codex/security-parse-bearer` / `f0a6cdb2fd918733770f65f997dfea5d7c302b0c` | Clean; branch pushed. | Backend, API, migrations and workers. | PR #2 is clean and CI passes. Older Rendezvous PR #1 head `f788a96…` is DIRTY; do not merge wholesale. | Staging runs PR #2 security parser changes. Server `main` remains the release baseline until that PR is merged. |
-| `dima1203oleg/MarshGO-Site` | `main` / `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7` | `codex/navigation-deep-link-alias` / `97b29ed77e0cfc49ad37b59e856af364184492fc` | Clean; branch pushed. | Web/PWA. | Main CI passes. Navigation alias PR #2 passes CI; older Rendezvous PR #1 head `045f138…` is DIRTY and behind. | Production frontend source is `main`; staging currently exercises PR #2's route alias. |
-| `dima1203oleg/MarshGO-iOS` | `main` / `b8b1fcbfe9997e1a7a27594b5759690147de75df` | `main` at same SHA | Clean. | Capacitor/iOS shell and native integrations. | Main simulator CI passes. Simulator-capture PR #1 head `328d9af…` is DIRTY; compare residual before any merge. | iOS client source; no signed physical-device acceptance. |
+| Repository | Canonical `main` SHA | Active branch / SHA | Working tree | Source of truth / open work | CI and production relevance |
+|---|---|---|---|---|---|
+| `dima1203oleg/MarshGO` | `1e7d0ee74f11121a7d5a29c6379944a5360581c4` | `codex/marshgo-production` / `172cf0e2087d557938df4aa9dcefc1bfd0fbe345` | Product changes committed; report updates will be committed separately. | Cross-repository E2E, deployment, manifests and release records; draft PR #1 remains open. | CI, CodeQL and Gitleaks pass on `172cf0e`. Integration only, not canonical Server/Site. |
+| `dima1203oleg/MarshGO-Server` | `bdfdf24941809f4581965b9847022c68e0b2f127` | `codex/security-parse-bearer` / `54ed3c85fd79807a7d7d0b539a587fffca259487` | Clean; staging worktree/config is ignored and remains local. | Backend, API, migrations and workers; PR #2 security changes plus route-aware Rescue. Rendezvous PR #1 remains separate and divergent. | PR #2 checks pass on the pushed SHA. This exact feature-branch SHA runs in staging; it is not merged to `main`. |
+| `dima1203oleg/MarshGO-Site` | `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7` | `codex/navigation-deep-link-alias` / `20a75798f2baffa4f3615e21799359e69ab6e651` | Clean. | Canonical Web/PWA; PR #2 navigation alias and Rescue corridor copy. Rendezvous PR #1 remains separate and divergent. | PR #2 checks pass on the pushed SHA. This exact feature-branch SHA is deployed to staging. |
+| `dima1203oleg/MarshGO-iOS` | `b8b1fcbfe9997e1a7a27594b5759690147de75df` | `main` / same SHA | Clean. | Native container and native integrations; simulator-capture PR #1 remains open and separate. | Main simulator CI passed. No signed device/TestFlight acceptance. |
 
 ## Canonical ownership
 
 - Backend/API/database/migrations: MarshGO-Server.
 - Web/PWA: MarshGO-Site.
-- iOS container/native integrations: MarshGO-iOS. Release builds must use an immutable Site revision.
-- Shared navigation types currently exist in both Server and Site repositories and are alignment-checked; a generated API-wide shared contract is still incomplete.
-- Cross-repository integration tests, deployment configuration, release metadata and docs: MarshGO umbrella.
-- Staging Server revision: `f0a6cdb2fd918733770f65f997dfea5d7c302b0c` (open Server PR #2); Site revision: `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7`.
+- iOS container/native integrations: MarshGO-iOS; release build inputs must pin an immutable Site SHA.
+- API-wide generated shared contract is not complete; mirrored typed navigation contracts are alignment-checked.
+- Umbrella repository: cross-repo integration, E2E, deployment and release metadata. Mirrored source exists for integration verification only and follows the standalone repositories.
 
-## Verification snapshot
+## Staging refs
 
-- Umbrella PR #1 checks: `verify`, CodeQL and Gitleaks PASS on head `0127de32…`.
-- Server PR #2 checks: `verify` PASS on head `f0a6cdb…`.
-- Umbrella `lint:all`, typecheck, unit: PASS; 74 passed, 1 skipped.
-- Server `lint:all`, typecheck, unit: PASS; 46 passed, 1 skipped.
-- Server integration: 17 passed, 0 failed (PostGIS, Redis, bookings, navigation, realtime, restart durability and rate limiting).
-- PR #1 branches for Server/Site/iOS remain open and divergent; their residual changes are not silently discarded or merged.
-- Public temporary staging is documented in [STAGING_DEPLOYMENT_REPORT.md](STAGING_DEPLOYMENT_REPORT.md). It is reachable but not release-accepted; do not use it for personal or payment data.
+- URL: https://68c5275490212d.lhr.life (anonymous, temporary localhost.run tunnel).
+- Server: `54ed3c85fd79807a7d7d0b539a587fffca259487`.
+- Site: `20a75798f2baffa4f3615e21799359e69ab6e651`.
+- iOS is not deployed to web staging; current `main` SHA is `b8b1fcbfe9997e1a7a27594b5759690147de75df`.
+- Staging remains `STAGING_READY=NO`; see [STAGING_DEPLOYMENT_REPORT.md](STAGING_DEPLOYMENT_REPORT.md).
 
-See [RELEASE_MANIFEST.json](RELEASE_MANIFEST.json) for the release baseline and staging revisions. Main SHAs and deployed staging SHAs are intentionally distinguished.
+## Latest verification snapshot
+
+- Server: `npm run typecheck`, `npm run lint:all`, unit tests 46 passed/1 skipped; PostGIS/Redis integration 17 passed, 0 failed.
+- Site: typecheck, full lint and production build passed.
+- Umbrella: typecheck/lint passed; unit tests 74 passed/1 skipped; Playwright production E2E 6/6 passed, including cancellation Rescue UI and route-corridor selection.
+- Browser compatibility: Chromium, Firefox and WebKit each passed the responsive suite (3/3); bundle budget passed.
+- Public staging: headed Chromium OTP login passed; 18 direct route opens returned HTTP 200; Chromium screenshots captured at 1440×900 and 390×844 with zero overflow and no unexpected browser errors. An unauthenticated refresh probe returns the expected 401. Three direct routes were also captured in a Playwright trace.
+- Umbrella CI for SHA `172cf0e…` is awaiting completion; the preceding umbrella head CI/security checks passed. Server/Site PR #2 checks pass.
+
+See [RELEASE_MANIFEST.json](RELEASE_MANIFEST.json) for main baseline and deployed staging SHAs. Do not use temporary staging for personal or payment data.

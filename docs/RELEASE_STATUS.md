@@ -14,7 +14,7 @@ Capability states use only `DONE`, `PARTIAL`, `BLOCKED_EXTERNAL`, or `FAILED`. A
 | Passive matching/multi-passenger | PARTIAL | Opt-in candidate and stop-optimizer foundations exist. The complete no-offer multi-passenger production user flow is not verified. |
 | Rendezvous | PARTIAL | Participant authorization, ephemeral location, domain status and UI controls exist; tested integration passes. Live rendezvous map/ETA and full paired-device flow are incomplete. |
 | Multimodal Journey / WALK / GTFS | PARTIAL | Planner/scoring/transfer feasibility exist. No real transit inventory, pedestrian router, GTFS/GTFS-RT or live schedule feed is connected. |
-| Journey monitor / replan / rescue | FAILED | Active server monitor, ETA cascade, predictive replan and replacement-journey workflow are not implemented end to end. |
+| Journey monitor / replan / rescue | PARTIAL | Booking Rescue now includes geometry-checked Community rides that begin along the cancelled route and end near the original destination; PostGIS integration and local production-browser E2E pass. It only suggests alternatives. There is no active Journey monitor, ETA cascade, automatic replan or complete paired-user replacement-booking flow. |
 | Web/PWA | PARTIAL | Production build, Chromium E2E and Chromium/Firefox/WebKit runs across six viewport widths pass. Production screenshot parity with supplied references, complete SW/offline semantics, and full URL/auth coverage remain open. |
 | iOS | PARTIAL | Simulator build, rendered onboarding screenshot and CI pass. No signed TestFlight, APNs, physical phone, background GPS, native QR or full authenticated acceptance. |
 | Object storage | PARTIAL | S3 SDK adapter tests and local Adobe S3Mock upload/head/download pass. Production private bucket, encryption policy, retention, audit logs and malware scanning are not proven. |
@@ -23,7 +23,7 @@ Capability states use only `DONE`, `PARTIAL`, `BLOCKED_EXTERNAL`, or `FAILED`. A
 | Backup / restore | PARTIAL | AES-GCM/tamper checks and disposable PostGIS restore drill pass. No scheduled/off-host production backups, RPO/RTO or staging restore proof. |
 | Security pipeline | PARTIAL | Runtime validation, headers/rate limits and dependency checks exist; complete SAST/secrets/container scans and staging authorization/upload abuse acceptance are outstanding. |
 | Monitoring / operations | FAILED | No production metrics, alerting, error tracking, incident rota or verified recovery objectives. |
-| Hosted staging / production | PARTIAL | A public temporary localhost.run HTTPS staging tunnel is reachable and local isolated services are healthy; it is ephemeral and paired-user golden-path E2E is incomplete. Production remains blocked on server/domain/TLS/secrets/providers. See STAGING_DEPLOYMENT_REPORT.md. |
+| Hosted staging / production | PARTIAL | Current temporary localhost.run URL is reachable; latest pinned standalone revisions pass visible Chromium OTP login, 18 direct-route smoke checks, and responsive desktop/mobile capture. It is ephemeral and paired-user golden-path E2E is incomplete. Production remains blocked on server/domain/TLS/secrets/providers. See STAGING_DEPLOYMENT_REPORT.md. |
 
 Exact repository refs: [root RELEASE_MANIFEST.json](../RELEASE_MANIFEST.json). External inputs: [OWNER_ACTIONS_REQUIRED.md](../OWNER_ACTIONS_REQUIRED.md). Deployment decision: [READY_FOR_SERVER_DEPLOYMENT.md](../READY_FOR_SERVER_DEPLOYMENT.md).
 
