@@ -6,7 +6,7 @@
   "ready_for_server_deployment": false,
   "production_ready": false,
   "server_sha": "237d14f1b3e4d69936433f46f290d1cd4b920d9d",
-  "site_sha": "79222d65beecb8bba5d234acfab47bb34070453e",
+  "site_sha": "10addc3093d9defea02496006741eb21cbd28b5f",
   "ios_sha": "b8b1fcbfe9997e1a7a27594b5759690147de75df",
   "integration_sha": "854c93f9440be603810844c27889a84e21a0c0f6",
   "database_migration": "028",
@@ -25,7 +25,8 @@
     "server_unit": "PASS: npm test on 237d14f1b3e4d69936433f46f290d1cd4b920d9d; 49 passed, 0 failed, 2 skipped",
     "server_integration": "PASS: npm run test:integration on 237d14f1b3e4d69936433f46f290d1cd4b920d9d; 18/18, isolated PostGIS/Redis, migrations 001-028; persistent participant review state covered",
     "server_typecheck_lint": "PASS: npm run typecheck and npm run lint:all; GitHub Verify PASS on 237d14f1b3e4d69936433f46f290d1cd4b920d9d",
-    "site_ci": "PASS: local typecheck, full lint and production build; GitHub Verify PASS on 79222d65beecb8bba5d234acfab47bb34070453e",
+    "site_ci": "PARTIAL: local typecheck, full lint, production build and bundle checks PASS on 10addc3093d9defea02496006741eb21cbd28b5f; GitHub Verify pending for this head",
+    "production_bundle_demo_isolation": "PASS locally: check:bundle rejects 11 known demo identity/inventory markers; negative probe confirmed usr_drv_alex injection fails the gate, clean build passes",
     "ios_simulator_ci": "PASS: GitHub simulator-build on iOS main b8b1fcbfe9997e1a7a27594b5759690147de75df; physical device not tested",
     "umbrella_github_ci": "PASS: GitHub PR #1 Verify, CodeQL and Gitleaks at pre-report documentation commit 854c93f9440be603810844c27889a84e21a0c0f6",
     "local_browser_matrix": "PARTIAL: earlier Chromium/Firefox/WebKit responsive smoke; latest full E2E Chromium only",
@@ -43,7 +44,7 @@
     "deployed_server_sha": "237d14f1b3e4d69936433f46f290d1cd4b920d9d",
     "deployed_site_sha": "79222d65beecb8bba5d234acfab47bb34070453e",
     "migration": "028",
-    "checked_at": "2026-10-01 15:44 Europe/Kyiv"
+    "checked_at": "2026-10-01 15:53 Europe/Kyiv"
   },
   "candidate_database_migration": "028 on Server PR #2; canonical release baseline remains 027 until merged"
 }
