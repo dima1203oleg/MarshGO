@@ -9,6 +9,8 @@ test('production tab routes are refresh-safe and normalize trailing slashes', ()
     assert.equal(productionTabForPath(`${pathForProductionTab(tab)}/`), tab);
   }
   assert.equal(productionTabForPath('/unknown'), null);
+  assert.equal(productionTabForPath('/navigation'), 'navigation');
+  assert.equal(productionTabForPath('/navigation/'), 'navigation');
 });
 
 test('entity deep links resolve to the owning production view and reject unsafe IDs', () => {

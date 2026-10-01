@@ -80,6 +80,7 @@ The percentages below are engineering estimates across the requested capability 
 | Local encrypted PostGIS backup/restore | PASS (isolated disposable DB) | Synthetic row restored and verified; no production RPO/RTO claim. |
 | Staging Redis failure drill | PASS | Ready 200 → Redis stop → ready 503/degraded → Redis restart → ready 200; browser demand persisted. |
 | Public staging browser smoke | PASS (partial) | Homepage/auth, demand, geocoder, routing, MapLibre, screenshot and console checks. |
+| `/navigation` direct deep link | PASS | Initially exposed a 404/canonical-path mismatch; Site PR #2 adds the alias, passes Site CI, and the public staging UI now displays the navigation destination form. |
 | Full public paired-user E2E | FAIL / INCOMPLETE | Acceptance could not proceed past missing verified driver inventory; listed as not accepted, not hidden as green. |
 | Production Compose clean-host boot | NOT RUN | Requires actual production configuration and server; local staging uses its own Compose file. |
 | iOS physical acceptance | BLOCKED_EXTERNAL | Simulator CI is not a substitute. |
@@ -131,6 +132,7 @@ Then verify app/API HTTPS routes, database migration version, SMS, map/routing/g
 - Server canonical `main`: `bdfdf24941809f4581965b9847022c68e0b2f127`.
 - Server staging PR #2 branch: `codex/security-parse-bearer` at `f0a6cdb2fd918733770f65f997dfea5d7c302b0c`.
 - Site `main`: `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7`.
+- Site staging PR #2: `97b29ed77e0cfc49ad37b59e856af364184492fc`.
 - iOS `main`: `b8b1fcbfe9997e1a7a27594b5759690147de75df`.
 
 The temporary URL and test data are documented in [STAGING_DEPLOYMENT_REPORT.md](../STAGING_DEPLOYMENT_REPORT.md). The repository-backed release baseline is recorded in [RELEASE_MANIFEST.json](../RELEASE_MANIFEST.json); neither document authorizes production traffic.

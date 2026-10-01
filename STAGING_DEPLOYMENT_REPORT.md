@@ -21,7 +21,7 @@
 | Component | SHA | Deployment |
 |---|---|---|
 | MarshGO-Server | f0a6cdb2fd918733770f65f997dfea5d7c302b0c | Deployed from `codex/security-parse-bearer` (PR #2; not yet merged to `main`) |
-| MarshGO-Site | c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7 | Production build deployed |
+| MarshGO-Site | 97b29ed77e0cfc49ad37b59e856af364184492fc | Staging build from `codex/navigation-deep-link-alias` (PR #2; `main` baseline remains `c7f76a4…`) |
 | MarshGO-iOS | b8b1fcbfe9997e1a7a27594b5759690147de75df | Not deployed to web staging |
 | MarshGO integration baseline | 904874f11eee6a19b77c2356230a82ab7c45569f | Test/deployment baseline |
 | Umbrella deployment/orchestration branch | 0127de32b125af0a7feb1ec85261582921cd6df3 | `codex/marshgo-production`; follow-up audit reports are being committed separately |
@@ -34,6 +34,7 @@ The locally materialized pinned Server and Site source trees contain untracked b
 |---|---|---|
 | Public homepage / staging banner | PASS | Real browser displayed MARSHGO STAGING · TEST DATA ONLY. |
 | API health/readiness | PASS | Public HTTPS /healthz and /readyz returned 200. |
+| Navigation direct link | PASS | `/navigation` previously returned the app's 404; the Site PR #2 alias now opens the navigation destination form on the public staging URL. Site PR checks pass. |
 | Login with development OTP | PASS | Browser authenticated isolated test user; dev OTP only, no SMS sent. |
 | Passenger demand creation | PASS | UI published Стрий → Львів, 2 passengers, 300 UAH total. |
 | API restart recovery | PASS | After API restart, browser reauthenticated and demand persisted in “Мої заявки”; the direct /demands/mine URL also survived reload. |

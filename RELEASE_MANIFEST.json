@@ -33,7 +33,7 @@
   "staging": {
     "url": "https://0931d476510892.lhr.life",
     "provider": "local Docker stack via anonymous localhost.run HTTPS tunnel",
-    "web_sha": "c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7",
+    "web_sha": "97b29ed77e0cfc49ad37b59e856af364184492fc",
     "server_sha": "f0a6cdb2fd918733770f65f997dfea5d7c302b0c",
     "ready": false,
     "production_ready": false,
