@@ -6,7 +6,7 @@ Capability states use only `DONE`, `PARTIAL`, `BLOCKED_EXTERNAL`, or `FAILED`. A
 
 | Capability | Status | Evidence / remaining boundary |
 |---|---|---|
-| Canonical repository reconciliation | PARTIAL | Server, Site and iOS `main` commits are pushed and CI passed. Umbrella reconciliation/release metadata is committed on `codex/marshgo-production`; its push is the final step for this report. Open PRs remain active because their residual diffs were not wholesale merged. |
+| Canonical repository reconciliation | PARTIAL | Server, Site and iOS `main` commits are pushed and CI passed. Umbrella reconciliation/release metadata is pushed on `codex/marshgo-production`. Open PRs remain active because their residual diffs were not wholesale merged. |
 | API/auth/session/database | PARTIAL | Real server/PostGIS/Redis logic and integration suite pass. Real SMS, complete account-deletion processing, security acceptance and hosted restart recovery remain open. |
 | Community offer/booking/capacity/chat/realtime | PARTIAL | API/browser slices pass including 20-account last-seat contention. Full verified-driver→pickup→boarding→completion→both reviews UI lifecycle is not E2E-accepted. |
 | Reverse Marketplace | PARTIAL | Server negotiation and atomic booking paths exist and web tests cover proposal negotiation; full post-accept booking/trip closeout is not release-accepted. |
