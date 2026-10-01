@@ -127,7 +127,7 @@ Then verify app/API HTTPS routes, database migration version, SMS, map/routing/g
 
 ## Exact refs in this report
 
-- Umbrella active branch: `codex/marshgo-production` at `0127de32b125af0a7feb1ec85261582921cd6df3` before this report/docs commit.
+- Umbrella app/deployment baseline: `0127de32b125af0a7feb1ec85261582921cd6df3`; later commits on `codex/marshgo-production` update report/manifest records only.
 - Server canonical `main`: `bdfdf24941809f4581965b9847022c68e0b2f127`.
 - Server staging PR #2 branch: `codex/security-parse-bearer` at `f0a6cdb2fd918733770f65f997dfea5d7c302b0c`.
 - Site `main`: `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7`.
