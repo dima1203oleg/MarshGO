@@ -15,6 +15,7 @@ const driverId = randomUUID();
 const vehicleId = randomUUID();
 const offerId = randomUUID();
 const rescueAlternativeId = randomUUID();
+const rescueCorridorAlternativeId = randomUUID();
 const driverPhone = `+38050${String(Date.now()).slice(-7)}`;
 const passengerPhone = `+38067${String(Date.now() + 1).slice(-7)}`;
 const navigationPhone = `+38063${String(Date.now() + 2).slice(-7)}`;
@@ -103,6 +104,17 @@ test.beforeAll(async () => {
       (date_trunc('day',now() AT TIME ZONE 'Europe/Kyiv') + interval '1 day' + interval '11 hours 30 minutes') AT TIME ZONE 'Europe/Kyiv',
       78000,5400,'e2e_fixture',22000,4,4)
   `, [rescueAlternativeId, driverId, vehicleId]);
+  await pool.query(`
+    INSERT INTO offers(id,driver_id,vehicle_id,origin_name,destination_name,origin,destination,route,
+      departure_at,arrival_at,distance_m,duration_s,route_source,price_per_seat_minor,total_seats,available_seats)
+    VALUES($1,$2,$3,'Rescue E2E Corridor Origin','Rescue E2E Corridor Destination',
+      ST_SetSRID(ST_MakePoint(23.9429,49.5482),4326)::geography,
+      ST_SetSRID(ST_MakePoint(24.0297,49.8397),4326)::geography,
+      ST_SetSRID(ST_GeomFromGeoJSON('{"type":"LineString","coordinates":[[23.9429,49.5482],[24.0297,49.8397]]}'),4326),
+      (date_trunc('day',now() AT TIME ZONE 'Europe/Kyiv') + interval '1 day' + interval '10 hours 10 minutes') AT TIME ZONE 'Europe/Kyiv',
+      (date_trunc('day',now() AT TIME ZONE 'Europe/Kyiv') + interval '1 day' + interval '11 hours 30 minutes') AT TIME ZONE 'Europe/Kyiv',
+      42000,4800,'e2e_fixture',24000,4,4)
+  `, [rescueCorridorAlternativeId, driverId, vehicleId]);
 });
 
 test.afterAll(async () => {
@@ -416,6 +428,10 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     await expect(rescueAlternative).toContainText('MARSHGO Community');
     await expect(rescueAlternative).toContainText('220 грн');
     await expect(rescueAlternative).toHaveAttribute('data-offer-id', rescueAlternativeId);
+    const corridorAlternative = rescueTripCard.getByRole('button').filter({ hasText: 'Rescue E2E Corridor Origin' }).first();
+    await expect(corridorAlternative).toContainText('Початок уздовж вашого маршруту');
+    await expect(corridorAlternative).toContainText('км від маршруту');
+    await expect(corridorAlternative).toHaveAttribute('data-offer-id', rescueCorridorAlternativeId);
     await rescueAlternative.click();
     await expect(passengerPage.getByRole('heading', { name: /Rescue E2E Origin/ })).toBeVisible();
     await expect(passengerPage.getByTestId('offer-book-button')).toHaveAttribute('data-offer-id', rescueAlternativeId);
