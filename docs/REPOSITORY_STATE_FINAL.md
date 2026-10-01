@@ -1,22 +1,35 @@
-# Repository state — 2026-10-01
+# MARSHGO repository state — 2026-10-01
 
-The standalone repos are the canonical production sources. The umbrella repo owns release orchestration, integration tests and deployment materialization. Release images use immutable Server/Site SHAs from `RELEASE_MANIFEST.json`; staging may deliberately run newer PR revisions and must not be confused with that release baseline.
+## Source of truth
 
-| Repository | Local branch / HEAD | `origin/main` | Purpose / source of truth | Open work | Local state |
+| Area | Canonical repository | Purpose |
+|---|---|---|
+| Backend, API, workers, migrations | `dima1203oleg/MarshGO-Server` | Sole production backend implementation. |
+| Web/PWA | `dima1203oleg/MarshGO-Site` | Sole production browser client. |
+| Native iOS wrapper/integrations | `dima1203oleg/MarshGO-iOS` | Capacitor/iOS container; release builds must pin an immutable Site revision. |
+| API contracts | Server API v1/OpenAPI sources | Site consumes the server-owned API contract; contract generation/drift gates remain incomplete. |
+| Infrastructure, cross-repository E2E, release orchestration | `dima1203oleg/MarshGO` | Umbrella only; no independent production API or Site source. |
+
+## Current local branches and GitHub state
+
+| Repository | Local branch / HEAD | `origin/main` | Purpose / production relevance | Open PR / CI | Local worktree |
 |---|---|---|---|---|---|
-| `MarshGO` | `codex/marshgo-production` / HEAD `37e398da77096366971920dca2b16d6ead12c9f6` (product code SHA `cf9da4f6f4e4e0e22417da090d2bd9d8bf83cb3e`) | `1e7d0ee74f11121a7d5a29c6379944a5360581c4` | Integration E2E, release manifest, deployment orchestration and cross-repo docs | PR #1, draft; latest HEAD CI/Security in progress at report time | Report/manifest-only commits; product-code evidence remains tied to `cf9da4f` |
-| `MarshGO-Server` | `codex/security-parse-bearer` / `6c069dda22030a74928227097f699491e5e89cd3` | `bdfdf24941809f4581965b9847022c68e0b2f127` | Canonical backend, migrations, API and workers | PR #2 adds migration 028 unread cursors; Verify passes at `6c069dda22030a74928227097f699491e5e89cd3`; PR #1 Rendezvous head `f788a96a5365a8a7d7f1eef416868f97217706c4` | Clean |
-| `MarshGO-Site` | `codex/navigation-deep-link-alias` / `26b32c9f9c351c4a52c188b16ecc55b1aa483392` | `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7` | Canonical Web/PWA | PR #2 adds persistent unread state, localized auth/rate-limit guidance; CI passes (runs `36847645293`, `36847650120`); PR #1 Rendezvous head `045f138bd9c31cb8bcc40231da867db7d7e8e531` | Clean |
-| `MarshGO-iOS` | `main` / `b8b1fcbfe9997e1a7a27594b5759690147de75df` | same | Native container and native integrations | PR #1 Simulator capture head `328d9af2b3f7095d3f9afca8fcbe4e9c5e1df0ad` | Clean |
+| `MarshGO` | `codex/marshgo-production` / `854c93f9440be603810844c27889a84e21a0c0f6` | `1e7d0ee74f11121a7d5a29c6379944a5360581c4` | Integration, release/deployment orchestration and docs. | PR #1 draft; latest reported PR checks passed: verify, CodeQL, Gitleaks. | Dirty: report/manifest/security/env reconciliation edits in progress. |
+| `MarshGO-Server` | `codex/security-parse-bearer` / `de2209bc71557a14b20afac07b5067a7139b8b42` | `bdfdf24941809f4581965b9847022c68e0b2f127` | Canonical backend and migrations. | PR #2 (`de2209b`) checks pass; PR #1 Rendezvous (`f788a96...`) remains open. | Clean. |
+| `MarshGO-Site` | `codex/navigation-deep-link-alias` / `150aa7ade03871cd12b80c6b3e205f345d37f996` | `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7` | Canonical Web/PWA. | PR #2 (`150aa7a`) checks pass; PR #1 Rendezvous (`045f138...`) remains open. | Clean. |
+| `MarshGO-iOS` | `main` / `b8b1fcbfe9997e1a7a27594b5759690147de75df` | same | Native container and integrations. | PR #1 simulator capture (`328d9af...`) checks pass. | Clean. |
 
-## Deployment source of truth
+## Reconciliation notes
 
-- Backend code and migrations: `MarshGO-Server`.
-- Web/PWA: `MarshGO-Site`.
-- iOS wrapper/native code: `MarshGO-iOS`; release Web content must be pinned to an exact Site SHA.
-- Integration/release/deployment orchestration: `MarshGO`.
-- Release image source: immutable `server_sha` and `site_sha` in root `RELEASE_MANIFEST.json`, materialized into `.release/` and guarded against local edits.
+- The four worktrees were inspected; Server/Site/iOS are clean. The umbrella worktree is dirty only with deliberate environment/security/release/staging documentation updates pending commit.
+- GitHub `main` is not treated as the newest feature source. Server and Site staging use the exact open PR #2 heads above; the active PR #1 Rendezvous work is distinct and has not been merged or overwritten.
+- Server PR #2 includes migration 028 and the bounded trusted-proxy/client-IP fix plus Photon GeoJSON support. Its exact-head unit, lint, typecheck and local PostGIS/Redis integration checks pass.
+- Site PR #2 fixes the stale Home navigation state after results. Its typecheck, full lint and production build pass; the feature branch is what the staging Web build uses.
+- iOS remains on the recorded `main` SHA; the simulator-capture PR is not claimed as merged. Physical-device/TestFlight acceptance remains unverified.
+- The umbrella local browser suite was run against its production Vite build with isolated PostGIS/Redis and test provider fixtures; it is not evidence that every flow passes on the public tunnel.
 
-## Staging versus release baseline
+## Staging deployed source
 
-The temporary public staging service at `https://78ba949ed82fea.lhr.life` uses Server `6c069dda22030a74928227097f699491e5e89cd3` and Site `26b32c9f9c351c4a52c188b16ecc55b1aa483392`; migration 028 is applied to its isolated staging database. The candidate unread UI/API is deployed, but the two-user staging read/unread acceptance remains unverified. The release manifest canonical baseline uses Server `bdfdf24941809f4581965b9847022c68e0b2f127` and Site `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7`. Keep these identities explicit in reports and build metadata. The public hostname is an anonymous localhost.run tunnel and may rotate or expire when the local process or host disconnects.
+The temporary public HTTPS tunnel currently serves Server `de2209bc71557a14b20afac07b5067a7139b8b42` and Site `150aa7ade03871cd12b80c6b3e205f345d37f996`. Staging uses separate PostGIS, Redis and private S3-compatible test storage with development OTP. The localhost.run hostname is ephemeral. Public browser acceptance remains partial and `STAGING_READY=NO`.
+
+The release manifest pins immutable full SHAs. Its integration SHA is the umbrella code baseline before this documentation-only reconciliation commit. See [`RELEASE_MANIFEST.json`](RELEASE_MANIFEST.json), [`RELEASE_STATUS.md`](RELEASE_STATUS.md), and [`STAGING_DEPLOYMENT_REPORT.md`](../STAGING_DEPLOYMENT_REPORT.md).

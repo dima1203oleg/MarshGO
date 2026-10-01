@@ -41,6 +41,7 @@ services:
       NODE_ENV: production
       API_HOST: 0.0.0.0
       API_PORT: 3002
+      TRUST_PROXY_HOPS: ${TRUST_PROXY_HOPS:?Set TRUST_PROXY_HOPS to the exact trusted proxy count}
       DATABASE_URL: postgres://marshgo:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@db:5432/marshgo
       REDIS_URL: redis://:${REDIS_PASSWORD:?Set REDIS_PASSWORD}@redis:6379
       SESSION_SECRET: ${SESSION_SECRET:?Set random SESSION_SECRET of at least 32 bytes}
@@ -53,6 +54,7 @@ services:
       OSRM_URL: ${OSRM_URL:?Set approved HTTPS OSRM-compatible endpoint}
       GEOCODING_ENGINE_URL: ${GEOCODING_ENGINE_URL:?Set approved HTTPS geocoder endpoint}
       GEOCODING_REVERSE_URL: ${GEOCODING_REVERSE_URL:?Set approved HTTPS reverse geocoder endpoint}
+      GEOCODING_PROVIDER: ${GEOCODING_PROVIDER:-nominatim}
       GEOCODING_API_KEY: ${GEOCODING_API_KEY:-}
       TRAFFIC_PROVIDER: none
       MAP_RENDERER: maplibre

@@ -2,6 +2,8 @@
 
 `READY_FOR_SERVER_DEPLOYMENT=NO` · `PRODUCTION_READY=NO`
 
+**Staging recheck (2026-10-01 14:13 Europe/Kyiv):** temporary public HTTPS currently resolves to `https://839af757d628d4.lhr.life`; localhost.run can rotate the hostname after reconnect. API `/readyz` is 200. Deployed Server `de2209bc71557a14b20afac07b5067a7139b8b42` and Site `150aa7ade03871cd12b80c6b3e205f345d37f996`. UI OTP login, Photon Ukrainian address suggestions, session restoration after API restart and honest empty inventory/journey states were exercised. Full paired driver/passenger lifecycle remains unaccepted, therefore `STAGING_READY=NO`.
+
 Capability states use only `DONE`, `PARTIAL`, `BLOCKED_EXTERNAL`, or `FAILED`. A local fixture/simulator pass does not qualify a real provider or production integration as DONE.
 
 | Capability | Status | Evidence / remaining boundary |
@@ -19,7 +21,7 @@ Capability states use only `DONE`, `PARTIAL`, `BLOCKED_EXTERNAL`, or `FAILED`. A
 | iOS | PARTIAL | Latest Debug simulator build/install/launch passed on iPhone 16 Pro Max Simulator using Site PR #2 bundle; onboarding rendered in `.release/staging-ios-simulator.png`. No signed TestFlight, APNs, physical phone, background GPS, native QR or authenticated simulator flow. |
 | Object storage | PARTIAL | S3 SDK adapter tests and local Adobe S3Mock upload/head/download pass. Production private bucket, encryption policy, retention, audit logs and malware scanning are not proven. |
 | Payments/commercial providers | BLOCKED_EXTERNAL | No merchant or transport partner credentials/contracts; commercial API integrations are incomplete and must stay disabled. |
-| Deployment automation | PARTIAL | Production Compose/Caddy/config/bootstrap/update/backup/restore scripts exist; config and syntax validate, canonical pinned Server/Site source materializes, worktree state is guarded, Docker build contexts exclude unrelated files/secrets, and both API/Web images build. `npm run check:production` passes (80 tests: 79 passed, 1 skipped, 0 failed); `npm run test:integration` passes 17/17. Full-stack local rehearsal, monitoring and staging recovery remain incomplete. |
+| Deployment automation | PARTIAL | Production Compose/Caddy/config/bootstrap/update/backup/restore scripts exist; config and syntax validate, canonical pinned Server/Site source materializes, worktree state is guarded, Docker build contexts exclude unrelated files/secrets, and both API/Web images build. Local production-browser E2E passes 6/6 in Chromium with isolated PostGIS/Redis and deterministic test providers; the umbrella PostGIS/Redis integration runner passes 17/17. Latest Server integration on exact deployed SHA passes 18/18. Full-stack hosted recovery, monitoring and staging golden path remain incomplete. |
 | Backup / restore | PARTIAL | AES-GCM/tamper checks and disposable PostGIS restore drill pass. No scheduled/off-host production backups, RPO/RTO or staging restore proof. |
 | Security pipeline | PARTIAL | Runtime validation, headers/rate limits and dependency checks exist; complete SAST/secrets/container scans and staging authorization/upload abuse acceptance are outstanding. |
 | Monitoring / operations | FAILED | No production metrics, alerting, error tracking, incident rota or verified recovery objectives. |

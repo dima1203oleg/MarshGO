@@ -2,12 +2,12 @@
 
 ## Evidence basis
 
-- Current public staging: `https://78ba949ed82fea.lhr.life`; immutable deployed Server `6c069dda22030a74928227097f699491e5e89cd3`, Site `26b32c9f9c351c4a52c188b16ecc55b1aa483392`, staging migration `028`. It is reachable and health/readiness pass, but `STAGING_READY=NO` because paired booking-to-completion acceptance is incomplete.
-- Server canonical `main` at `bdfdf24941809f4581965b9847022c68e0b2f127` includes planner and Rendezvous unit tests; repository CI passed. Current PR #2 head `6c069dda22030a74928227097f699491e5e89cd3` adds migration 028 and passed Verify plus 17/17 local PostGIS/Redis integration tests.
-- Site canonical `main` at `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7` passed `lint:all`, TypeScript and production build. Current PR #2 head `bc4b254bbaae09ba8de96352cf7790f756e51312` adds unread chat state, Ukrainian role-required guidance and localized sign-in copy, and passed Verify. Umbrella production check on the current integration worktree passed TypeScript, repository-wide ESLint including `ops/`, 80 tests (79 passed, 1 skipped, 0 failed), Vite production build, and gzip chunk budget.
-- Umbrella production Browser E2E passed 6/6 in Chromium. It covers production-bundle boot, onboarding, separate passenger/driver contexts, booking/demand/chat persistence, browser GPS route deviation/rerouting, Journey offer detail, and a driver-led route match through mutual consent, proposal, booking, waypoint insertion and reroute. That route-match path uses a verified test vehicle fixture and still covers only one passenger; it does not cover the full release golden path.
-- iOS canonical `main` at `b8b1fcb` passed GitHub Simulator CI. Local simulator screenshot after adequate settle shows onboarding. This is not a physical-device acceptance.
-- Local Adobe S3Mock contract smoke passed an AWS SDK put/head/get. A disposable PostGIS backup/restore drill passed, but no hosted staging restore or production backup schedule has been verified. Production Compose syntax and shell script syntax pass.
+- Current public staging: `https://839af757d628d4.lhr.life`; readiness returned HTTP 200 with PostgreSQL and Redis connected at 2026-10-01 14:13 Europe/Kyiv. Deployed Server `de2209bc71557a14b20afac07b5067a7139b8b42`, Site `150aa7ade03871cd12b80c6b3e205f345d37f996`, migration `028`. The tunnel is ephemeral and paired booking-to-completion acceptance is incomplete; `STAGING_READY=NO`.
+- Server PR #2 exact head passes Verify, `typecheck`, repository-wide lint, unit tests (49 passed, 0 failed, 2 skipped), and isolated PostGIS/Redis integration (18/18; migrations 001–028).
+- Site PR #2 exact head passes Verify; local `typecheck`, repository-wide lint and production build pass. It fixes the stale Home navigation state when returning from result screens.
+- Umbrella production-browser E2E passes 6/6 in Chromium on a production Vite build with isolated PostGIS/Redis and deterministic test providers. It covers responsive smoke, onboarding, independent passenger/driver sessions, search/booking/demand negotiation/persisted chat, simulated GPS reroute, road route rendering and Journey result details. It does not cover full release trip closure or real provider integrations.
+- iOS canonical `main` at `b8b1fcbfe9997e1a7a27594b5759690147de75df` has passing GitHub Simulator CI. This is not a physical-device acceptance.
+- Local S3Mock contract smoke, disposable PostGIS backup/restore, Compose validation and production image builds are prior local evidence. No hosted production storage, off-host backups, or production monitoring/recovery objectives are verified.
 
 ## Architecture and state reconciliation
 

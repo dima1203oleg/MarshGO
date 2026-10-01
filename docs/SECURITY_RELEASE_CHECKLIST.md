@@ -12,6 +12,10 @@
 - Focused secret-pattern scan found no recognized credential patterns in the inspected local history/worktree beyond local/test placeholders.
 - Existing API authorization, rate limiting, production config validation and security headers remain in place and are covered by selected tests.
 
+## Trusted proxy configuration
+
+The API must be reachable only through the configured reverse-proxy chain. Set `TRUST_PROXY_HOPS` to the exact number of trusted proxies between the client and Express (`2` for the documented Caddy → Nginx → API production path; staging tunnels must use their actual hop count). The API validates this value at startup and production refuses to start without an explicit value. Do not expose the API port publicly or trust arbitrary forwarded headers.
+
 ## Required before release
 
 - Run SAST/CodeQL, secret scanning and container image scanning on the exact published release commits; configured workflows have not yet produced hosted CI evidence.
