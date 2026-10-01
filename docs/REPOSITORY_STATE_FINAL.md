@@ -14,14 +14,14 @@
 
 | Repository | Local branch / HEAD | `origin/main` | Purpose / production relevance | Open PR / CI | Local worktree |
 |---|---|---|---|---|---|
-| `MarshGO` | `codex/marshgo-production` / `854c93f9440be603810844c27889a84e21a0c0f6` | `1e7d0ee74f11121a7d5a29c6379944a5360581c4` | Integration, release/deployment orchestration and docs. | PR #1 draft; latest reported PR checks passed: verify, CodeQL, Gitleaks. | Dirty: report/manifest/security/env reconciliation edits in progress. |
+| `MarshGO` | `codex/marshgo-production` / code baseline `854c93f9440be603810844c27889a84e21a0c0f6`, report commit `a8b493de4b8ce30c1ca410629b5d2dbe96eb1b3f` | `1e7d0ee74f11121a7d5a29c6379944a5360581c4` | Integration, release/deployment orchestration and docs. | PR #1 draft; latest report commit checks are pending at time of this snapshot. | Clean after report commit. |
 | `MarshGO-Server` | `codex/security-parse-bearer` / `de2209bc71557a14b20afac07b5067a7139b8b42` | `bdfdf24941809f4581965b9847022c68e0b2f127` | Canonical backend and migrations. | PR #2 (`de2209b`) checks pass; PR #1 Rendezvous (`f788a96...`) remains open. | Clean. |
 | `MarshGO-Site` | `codex/navigation-deep-link-alias` / `150aa7ade03871cd12b80c6b3e205f345d37f996` | `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7` | Canonical Web/PWA. | PR #2 (`150aa7a`) checks pass; PR #1 Rendezvous (`045f138...`) remains open. | Clean. |
 | `MarshGO-iOS` | `main` / `b8b1fcbfe9997e1a7a27594b5759690147de75df` | same | Native container and integrations. | PR #1 simulator capture (`328d9af...`) checks pass. | Clean. |
 
 ## Reconciliation notes
 
-- The four worktrees were inspected; Server/Site/iOS are clean. The umbrella worktree is dirty only with deliberate environment/security/release/staging documentation updates pending commit.
+- The four worktrees were inspected; Server/Site/iOS are clean. Umbrella environment/security/release/staging report changes are committed and pushed; all four worktrees are clean.
 - GitHub `main` is not treated as the newest feature source. Server and Site staging use the exact open PR #2 heads above; the active PR #1 Rendezvous work is distinct and has not been merged or overwritten.
 - Server PR #2 includes migration 028 and the bounded trusted-proxy/client-IP fix plus Photon GeoJSON support. Its exact-head unit, lint, typecheck and local PostGIS/Redis integration checks pass.
 - Site PR #2 fixes the stale Home navigation state after results. Its typecheck, full lint and production build pass; the feature branch is what the staging Web build uses.
