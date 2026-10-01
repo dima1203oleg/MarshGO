@@ -8,7 +8,7 @@
   "server_sha": "533f500bd9fa821d6b8aea7048037d4b7f897486",
   "site_sha": "029aae486e164f02660c36130114527b19898001",
   "ios_sha": "1f08e73e351ed0e7e7d4c522b47c0ed5cb06e8a0",
-  "integration_sha": "1afb043",
+  "integration_sha": "1afb04307c7d6ae619dfe8598dfc829169e73a71",
   "database_migration": "028",
   "api_version": "v1",
   "source_repositories": {
