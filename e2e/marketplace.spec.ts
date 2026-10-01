@@ -912,7 +912,9 @@ test('Journey Planner ranks a persisted Community route and opens its current of
     const linkedBookingHttp = await linkedBookingResponse;
     expect(linkedBookingHttp.status()).toBe(201);
     const linkedBooking = await linkedBookingHttp.json() as { data: { id: string } };
-    await expect(page.getByText('Journey оновлено сервером і збережено як готовий маршрут.')).toBeVisible();
+    // Booking confirmation navigates to Trips immediately; verify its durable
+    // UI state and database snapshot below instead of a transient toast that
+    // may disappear while the booking and Journey refreshes complete.
     await expect(page.getByRole('heading', { name: 'Збережені маршрути' })).toBeVisible();
     await expect(page.getByText('Маршрут готовий')).toBeVisible();
     const linked = await pool.query<{ state: string; confirmed_price_minor: number; leg_state: string; price_status: string; booking_id: string }>(
