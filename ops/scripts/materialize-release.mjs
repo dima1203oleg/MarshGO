@@ -20,12 +20,28 @@ function git(directory, args) {
   return execFileSync('git', ['-C', directory, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] }).trim();
 }
 
+function assertRealDirectory(path, description) {
+  try {
+    const stat = lstatSync(path);
+    if (!stat.isDirectory() || stat.isSymbolicLink()) {
+      throw new Error(`Refusing non-directory or symbolic link ${description}: ${path}`);
+    }
+    return true;
+  } catch (error) {
+    if (error?.code === 'ENOENT') return false;
+    throw error;
+  }
+}
+
 function checkout(name, repository, revision) {
   const destination = join(releaseRoot, `${name}-${revision}`);
-  if (!existsSync(destination)) {
-    execFileSync('git', ['clone', '--no-checkout', `https://github.com/dima1203oleg/${repository}.git`, destination], { stdio: 'inherit' });
+  const remote = `https://github.com/dima1203oleg/${repository}.git`;
+  if (!assertRealDirectory(destination, `${name} pinned checkout`)) {
+    execFileSync('git', ['clone', '--no-checkout', remote, destination], { stdio: 'inherit' });
     git(destination, ['checkout', '--detach', revision]);
   }
+  const actualRemote = git(destination, ['remote', 'get-url', 'origin']);
+  if (actualRemote !== remote) throw new Error(`${name} checkout origin mismatch: expected ${remote}, got ${actualRemote}`);
   const actual = git(destination, ['rev-parse', 'HEAD']);
   if (actual !== revision) throw new Error(`${name} checkout SHA mismatch: expected ${revision}, got ${actual}`);
   return destination;
@@ -52,6 +68,7 @@ function sha256File(path) {
   return sha256(readFileSync(path));
 }
 
+if (existsSync(releaseRoot)) assertRealDirectory(releaseRoot, 'release directory');
 mkdirSync(releaseRoot, { recursive: true });
 const serverSha = sha('server_sha');
 const siteSha = sha('site_sha');
