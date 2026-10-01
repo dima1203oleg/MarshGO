@@ -1,18 +1,18 @@
 # Backup and restore report
 
-**Status: BLOCKED_EXTERNAL.** No hosted production/staging database, backup provider, encryption key or restore environment is configured.
+**Status: PARTIAL.** Local encrypted backup/restore utilities and a disposable PostGIS restore drill pass. This does not qualify hosted production backups.
 
 ## Local evidence
 
-- Clean local PostGIS migrations were exercised in the production-shaped Compose setup.
-- Integration tests covered selected database/API durability through API and Redis process restarts.
+- Custom-format Postgres dumps are encrypted with a streaming AES-256-GCM wrapper using a scrypt-derived key; tampering is rejected before plaintext output is exposed.
+- `restore.sh` requires a named existing database with zero application tables; it refuses to overwrite tables.
+- A disposable PostGIS backup/restore drill passed: encrypted custom-format dump restored into a separate empty database and its synthetic row was verified. Existing developer DB was not modified.
+- Integration tests cover selected database/API durability through API and Redis process restarts.
 
 ## Not performed
 
-- Automated encrypted backup or PITR configuration.
-- Retention verification.
-- Restore into a separate clean database.
-- Application-level integrity checks after restore.
-- Measured RPO/RTO or documented production rollback drill.
+- Scheduled backup/PITR and off-host encrypted retention.
+- Measured restore time, application migration/integrity verification, and staging recovery.
+- Measured RPO/RTO or production rollback drill.
 
-Do not describe the backup/restore gate as passed until a real restore drill is recorded against the configured hosted environment.
+Do not describe the backup/restore release gate as passed until the isolated drill completes and a staging restore is recorded against the configured hosted environment.

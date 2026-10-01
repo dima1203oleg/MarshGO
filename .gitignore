@@ -8,3 +8,6 @@ playwright-report/
 *.log
 .env*
 !.env.example
+.backup-key
+backups/
+*.dump.gpg

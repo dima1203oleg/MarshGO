@@ -1,63 +1,49 @@
-# MARSHGO final production gap audit — 2026-10-01
+# Final production gap audit — 2026-10-01
 
-## Scope and workspace state
+## Evidence basis
 
-- Audited the integrated source at commit `7e31518` on branch `codex/marshgo-production`; its working tree is clean. Standalone Server `418b821`, Site `c7f76a4` and iOS `cb32564` are also clean local revisions and have not been pushed. The current verification covers direct booking links across cold-open and reload plus six viewport widths across Chromium, Firefox and WebKit.
-- Local revisions are recorded in `RELEASE_MANIFEST.json`. Server migrations remain through `027`; its repository-wide lint, typecheck and 17 PostGIS/Redis integration checks pass, with 33 unit tests from the prior verified state. Site source is synchronized; full-source lint, typecheck, build, bundle check, 6/6 Chromium E2E and Chromium/Firefox/WebKit phone/tablet/desktop compatibility pass against deterministic local provider fixtures. iOS was rebuilt from this exact Site SHA and Server SHA; Capacitor sync and Simulator install/launch pass. Its API origin is loopback. The current iOS commit has not been signed, uploaded to TestFlight or accepted on a physical device.
-- Current verification after migration 027: `npm run check:production` passed (typecheck, full-source lint, 72 unit tests passed, 1 opt-in test skipped, production build and per-chunk gzip budget); the local database passed the 17-test PostGIS/Redis integration suite. The Site bundle passed 6/6 Chromium E2E and 3/3 engine projects (Chromium, Firefox, WebKit) at phone/tablet/desktop sizes. E2E uses local geocoder/OSRM/tile fixtures and includes independent driver/passenger sessions, Reverse Marketplace negotiation, booking confirmation and direct booking/conversation/demand URL reload persistence. One-time public Nominatim, OSRM and OpenFreeMap checks are compatibility smokes, not contracted services. Current-source iOS Debug Simulator build/install/launch passed using Site `c7f76a4`, Server API source `ca76052` and iOS `cb32564`; no authenticated native flow or physical-device acceptance was run.
-- Staging, real SMS, physical-device acceptance and hosted production have not been exercised. None of these local checks imply production deployment.
-- The latest iOS Simulator bundle embeds local Site `c7f76a4`, Server `ca76052` and iOS `cb32564`; embedded build metadata was checked. Its API origin is loopback. An unsigned Release archive was built with older Site/Server source SHAs; the current source slice has Debug Simulator evidence only. The physical iPhone listed by `devicectl` is unavailable; available devices are simulators only.
-- CI configuration now adds `bun audit --audit-level=high` and installs/runs Chromium, Firefox and WebKit. A separate workflow adds CodeQL and Gitleaks. These workflow changes have not yet run on GitHub Actions.
-- Bun 1.3.5 `bun audit` and `bun audit --audit-level=high` both passed against the checked-in lockfile with no advisories reported. Focused current-tree and commit-history checks found no recognized API key, token, private-key, or credential-bearing URL pattern beyond local/test placeholders. This does not cover container OS/package CVEs or every custom secret format.
+- Server canonical `main` at `2fcdeed` includes planner and Rendezvous unit tests; repository CI passed. Local integration suite passed 17/17 against PostGIS/Redis.
+- Site canonical `main` at `c7f76a4` passed `lint:all`, TypeScript and production build. Umbrella production check passed: 72 unit tests, one opt-in skip, Vite build, gzip chunk budget.
+- Umbrella production Browser E2E passed 6/6 in Chromium. It covers production-bundle boot, onboarding, separate passenger/driver contexts, booking/demand/chat persistence, browser GPS route deviation/rerouting, and Journey offer detail. It does not cover the full release golden path.
+- iOS canonical `main` at `b8b1fcb` passed GitHub Simulator CI. Local simulator screenshot after adequate settle shows onboarding. This is not a physical-device acceptance.
+- Local Adobe S3Mock contract smoke passed an AWS SDK put/head/get. A disposable PostGIS backup/restore drill is in progress. Production Compose syntax and shell script syntax pass.
 
-## Current-state matrix
+## Architecture and state reconciliation
 
-| Area | Status | Evidence / gap |
+The standalone repositories now receive canonical pushes, but the umbrella still contains synchronized copies of `server/` and `src/`; the Dockerfiles build those copies. The release manifest records standalone SHAs, but the production container build does not yet checkout/materialize them. This is a high-priority reproducibility gap. Do not label an umbrella-built container as the exact standalone-SHA release until this is fixed.
+
+Server PR #1's core planner/Rendezvous code already exists in canonical `main`; the omitted PR unit tests were ported and pushed. Site PR #1 functional rendezvous/onboarding code exists in canonical `main`, though its PR remains open for residual source diffs. iOS PR #1 screenshot settling behavior was ported and pushed; the old full PR cannot be merged wholesale because it removes current pinned release inputs.
+
+## Capability audit
+
+| Domain | Status | Facts |
 |---|---|---|
-| PostgreSQL/PostGIS and Redis | DONE locally | Migrations are present through 027; local clean-profile Compose and integration checks are documented. Managed staging restore/drill remains external. |
-| OTP, refresh sessions, role model | DONE locally / BLOCKED_EXTERNAL for SMS | OTP/session APIs and refresh-cookie tests exist. The provider adapter requires real account/sender credentials before delivery can be verified. |
-| User, vehicle, verification, offers, bookings, idempotency, lifecycle, QR token, reviews | DONE locally | API, Site flows and integration/E2E coverage exist. Native QR camera scanner is missing. |
-| Account deletion request | PARTIAL / BLOCKED_EXTERNAL | Migration 027 adds a reversible 7–90 day cooling-off state, owner-only request/status/cancel API and Site UI. No data purge runs; retention/backup erasure policy and worker are not approved or implemented. |
-| Reverse Marketplace and price proposals | PARTIAL | Demand, proposal/counter, acceptance race protection and E2E paths exist. Expiry worker now updates state and emits participant notifications; full hosted trip-closeout path is still missing. |
-| Chat, Redis realtime, transactional outbox, inbox | DONE locally | Persisted messages, cross-instance delivery and inbox flows exist. Web Push/APNs delivery is missing. |
-| Navigation core, routing adapter, foreground GPS, offline snapshot, stop optimization | PARTIAL | Core contracts/replay and foreground route/match behavior exist. Chromium E2E now replays a deviation through browser geolocation, confirms server off-route detection, observes reroute and route-version replacement. Production routing/map asset contract, background iOS GPS and hosted/device acceptance remain unverified. |
-| Live passive matching | PARTIAL | Consent-bound candidate discovery/interest and single-rider insertion foundations exist. Full production multi-passenger UI and continuous production drive acceptance are incomplete. |
-| Journey schema, scoring and planner | PARTIAL | Journey persistence, scoring strategies, transfer feasibility and a bounded multi-leg composer exist. Current search is still direct Community inventory; no provider feed is injected into the composer. |
-| WALK routing and real connectors | MISSING | Planner accepts measured walking connectors but there is no walking route provider delivering pedestrian geometry/time to active Journey search. |
-| GTFS / GTFS-Realtime / bus, minibus, rail, taxi inventory | NEEDS_REAL_PROVIDER | No configured feeds/contracts are present. Schedule/live inventory must not be fabricated. |
-| Future Community transfer matching / SOFT_MATCH | MISSING | No uncertainty-window matcher is connected to scheduled/other provider Journey legs. |
-| Journey Monitor, ETA cascade, predictive replan and Journey Rescue | MISSING | Journey lifecycle binding exists, but no active observation monitor, risk cascade or alternative replacement search. Booking Rescue is limited. |
-| Rendezvous | PARTIAL | Booking-bound session, participant authorization, Redis latest-only locations, explicit arrival/boarding states and Site actions exist. No map-based live rendezvous, road ETA, automatic activation worker or full physical acceptance. |
-| ProductionMarketplace frontend architecture | PARTIAL | Production API shell is real, but `src/views/ProductionMarketplace.tsx` still owns many screens, domain effects and state in one component. Feature modules/hooks/forms/dialogs are not split out. |
-| Production URL router / deep links | PARTIAL | Refresh-safe routes now include `/offers/:id`, `/bookings/:id` and `/trips/:id`, `/demands/:id`, `/journeys/:id`, and `/messages/:conversationId`; tab routes retain aliases, back/forward updates route state, unsafe IDs are rejected, and E2E verifies cold-open/reload restoration for booking, conversation and demand flows. Server enforces participant/member authorization on direct demand/conversation reads, and a proposing driver can reload a matched demand they participated in. UI auth/role guards, deleted-entity UX, full coverage for every entity route and native Universal Links remain incomplete. |
-| OpenAPI contract and generated Site client | PARTIAL | OpenAPI material exists, but it does not cover the entire `/api/v1` surface and no generated TypeScript client is wired into Site. |
-| API request/response runtime validation | PARTIAL | Domain schemas and selected route validations exist; external boundaries and response DTOs are not comprehensively generated/validated from a shared contract. |
-| Provider health, failure isolation and cache | PARTIAL | Routing/geocoding adapters have bounded failures and config validation. There is no provider registry/cache/fan-out layer for optional multimodal sources yet. |
-| Object storage and document handling | PARTIAL / BLOCKED_EXTERNAL | S3-compatible signed-upload adapter and document API exist. Private production bucket, encryption, lifecycle, audit logging and malware scanning are not configured/verified. |
-| Payment / commercial settlement | BLOCKED_EXTERNAL | Community 0% fee snapshot is implemented. No payment intent, webhook, refund or settlement provider exists; no online-payment claim should be shown. |
-| PWA service worker | PARTIAL | PWA manifest/build support exists; production offline shell and safe last-Journey snapshot cache are not implemented as a complete service worker lifecycle. |
-| iOS Capacitor build | DONE as simulator smoke | Current bundle builds/launches in iPhone Simulator. Authenticated native journey, TestFlight signing, APNs, background GPS, QR camera and two-device physical testing are not complete. |
-| Web visual/browser quality | PARTIAL | Chromium, Firefox and WebKit pass 375, 430, 768, 1024, 1440 and 1920 px layouts with no horizontal overflow or unexpected browser/server errors. This is not exhaustive OS/device/browser-version coverage or pixel-identity with all supplied composites. |
-| Security pipeline | PARTIAL | Runtime config, authorization, rate limits, CSP/security headers and selected auth/race tests exist. Full SAST, secret/dependency scanning, authorization matrix and upload-abuse review are not release-verified. |
-| Monitoring, backups, restore, rollback and incident response | MISSING / BLOCKED_EXTERNAL | Local health/readiness and structured logging exist. Hosted metrics/alerts/error tracking, encrypted PITR backups, successful restore drill and deploy rollback are not configured. |
-| Hosted staging / production | BLOCKED_EXTERNAL | No domain/TLS/host, secret manager, managed DB/Redis, contracted assets/providers, production SMS or approval workflow is configured in this workspace. |
+| PostgreSQL/PostGIS, Redis and migrations | PARTIAL | Integration tests cover spatial data, booking concurrency, rendezvous, realtime, Redis rate limits and API restart. No full new-deployment migration+restore rehearsal is complete yet. |
+| Auth and sessions | PARTIAL | Passwordless OTP/session/refresh behavior is locally tested; Twilio production delivery and device/session UX breadth remain external/incomplete. |
+| Vehicle/verification | PARTIAL | Server ownership/review rules and private-evidence controls exist; production private storage, scanner, complete rejection/re-upload driver journey are unverified. |
+| Offers, demand, booking, capacity | PARTIAL | Server-owned API paths, transaction/race tests and browser paths exist; full trip closure, cancellation/refund and full two-sided reviews are not end-to-end accepted. |
+| Reverse Marketplace | PARTIAL | Proposal/counter/accept conversion is tested; full live operation→booking→rendezvous→completion cycle is incomplete. |
+| Chat/realtime/inbox | PARTIAL | Persisted chat, Redis fanout and reconnect-capable REST model exist; push delivery and complete unread/retry acceptance are missing. |
+| Routing and map | PARTIAL | MapLibre adapter and route geometry render in browser. E2E uses deterministic provider fixtures; no contracted/self-hosted production map assets or routing/geocoding acceptance. |
+| Navigation/matching | PARTIAL | Browser geolocation scenario detects off-route and reroutes; complete continuous driver, safe prompt and generalized multi-passenger acceptance remain. |
+| Journey / GTFS / WALK | PARTIAL | Planner/scorer/transfer engine foundation exists; WALK geometry provider, GTFS feeds and real public/commercial transport are absent. |
+| Journey monitor/replan/rescue | FAILED | No autonomous active monitor/replan/rescue loop with alternatives delivered through UI. |
+| Rendezvous | PARTIAL | Authorized Redis-ephemeral location/status and Site controls exist; not a live map/meeting ETA production flow; no two physical devices. |
+| iOS | PARTIAL | Capacitor Simulator compiles, launches and renders; no signed/TestFlight/physical/background/push/QR acceptance. |
+| S3/storage | PARTIAL | Adapter unit tests and S3Mock put/head/get pass; S3Mock is a test implementation, not private production storage validation. |
+| Payments/commercial partners | BLOCKED_EXTERNAL | No live merchant/partner API config or credentials. |
+| Security | PARTIAL | Production config is fail-closed, server guards exist, security headers/rate limits and dependency checks are present. Full release SAST/secrets/container scans and staging abuse review are not complete. |
+| Operations/deployment | PARTIAL | Compose, Caddy, bootstrap/update, AES-GCM backups and guarded restore exist. No canonical source materialization, full service stack, monitoring/alerts or hosted restore drill. |
+| Visual parity | PARTIAL | Cross-browser responsive testing exists; exact desktop/tablet/iPhone reference parity across supplied screenshots has not yet been completed. |
 
-## Repository signals checked
+## High-priority software gaps
 
-- `server/index.ts` remains a large modular-monolith entrypoint despite `server/journey`, `server/navigation`, `server/providers`, `server/routing`, `server/traffic` and `server/domain` boundaries. Extracting handlers must preserve its middleware, transaction and auth closures; do this incrementally with route-level regression tests.
-- `ProductionMarketplace.tsx` remains a large view/controller; the demo implementation remains reachable only through explicit `VITE_DEMO_MODE=true` and older prototype components contain localStorage/seed behavior. Keep production entry points isolated; do not confuse demo-only seed data with live inventory.
-- The production web entry now imports only the API-backed `ProductionMarketplace`; the seeded/localStorage prototype is outside the production module graph, and a bundle check fails if known demo IDs are emitted. Prototype source still exists for development, so keep the production entry boundary covered by CI.
-- Public Nominatim/OSRM/OpenFreeMap smoke results demonstrate adapter/render compatibility only. These public endpoints are not a contracted provider or a production SLA.
-- Full Site lint initially exposed 177 unused/dead-code findings across legacy views; those were removed and full Site lint now passes. The standalone Server repo now has its own ESLint/CI gate and passes `eslint server tests`. The umbrella lint also passes across `src`, `server`, `shared`, `tests`, `e2e`, `scripts`, and `tools` without disabling unused-code checks.
-- Canonical snapshots checked at the start were umbrella `main` `1e7d0ee`, Server `ef9d105`, Site `ed602ac`, and iOS `647ffbb`. Open PRs existed in each repo. Focused local commits now sit ahead of the Site/Server/iOS snapshots, but they are not pushed or merged; keep this difference explicit in release manifests.
+1. Make release image builds consume the immutable standalone Server/Site revisions recorded in `RELEASE_MANIFEST.json`.
+2. Add a single local/staging-like Compose topology with actual API, Site, worker, PostGIS, Redis, S3 emulator, proxy and monitoring; run migrations and all acceptance flows through it.
+3. Finish full community and reverse-marketplace lifecycle E2E from auth/vehicle review through trip closure/review, cancellation recovery and restart.
+4. Implement and test WALK/provider-fed multimodal Journey, Journey monitor, ETA cascade, predictive replan and Rescue. Keep absent external modes disabled.
+5. Implement Web Push/APNs adapters/worker delivery, payment provider contract, native QR/background location, account-deletion processor and data retention controls.
+6. Add production metrics/alerts/error tracking, full security scan gates, off-host backup schedule, measured restore/recovery and rollback rehearsal.
+7. Complete visual comparison with supplied reference images after product and deployment work.
 
-## Safe implementation order
-
-1. Extract one cohesive production frontend slice at a time, then expand URL routing to entity deep links without changing API behavior.
-3. Complete OpenAPI coverage and generation/validation before adding provider inventory.
-4. Add a real pedestrian route contract/adapter and connect only measured WALK routes to the existing multi-leg planner.
-5. Add GTFS and GTFS-Realtime adapters with explicit source freshness and provider isolation; keep disabled until an authorized feed is configured.
-6. Connect confirmed/soft Community matching windows, then Rendezvous/monitor/replan based on real observations.
-7. Finish physical iOS and hosted operational gates only when the required device/accounts/infrastructure are available.
-
-Do not call the product production-ready until every release gate in the user's master task has evidence from its named real environment.
+See [RELEASE_STATUS.md](RELEASE_STATUS.md) for status values and [READY_FOR_SERVER_DEPLOYMENT.md](../READY_FOR_SERVER_DEPLOYMENT.md) for deployment decision.
