@@ -129,6 +129,7 @@ test.afterAll(async () => {
   await pool.query(`DELETE FROM conversation_members WHERE conversation_id IN (SELECT id FROM conversations WHERE booking_id IN (${testBookingQuery}))`, [userIds]);
   await pool.query(`DELETE FROM conversations WHERE booking_id IN (${testBookingQuery})`, [userIds]);
   await pool.query(`DELETE FROM booking_events WHERE booking_id IN (${testBookingQuery})`, [userIds]);
+  await pool.query(`DELETE FROM reviews WHERE booking_id IN (${testBookingQuery})`, [userIds]);
   await pool.query(`DELETE FROM bookings WHERE id IN (${testBookingQuery})`, [userIds]);
   await pool.query('DELETE FROM proposals WHERE driver_id=ANY($1::uuid[]) OR demand_id IN (SELECT id FROM passenger_demands WHERE passenger_id=ANY($2::uuid[]))', [userIds, userIds]);
   await pool.query('DELETE FROM navigation_sessions WHERE driver_id=ANY($1::uuid[])', [userIds]);
@@ -306,6 +307,44 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     );
     expect(completedBooking.rows).toEqual([{ status: 'completed', confirmation_count: 2 }]);
 
+    await passengerTripCard.getByTestId('booking-review-open').click();
+    const passengerReviewForm = passengerTripCard.getByTestId('booking-review-form');
+    await passengerReviewForm.getByRole('button', { name: '4 з 5' }).click();
+    await passengerReviewForm.getByPlaceholder('Поділіться враженням про поїздку').fill('Водій був уважний, маршрут пройшов добре.');
+    const passengerReviewResponse = passengerPage.waitForResponse(response => response.url().endsWith(`/api/v1/bookings/${createdBooking.id}/reviews`) && response.request().method() === 'POST');
+    await passengerReviewForm.getByRole('button', { name: 'Надіслати відгук' }).click();
+    expect((await passengerReviewResponse).status()).toBe(201);
+    await expect(passengerTripCard.getByText('Дякуємо! Ваш відгук збережено.')).toBeVisible();
+
+    await driverTripCard.getByTestId('booking-review-open').click();
+    const driverReviewForm = driverTripCard.getByTestId('booking-review-form');
+    await driverReviewForm.getByRole('button', { name: '5 з 5' }).click();
+    await driverReviewForm.getByPlaceholder('Поділіться враженням про поїздку').fill('Пасажир був пунктуальний.');
+    const driverReviewResponse = driverPage.waitForResponse(response => response.url().endsWith(`/api/v1/bookings/${createdBooking.id}/reviews`) && response.request().method() === 'POST');
+    await driverReviewForm.getByRole('button', { name: 'Надіслати відгук' }).click();
+    expect((await driverReviewResponse).status()).toBe(201);
+    await expect(driverTripCard.getByText('Дякуємо! Ваш відгук збережено.')).toBeVisible();
+    const persistedReviews = await pool.query<{ author_id: string; target_id: string; rating: number; comment: string | null }>(
+      `SELECT author_id,target_id,rating,comment FROM reviews WHERE booking_id=$1 ORDER BY rating`, [createdBooking.id],
+    );
+    expect(persistedReviews.rows).toHaveLength(2);
+    expect(persistedReviews.rows).toEqual(expect.arrayContaining([
+      expect.objectContaining({ author_id: expect.any(String), target_id: driverId, rating: 4, comment: 'Водій був уважний, маршрут пройшов добре.' }),
+      expect.objectContaining({ author_id: expect.any(String), target_id: expect.any(String), rating: 5, comment: 'Пасажир був пунктуальний.' }),
+    ]));
+    const duplicateReviewResponse = await passengerPage.evaluate(async ({ bookingId, token }) => fetch(`/api/v1/bookings/${bookingId}/reviews`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ rating: 1, comment: 'Повторний відгук' }),
+    }).then(response => response.status), { bookingId: createdBooking.id, token: passengerAccessToken });
+    expect(duplicateReviewResponse).toBe(409);
+
+    await passengerPage.reload();
+    await driverPage.reload();
+    await expect(passengerPage.getByRole('heading', { name: 'Мої поїздки' })).toBeVisible();
+    await expect(driverPage.getByRole('heading', { name: 'Мої поїздки' })).toBeVisible();
+    await expect(passengerPage.locator('article').filter({ hasText: 'MARSHGO E2E Driver' }).getByText('Дякуємо! Ваш відгук збережено.')).toBeVisible();
+    await expect(driverPage.locator('article').filter({ hasText: 'E2E Passenger' }).getByText('Дякуємо! Ваш відгук збережено.')).toBeVisible();
+
     await driverPage.getByRole('button', { name: /Написати/ }).click();
     await expect(driverPage.getByText('Буду на місці о 08:45.')).toBeVisible();
 
@@ -390,7 +429,7 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     await passengerPage.getByRole('button', { name: /Написати/ }).first().click();
     passengerPage.once('dialog', (dialog) => dialog.accept());
     await passengerPage.getByRole('button', { name: 'Заблокувати співрозмовника' }).click();
-    await expect(passengerPage.getByRole('status')).toContainText('заблоковано');
+    await expect(passengerPage.getByRole('status').filter({ hasText: 'заблоковано' })).toBeVisible();
     await passengerPage.getByRole('button', { name: 'Профіль', exact: true }).click();
     await expect(passengerPage.getByText('Заблоковані користувачі')).toBeVisible();
     await expect(passengerPage.getByText('MARSHGO E2E Driver', { exact: true })).toBeVisible();
@@ -402,13 +441,13 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     const exportedData = JSON.parse(await readFile(await exportDownload.path()!, 'utf8')) as { profile: { phone_e164: string }; bookings: Array<{ passenger_id?: string }> };
     expect(exportedData.profile.phone_e164).toBe(passengerPhone);
     expect(JSON.stringify(exportedData)).not.toContain(driverPhone);
-    await expect(passengerPage.getByRole('status')).toContainText('Ваші дані завантажено');
+    await expect(passengerPage.getByRole('status').filter({ hasText: 'Ваші дані завантажено' })).toBeVisible();
     passengerPage.once('dialog', (dialog) => dialog.accept());
     await passengerPage.getByRole('button', { name: 'Подати запит на видалення' }).click();
-    await expect(passengerPage.getByRole('status')).toContainText('Запит на видалення зареєстровано');
+    await expect(passengerPage.getByRole('status').filter({ hasText: 'Запит на видалення зареєстровано' })).toBeVisible();
     await expect(passengerPage.getByText(/Запит очікує скасування до/)).toBeVisible();
     await passengerPage.getByRole('button', { name: 'Скасувати запит' }).click();
-    await expect(passengerPage.getByRole('status')).toContainText('Запит на видалення скасовано');
+    await expect(passengerPage.getByRole('status').filter({ hasText: 'Запит на видалення скасовано' })).toBeVisible();
     const deletionState = await pool.query<{ status: string; cancelled_at: Date | null }>(
       'SELECT status,cancelled_at FROM account_deletion_requests WHERE user_id=(SELECT id FROM users WHERE phone_e164=$1) ORDER BY requested_at DESC LIMIT 1', [passengerPhone],
     );
@@ -421,7 +460,7 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     const driverChatInput = driverPage.getByPlaceholder('Напишіть повідомлення…');
     await driverChatInput.fill(deniedMessage);
     await driverChatInput.press('Enter');
-    await expect(driverPage.getByRole('status')).toContainText('conversation unavailable');
+    await expect(driverPage.getByRole('status').filter({ hasText: 'conversation unavailable' })).toBeVisible();
     const deniedStored = await pool.query<{ count: number }>('SELECT count(*)::int AS count FROM messages WHERE body=$1', [deniedMessage]);
     expect(deniedStored.rows[0].count).toBe(0);
 
@@ -1001,10 +1040,21 @@ test('Journey Planner ranks a persisted Community route and opens its current of
     await page.getByRole('button', { name: /Оптимізувати весь маршрут/ }).click();
     const response = await searchResponse;
     expect(response.status()).toBe(200);
-    const payload = (await response.json()).data as { journeys: Array<{ id: string; strategy: string; offerId: string }>; partial: boolean; blockedProviders: string[] };
+    const payload = (await response.json()).data as {
+      journeys: Array<{
+        id: string;
+        strategy: string;
+        offerId: string;
+        legs?: Array<{ driver?: { averageRating: unknown } }>;
+      }>;
+      partial: boolean;
+      blockedProviders: string[];
+    };
     expect(payload.partial).toBe(true);
     expect(payload.blockedProviders).toContain('bus');
     expect(payload.journeys.some(item => item.strategy === 'CHEAPEST' && item.offerId === offerId)).toBe(true);
+    const journeyDriverRating = payload.journeys.find(item => item.offerId === offerId)?.legs?.[0]?.driver?.averageRating;
+    expect(journeyDriverRating === null || typeof journeyDriverRating === 'number').toBe(true);
     await expect(page.getByRole('heading', { name: 'Найкращі доступні варіанти' })).toBeVisible();
     await expect(page.getByText('Автобуси, таксі й громадський транспорт не підключені як реальні джерела.')).toBeVisible();
     const saved = await pool.query<{ owner_id: string; offer_id: string; journey_leg_id: string }>(

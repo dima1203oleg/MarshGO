@@ -1,5 +1,15 @@
 # MARSHGO Temporary Public Staging Report
 
+## Latest verification attempt — Journey rating serialization fix (2026-10-02)
+
+The public tunnel still serves Server `533f500bd9fa821d6b8aea7048037d4b7f897486` and Site `029aae486e164f02660c36130114527b19898001`. It remains reachable per the prior `/healthz` and `/readyz` check, but has **not** been redeployed with the new Server change.
+
+The local browser trace identified a Journey screen crash after ratings existed: `driver.averageRating` arrived as a PostgreSQL decimal string, and the UI called `.toFixed()`. The fix is committed/pushed in Server `5e8cc4ce4d5e58babcc306c1cf5173f1f4600ea1`; server unit/integration/type/lint checks pass. Umbrella E2E now asserts numeric-or-null rating DTO, both participant reviews, duplicate review rejection and reload persistence.
+
+Full Playwright against the old Server reproduced that bug (7 passed, Journey result failed). A full run against the fixed Server was attempted, but the host disk filled; Redis persistence entered read-only `MISCONF`, then API/Postgres connections failed during the multi-passenger test (3 passed, 2 failed from infrastructure/teardown, 3 did not run). The fixed end-to-end sequence is therefore **unverified**. Trace: `/Volumes/500/MarshGO-rating-dto-e2e/marketplace-Journey-Planne-b8988-ns-its-current-offer-detail/trace.zip`. It records `n.driver.averageRating?.toFixed is not a function` on the old API response.
+
+`STAGING_READY=NO`, `READY_FOR_SERVER_DEPLOYMENT=NO`, `PRODUCTION_READY=NO`. Existing `.release` materializations were left untouched. After disk recovery, rerun the complete E2E against the manifest-pinned Server, then deploy that exact SHA and repeat the Journey result check through the public tunnel.
+
 ## Latest candidate deployment — 2026-10-01
 
 **STAGING_URL:** `https://superblessed-herlinda-epiphragmal.ngrok-free.dev`

@@ -2,6 +2,13 @@
 
 This status records the tested candidate revisions and explicitly separates local/fixture checks from a real public production release. `DONE` means the stated software slice was verified; it does not imply the entire product is production-ready.
 
+## Latest delta — rating DTO failure fixed; full acceptance blocked by host storage (2026-10-02)
+
+- Canonical Server `5e8cc4ce4d5e58babcc306c1cf5173f1f4600ea1` converts PostgreSQL numeric average ratings to JSON numbers in Journey search responses (preserving `null` for unrated drivers). Before this fix, after the preceding browser flow created reviews, React called `.toFixed()` on the decimal string and crashed the Journey results screen. The trace from the failing full suite identifies the exact exception. Server typecheck and full lint pass; `npm test` is 51 passed / 0 failed / 2 opt-in integration skips; PostGIS/Redis `npm run test:integration` is 18/18.
+- Umbrella Playwright review-path assertions now cover passenger and driver reviews, duplicate rejection (409), and persistence after reload. The changed E2E source typechecks and full lint passes. Full E2E against old Server `533f500…` reproduced the rating crash after 7/8 tests; isolated rerun of Journey alone passed because it ran before reviews existed. The full E2E against fixed Server `5e8cc4…` could not complete: local disk exhaustion made Redis persistence read-only, terminated the API/Postgres test connection during multi-passenger test, and prevented remaining tests. It is **not** a passing regression run.
+- Server fix is pushed on its feature branch; umbrella E2E/manifest update is still local and uncommitted. The temporary public staging stack remains pinned to Server `533f500…`, so it does not yet contain the fix. Existing `.release` cache materializations were left untouched.
+- `STAGING_READY=NO`, `READY_FOR_SERVER_DEPLOYMENT=NO`, `PRODUCTION_READY=NO`. To finish browser verification, restore local disk headroom and rerun E2E using the updated release manifest; then deploy the pinned Server candidate to staging and recheck Journey search there.
+
 ## Current acceptance snapshot — 2026-10-02 00:01 Europe/Kyiv
 
 - Candidate refs: Server `533f500bd9fa821d6b8aea7048037d4b7f897486`, Site `029aae486e164f02660c36130114527b19898001`, iOS `1f08e73e351ed0e7e7d4c522b47c0ed5cb06e8a0`, integration E2E `a76fe47c83f67b6f4ac6027599fae75e5016bff5`. The umbrella E2E change is pushed; CI is running. Exact refs and open PR reconciliation are in `docs/REPOSITORY_STATE_FINAL.md`.
