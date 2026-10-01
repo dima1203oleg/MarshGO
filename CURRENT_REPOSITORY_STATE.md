@@ -19,7 +19,7 @@ Repository heads and open PRs were re-read from GitHub. The four canonical workt
 
 ## Staging refs
 
-- Current temporary URL: https://e8672109d3f307.lhr.life (anonymous localhost.run tunnel; hostname may rotate). Edge `/healthz`, API `/readyz`, and Chromium home/staging banner verified at 2026-10-01 16:23 Europe/Kyiv.
+- Current temporary URL: https://7c648c22161b2f.lhr.life (anonymous localhost.run tunnel; hostname may rotate). Edge `/healthz`, API `/readyz`, and Chromium home/staging banner verified at 2026-10-01 16:37 Europe/Kyiv.
 - Deployed Server: `237d14f1b3e4d69936433f46f290d1cd4b920d9d`; current source candidate `23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46` supports up to 30 ordered navigation stops.
 - Deployed Site: `79222d65beecb8bba5d234acfab47bb34070453e`; current deployed/source candidate `a9b4b7e4f156f72aa3a9dd10edca57f3a1a42df6` adds an 8-second session restore deadline. The current staging edge serves this production build.
 - iOS is not deployed to web staging; current main SHA is `b8b1fcbfe9997e1a7a27594b5759690147de75df`.

@@ -2,6 +2,9 @@
 
 ## Evidence basis
 
+- Latest staging reconnect (2026-10-01 16:37 Europe/Kyiv): `https://7c648c22161b2f.lhr.life` served Site `a9b4b7e4f156f72aa3a9dd10edca57f3a1a42df6` and Server `237d14f1b3e4d69936433f46f290d1cd4b920d9d`; Chromium showed the home page and staging/test-only banner; `/healthz` and `/readyz` returned 200 with Postgres and Redis connected. Anonymous tunnel is ephemeral; `STAGING_READY=NO` until the paired product flows pass.
+- Latest iPhone 15 Pro Max Simulator build used exact Site `a9b4b7e4f156f72aa3a9dd10edca57f3a1a42df6`; build/install/launch succeeded. The 20-second screenshot was blank, then onboarding rendered after a long cold start. Latest WebKit log window contained no unresponsive event. Cold-start performance and authenticated flow remain partial.
+
 - Latest staging recheck (2026-10-01 16:23 Europe/Kyiv): `https://e8672109d3f307.lhr.life` served the production-built Site `a9b4b7e4f156f72aa3a9dd10edca57f3a1a42df6` with the explicit test-only banner; `/healthz` and `/readyz` returned 200 with PostgreSQL and Redis connected. Chromium rendered the home page. The temporary tunnel rotates/expires. Full paired booking acceptance remains incomplete; `STAGING_READY=NO`.
 - iPhone 15 Pro Max Simulator build/install/launch passed against staging. First render remained blank through the scripted settle while WebKit logged an unresponsive page; onboarding rendered only after a long cold start. The screenshot is in `.release/staging-ios-current-iphone15pm.png`. Marked PARTIAL; no authenticated or physical-device flow.
 
