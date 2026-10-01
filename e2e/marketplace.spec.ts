@@ -25,6 +25,7 @@ const navigationFlowDriverPhone = `+38069${String(Date.now() + 5).slice(-7)}`;
 const journeyPassengerPhone = `+38070${String(Date.now() + 6).slice(-7)}`;
 const searchRestorePhone = `+38071${String(Date.now() + 7).slice(-7)}`;
 const gpsDeniedPhone = `+38072${String(Date.now() + 8).slice(-7)}`;
+const navigationThirdPassengerPhone = `+38073${String(Date.now() + 9).slice(-7)}`;
 const navigationFlowVehicleId = randomUUID();
 let navigationFlowDemandId = '';
 
@@ -120,7 +121,7 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
-  const testUsers = await pool.query<{ id: string }>('SELECT id FROM users WHERE phone_e164=ANY($1::text[])', [[passengerPhone, navigationPhone, navigationSecondPhone, navigationPassengerPhone, navigationFlowDriverPhone, journeyPassengerPhone, searchRestorePhone, gpsDeniedPhone]]);
+  const testUsers = await pool.query<{ id: string }>('SELECT id FROM users WHERE phone_e164=ANY($1::text[])', [[passengerPhone, navigationPhone, navigationSecondPhone, navigationPassengerPhone, navigationFlowDriverPhone, journeyPassengerPhone, searchRestorePhone, gpsDeniedPhone, navigationThirdPassengerPhone]]);
   const userIds = [driverId, ...testUsers.rows.map((row) => row.id)];
   const testBookingQuery = `SELECT b.id FROM bookings b JOIN offers o ON o.id=b.offer_id WHERE b.passenger_id=ANY($1::uuid[]) OR o.driver_id=ANY($1::uuid[])`;
   await pool.query('DELETE FROM audit_events WHERE actor_id=ANY($1::uuid[]) OR entity_id=ANY($2::uuid[])', [userIds, [offerId, vehicleId]]);
@@ -133,7 +134,7 @@ test.afterAll(async () => {
   await pool.query('DELETE FROM navigation_sessions WHERE driver_id=ANY($1::uuid[])', [userIds]);
   await pool.query('DELETE FROM passenger_demands WHERE passenger_id=ANY($1::uuid[])', [userIds]);
   await pool.query('DELETE FROM offers WHERE id=$1 OR driver_id=ANY($2::uuid[])', [offerId, userIds]);
-  await pool.query('DELETE FROM otp_challenges WHERE phone_e164=ANY($1::text[])', [[driverPhone, passengerPhone, navigationPhone, navigationSecondPhone, navigationPassengerPhone, navigationFlowDriverPhone, journeyPassengerPhone, searchRestorePhone, gpsDeniedPhone]]);
+  await pool.query('DELETE FROM otp_challenges WHERE phone_e164=ANY($1::text[])', [[driverPhone, passengerPhone, navigationPhone, navigationSecondPhone, navigationPassengerPhone, navigationFlowDriverPhone, journeyPassengerPhone, searchRestorePhone, gpsDeniedPhone, navigationThirdPassengerPhone]]);
   await pool.query('DELETE FROM sessions WHERE user_id=ANY($1::uuid[])', [userIds]);
   await pool.query('DELETE FROM account_deletion_requests WHERE user_id=ANY($1::uuid[])', [userIds]);
   await pool.query('DELETE FROM vehicles WHERE id=$1 OR owner_id=ANY($2::uuid[])', [vehicleId, userIds]);
@@ -490,21 +491,24 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
   }
 });
 
-test('two accounts accept a route match, insert pickup stops, and reroute after real browser GPS deviation', async ({ browser, baseURL }) => {
-  test.setTimeout(120_000);
+test('driver safely matches two independent riders, inserts ordered stops, and reroutes after browser GPS deviation', async ({ browser, baseURL }) => {
+  test.setTimeout(180_000);
   expect(baseURL).toBeTruthy();
   const driverContext = await browser.newContext({
     ...devices['iPhone 16 Pro Max'], baseURL, timezoneId: 'Europe/Kyiv',
     geolocation: { latitude: 49.2567, longitude: 23.8561, accuracy: 8 }, permissions: ['geolocation'],
   });
   const passengerContext = await browser.newContext({ baseURL, timezoneId: 'Europe/Kyiv' });
+  const secondPassengerContext = await browser.newContext({ baseURL, timezoneId: 'Europe/Kyiv' });
   const driverPage = await driverContext.newPage();
   const passengerPage = await passengerContext.newPage();
+  const secondPassengerPage = await secondPassengerContext.newPage();
   let navigationSessionId = '';
   let driverAccessToken = '';
   try {
     driverAccessToken = await signIn(driverPage, 'Navigation Driver', navigationFlowDriverPhone);
     let passengerToken = await signIn(passengerPage, 'Navigation Passenger', navigationPassengerPhone);
+    const secondPassengerToken = await signIn(secondPassengerPage, 'Navigation Passenger Two', navigationThirdPassengerPhone);
     const enableDriverRole = await driverPage.evaluate(async token => fetch('/api/v1/users/me/roles', {
       method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ role: 'driver' }),
     }).then(response => response.status), driverAccessToken);
@@ -709,10 +713,107 @@ test('two accounts accept a route match, insert pickup stops, and reroute after 
       'SELECT route_version FROM navigation_sessions WHERE id=$1', [navigationSessionId],
     ).then(result => result.rows[0]?.route_version ?? 0)).toBeGreaterThan(routeVersionBeforeDeviation);
     await test.info().attach('two-account-navigation-reroute-driver', { body: await driverPage.screenshot({ fullPage: true }), contentType: 'image/png' });
+
+    // A fresh demand later on the updated route must be matched only after the driver opts in again.
+    const postReroute = await driverPage.evaluate(async token => fetch('/api/v1/navigation/sessions/active', {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then(response => response.json()), driverAccessToken);
+    const postRerouteGeometry = postReroute.data.route as Array<[number, number]>;
+    const routeVersionBeforeSecondBooking = Number(postReroute.data.route_version);
+    expect(postRerouteGeometry.length).toBeGreaterThan(1);
+    const pickupIndex = Math.max(1, Math.min(postRerouteGeometry.length - 2, Math.floor(postRerouteGeometry.length * 0.68)));
+    const postRerouteStart = postRerouteGeometry[0];
+    const postRerouteEnd = postRerouteGeometry[postRerouteGeometry.length - 1];
+    const secondPickup = postRerouteGeometry.length > 2
+      ? postRerouteGeometry[pickupIndex]
+      : [postRerouteStart[0] + (postRerouteEnd[0] - postRerouteStart[0]) * 0.68, postRerouteStart[1] + (postRerouteEnd[1] - postRerouteStart[1]) * 0.68] as [number, number];
+    const secondDropoff = postRerouteEnd;
+    const secondDemand = await secondPassengerPage.evaluate(async ({ token, earliest, latest, pickup, dropoff }) => fetch('/api/v1/demands', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        originName: 'E2E Second Rider Pickup', destinationName: 'Львів', origin: pickup, destination: dropoff,
+        earliestDeparture: earliest, latestDeparture: latest, passengers: 1, budgetMinor: 24000,
+        budgetType: 'total_all', notes: 'Second rider in browser multi-passenger acceptance',
+      }),
+    }).then(async response => ({ status: response.status, body: await response.json() })), {
+      token: secondPassengerToken,
+      earliest: new Date(Date.now() + 15 * 60_000).toISOString(),
+      latest: new Date(Date.now() + 4 * 60 * 60_000).toISOString(),
+      pickup: secondPickup,
+      dropoff: secondDropoff,
+    });
+    expect(secondDemand.status).toBe(201);
+    const secondDemandId = secondDemand.body.data.id as string;
+    const matchingSwitch = driverPage.getByRole('switch', { name: 'Пошук попутників уздовж маршруту' });
+    await expect(matchingSwitch).toHaveAttribute('aria-checked', 'false');
+    await matchingSwitch.click();
+    await expect(matchingSwitch).toHaveAttribute('aria-checked', 'true');
+    const secondCandidateCard = driverPage.locator('article').filter({ hasText: 'E2E Second Rider Pickup' }).first();
+    await expect(secondCandidateCard).toBeVisible({ timeout: 20_000 });
+    await driverPage.getByRole('button', { name: 'Зупиніться та призупиніть навігацію, щоб відповісти' }).first().click();
+    await expect.poll(async () => pool.query<{ state: string }>(
+      'SELECT state FROM navigation_sessions WHERE id=$1', [navigationSessionId],
+    ).then(result => result.rows[0]?.state)).toBe('paused');
+    const secondInterestResponse = driverPage.waitForResponse(response => response.url().match(/\/matches\/[0-9a-f-]+\/interest$/)?.[0] !== undefined);
+    await secondCandidateCard.getByRole('button', { name: 'Підтвердити інтерес водія' }).click();
+    expect((await secondInterestResponse).status()).toBe(200);
+
+    await secondPassengerPage.getByRole('button', { name: 'Створити' }).click();
+    await secondPassengerPage.getByRole('button', { name: /Шукаю поїздку/ }).click();
+    await secondPassengerPage.getByRole('button', { name: 'Мої заявки' }).click();
+    await secondPassengerPage.getByRole('button', { name: 'Оновити', exact: true }).click();
+    await expect(secondPassengerPage.getByRole('button', { name: 'Підтвердити взаємний інтерес' })).toBeVisible();
+    await secondPassengerPage.getByRole('button', { name: 'Підтвердити взаємний інтерес' }).click();
+    await expect(secondPassengerPage.getByRole('status')).toContainText('Взаємний інтерес підтверджено');
+
+    const secondProposalButton = secondCandidateCard.getByRole('button', { name: 'Відкрити заявку та запропонувати ціну' });
+    await expect(secondProposalButton).toBeVisible({ timeout: 15_000 });
+    await secondProposalButton.click();
+    await expect(driverPage.getByLabel('Ціна, грн')).toBeVisible();
+    const secondProposalResponse = driverPage.waitForResponse(response => response.url().endsWith(`/api/v1/demands/${secondDemandId}/proposals`) && response.request().method() === 'POST');
+    await driverPage.getByRole('button', { name: 'Надіслати пропозицію' }).click();
+    expect((await secondProposalResponse).status()).toBe(201);
+    await secondPassengerPage.getByTestId(`owned-demand-${secondDemandId}`).click();
+    await expect(secondPassengerPage.getByText('Переговори')).toBeVisible();
+    const secondBookingResponse = secondPassengerPage.waitForResponse(response => Boolean(response.url().match(/\/api\/v1\/proposals\/[0-9a-f-]+\/accept$/)) && response.request().method() === 'POST');
+    await secondPassengerPage.getByRole('button', { name: 'Підтвердити домовленість і бронювання' }).click();
+    const secondBookingResult = await secondBookingResponse;
+    expect(secondBookingResult.status()).toBe(201);
+    const secondBooking = (await secondBookingResult.json()).data as { id: string; offer_id: string; total_price_minor: number };
+    const multiPassengerState = await pool.query<{ booking_id: string; ordinal: number; kind: string; occupancy: number }>(
+      `WITH ordered AS (
+         SELECT booking_id,ordinal,kind,
+           sum(CASE kind WHEN 'pickup' THEN 1 WHEN 'dropoff' THEN -1 ELSE 0 END) OVER(ORDER BY ordinal) AS occupancy
+         FROM navigation_waypoints WHERE navigation_session_id=$1
+       ) SELECT booking_id,ordinal,kind,occupancy FROM ordered ORDER BY ordinal`, [navigationSessionId],
+    );
+    expect(multiPassengerState.rows).toHaveLength(4);
+    expect(new Set(multiPassengerState.rows.map(row => row.booking_id))).toEqual(new Set([acceptance.body.data.id, secondBooking.id]));
+    expect(Math.min(...multiPassengerState.rows.map(row => row.occupancy))).toBeGreaterThanOrEqual(0);
+    expect(Math.max(...multiPassengerState.rows.map(row => row.occupancy))).toBeLessThanOrEqual(4);
+    for (const id of [acceptance.body.data.id, secondBooking.id]) {
+      const orderedStops = multiPassengerState.rows.filter(row => row.booking_id === id);
+      expect(orderedStops.map(row => row.kind)).toEqual(['pickup', 'dropoff']);
+      expect(orderedStops[0].ordinal).toBeLessThan(orderedStops[1].ordinal);
+    }
+    await expect.poll(async () => pool.query<{ route_version: number; opt_in: boolean }>(
+      'SELECT route_version,opt_in FROM navigation_sessions WHERE id=$1', [navigationSessionId],
+    ).then(result => result.rows[0])).toMatchObject({ opt_in: false });
+    await expect.poll(async () => pool.query<{ route_version: number }>(
+      'SELECT route_version FROM navigation_sessions WHERE id=$1', [navigationSessionId],
+    ).then(result => result.rows[0]?.route_version ?? 0)).toBeGreaterThan(routeVersionBeforeSecondBooking);
+    await driverPage.getByRole('button', { name: 'Головна', exact: true }).last().click();
+    await driverPage.getByRole('button', { name: 'Почати навігацію' }).first().click();
+    const updatedRouteMap = driverPage.locator('[data-marshgo-map-renderer="maplibre"]');
+    await expect(updatedRouteMap.locator('.maplibregl-canvas')).toBeVisible();
+    await expect.poll(() => updatedRouteMap.getAttribute('data-marshgo-route-point-count')).toBeTruthy();
+    const routeScreenshot = await driverPage.screenshot({ path: '.release/staging-multipassenger-route.png', fullPage: true });
+    await test.info().attach('three-account-multi-passenger-route', { body: routeScreenshot, contentType: 'image/png' });
   } finally {
     if (navigationSessionId && driverAccessToken) await driverPage.evaluate(async ({ token, id }) => fetch(`/api/v1/navigation/sessions/${id}/end`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } }), { token: driverAccessToken, id: navigationSessionId }).catch(() => undefined);
     await driverContext.close();
     await passengerContext.close();
+    await secondPassengerContext.close();
   }
 });
 
