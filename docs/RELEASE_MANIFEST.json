@@ -10,18 +10,18 @@
   "integrationVerification": {
     "repository": "MarshGO",
     "branch": "codex/marshgo-production",
-    "commit": "1deae257e305d83604e85e512b07460f5025f02c",
+    "commit": "36082592d88068707bba2659a61dc96f92829901",
     "workingTreeClean": true
   },
   "repositories": {
     "umbrella": {
       "name": "dima1203oleg/MarshGO",
-      "commit": "1deae257e305d83604e85e512b07460f5025f02c",
+      "commit": "36082592d88068707bba2659a61dc96f92829901",
       "branch": "codex/marshgo-production"
     },
     "server": {
       "name": "dima1203oleg/MarshGO-Server",
-      "commit": "ca760526fad9dd7e1e0d9e7e4a07e59e67e42b3a",
+      "commit": "418b8213536f016f963c8119b29c6679464165cf",
       "branch": "main",
       "schemaVersion": 27,
       "sourceSyncedWithIntegrationServer": true

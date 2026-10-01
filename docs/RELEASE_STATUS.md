@@ -8,7 +8,7 @@
 
 | Repository | Local branch / commit | Working tree | Notes |
 |---|---|---|---|
-| MarshGO umbrella | `codex/marshgo-production` / `1deae257e305d83604e85e512b07460f5025f02c` | clean; local commits unpushed | Entity deep links, authorized lookup APIs and E2E regression coverage are committed. |
+| MarshGO umbrella | `codex/marshgo-production` / `36082592d88068707bba2659a61dc96f92829901` | clean; 8 commits ahead of remote | Entity deep links, authorized lookup APIs and cold-open/reload E2E coverage for booking, demand and conversation links are committed. |
 | MarshGO-Server | `main` / `418b8213536f016f963c8119b29c6679464165cf` | clean; 4 commits ahead of remote main | Adds authorized demand/conversation lookup endpoints and typed matched-demand reload integration coverage; migrations remain through `027`. |
 | MarshGO-Site | `main` / `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7` | clean; 4 commits ahead of remote main | Adds refresh-safe entity routes and reload restoration for offer, demand, booking, Journey and conversation views. |
 | MarshGO-iOS | `main` / `cb32564df286cdfd09e35d276e6857ae541277b4` | clean; local commits unpushed | Simulator bundle rebuilt from pinned Site `c7f76a4` and Server `ca76052`; metadata checked. API origin is loopback; signing/TestFlight and physical-device acceptance remain unavailable. |
