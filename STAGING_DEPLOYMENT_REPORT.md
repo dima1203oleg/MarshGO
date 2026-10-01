@@ -1,7 +1,7 @@
 # MARSHGO Temporary Public Staging Report
 
 **Checked:** 2026-10-01 (Europe/Kyiv)
-**STAGING_URL:** https://e212f8eb21d418.lhr.life
+**STAGING_URL:** https://e8a95b9e7976f6.lhr.life
 **STAGING_READY:** NO
 **READY_FOR_SERVER_DEPLOYMENT:** NO
 **PRODUCTION_READY:** NO
@@ -38,7 +38,8 @@ The locally materialized pinned Server and Site source trees contain untracked b
 | Driver navigation CTA copy | PASS | Updated production build now accurately says route matching requires driver consent and a verified vehicle; rebuilt bundle was served from staging over HTTPS. |
 | Driver vehicle form and private photo upload | PASS (test fixture only) | A clearly marked staging driver created a vehicle in the UI; a synthetic PNG passed the signed private S3 upload and was recorded as the primary photo in Postgres. Vehicle verification remains pending. |
 | Driver dashboard after login | PASS | Independent driver test account reached the production dashboard after OTP verification; server-backed offers, demands, vehicles and navigation-match reads returned successfully. The test vehicle is unverified, so publishing/matching acceptance remains blocked by the real verification flow. |
-| Moderator authentication | PASS (screen incomplete) | Moderator test account authenticated and read protected account/booking APIs. The admin verification decision flow was not completed through the UI. |
+| Moderator authentication | PASS | Moderator test account authenticated and opened the admin verification screen through the direct URL. |
+| Verification submission/review queue | PASS (decision incomplete) | Driver UI uploaded two clearly synthetic test documents to private storage and left both records pending; moderator refreshed the protected queue and saw both entries. The test documents were not approved. |
 | Login with development OTP | PASS | Separate Chromium contexts authenticated the staging driver and moderator test identities through the visible OTP flow; all post-login API reads returned 200. OTP values were not retained in output. |
 | Passenger demand creation | PASS | UI published Стрий → Львів, 2 passengers, 300 UAH total. |
 | API restart recovery | PASS | After API restart, browser reauthenticated and demand persisted in “Мої заявки”; the direct /demands/mine URL also survived reload. |
@@ -94,4 +95,4 @@ Trace archives can include staging authentication/session context. Keep them pri
 5. Replace S3Mock and public test geocoder/routing/map endpoints with configured production-grade services for production.
 6. Real SMS, domain/TLS, production server, push, payments/commercial partners and physical iPhone acceptance remain external release gates.
 
-The local staging stack and a renewed tunnel are left running. The current URL is `https://e212f8eb21d418.lhr.life`; localhost.run may rotate it when the tunnel reconnects. The replacement URL was checked over HTTPS after renewal, returned the staging app in a visible browser, and both health/readiness returned 200. The URL remains valid only while those processes and this host stay available.
+The local staging stack and a renewed tunnel are left running. The current URL is `https://e8a95b9e7976f6.lhr.life`; localhost.run may rotate it when the tunnel reconnects. The replacement URL was checked over HTTPS after renewal, returned the staging app in a visible browser, and both health/readiness returned 200. The URL remains valid only while those processes and this host stay available.
