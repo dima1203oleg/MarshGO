@@ -2,7 +2,7 @@
 
 **As of:** 2026-10-01 (Europe/Kyiv)
 **Overall release decision:** `READY_FOR_SERVER_DEPLOYMENT=NO` · `PRODUCTION_READY=NO`
-**Staging:** temporary HTTPS URL `https://b017cccb204056.lhr.life` currently returns the test-only landing page and HTTP 200 at `/readyz`; the public Chromium login/search checks passed on its immediately preceding tunnel hostname. `STAGING_READY=NO` because the full two-sided product acceptance did not pass. See the current verification addendum below; older snapshots in this report are historical.
+**Staging:** temporary HTTPS URL `https://d399d7d0ed6b9b.lhr.life` currently serves the test-only landing page; Chromium rendered the staging banner, browser console had no errors, and `/healthz` plus `/readyz` returned HTTP 200 with PostgreSQL and Redis connected. The full two-sided product acceptance did not pass, so `STAGING_READY=NO`. See the latest verification addendum; older snapshots in this report are historical.
 
 The percentages below are engineering estimates across the requested capability groups. They are progress indicators only; a partial item is not a release pass and percentages do not override the release gates.
 
