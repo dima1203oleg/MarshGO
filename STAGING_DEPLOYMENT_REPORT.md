@@ -1,8 +1,8 @@
 # MARSHGO Temporary Public Staging Report
 
 **Checked:** 2026-10-01 (Europe/Kyiv)
-**STAGING_URL:** https://deb6a9ad4ae4c7.lhr.life
-**STAGING_READY:** NO
+**STAGING_URL:** https://96864e178d25ea.lhr.life
+**STAGING_READY:** NO (public smoke verified; paired-user acceptance remains incomplete)
 **READY_FOR_SERVER_DEPLOYMENT:** NO
 **PRODUCTION_READY:** NO
 
@@ -29,6 +29,12 @@
 The active processes run from exact standalone worktrees at the Server and Site SHAs listed above. Their generated build output and local-only staging `.env` are ignored and are not committed. The source revisions themselves are committed and pushed on their respective feature branches.
 
 ## Verification
+
+| Current tunnel refresh (2026-10-01 10:36 Europe/Kyiv) | Result | Evidence |
+|---|---|---|
+| Public homepage / responsive views | PASS with expected unauthenticated API responses | Chromium opened the current HTTPS URL at 1440×900 and 390×844; both returned 200, rendered the staging banner and app title. Six direct routes (`/search`, `/trips`, `/navigation`, `/profile`, `/notifications`, `/admin/verification`) returned successful SPA responses at each viewport. Screenshots: `.release/staging-public-desktop.png`, `.release/staging-public-mobile.png`. |
+| Public readiness | PASS | `/healthz` returned `staging-edge-ok`; `/readyz` returned ready with database and realtime connected. |
+| Console/network | PARTIAL | No first-party request transport failures or page exceptions. Eleven 401 console resource errors were observed across anonymous protected-route probes; they are expected unauthenticated API responses, but the current anonymous sweep is not a clean-console acceptance. |
 
 | Check | Result | Evidence |
 |---|---|---|
@@ -99,6 +105,8 @@ Local, ignored artifacts (not committed or publicly linked):
 - .release/staging-current-login.png (previous headed Chromium test OTP login)
 - .release/staging-3b9af2b-desktop.png (latest public Site SHA 3b9af2b, Chromium, 1440×900)
 - .release/staging-3b9af2b-mobile.png (latest public Site SHA 3b9af2b, Chromium, 390×844)
+- .release/staging-public-desktop.png (refreshed public tunnel, Chromium, 1440×900)
+- .release/staging-public-mobile.png (refreshed public tunnel, Chromium, 390×844)
 - .release/staging-current-routes.trace.zip (direct `/`, `/navigation`, `/admin/verification` opens; unauthenticated trace)
 - .release/staging-ios-simulator.png (iPhone 16 Pro Max Simulator onboarding render; not a physical-device artifact)
 - .release/staging-map-desktop.png
@@ -118,4 +126,4 @@ Trace archives can include staging authentication/session context. Keep them pri
 5. Replace S3Mock and public test geocoder/routing/map endpoints with configured production-grade services for production.
 6. Real SMS, domain/TLS, production server, push, payments/commercial partners and physical iPhone acceptance remain external release gates.
 
-The local staging stack and renewed tunnel are left running. The current URL is `https://deb6a9ad4ae4c7.lhr.life`; localhost.run may rotate it when the tunnel reconnects. This URL serves Site SHA `3b9af2b61b093152d451271e398920e679cf4276` and Server SHA `54ed3c85fd79807a7d7d0b539a587fffca259487`. The public homepage and health/readiness endpoints returned 200 and the staging banner rendered in the browser. The URL remains valid only while the host processes and this machine stay available.
+The local staging stack and renewed tunnel are left running. The current URL is `https://96864e178d25ea.lhr.life`; localhost.run may rotate it when the tunnel reconnects. This URL serves Site SHA `3b9af2b61b093152d451271e398920e679cf4276` and Server SHA `54ed3c85fd79807a7d7d0b539a587fffca259487`. The public homepage and health/readiness endpoints returned 200 and the staging banner rendered in the browser. The URL remains valid only while the host processes and this machine stay available.

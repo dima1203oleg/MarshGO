@@ -30,17 +30,19 @@
     "ios_simulator": "PASS; Debug built, installed, launched and screenshot visually inspected on iPhone 16 Pro Max Simulator (iOS 27.0); not a physical-device acceptance",
     "physical_iphone": "BLOCKED_EXTERNAL",
     "staging_site_bundle": "PASS; immutable Site SHA 3b9af2b61b093152d451271e398920e679cf4276 built and served by public temporary HTTPS; Chromium desktop/mobile homepage and health/readiness smoke verified",
-    "integration_suite": "PASS; 17/17 PostGIS/Redis integration tests"
+    "integration_suite": "PASS; 17/17 PostGIS/Redis integration tests",
+    "public_staging_browser_refresh": "PASS with limitations; Chromium desktop 1440x900 and mobile 390x844 homepage plus six direct SPA routes; health/readiness PASS; 11 expected anonymous API 401 console resource errors, 0 page exceptions and 0 failed first-party transports"
   },
   "note": "Top-level Server/Site SHAs identify canonical main release baselines; staging contains explicit immutable PR-branch SHAs. integration_sha identifies the verified integration code baseline before this manifest metadata-only commit. This manifest is not a deployment authorization.",
   "staging": {
-    "url": "https://deb6a9ad4ae4c7.lhr.life",
+    "url": "https://96864e178d25ea.lhr.life",
     "provider": "local Docker stack via anonymous localhost.run HTTPS tunnel",
     "web_sha": "3b9af2b61b093152d451271e398920e679cf4276",
     "server_sha": "54ed3c85fd79807a7d7d0b539a587fffca259487",
     "integration_sha": "92f10ccb05ae118cbead9092c09c06e7386e4237",
     "ready": false,
     "production_ready": false,
-    "report": "STAGING_DEPLOYMENT_REPORT.md"
+    "report": "STAGING_DEPLOYMENT_REPORT.md",
+    "tunnel_refreshed_at": "2026-10-01T10:36:00+03:00"
   }
 }
