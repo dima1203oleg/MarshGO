@@ -2,13 +2,17 @@
 
 This status records the tested candidate revisions and explicitly separates local/fixture checks from a real public production release. `DONE` means the stated software slice was verified; it does not imply the entire product is production-ready.
 
-## Current acceptance snapshot — 2026-10-01 20:30 Europe/Kyiv
+## Current acceptance snapshot — 2026-10-02 00:01 Europe/Kyiv
 
-- Candidate refs: Server `533f500bd9fa821d6b8aea7048037d4b7f897486`, Site `029aae486e164f02660c36130114527b19898001`, iOS `1f08e73e351ed0e7e7d4c522b47c0ed5cb06e8a0`, integration E2E baseline `1afb04307c7d6ae619dfe8598dfc829169e73a71`. Workspace worktrees are clean; exact refs and open PR reconciliation are in `docs/REPOSITORY_STATE_FINAL.md`.
-- Local checks: production suite **79 passed / 0 failed / 1 opt-in skip**; browser E2E **8/8**; Chromium/Firefox/WebKit **3/3**; Server PostGIS/Redis integration **18/18**. Server and Site PR Verify checks pass. Umbrella CI run `36921463808` passed on the same test/code baseline; the later report-only commit's CI is still running.
+- Candidate refs: Server `533f500bd9fa821d6b8aea7048037d4b7f897486`, Site `029aae486e164f02660c36130114527b19898001`, iOS `1f08e73e351ed0e7e7d4c522b47c0ed5cb06e8a0`, integration E2E `a76fe47c83f67b6f4ac6027599fae75e5016bff5`. The umbrella E2E change is pushed; CI is running. Exact refs and open PR reconciliation are in `docs/REPOSITORY_STATE_FINAL.md`.
+- Local checks on the candidate pair: `npm run check:production` **79 passed / 0 failed / 1 opt-in skip**; production browser E2E **8/8**; focused two-rider scenario **1/1**; Chromium/Firefox/WebKit compatibility **3/3**; Server PostGIS/Redis integration **18/18**. Typecheck and repository-wide lint pass. GitHub CI/Security runs `36925456845`, `36925456827`, and `36925449186` were in progress at report time.
 - Public staging: `https://superblessed-herlinda-epiphragmal.ngrok-free.dev`; `/healthz` and `/readyz` return 200, DB/realtime connected; the served Site JS SHA-256 matches the candidate production bundle. Public Chromium verified the staging banner and direct search URL reload with an honest zero-offer state.
 - iOS: current pinned Site/Server candidate compiled, synced, installed and launched on iPhone 16 Pro Max Simulator; screenshot `.release/staging-ios-current-029aae4-iphone16pm.png` shows onboarding only.
 - `STAGING_READY=NO`, `READY_FOR_SERVER_DEPLOYMENT=NO`, `PRODUCTION_READY=NO`. Public paired lifecycle, app-map tile/polyline/live-GPS acceptance, authenticated iOS flow, physical iPhone, production host/domain/SMS and provider credentials remain unaccepted or external.
+
+## Latest browser flow — multi-passenger navigation
+
+Umbrella commit `a76fe47c83f67b6f4ac6027599fae75e5016bff5` adds a third independent browser account to the navigation acceptance flow. Driver matching is opted back in after the first rider, the second rider gives explicit consent, price is negotiated in the two user interfaces, and the second booking inserts pickup/dropoff stops. Database assertions verify both bookings have pickup before dropoff, segment occupancy stays within the 4-seat vehicle, and the route version advances; the driver then reloads navigation and the MapLibre route renderer is visible. Production-build E2E is 8/8, the focused flow rerun is 1/1, `check:production` is 79/0/1 opt-in skip, and browser compatibility is 3/3. Screenshot: `.release/staging-multipassenger-route.png` (local deterministic map fixture, not production tiles). A trace-enabled rerun failed while writing its trace because the host disk was full; the focused test passed on immediate retry without trace capture. Public paired-user acceptance remains incomplete; readiness stays NO.
 
 ## Historical delta — navigation GPS failure recovery
 

@@ -8,6 +8,10 @@
 
 **Site SHA:** `029aae486e164f02660c36130114527b19898001`
 
+### Local browser acceptance delta — multi-passenger route
+
+Against the immutable candidate pair above, the production-build Playwright suite passes **8/8**, with Chromium/Firefox/WebKit responsive checks **3/3**. The navigation scenario now uses independent driver and two passenger contexts: both riders complete consent and price agreement, create bookings, and add ordered pickup/dropoff stops. DB assertions verify seat occupancy never exceeds four and the route version increments; reopening navigation renders the updated MapLibre route. Focused rerun: **1/1**. Screenshot: `.release/staging-multipassenger-route.png` (local deterministic map fixture; not real tiles and not a public-staging capture). `npm run check:production`: **79 passed / 0 failed / 1 opt-in integration skip**. Typecheck and full lint pass. A trace-enabled rerun failed while copying large trace-network artifacts (`ENOSPC`); the focused test passed when rerun without trace. Public paired-user lifecycle and real app-map tile/GPS acceptance remain unverified. The host has about 770 MB free; generated pinned `.release` materializations were not removed.
+
 The earlier GPS-recovery snapshot below is historical. The current served JavaScript hash, readiness response, exact revisions, browser check and test results are recorded under “Latest verified deployment — paginated chat and restored tunnel.” Public map tile/route-overlay acceptance remains unverified.
 
 **Provider:** local isolated Postgres/PostGIS, Redis, S3Mock and static Site, exposed by the temporary ngrok HTTPS tunnel

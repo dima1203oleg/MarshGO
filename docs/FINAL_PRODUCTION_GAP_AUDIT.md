@@ -1,5 +1,9 @@
 # Final production gap audit — 2026-10-01
 
+## Latest verified delta — browser multi-passenger navigation (2026-10-02)
+
+Umbrella commit `a76fe47c83f67b6f4ac6027599fae75e5016bff5` extends the production-build Playwright navigation flow to three independent users: one driver and two passengers. Both riders complete demand → driver interest → passenger confirmation → price proposal → booking via browser UI. Database checks assert ordered pickup/dropoff stops for both bookings, segment occupancy within the four-seat vehicle, and route-version advancement; re-entering navigation renders the updated MapLibre route. `npm run test:e2e` passes 8/8, the focused multi-passenger flow passes 1/1, `npm run test:browser-compat` passes Chromium/Firefox/WebKit 3/3, `npm run check:production` passes 79/0 with 1 opt-in integration skip, and typecheck/repository-wide lint pass. Screenshot `.release/staging-multipassenger-route.png` uses the deterministic local map fixture. A trace-enabled rerun hit `ENOSPC` while Playwright copied trace network artifacts; a non-trace focused retry passed. The host has under 1 GB free, mostly due to pinned generated `.release` materializations; no generated checkout was deleted. This does not establish real public map tiles, public paired-user acceptance, or production readiness. `STAGING_READY=NO`, `READY_FOR_SERVER_DEPLOYMENT=NO`, `PRODUCTION_READY=NO`.
+
 ## Latest verified delta — chat pagination and staging bundle identity (2026-10-01)
 
 Server `533f500bd9fa821d6b8aea7048037d4b7f897486` and Site `029aae486e164f02660c36130114527b19898001` close older-message retrieval with authorized cursor pagination and explicit response metadata. Local Playwright verifies a 55-message history across two pages, no duplicate messages, and an independent-user chat flow. Fresh browser suite: E2E 8/8; Chromium/Firefox/WebKit compatibility 3/3. Server and Site PR Verify runs pass.
