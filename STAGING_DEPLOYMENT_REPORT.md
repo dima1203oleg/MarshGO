@@ -1,20 +1,20 @@
 # MARSHGO Temporary Public Staging Report
 
-**Checked:** 2026-10-01 15:31 Europe/Kyiv
-**STAGING_URL:** https://d399d7d0ed6b9b.lhr.life
+**Checked:** 2026-10-01 15:44 Europe/Kyiv
+**STAGING_URL:** https://7ebc6d14f05d36.lhr.life
 **STAGING_READY:** NO (public reachability and review UI slices verified; complete paired-user acceptance remains incomplete)
 **READY_FOR_SERVER_DEPLOYMENT:** NO
 **PRODUCTION_READY:** NO
 
 **Credential hygiene note:** A diagnostic process-environment inspection showed unrelated AI provider API keys inherited by the prior edge process. The edge did not use those keys for MARSHGO, but the diagnostic output included them. That process was stopped and the staging edge relaunched using an empty environment with only the staging Site/API/S3 port and path settings. See `OWNER_ACTIONS_REQUIRED.md`; if those were live keys, rotate them. No production SMS/payment/provider secret is configured in the current staging processes.
 
-**Latest reconnect:** 2026-10-01, temporary URL `https://d399d7d0ed6b9b.lhr.life`. localhost.run rotates hostnames; old URLs can return 503 after reconnect. The public edge proxies the production-built canonical Site and current Server PR head; `/healthz` and `/readyz` returned 200. Passenger review submission and reload persistence passed in visible Chromium on the public URL. A second OTP attempt for the seeded driver hit the shared public staging OTP rate limit. To complete the other participant's UI check without resetting the shared OTP bucket, the same production-built Site and the same staging PostgreSQL/Redis/S3Mock services were accessed through a temporary local edge/API process with an isolated staging-only rate-limit namespace. The driver submitted a 5-star review and saw the persisted reviewed state after reload. Both reviews were on a deliberately seeded completed test booking; this is review UI/state evidence, not acceptance of the real booking-to-completion lifecycle.
+**Latest reconnect:** 2026-10-01, temporary URL `https://7ebc6d14f05d36.lhr.life`. localhost.run rotates hostnames; old URLs can return 503 after reconnect. The public edge proxies the production-built canonical Site and current Server PR head; `/healthz` and `/readyz` returned 200. Passenger review submission and reload persistence passed in visible Chromium on the public URL. A second OTP attempt for the seeded driver hit the shared public staging OTP rate limit. To complete the other participant's UI check without resetting the shared OTP bucket, the same production-built Site and the same staging PostgreSQL/Redis/S3Mock services were accessed through a temporary local edge/API process with an isolated staging-only rate-limit namespace. The driver submitted a 5-star review and saw the persisted reviewed state after reload. Both reviews were on a deliberately seeded completed test booking; this is review UI/state evidence, not acceptance of the real booking-to-completion lifecycle.
 
 ## Latest delta acceptance — review flow
 
 | Check | Result | Evidence / limits |
 |---|---|---|
-| Current staging deployment | PASS | `https://d399d7d0ed6b9b.lhr.life`; `/healthz` and `/readyz` returned 200 with Postgres and Redis connected. |
+| Current staging deployment | PASS | `https://7ebc6d14f05d36.lhr.life`; `/healthz` and `/readyz` returned 200 with Postgres and Redis connected. |
 | Renewed tunnel browser smoke | PASS | Current hostname was opened in Chromium; the MARSHGO landing page and explicit staging/test-data banner rendered. Browser reported no console errors on this page. Tunnel URL is temporary and may rotate again. |
 | Current source revisions | PASS | Server `237d14f1b3e4d69936433f46f290d1cd4b920d9d`; Site `79222d65beecb8bba5d234acfab47bb34070453e`. The public edge now points at these candidate builds. |
 | Canonical Site production build | PASS | `npm run build` on Site `79222d6`; Vite transformed 1,787 modules and emitted the production bundle. A targeted scan of `dist` found none of the known demo inventory markers (Uklon/INFOBUS/Getmancar demo labels or hardcoded `conv_dmd_01`). This targeted scan does not replace a full source audit. |

@@ -1,4 +1,4 @@
-# Current MARSHGO repository state — 2026-10-01 15:31 Europe/Kyiv
+# Current MARSHGO repository state — 2026-10-01 15:44 Europe/Kyiv
 
 Repository heads and open PRs were re-read from GitHub. The four canonical worktrees are clean and match their remote branches. Open PR branches remain separate candidates; no divergent PR was merged wholesale.
 
@@ -19,7 +19,7 @@ Repository heads and open PRs were re-read from GitHub. The four canonical workt
 
 ## Staging refs
 
-- Current temporary URL: https://d399d7d0ed6b9b.lhr.life (anonymous localhost.run tunnel; hostname may rotate).
+- Current temporary URL: https://7ebc6d14f05d36.lhr.life (anonymous localhost.run tunnel; hostname may rotate).
 - Deployed Server: `237d14f1b3e4d69936433f46f290d1cd4b920d9d`.
 - Deployed Site: `79222d65beecb8bba5d234acfab47bb34070453e`.
 - iOS is not deployed to web staging; current main SHA is `b8b1fcbfe9997e1a7a27594b5759690147de75df`.
