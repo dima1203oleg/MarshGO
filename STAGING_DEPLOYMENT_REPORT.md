@@ -6,7 +6,7 @@
 **READY_FOR_SERVER_DEPLOYMENT:** NO
 **PRODUCTION_READY:** NO
 
-**Latest local production-browser rerun:** 2026-10-01, product code SHA `cf9da4f6f4e4e0e22417da090d2bd9d8bf83cb3e` (current umbrella HEAD `4fed349bd554e954e802eb2d58c315fddf2d4195` contains documentation-only updates); `npm run test:e2e` PASS, 6/6 (Chromium, production Vite bundle, isolated local PostGIS/Redis). Latest umbrella CI/Security runs for the report commit passed (36846173057, 36846172967).
+**Latest local production-browser rerun:** 2026-10-01, product code SHA `cf9da4f6f4e4e0e22417da090d2bd9d8bf83cb3e` (current umbrella HEAD `37e398da77096366971920dca2b16d6ead12c9f6` contains documentation-only updates); `npm run test:e2e` PASS, 6/6 (Chromium, production Vite bundle, isolated local PostGIS/Redis). Current HEAD CI/Security is running; prior report-only HEAD `4fed349bd554e954e802eb2d58c315fddf2d4195` passed CI/Security (36846173057, 36846172967).
 
 ## Deployment
 
@@ -26,7 +26,7 @@
 | MarshGO-Site | 26b32c9f9c351c4a52c188b16ecc55b1aa483392 | Deployed from `codex/navigation-deep-link-alias` PR #2 head (main baseline remains `c7f76a4…`) |
 | MarshGO-iOS | b8b1fcbfe9997e1a7a27594b5759690147de75df | Not deployed to web staging |
 | MarshGO integration baseline | cf9da4f6f4e4e0e22417da090d2bd9d8bf83cb3e | Verified integration code; current docs record the deployed standalone pair |
-| Umbrella deployment/orchestration branch | bca2c9297a313a40f9804411e47c74f6c5f579c0 | `codex/marshgo-production`; report/manifest metadata at current branch head |
+| Umbrella deployment/orchestration branch | 37e398da77096366971920dca2b16d6ead12c9f6 | `codex/marshgo-production`; deployment code SHA `92f10ccb05ae118cbead9092c09c06e7386e4237`, current reports at branch head |
 
 The active processes run from exact standalone worktrees at the Server and Site SHAs listed above. Their generated build output and local-only staging `.env` are ignored and are not committed. The source revisions themselves are committed and pushed on their respective feature branches.
 
@@ -59,13 +59,14 @@ The active processes run from exact standalone worktrees at the Server and Site 
 | Authenticated direct profile URL / session restore | PASS | A fresh visible browser tab opened `/profile`; after the protected-session restoration state, it displayed the authenticated profile, JSON export/delete request controls, empty vehicle garage, and driver-role action. This is one browser account, not a two-user product acceptance. |
 | Direct `/navigation` in isolated unauthenticated tab | PASS / AUTH FLOW | A new browser tab opened the direct URL and received the welcome/sign-in view while retaining `/navigation`. Authenticated driver navigation and map/GPS behavior were not exercised in this check. |
 | Candidate unread API anonymous probe | RATE LIMITED | An unauthenticated request returned 429 after repeated staging probes. This does not verify participant authorization or the unread/read UI flow; candidate pair E2E remains local-only evidence. |
+| Staging Redis restart (2026-10-01 13:11 Europe/Kyiv) | PARTIAL PASS | Restarted isolated `marshgo-staging-redis-1`; API readiness recovered with PostgreSQL and realtime connected. The staging API rate-limit counter remained present across Redis process restart because the named Redis volume persists, so a retry during the active 15-minute window remained rate-limited. No Redis data volume was deleted or reset. |
 
 | Latest Playwright public route matrix (2026-10-01 12:58 Europe/Kyiv) | Result | Evidence |
 |---|---|---|
 | Direct route delivery | PASS | Chromium opened `/`, `/search`, `/journeys/search`, `/profile`, `/trips`, `/navigation`, `/notifications`, and `/admin/verification` at desktop 1440×900 and mobile 390×844. All 16 responses returned HTTP 200, correct MARSHGO title, and staging banner. This verifies SPA delivery/render shell, not route authorization or entity-level functionality. |
 | Responsive landing view | PASS (visual smoke) | Screenshots `.release/staging-candidate-desktop.png` (1440×900) and `.release/staging-candidate-mobile.png` (390×844) were visually inspected. No horizontal overflow or clipped primary CTAs were visible. |
 | Browser runtime/network | PASS with expected protected-session responses | Playwright recorded 0 uncaught page errors and 0 failed requests. It recorded 16 console resource errors for expected unauthenticated HTTP 401 session refreshes (one per direct route per viewport); this is not a clean-console pass. |
-| Browser traces / machine-readable results | SAVED | `.release/staging-candidate-desktop.trace.zip`, `.release/staging-candidate-mobile.trace.zip`, `.release/staging-candidate-browser-matrix.json`. Traces may include staging session context; keep local/private. |
+| Browser traces / machine-readable results | SAVED | `.release/staging-candidate-desktop.trace.zip`, `.release/staging-candidate-mobile.trace.zip`, `.release/staging-candidate-browser-matrix.json`. These traces and screenshots were captured on the immediately prior hostname with Site SHA `bc4b254b`; the later Site change only localizes API 429 copy. Traces may include staging session context; keep local/private. |
 | Public readiness after browser run | PASS | The prior hostname `https://6fc2e0f67fc4ad.lhr.life/readyz` returned `ready`, `database=connected`, `realtime=connected` before it expired. The renewed current hostname is rechecked below. |
 | Renewed temporary hostname (2026-10-01 13:06 Europe/Kyiv) | PASS | Previous anonymous hostname expired; the same local edge/API pair was re-exposed at `https://78ba949ed82fea.lhr.life`. Browser rendered the staging banner and welcome page; `/readyz` returned ready with DB and realtime connected. Deployed Server/Site SHAs are unchanged. |
 | OTP rate-limit recovery message (2026-10-01 13:13 Europe/Kyiv) | PASS (UI copy) / OTP BLOCKED BY RATE LIMIT | After repeated acceptance requests, the API returned HTTP 429 with `rate_limit_exceeded`. The updated visible sign-in UI maps that response to Ukrainian wait-and-retry guidance. OTP could not be completed again during this window; Redis restart preserved its rate-limit key, as expected for the persistent Redis volume. |
@@ -155,11 +156,12 @@ Local, ignored artifacts (not committed or publicly linked):
 - .release/staging-current-login.png (previous headed Chromium test OTP login)
 - .release/staging-3b9af2b-desktop.png (previous public Site SHA 3b9af2b, Chromium, 1440×900)
 - .release/staging-3b9af2b-mobile.png (previous public Site SHA 3b9af2b, Chromium, 390×844)
-- .release/staging-candidate-desktop.png (current Site SHA bc4b254, Chromium, 1440×900; visually inspected)
-- .release/staging-candidate-mobile.png (current Site SHA bc4b254, Chromium, 390×844; visually inspected)
-- .release/staging-candidate-desktop.trace.zip (8 direct routes at desktop viewport)
-- .release/staging-candidate-mobile.trace.zip (8 direct routes at mobile viewport)
-- .release/staging-candidate-browser-matrix.json (route status, console, page-error and failed-request summary)
+- .release/staging-candidate-desktop.png (prior Site SHA bc4b254, Chromium, 1440×900; visually inspected)
+- .release/staging-candidate-mobile.png (prior Site SHA bc4b254, Chromium, 390×844; visually inspected)
+- .release/staging-candidate-desktop.trace.zip (prior hostname, 8 direct routes at desktop viewport)
+- .release/staging-candidate-mobile.trace.zip (prior hostname, 8 direct routes at mobile viewport)
+- .release/staging-candidate-browser-matrix.json (prior hostname, route status, console, page-error and failed-request summary)
+- Current Site SHA `26b32c9` localized 429 copy verified in the visible sign-in UI on the current hostname; a screenshot artifact of this state was not saved.
 - .release/staging-public-desktop.png (refreshed public tunnel, Chromium, 1440×900)
 - .release/staging-public-mobile.png (refreshed public tunnel, Chromium, 390×844)
 - .release/staging-current-routes.trace.zip (direct `/`, `/navigation`, `/admin/verification` opens; unauthenticated trace)
