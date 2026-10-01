@@ -2,7 +2,7 @@
 
 **As of:** 2026-10-01 16:57 Europe/Kyiv
 **Overall release decision:** `READY_FOR_SERVER_DEPLOYMENT=NO` · `PRODUCTION_READY=NO`
-**Staging:** current temporary URL `https://db75684bf2b067.lhr.life` serves Site `c9a288162065a819864200da80fd5bcd1218af69` and staging Server `237d14f1b3e4d69936433f46f290d1cd4b920d9d`. `/healthz`, `/readyz`, and homepage pass. Visible Chromium completed synthetic OTP and confirmed that passenger role is denied at `/admin/verification` with 403. A pinned iOS simulator build with complete Site/Server/API/migration metadata showed a blank 25-second capture and onboarding by the 120-second settle capture; no authenticated simulator flow passed. The complete paired product acceptance did not pass, so `STAGING_READY=NO`. The anonymous tunnel is ephemeral.
+**Staging:** current temporary URL `https://0c7342d01f4706.lhr.life` serves Site `c9a288162065a819864200da80fd5bcd1218af69` and staging Server `237d14f1b3e4d69936433f46f290d1cd4b920d9d`. `/healthz`, `/readyz`, and homepage pass. Visible Chromium completed synthetic OTP and confirmed that passenger role is denied at `/admin/verification` with 403. A pinned iOS simulator build with complete Site/Server/API/migration metadata showed a blank 25-second capture and onboarding by the 120-second settle capture; no authenticated simulator flow passed. The complete paired product acceptance did not pass, so `STAGING_READY=NO`. The anonymous tunnel is ephemeral.
 
 The percentages below are engineering estimates across the requested capability groups. They are progress indicators only; a partial item is not a release pass and percentages do not override the release gates.
 

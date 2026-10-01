@@ -11,7 +11,7 @@ All four local worktrees were checked with `git status`; each is clean and at it
 
 ## Staging
 
-- Current temporary URL: `https://db75684bf2b067.lhr.life`; anonymous localhost.run tunnel, hostname and lifetime are not guaranteed.
+- Current temporary URL: `https://0c7342d01f4706.lhr.life`; anonymous localhost.run tunnel, hostname and lifetime are not guaranteed.
 - Current HTTP checks: edge `/healthz` = 200; API `/readyz` = 200 (`database=connected`, `realtime=connected`); public homepage = 200; visible Chromium shows the staging/test-only banner.
 - Deployed Server SHA: `237d14f1b3e4d69936433f46f290d1cd4b920d9d`; the newer 30-stop candidate `23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46` is not deployed.
 - Deployed Site SHA: `c9a288162065a819864200da80fd5bcd1218af69`. Passenger OTP login and the `/admin/verification` 403 guard were verified through visible public Chromium; the console was clean.

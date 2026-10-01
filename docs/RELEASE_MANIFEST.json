@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "product": "MARSHGO",
-  "release_candidate": "RC-2026-10-01-staging.7",
+  "release_candidate": "RC-2026-10-01-staging.8",
   "status": "NOT_RELEASED",
   "ready_for_server_deployment": false,
   "production_ready": false,
@@ -41,13 +41,13 @@
   },
   "note": "Immutable source revisions are feature-branch PR heads for candidate verification, not a production release. Passenger review UI was exercised through the public tunnel; driver review UI was exercised through a local edge against the same staging services after the public OTP rate limit. Both used a seeded completed-trip fixture, so the complete trip lifecycle is not accepted. integration_sha is the tested umbrella product-code baseline before report-only reconciliation edits. The tunnel hostname can rotate. This manifest is not a production deployment authorization. Pinned iOS candidate simulator build embeds exact Site/Server/API/migration metadata; it reaches onboarding only after a prolonged cold start and is not authenticated or physical-device acceptance.",
   "staging": {
-    "url": "https://db75684bf2b067.lhr.life",
+    "url": "https://0c7342d01f4706.lhr.life",
     "provider": "local Docker services via temporary anonymous localhost.run HTTPS tunnel",
-    "status": "PARTIAL; ephemeral; health/home/test OTP and staff-route denial verified; full paired-user lifecycle not accepted",
+    "status": "PARTIAL; refreshed temporary hostname currently serves staging and health/home pass; paired-user lifecycle not accepted",
     "deployed_server_sha": "237d14f1b3e4d69936433f46f290d1cd4b920d9d",
     "deployed_site_sha": "c9a288162065a819864200da80fd5bcd1218af69",
     "migration": "028",
-    "checked_at": "2026-10-01 16:57 Europe/Kyiv"
+    "checked_at": "2026-10-01 17:06 Europe/Kyiv"
   },
   "candidate_database_migration": "028 on Server PR #2; canonical release baseline remains 027 until merged"
 }
