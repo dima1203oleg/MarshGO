@@ -1,48 +1,26 @@
-# Current MARSHGO repository state — 2026-10-01 16:57 Europe/Kyiv
+# MARSHGO repository state — 2026-10-01
 
-All four local worktrees were checked with `git status`; each is clean and at its pushed branch head. GitHub main refs and open PR heads were re-read. Feature work remains on PR branches; no open PR was merged implicitly.
+Captured after the chat-history pagination changes were pushed. Branches below are the workspace source candidates; `main` remains the current merged baseline until the open PRs are merged. No working tree was dirty at capture time.
 
-| Repository | Main SHA | Active local branch / SHA | Ahead / behind main | Open work and CI | Canonical role |
-|---|---|---|---:|---|---|
-| `dima1203oleg/MarshGO` | `1e7d0ee74f11121a7d5a29c6379944a5360581c4` | `codex/marshgo-production` / `3dbbcf965842fbbb764e681e625812a9e6d376d5` | 160 / 0 | Draft PR #1, open; Verify, CodeQL and Gitleaks pass at this exact head. | Integration, E2E, deployment and release orchestration. |
-| `dima1203oleg/MarshGO-Server` | `bdfdf24941809f4581965b9847022c68e0b2f127` | `codex/security-parse-bearer` / `23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46` | 8 / 0 | PR #2 open; Verify passes. Rendezvous PR #1 (`f788a96a5365a8a7d7f1eef416868f97217706c4`) also remains open. | Backend, API, database and migrations. |
-| `dima1203oleg/MarshGO-Site` | `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7` | `codex/navigation-deep-link-alias` / `c9a288162065a819864200da80fd5bcd1218af69` | 17 / 0 | PR #2 open; both Verify runs pass. Rendezvous PR #1 (`045f138bd9c31cb8bcc40231da867db7d7e8e531`) also remains open. | Web/PWA source of truth. |
-| `dima1203oleg/MarshGO-iOS` | `b8b1fcbfe9997e1a7a27594b5759690147de75df` | `main` / same SHA | 0 / 0 | Simulator CI passes. Simulator-capture PR #1 (`328d9af2b3f7095d3f9afca8fcbe4e9c5e1df0ad`) remains open. | Native iOS container and integrations. |
+| Repository | Workspace branch / HEAD | Relative to origin/main | Purpose / source of truth | Open PR and CI snapshot | Production relevance |
+|---|---|---:|---|---|---|
+| `dima1203oleg/MarshGO` | `codex/marshgo-production` / `8dbc21cc27521c6db4d10e2d11381b1e19aeeab0` | 187 ahead, 0 behind | Cross-repository E2E, release manifest, deployment and integration documentation. Not an alternate Server or Site implementation. | PR #1 draft, head `8dbc21cc…`; umbrella Verify and CodeQL were running after the latest push; Gitleaks passed. | Release/integration orchestration only. |
+| `dima1203oleg/MarshGO-Server` | `codex/security-parse-bearer` / `533f500bd9fa821d6b8aea7048037d4b7f897486` | 11 ahead, 0 behind | Canonical API, migrations, workers, provider adapters and server-owned business state. | PR #2 `fix(auth): bound bearer token parsing`; Verify runs `36917975891` and `36917969978` passed. PR #1 rendezvous head `f788a96a…` also remains open; it is earlier work and must be reviewed for merge ordering, not blindly merged over the canonical candidate. | Backend candidate. |
+| `dima1203oleg/MarshGO-Site` | `codex/navigation-deep-link-alias` / `029aae486e164f02660c36130114527b19898001` | 30 ahead, 0 behind | Canonical Web/PWA production UI and browser application. | PR #2 `Fix navigation notification deep link alias`; Verify runs `36917987335` and `36917981271` passed. PR #1 rendezvous UI head `045f138b…` also remains open; review overlap and merge ordering before landing. | Web bundle candidate pinned by release manifest. |
+| `dima1203oleg/MarshGO-iOS` | `codex/reliable-capacitor-sync` / `1f08e73e351ed0e7e7d4c522b47c0ed5cb06e8a0` | 2 ahead, 0 behind | Native iOS container, pinned Site checkout/build metadata, and native integrations. | PR #1 simulator-capture head `328d9af2…` remains open; simulator checks on the workspace candidate's earlier commits passed (`36726834982`, `36726872070`). | iOS build candidate; release builds must use the immutable Site SHA in `RELEASE_MANIFEST.json`. |
 
-## Staging
+## Canonical boundaries
 
-- Current temporary URL: `https://0c7342d01f4706.lhr.life`; anonymous localhost.run tunnel, hostname and lifetime are not guaranteed.
-- Current HTTP checks: edge `/healthz` = 200; API `/readyz` = 200 (`database=connected`, `realtime=connected`); public homepage = 200; visible Chromium shows the staging/test-only banner.
-- Deployed Server SHA: `237d14f1b3e4d69936433f46f290d1cd4b920d9d`; the newer 30-stop candidate `23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46` is not deployed.
-- Deployed Site SHA: `c9a288162065a819864200da80fd5bcd1218af69`. Passenger OTP login and the `/admin/verification` 403 guard were verified through visible public Chromium; the console was clean.
-- Migration 028 is applied to isolated staging PostGIS. Redis and S3Mock are separate test instances; no production credentials/data are configured.
-- `STAGING_READY=NO`; the paired booking-to-completion, rescue, navigation and realtime lifecycle is not accepted. `READY_FOR_SERVER_DEPLOYMENT=NO`; `PRODUCTION_READY=NO`.
+- Backend/API/database/migrations: **MarshGO-Server**.
+- Web/PWA: **MarshGO-Site**.
+- Native iOS wrapper/integrations: **MarshGO-iOS**; its UI is fetched from a pinned Site revision.
+- Cross-repo tests, release orchestration and shared deployment documentation: **MarshGO**.
+- There is no separate umbrella backend/frontend source of truth. E2E materializes the pinned standalone repositories for its application tests.
 
-## Source of truth
+## Candidate revisions
 
-- Backend/API/database/migrations: MarshGO-Server.
-- Web/PWA: MarshGO-Site.
-- Native iOS shell/integrations: MarshGO-iOS; Release builds must pin exact `SITE_REF`.
-- Cross-repository integration, deployment definitions and release evidence: MarshGO umbrella.
-- Open PR branches are candidates, not automatically canonical/main. The two rendezvous PRs remain separate and require integration review; standalone repositories currently remain authoritative.
+`RELEASE_MANIFEST.json` pins Server `533f500bd9fa821d6b8aea7048037d4b7f897486`, Site `029aae486e164f02660c36130114527b19898001`, iOS `1f08e73e351ed0e7e7d4c522b47c0ed5cb06e8a0`, and integration test baseline `1afb04307c7d6ae619dfe8598dfc829169e73a71`. These are candidate branches, not a production release. Server/Site standalone checks passed; the current umbrella CI must finish green before treating the latest E2E/report commit as CI-verified.
 
+## Dirty/uncommitted state
 
-## Latest reconciliation — 2026-10-01 21:07 Europe/Kyiv
-
-All four local working trees are clean and pushed. Ahead/behind counts below are relative to each repository's current `origin/main`. No PR was merged.
-
-| Repository | Main SHA | Active branch / HEAD | Ahead / behind | Open PR / CI | Source of truth |
-|---|---|---|---:|---|---|
-| MarshGO | `1e7d0ee74f11121a7d5a29c6379944a5360581c4` | `codex/marshgo-production` / `eaa37b2cf2408bb6dd6d65748dad603877643983` | 176 / 0 | Draft PR #1; push Verify `36901515153` and PR Verify `36901523944` pass; CodeQL and Gitleaks pass. | Cross-repository E2E, deployment definitions, release evidence. |
-| MarshGO-Server | `bdfdf24941809f4581965b9847022c68e0b2f127` | `codex/security-parse-bearer` / `699b1fa7e007f5f8b56e597922523cf4659dd942` | 9 / 0 | PR #2 Verify passes; rendezvous PR #1 remains separate/open. | Backend, API, database and migrations. |
-| MarshGO-Site | `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7` | `codex/navigation-deep-link-alias` / `336787900c645277a7284568d573ce079fb05010` | 26 / 0 | PR #2 Verify passes twice on this exact SHA; rendezvous PR #1 remains separate/open. | Web/PWA. |
-| MarshGO-iOS | `b8b1fcbfe9997e1a7a27594b5759690147de75df` | `codex/reliable-capacitor-sync` / `1f08e73e351ed0e7e7d4c522b47c0ed5cb06e8a0` | 2 / 0 | Push Simulator CI run `36903734023` passes; simulator-capture PR #1 remains open, new branch is pushed without opening a PR. | Native shell/integrations. |
-
-### Canonical candidate and public staging
-
-Release candidate `RC-2026-10-01-staging.23` pins Server `699b1fa7e007f5f8b56e597922523cf4659dd942`, Site `336787900c645277a7284568d573ce079fb05010`, iOS `1f08e73e351ed0e7e7d4c522b47c0ed5cb06e8a0`, and the umbrella product/test baseline `eaa37b2cf2408bb6dd6d65748dad603877643983`. Public temporary staging is `https://superblessed-herlinda-epiphragmal.ngrok-free.dev`; bundle was rebuilt from the exact Site SHA. Public health/readiness returned 200 and browser reload retained geocoded search state. This URL is a temporary tunnel and does not meet `STAGING_READY` acceptance.
-
-Latest local sequential checks: `npm run test:e2e` = 7/7 Chromium; `npm run test:browser-compat` = 3/3 Chromium/Firefox/WebKit; `npm run check:production` = typecheck/lint/build/bundle pass, 79 unit tests pass, 0 fail, 1 opt-in integration skip. Server integration remains 18/18. iOS exact-pinned local simulator bundle plus GitHub simulator build pass; only onboarding render is accepted. Umbrella push Verify `36901515153` and PR Verify `36901523944` both pass, including E2E and browser matrix. Exact SHAs and limitations are in `RELEASE_MANIFEST.json` and `STAGING_DEPLOYMENT_REPORT.md`.
-
-
-The candidate iOS screenshot is saved locally at `test-results/artifacts/ios-simulator-site-3367879.png` (ignored test artifact, not committed). Its embedded `release-manifest.json` lists exact Site `336787900c645277a7284568d573ce079fb05010`, Server `699b1fa7e007f5f8b56e597922523cf4659dd942`, and iOS `1f08e73e351ed0e7e7d4c522b47c0ed5cb06e8a0`.
+At capture time all four workspaces were clean and their branches matched their configured `origin/<branch>` tracking refs. New edits must be committed in the repository that owns the code; do not copy production implementation into the umbrella repository.
