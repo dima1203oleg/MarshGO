@@ -15,6 +15,8 @@ The local API candidate runs on the staging edge and the current Site production
 
 The same exact Server/Site pair passed the local production-browser suite using isolated PostGIS/Redis and deterministic provider fixtures: 6/6 Playwright scenarios. The Journey scenario performs search, link booking to the saved Journey, cancellation, selects a route-corridor Rescue alternative, books it, and verifies persisted `REPLACED` + `CONFIRMED` legs and `READY` Journey state. Server isolated PostGIS/Redis integration passed 18/18 and includes concurrent Rescue booking attempts with exactly one winner. Browser compatibility passed Chromium/Firefox/WebKit 3/3. Screenshot evidence from the local Journey offer view: `/tmp/marshgo-offer-detail-mobile.png`; Playwright traces are retained under `test-results/` (git-ignored).
 
+Latest public endpoint check (2026-10-01 19:45 Europe/Kyiv) returned HTTP 200 for `/`, `/healthz` and `/readyz`. In the already-open public browser tab, the production bundle rendered onboarding and the phone sign-in screen. No account/OTP action was submitted. A new browser tab showed ngrok's first-visit warning, which was left untouched. These checks establish reachability and initial UI rendering only; they do not establish an authenticated staging flow or remove the paired-user acceptance gap.
+
 | Check | Result | Limit |
 |---|---|---|
 | Public HTTPS reachability | PASS | Temporary free tunnel; may expire and has no uptime guarantee. |

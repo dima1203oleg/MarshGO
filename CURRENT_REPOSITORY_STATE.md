@@ -1,10 +1,10 @@
 # Current MARSHGO repository state — 2026-10-01
 
-Latest reconciliation: standalone application repositories are clean and their pushed PR heads are the source of truth. Umbrella browser E2E now materializes immutable Server/Site SHAs from `RELEASE_MANIFEST.json` and starts canonical Server rather than an independent umbrella copy. Code commit `5d8415ad9f9007e2c399bbb229c34d8e4005fdc4` is pushed; this final manifest/report update is documentation-only and will be committed next.
+Latest reconciliation: standalone application repositories are clean and their pushed PR heads are the source of truth. Umbrella browser E2E now materializes immutable Server/Site SHAs from `RELEASE_MANIFEST.json` and starts canonical Server rather than an independent umbrella copy. Product-code baseline `5d8415ad9f9007e2c399bbb229c34d8e4005fdc4` is pushed; later umbrella changes in this snapshot are report/manifest-only.
 
 | Repository | Active branch / SHA | Main SHA | Ahead / behind main | Open PR / CI | Canonical purpose |
 |---|---|---|---:|---|---|
-| `dima1203oleg/MarshGO` | `codex/marshgo-production` / `5d8415ad9f9007e2c399bbb229c34d8e4005fdc4` | `1e7d0ee74f11121a7d5a29c6379944a5360581c4` | 173 / 0 | Draft PR #1; latest CodeQL/Gitleaks/Verify pending | Cross-repo integration, acceptance, deployment and release orchestration |
+| `dima1203oleg/MarshGO` | `codex/marshgo-production` / docs-only commits after tested code baseline `5d8415ad9f9007e2c399bbb229c34d8e4005fdc4` | `1e7d0ee74f11121a7d5a29c6379944a5360581c4` | 174 / 0 (code branch) | Draft PR #1; current documentation commit CI pending | Cross-repo integration, acceptance, deployment and release orchestration |
 | `dima1203oleg/MarshGO-Server` | `codex/security-parse-bearer` / `699b1fa7e007f5f8b56e597922523cf4659dd942` | `bdfdf24941809f4581965b9847022c68e0b2f127` | 9 / 0 | PR #2 Verify passes; rendezvous PR #1 also open | Backend/API, PostgreSQL/PostGIS, Redis, workers and migrations |
 | `dima1203oleg/MarshGO-Site` | `codex/navigation-deep-link-alias` / `573ebca115f50c1762be4d0d26e9759b195d2fa2` | `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7` | 23 / 0 | PR #2 Verify passes; rendezvous PR #1 also open | Sole Web/PWA source of truth |
 | `dima1203oleg/MarshGO-iOS` | `main` / `b8b1fcbfe9997e1a7a27594b5759690147de75df` | same | 0 / 0 | Simulator-capture PR #1 open; Simulator CI passes | Native iOS shell and native integrations; release must pin Site SHA |
