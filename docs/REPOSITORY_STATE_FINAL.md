@@ -1,6 +1,17 @@
 # MARSHGO repository state — 2026-10-02
 
-Captured after browser multi-passenger navigation coverage was pushed. Branches below are the workspace source candidates; `main` remains the current merged baseline until the open PRs are merged. All four worktrees were clean and matched their configured upstream branches at capture time.
+Captured after browser multi-passenger navigation coverage was pushed. Branches below are the workspace source candidates; `main` remains the current merged baseline until the open PRs are merged. The earlier table is a historical snapshot; latest state is below.
+
+## Latest workspace snapshot — 2026-10-02
+
+| Repository | Branch / exact HEAD | Worktree | Current note |
+|---|---|---|---|
+| `MarshGO` | `codex/marshgo-production` / `07172adc0940234aac88b042468cd03ab3fa78d7` | clean, pushed | Integration E2E, release manifests and deployment docs only. Umbrella CI/Security were running at capture (36930561202 / 36930561323). |
+| `MarshGO-Server` | `codex/security-parse-bearer` / `5e8cc4ce4d5e58babcc306c1cf5173f1f4600ea1` | clean, pushed | Canonical API; Journey average-rating DTO normalization. Server CI/Security passed (36929377114 / 36929372423); local unit 51 passed / 0 failed / 2 opt-in skips; PostGIS/Redis integration 18/18. |
+| `MarshGO-Site` | `codex/navigation-deep-link-alias` / `029aae486e164f02660c36130114527b19898001` | clean | Canonical Web/PWA; unchanged for the latest DTO fix. |
+| `MarshGO-iOS` | `codex/reliable-capacitor-sync` / `1f08e73e351ed0e7e7d4c522b47c0ed5cb06e8a0` | clean | Native wrapper/integrations; unchanged for the latest DTO fix. |
+
+The local production-browser suite is **not fully green on the latest pair**. It reproduced the decimal-string rating crash against Server `533f500…`; Server `5e8cc4…` fixes the DTO. The subsequent full E2E against the fix was interrupted by local volume exhaustion that made Redis persistence read-only and terminated test-service connections. Updated full-flow regression remains pending a recovered local Postgres/Redis host. Public staging still serves Server `533f500…` / Site `029aae4…`; the fix has not been deployed there. `STAGING_READY=NO`, `READY_FOR_SERVER_DEPLOYMENT=NO`, `PRODUCTION_READY=NO`.
 
 | Repository | Workspace branch / HEAD | Relative to origin/main | Purpose / source of truth | Open PR and CI snapshot | Production relevance |
 |---|---|---:|---|---|---|
