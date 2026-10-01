@@ -1,7 +1,7 @@
 # MARSHGO Temporary Public Staging Report
 
 **Checked:** 2026-10-01 (Europe/Kyiv)
-**STAGING_URL:** https://0931d476510892.lhr.life
+**STAGING_URL:** https://0bb080eab43f29.lhr.life
 **STAGING_READY:** NO
 **READY_FOR_SERVER_DEPLOYMENT:** NO
 **PRODUCTION_READY:** NO
@@ -88,4 +88,4 @@ Trace archives can include staging authentication/session context. Keep them pri
 5. Replace S3Mock and public test geocoder/routing/map endpoints with configured production-grade services for production.
 6. Real SMS, domain/TLS, production server, push, payments/commercial partners and physical iPhone acceptance remain external release gates.
 
-The local staging stack and tunnel are left running. The current URL is `https://0931d476510892.lhr.life`; localhost.run may rotate it when the tunnel reconnects. The URL remains valid only while those processes and this host stay available.
+The local staging stack and tunnel are left running. The current URL is `https://0bb080eab43f29.lhr.life`; localhost.run may rotate it when the tunnel reconnects. The URL remains valid only while those processes and this host stay available.
