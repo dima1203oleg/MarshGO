@@ -1,6 +1,6 @@
 # MARSHGO Temporary Public Staging Report
 
-**Checked:** 2026-10-01 17:30 Europe/Kyiv
+**Checked:** 2026-10-01 17:37 Europe/Kyiv
 **STAGING_URL:** https://superblessed-herlinda-epiphragmal.ngrok-free.dev
 **STAGING_READY:** NO (public reachability and review UI slices verified; complete paired-user acceptance remains incomplete)
 **READY_FOR_SERVER_DEPLOYMENT:** NO
@@ -8,14 +8,16 @@
 
 **Credential hygiene note:** A diagnostic process-environment inspection showed unrelated AI provider API keys inherited by the prior edge process. The edge did not use those keys for MARSHGO, but the diagnostic output included them. That process was stopped and the staging edge relaunched using an empty environment with only the staging Site/API/S3 port and path settings. See `OWNER_ACTIONS_REQUIRED.md`; if those were live keys, rotate them. No production SMS/payment/provider secret is configured in the current staging processes.
 
-**Latest reconnect:** 2026-10-01 17:32 Europe/Kyiv, temporary URL `https://superblessed-herlinda-epiphragmal.ngrok-free.dev`. `/healthz`, `/readyz`, and homepage returned HTTP 200; readiness reported PostgreSQL and realtime connected. Chromium initially showed ngrok's one-time first-visit interstitial; after selecting “Visit Site,” Chromium visibly rendered MARSHGO and the staging/test-only banner, with no browser console warnings or errors. The URL is tied to the running free ngrok tunnel and has no uptime guarantee. The previous anonymous localhost.run endpoint expired with HTTP 503. This refresh verifies reachability only and does not add paired-user lifecycle acceptance. Earlier route, OTP, review, and staff-route checks are recorded below with their exact scope and limitations.
+**Latest reconnect:** 2026-10-01 17:37 Europe/Kyiv, temporary URL `https://superblessed-herlinda-epiphragmal.ngrok-free.dev`. `/healthz`, `/readyz`, and homepage returned HTTP 200; readiness reported PostgreSQL and realtime connected. Chromium initially showed ngrok's one-time first-visit interstitial; after selecting “Visit Site,” Chromium rendered MARSHGO and the staging/test-only banner, with no browser console warnings or errors. In the visible UI, a synthetic staging account completed the development OTP flow; after login an unknown deep link displayed 404, and a passenger opening `/admin/verification` received 403. No real SMS was sent. The URL is tied to the running free ngrok tunnel and has no uptime guarantee. The previous anonymous localhost.run endpoint expired with HTTP 503. This refresh does not add paired-user booking lifecycle acceptance. Earlier route, OTP, review, and staff-route checks are recorded below with their exact scope and limitations.
+
+**Latest search-navigation fix:** Site `3a8ce9af81a4986ecdc182ed12d86e70bbf4d8e7` fixes the journey-results back action, which previously left the Search tab on results. The updated production bundle is serving on staging. Chromium opened `/journeys/search`, clicked “Повернутися до пошуку,” then showed the home route search form at `/`. Site typecheck, repository-wide lint, production build and bundle budget all passed. This was a browser-verified interaction; it does not imply a full journey booking acceptance.
 
 
-## Latest repository and deployment snapshot (2026-10-01 17:32 Europe/Kyiv)
+## Latest repository and deployment snapshot (2026-10-01 17:37 Europe/Kyiv)
 
 - Current public URL: `https://superblessed-herlinda-epiphragmal.ngrok-free.dev`; `/healthz`, `/readyz` (PostgreSQL and Redis connected) and homepage return HTTP 200. Chromium rendered the staging homepage after the one-time ngrok warning; no application console warnings/errors. The URL works only while the free tunnel process remains connected and has no uptime guarantee.
-- Source candidates: umbrella `27a4738b992acef60a438460fa9dd564eec901b8`, Server `23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46`, Site `c9a288162065a819864200da80fd5bcd1218af69`, iOS `b8b1fcbfe9997e1a7a27594b5759690147de75df`. Deployed staging Server is `237d14f1b3e4d69936433f46f290d1cd4b920d9d`; deployed Site is `c9a288162065a819864200da80fd5bcd1218af69`. iOS simulator build metadata pins Site, deployed Server, API `v1` and migration `028`.
-- On umbrella `27a4738b992acef60a438460fa9dd564eec901b8`, one Verify run (`36875070452`), CodeQL and Gitleaks passed; a duplicate Verify run (`36875061381`) remained pending at the last check. Earlier umbrella `71cff14edc60f6182d8f05c25325144418e35444` had both Verify runs pass. Verify covers lint, typecheck, unit, migrations, PostGIS/Redis integration, Docker builds, Playwright E2E and browser compatibility.
+- Source candidates: umbrella `d51fd41a3b5eac2d0a0e07531598431c2f610b6a`, Server `23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46`, Site `3a8ce9af81a4986ecdc182ed12d86e70bbf4d8e7`, iOS `b8b1fcbfe9997e1a7a27594b5759690147de75df`. Deployed staging Server is `237d14f1b3e4d69936433f46f290d1cd4b920d9d`; deployed Site is `3a8ce9af81a4986ecdc182ed12d86e70bbf4d8e7`. The current iOS simulator build metadata still pins prior Site `c9a288162065a819864200da80fd5bcd1218af69`, deployed Server, API `v1` and migration `028`.
+- Umbrella code head `d51fd41a3b5eac2d0a0e07531598431c2f610b6a` passed both Verify runs (`36877369189`, `36877378804`), both CodeQL action runs (`36877369256`, `36877378823`) and Gitleaks. The current umbrella branch head advances only for this report/manifest refresh. Verify covers lint, typecheck, unit, migrations, PostGIS/Redis integration, Docker builds, Playwright E2E and browser compatibility.
 - `STAGING_READY=NO`: public access, test OTP, search/address lookup, route/map slices and staff-route denial have passed in the stated scopes, but complete paired Passenger/Driver booking-to-completion, cancellation/Rescue, public simulated-GPS reroute and realtime recovery are not fully accepted.
 
 ## Latest hostname refresh (17:06 Europe/Kyiv)
@@ -33,12 +35,15 @@
 | Current public hostname | PASS, ephemeral | `https://ed296cad697b8c.lhr.life`; `/healthz` = 200, `/readyz` reports database and realtime connected, homepage = 200. Chromium visibly rendered the title, primary actions and staging-only banner; no browser console warnings/errors. |
 | Overall acceptance | PARTIAL / `STAGING_READY=NO` | This verifies public reachability and the web landing screen only. Paired-user booking-to-completion, cancellation/Rescue, public simulated-GPS reroute and realtime recovery remain unaccepted. |
 
-## Latest external HTTPS tunnel (17:32 Europe/Kyiv)
+## Latest external HTTPS tunnel (17:37 Europe/Kyiv)
 
 | Check | Result | Evidence / limits |
 |---|---|---|
 | Current public hostname | PASS, temporary | `https://superblessed-herlinda-epiphragmal.ngrok-free.dev`; `/healthz` and `/readyz` = 200, database and realtime connected; homepage = 200. |
 | Browser page | PASS, with provider interstitial | Chromium displayed ngrok's one-time warning, then MARSHGO rendered with its staging/test-only banner. No application console warnings/errors. Other visitors may see ngrok's interstitial once. |
+| Staging OTP and route guards | PASS, scoped | Synthetic staging-only passenger used the visible development OTP (no SMS sent). Authenticated unknown path displayed 404; the passenger direct-opening `/admin/verification` displayed 403. This does not exercise moderator functions or a paired booking lifecycle. |
+| Search results back action | PASS after fix | In Chromium, `/journeys/search` → click “Повернутися до пошуку” → URL `/` and route search form visible. Site `3a8ce9af81a4986ecdc182ed12d86e70bbf4d8e7`; typecheck, repository-wide lint, production build and bundle budget passed, and both Site PR #2 Verify runs passed. |
+| Search results back action | PASS after fix | In Chromium, `/journeys/search` → click “Повернутися до пошуку” → URL `/` and route search form visible. This reproduced and fixed a dead UI action in Site `3a8ce9af81a4986ecdc182ed12d86e70bbf4d8e7`; typecheck, full Site lint, build and bundle budget passed. |
 | Overall acceptance | PARTIAL / `STAGING_READY=NO` | Tunnel improves public access while this host session is alive; no additional paired-user lifecycle tests were completed. No uptime guarantee. |
 
 ## Latest delta acceptance — protected staff route (16:57 Europe/Kyiv)
