@@ -23,6 +23,7 @@ const navigationSecondPhone = `+38066${String(Date.now() + 3).slice(-7)}`;
 const navigationPassengerPhone = `+38068${String(Date.now() + 4).slice(-7)}`;
 const navigationFlowDriverPhone = `+38069${String(Date.now() + 5).slice(-7)}`;
 const journeyPassengerPhone = `+38070${String(Date.now() + 6).slice(-7)}`;
+const searchRestorePhone = `+38071${String(Date.now() + 7).slice(-7)}`;
 const navigationFlowVehicleId = randomUUID();
 let navigationFlowDemandId = '';
 
@@ -118,7 +119,7 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
-  const testUsers = await pool.query<{ id: string }>('SELECT id FROM users WHERE phone_e164=ANY($1::text[])', [[passengerPhone, navigationPhone, navigationSecondPhone, navigationPassengerPhone, navigationFlowDriverPhone, journeyPassengerPhone]]);
+  const testUsers = await pool.query<{ id: string }>('SELECT id FROM users WHERE phone_e164=ANY($1::text[])', [[passengerPhone, navigationPhone, navigationSecondPhone, navigationPassengerPhone, navigationFlowDriverPhone, journeyPassengerPhone, searchRestorePhone]]);
   const userIds = [driverId, ...testUsers.rows.map((row) => row.id)];
   const testBookingQuery = `SELECT b.id FROM bookings b JOIN offers o ON o.id=b.offer_id WHERE b.passenger_id=ANY($1::uuid[]) OR o.driver_id=ANY($1::uuid[])`;
   await pool.query('DELETE FROM audit_events WHERE actor_id=ANY($1::uuid[]) OR entity_id=ANY($2::uuid[])', [userIds, [offerId, vehicleId]]);
@@ -131,7 +132,7 @@ test.afterAll(async () => {
   await pool.query('DELETE FROM navigation_sessions WHERE driver_id=ANY($1::uuid[])', [userIds]);
   await pool.query('DELETE FROM passenger_demands WHERE passenger_id=ANY($1::uuid[])', [userIds]);
   await pool.query('DELETE FROM offers WHERE id=$1 OR driver_id=ANY($2::uuid[])', [offerId, userIds]);
-  await pool.query('DELETE FROM otp_challenges WHERE phone_e164=ANY($1::text[])', [[driverPhone, passengerPhone, navigationPhone, navigationSecondPhone, navigationPassengerPhone, navigationFlowDriverPhone, journeyPassengerPhone]]);
+  await pool.query('DELETE FROM otp_challenges WHERE phone_e164=ANY($1::text[])', [[driverPhone, passengerPhone, navigationPhone, navigationSecondPhone, navigationPassengerPhone, navigationFlowDriverPhone, journeyPassengerPhone, searchRestorePhone]]);
   await pool.query('DELETE FROM sessions WHERE user_id=ANY($1::uuid[])', [userIds]);
   await pool.query('DELETE FROM account_deletion_requests WHERE user_id=ANY($1::uuid[])', [userIds]);
   await pool.query('DELETE FROM vehicles WHERE id=$1 OR owner_id=ANY($2::uuid[])', [vehicleId, userIds]);
@@ -298,7 +299,7 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     await passengerPage.getByRole('button', { name: /Написати/ }).click();
     await expect(passengerPage.getByText(/онлайн/)).toBeVisible();
     const realtimeMessage = 'Чекаю біля центрального входу.';
-    await driverPage.getByRole('button', { name: 'Поїздки', exact: true }).click();
+    await driverPage.getByRole('button', { name: 'Повернутися до поїздок' }).click();
     const passengerChatInput = passengerPage.getByPlaceholder('Напишіть повідомлення…');
     await passengerChatInput.fill(realtimeMessage);
     await passengerChatInput.press('Enter');
@@ -787,6 +788,41 @@ test('foreground road route renders on iPhone 15 Pro Max and 16 Pro Max viewport
       if (sessionId) await page.request.post(`/api/v1/navigation/sessions/${sessionId}/end`).catch(() => undefined);
       await context.close();
     }
+  }
+});
+
+test('route search URL restores geocoded criteria after direct reload', async ({ browser, baseURL }, testInfo) => {
+  expect(baseURL).toBeTruthy();
+  const context = await browser.newContext({ baseURL, timezoneId: 'Europe/Kyiv' });
+  const page = await context.newPage();
+  try {
+    await signIn(page, 'Search Restore Passenger', searchRestorePhone);
+    await page.getByPlaceholder('Місто відправлення').fill('Стрий');
+    await page.getByRole('button', { name: 'Знайти', exact: true }).nth(0).click();
+    await page.getByRole('button', { name: /Стрий, Львівська область, Україна/ }).click();
+    await page.getByPlaceholder('Місто призначення').fill('Львів');
+    await page.getByRole('button', { name: 'Знайти', exact: true }).nth(1).click();
+    await page.getByRole('button', { name: /Львів, Львівська область, Україна/ }).click();
+    const offersResponse = page.waitForResponse(response => response.url().includes('/api/v1/offers?') && response.request().method() === 'GET');
+    await page.getByRole('button', { name: 'Знайти маршрут', exact: true }).click();
+    expect((await offersResponse).status()).toBe(200);
+    await expect(page).toHaveURL(/\/journeys\/search\?mode=offers&/);
+    await expect.poll(() => page.evaluate(() => new URLSearchParams(window.location.search).get('origin')))
+      .toBe('Стрий, Львівська область, Україна');
+    await expect.poll(() => page.evaluate(() => new URLSearchParams(window.location.search).get('destination')))
+      .toBe('Львів, Львівська область, Україна');
+    await expect(page.getByRole('heading', { name: /Стрий.*Львів/ })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Стрий.*Львів/ })).toHaveCSS('white-space', 'normal');
+
+    await page.reload();
+    await expect(page.getByRole('heading', { name: /Стрий.*Львів/ })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Стрий.*Львів/ })).toHaveCSS('white-space', 'normal');
+    await page.screenshot({ path: testInfo.outputPath('search-url-restored.png'), fullPage: true });
+    await page.getByRole('button', { name: 'Повернутися до пошуку' }).click();
+    await expect(page.getByPlaceholder('Місто відправлення')).toHaveValue('Стрий, Львівська область, Україна');
+    await expect(page.getByPlaceholder('Місто призначення')).toHaveValue('Львів, Львівська область, Україна');
+  } finally {
+    await context.close();
   }
 });
 

@@ -14,7 +14,7 @@ export default defineConfig({
     browserName: 'chromium',
     timezoneId: 'Europe/Kyiv',
     baseURL: 'http://127.0.0.1:3300',
-    trace: 'retain-on-failure',
+    trace: process.env.E2E_CAPTURE_TRACE === '1' ? 'on' : 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
   webServer: [

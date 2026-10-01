@@ -6,16 +6,35 @@
 
 **Server SHA:** `699b1fa7e007f5f8b56e597922523cf4659dd942`
 
-**Site SHA:** `573ebca115f50c1762be4d0d26e9759b195d2fa2`
+**Site SHA:** `336787900c645277a7284568d573ce079fb05010`
 
 **Provider:** local isolated Postgres/PostGIS, Redis, S3Mock and static Site, exposed by the temporary ngrok HTTPS tunnel
 **STAGING_READY:** NO · **READY_FOR_SERVER_DEPLOYMENT:** NO · **PRODUCTION_READY:** NO
 
-The local API candidate runs on the staging edge and the current Site production bundle is served from the canonical Site build. `GET /readyz` returned HTTP 200 with PostgreSQL and Redis connected; homepage and health routes returned HTTP 200. No production SMS/payment/storage credentials are configured. The public UI reload on the previously authenticated Journey hit the staging rate limit, so no public Journey Rescue action is claimed for this deployment.
+The local API candidate runs on the staging edge and the Site production bundle was rebuilt from the exact Site SHA above. Public Chromium hard reload loaded that refreshed bundle and retained the geocoded search URL. `GET /readyz` returned HTTP 200 with PostgreSQL and Redis connected; homepage and health routes returned HTTP 200. No production SMS/payment/storage credentials are configured.
+
+### Public browser delta — search URL persistence
+
+Through Chromium on this public URL, the authenticated staging user selected Photon place results for Стрий and Львів and ran route search. The browser navigated to `/journeys/search` with validated geocoded endpoint IDs/coordinates and criteria in the query string. After a hard reload, the page still displayed **Стрий → Львів**, date, and passenger count. At a 390×844 viewport the complete route label wrapped across lines instead of truncating. Search returned zero live offers and the UI displayed its empty state; no seeded/fake offer was presented. Screenshot inspection confirmed the route heading and empty-state presentation; `tab.dev.logs({levels:["error","warning"]})` returned an empty list.
+
+| Check | Result | Evidence / limits |
+|---|---|---|
+| Site commit | PASS | `336787900c645277a7284568d573ce079fb05010`, clean working tree, Site PR Verify checks pass twice for this exact head. |
+| Search URL state | PASS | UI geocoding + search + hard reload retained both endpoint labels and search criteria in URL/page state. |
+| Empty inventory state | PASS | API returned zero available offers; honest empty state shown, no demo inventory. |
+| Browser console | PASS | No console errors or warnings observed during this scenario. |
+| Mobile visual heading | PASS | Public browser at 390×844 displays both full geocoded endpoint names after hard reload; heading wraps naturally. |
+| Responsive browser compatibility | PASS | Chromium, Firefox, WebKit: 3/3 local browser compatibility checks against exact Site SHA `336787900c645277a7284568d573ce079fb05010`. |
+| Full local production E2E | PASS | Chromium Playwright: 7/7 scenarios on Server `699b1fa7e007f5f8b56e597922523cf4659dd942` / Site `336787900c645277a7284568d573ce079fb05010`, including independent-account chat, route search direct reload and Journey Rescue. |
+| Saved artifacts | PASS | `test-results/marketplace-route-search-U-105ac-riteria-after-direct-reload/search-url-restored.png` (450,477 bytes) and `trace.zip` (1,993,440 bytes). These are local test artifacts; the public staging screenshot was visually inspected in the browser. |
+| Public paired-user completion | PARTIAL | Booking-to-completion, cross-account message delivery, live GPS/rendezvous and recovery remain unaccepted on the public tunnel. |
+| Overall staging gate | NO | `STAGING_READY=NO`; this delta verifies one public search/reload flow only. |
+
+Visual evidence was inspected in the browser session. The capture was not written to a repository artifact path by the browser tool.
 
 The same exact Server/Site pair passed the local production-browser suite using isolated PostGIS/Redis and deterministic provider fixtures: 6/6 Playwright scenarios. The Journey scenario performs search, link booking to the saved Journey, cancellation, selects a route-corridor Rescue alternative, books it, and verifies persisted `REPLACED` + `CONFIRMED` legs and `READY` Journey state. Server isolated PostGIS/Redis integration passed 18/18 and includes concurrent Rescue booking attempts with exactly one winner. Browser compatibility passed Chromium/Firefox/WebKit 3/3. Screenshot evidence from the local Journey offer view: `/tmp/marshgo-offer-detail-mobile.png`; Playwright traces are retained under `test-results/` (git-ignored).
 
-Latest public endpoint check (2026-10-01 19:45 Europe/Kyiv) returned HTTP 200 for `/`, `/healthz` and `/readyz`. In the already-open public browser tab, the production bundle rendered onboarding and the phone sign-in screen. No account/OTP action was submitted. A new browser tab showed ngrok's first-visit warning, which was left untouched. These checks establish reachability and initial UI rendering only; they do not establish an authenticated staging flow or remove the paired-user acceptance gap.
+Latest public endpoint check (2026-10-01 19:45 Europe/Kyiv) returned HTTP 200 for `/`, `/healthz` and `/readyz`. In the already-open public browser tab, the production bundle rendered onboarding and the phone sign-in screen. No account/OTP action was submitted. A new browser tab showed ngrok's first-visit warning, which was left untouched. These checks establish reachability and UI rendering only; they do not remove the paired-user acceptance gap.
 
 | Check | Result | Limit |
 |---|---|---|
@@ -25,6 +44,10 @@ Latest public endpoint check (2026-10-01 19:45 Europe/Kyiv) returned HTTP 200 fo
 | Local Journey Rescue closed loop | PASS | Production Vite bundle + canonical pinned Server/Site, isolated DB/Redis, fixture inventory. |
 | Public Journey Rescue UI retest | BLOCKED (temporary) | Staging rate limiter is returning a retry-after message after repeated acceptance mutations; do not treat local E2E as public staging acceptance. |
 | Full paired public Golden Path | PARTIAL | Driver/passenger complete lifecycle, realtime rendezvous, live GPS and restart recovery not accepted end-to-end on public UI. |
+
+## Latest sequential local verification — 2026-10-01
+
+On immutable Server `699b1fa7e007f5f8b56e597922523cf4659dd942` and Site `336787900c645277a7284568d573ce079fb05010`, `npm run test:e2e` passed 7/7; `npm run test:browser-compat` passed Chromium/Firefox/WebKit 3/3; and `npm run check:production` passed typecheck, repository-wide lint, build, bundle gate, and 79 unit tests (0 failed, 1 opt-in integration skip). Runs were executed sequentially to avoid contention. GitHub umbrella CI run `36894539895` was on the older pinned Site `573ebca…` and failed its Journey Rescue UI assertion; a fresh run against the current candidate is pending push.
 
 ## Earlier staging snapshots
 
