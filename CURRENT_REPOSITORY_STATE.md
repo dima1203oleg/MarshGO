@@ -1,4 +1,4 @@
-# Current MARSHGO repository state — 2026-10-01 15:26 Europe/Kyiv
+# Current MARSHGO repository state — 2026-10-01 15:31 Europe/Kyiv
 
 Repository heads and open PRs were re-read from GitHub. The four canonical worktrees are clean and match their remote branches. Open PR branches remain separate candidates; no divergent PR was merged wholesale.
 

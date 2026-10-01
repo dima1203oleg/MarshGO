@@ -1,6 +1,6 @@
 # MARSHGO Temporary Public Staging Report
 
-**Checked:** 2026-10-01 15:26 Europe/Kyiv
+**Checked:** 2026-10-01 15:31 Europe/Kyiv
 **STAGING_URL:** https://d399d7d0ed6b9b.lhr.life
 **STAGING_READY:** NO (public reachability and review UI slices verified; complete paired-user acceptance remains incomplete)
 **READY_FOR_SERVER_DEPLOYMENT:** NO
@@ -15,6 +15,7 @@
 | Check | Result | Evidence / limits |
 |---|---|---|
 | Current staging deployment | PASS | `https://d399d7d0ed6b9b.lhr.life`; `/healthz` and `/readyz` returned 200 with Postgres and Redis connected. |
+| Renewed tunnel browser smoke | PASS | Current hostname was opened in Chromium; the MARSHGO landing page and explicit staging/test-data banner rendered. Browser reported no console errors on this page. Tunnel URL is temporary and may rotate again. |
 | Current source revisions | PASS | Server `237d14f1b3e4d69936433f46f290d1cd4b920d9d`; Site `79222d65beecb8bba5d234acfab47bb34070453e`. The public edge now points at these candidate builds. |
 | Passenger review UI | PASS (staging test fixture) | Visible Chromium completed OTP, opened a clearly labeled completed fixture booking, selected 4/5 and submitted a test comment; UI displayed the saved acknowledgement. |
 | Review persistence after reload | PASS (staging test fixture) | After reloading the direct `/trips` URL, the booking remained completed and showed “Дякуємо! Ваш відгук збережено.” from server-owned review state. |

@@ -43,7 +43,7 @@
     "deployed_server_sha": "237d14f1b3e4d69936433f46f290d1cd4b920d9d",
     "deployed_site_sha": "79222d65beecb8bba5d234acfab47bb34070453e",
     "migration": "028",
-    "checked_at": "2026-10-01 15:26 Europe/Kyiv"
+    "checked_at": "2026-10-01 15:31 Europe/Kyiv"
   },
   "candidate_database_migration": "028 on Server PR #2; canonical release baseline remains 027 until merged"
 }
