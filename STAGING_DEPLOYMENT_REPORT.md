@@ -21,7 +21,7 @@
 | Component | SHA | Deployment |
 |---|---|---|
 | MarshGO-Server | 54ed3c85fd79807a7d7d0b539a587fffca259487 | Deployed from `codex/security-parse-bearer` (PR #2; not yet merged to `main`) |
-| MarshGO-Site | e789f5af5f4abc99b09b745da6eb9a867613c2d0 | Deployed from `codex/navigation-deep-link-alias` PR #2 head (main baseline remains `c7f76a4…`) |
+| MarshGO-Site | 3b42727677639e67721e5944154bf2dee14447f0 | Deployed from `codex/navigation-deep-link-alias` PR #2 head (main baseline remains `c7f76a4…`) |
 | MarshGO-iOS | b8b1fcbfe9997e1a7a27594b5759690147de75df | Not deployed to web staging |
 | MarshGO integration baseline | 904874f11eee6a19b77c2356230a82ab7c45569f | Test/deployment baseline |
 | Umbrella deployment/orchestration branch | fc404fcab5d663b2dce33b08ca8856792ec676c8 | `codex/marshgo-production`; synchronized source mirrors and verified rescue UI E2E |
@@ -43,8 +43,8 @@ The active processes run from exact standalone worktrees at the Server and Site 
 | Rescue corridor replacement booking | PASS (local production-browser E2E) | The passenger selected the along-route alternative, booked it through the production UI, and verified the confirmed booking, exact fare, offer ID and persisted PostGIS-backed row. This does not exercise the paired-user rescue flow on public staging. |
 | Navigation direct link | PASS | `/navigation` previously returned the app's 404; the Site PR #2 alias now opens the navigation destination form on the public staging URL. Site PR checks pass. |
 | Driver navigation CTA copy | PASS | Updated production build now accurately says route matching requires driver consent and a verified vehicle; rebuilt bundle was served from staging over HTTPS. |
-| Latest Site commit deployed | PASS (browser smoke) | Built standalone Site SHA `e789f5af5f4abc99b09b745da6eb9a867613c2d0` with relative same-origin API and OpenFreeMap Liberty style configuration, switched the staging edge to that immutable checkout build, and opened the public HTTPS page in the browser. The staging banner rendered; public `/healthz` and `/readyz` returned 200. |
-| Latest public browser smoke | PASS with expected auth response | Chromium opened the current public `/navigation` URL at 1440×900 and 390×844. Both requests returned 200, the correct MARSHGO title, app root and staging banner rendered, and screenshots were captured as `.release/staging-e789-desktop.png` and `.release/staging-e789-mobile.png`. The unauthenticated session-refresh probe returned its expected 401; no page exception occurred. |
+| Latest Site commit deployed | PASS (browser smoke) | Built standalone Site SHA `3b42727677639e67721e5944154bf2dee14447f0` with relative same-origin API and OpenFreeMap Liberty style configuration, served that immutable checkout build from the staging edge, and opened the public HTTPS page in the browser. The staging banner rendered; public `/healthz` and `/readyz` returned 200. The driver proposal success status is now also rendered and the two-account UI flow passes after this fix. |
+| Latest public browser smoke | PASS with expected auth response | Chromium opened the current public `/navigation` URL at 1440×900 and 390×844. Both requests returned 200, the correct MARSHGO title, app root and staging banner rendered, and screenshots were captured as `.release/staging-3b42727-desktop.png` and `.release/staging-3b42727-mobile.png`. The unauthenticated session-refresh probe returned its expected 401; no page exception occurred. |
 | Local cross-browser compatibility | PASS | Chromium, Firefox and WebKit each passed the production UI smoke at phone, tablet and desktop sizes (3/3 projects). This is local E2E evidence, separate from public-staging browser coverage. |
 | Driver vehicle form and private photo upload | PASS (test fixture only) | A clearly marked staging driver created a vehicle in the UI; a synthetic PNG passed the signed private S3 upload and was recorded as the primary photo in Postgres. The synthetic-document review rejected this test vehicle; it cannot publish. |
 | Driver dashboard after login | PASS | Independent driver test account reached the production dashboard after OTP verification; server-backed offers, demands, vehicles and navigation-match reads returned successfully. The test vehicle is unverified, so publishing/matching acceptance remains blocked by the real verification flow. |
@@ -97,8 +97,8 @@ Local, ignored artifacts (not committed or publicly linked):
 - .release/staging-current-desktop.png (previous pinned Site build, 1440×900)
 - .release/staging-current-mobile.png (previous pinned Site build, 390×844)
 - .release/staging-current-login.png (previous headed Chromium test OTP login)
-- .release/staging-e789-desktop.png (latest public Site SHA e789, Chromium, 1440×900)
-- .release/staging-e789-mobile.png (latest public Site SHA e789, Chromium, 390×844)
+- .release/staging-3b42727-desktop.png (latest public Site SHA 3b42727, Chromium, 1440×900)
+- .release/staging-3b42727-mobile.png (latest public Site SHA 3b42727, Chromium, 390×844)
 - .release/staging-current-routes.trace.zip (direct `/`, `/navigation`, `/admin/verification` opens; unauthenticated trace)
 - .release/staging-ios-simulator.png (iPhone 16 Pro Max Simulator onboarding render; not a physical-device artifact)
 - .release/staging-map-desktop.png
@@ -118,4 +118,4 @@ Trace archives can include staging authentication/session context. Keep them pri
 5. Replace S3Mock and public test geocoder/routing/map endpoints with configured production-grade services for production.
 6. Real SMS, domain/TLS, production server, push, payments/commercial partners and physical iPhone acceptance remain external release gates.
 
-The local staging stack and renewed tunnel are left running. The current URL is `https://e56962a49685c1.lhr.life`; localhost.run may rotate it when the tunnel reconnects. This URL serves Site SHA `e789f5af5f4abc99b09b745da6eb9a867613c2d0` and Server SHA `54ed3c85fd79807a7d7d0b539a587fffca259487`. The public homepage and health/readiness endpoints returned 200 and the staging banner rendered in the browser. The URL remains valid only while the host processes and this machine stay available.
+The local staging stack and renewed tunnel are left running. The current URL is `https://e56962a49685c1.lhr.life`; localhost.run may rotate it when the tunnel reconnects. This URL serves Site SHA `3b42727677639e67721e5944154bf2dee14447f0` and Server SHA `54ed3c85fd79807a7d7d0b539a587fffca259487`. The public homepage and health/readiness endpoints returned 200 and the staging banner rendered in the browser. The URL remains valid only while the host processes and this machine stay available.

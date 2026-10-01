@@ -29,13 +29,13 @@
     "production_deployment": "BLOCKED_EXTERNAL",
     "ios_simulator": "PASS; Xcode Debug built, installed and launched iPhone 16 Pro Max Simulator; onboarding screenshot captured",
     "physical_iphone": "BLOCKED_EXTERNAL",
-    "staging_site_bundle": "PASS; immutable Site SHA e789f5af5f4abc99b09b745da6eb9a867613c2d0 built and served by public temporary HTTPS; homepage/browser banner and health/readiness verified"
+    "staging_site_bundle": "PASS; immutable Site SHA 3b42727677639e67721e5944154bf2dee14447f0 built and served by public temporary HTTPS; homepage/browser banner, success feedback and health/readiness verified"
   },
   "note": "Top-level Server/Site SHAs identify canonical main release baselines; staging contains explicit immutable PR-branch SHAs. integration_sha identifies the verified integration code baseline. This manifest is not a deployment authorization.",
   "staging": {
     "url": "https://e56962a49685c1.lhr.life",
     "provider": "local Docker stack via anonymous localhost.run HTTPS tunnel",
-    "web_sha": "e789f5af5f4abc99b09b745da6eb9a867613c2d0",
+    "web_sha": "3b42727677639e67721e5944154bf2dee14447f0",
     "server_sha": "54ed3c85fd79807a7d7d0b539a587fffca259487",
     "integration_sha": "fc404fcab5d663b2dce33b08ca8856792ec676c8",
     "ready": false,
