@@ -36,11 +36,12 @@
     "staging_site_bundle": "PASS; immutable Site SHA 3b9af2b61b093152d451271e398920e679cf4276 built and served by public temporary HTTPS; Chromium desktop/mobile homepage and health/readiness smoke verified",
     "integration_suite": "PASS; 17/17 PostGIS/Redis integration tests",
     "public_staging_browser_refresh": "PASS with limitations; Chromium desktop 1440x900 and mobile 390x844 homepage plus six direct SPA routes; health/readiness PASS; 11 expected anonymous API 401 console resource errors, 0 page exceptions and 0 failed first-party transports",
-    "public_staging_chromium_recheck": "PASS; current temporary HTTPS homepage and direct /navigation returned successfully, staging banner/title rendered, /readyz database+realtime connected, 0 browser page exceptions or failed requests"
+    "public_staging_chromium_recheck": "PASS; current temporary HTTPS homepage and direct /navigation returned successfully, staging banner/title rendered, /readyz database+realtime connected, 0 browser page exceptions or failed requests",
+    "public_staging_paired_booking": "PARTIAL; three visible dev-OTP test identities; passenger booked one test-only fixture offer, driver /trips UI displayed confirmed booking, DB showed 3/4 seats; fixture vehicle was inserted as staging-only verified data and was not moderator-approved; chat/cancel/Rescue follow-up not accepted"
   },
   "note": "Top-level Server/Site SHAs identify canonical main release baselines; staging contains explicit immutable PR-branch SHAs. integration_sha identifies the verified integration code revision; subsequent metadata-only commits do not change those build inputs. This manifest is not a deployment authorization.",
   "staging": {
-    "url": "https://adb01c5654955c.lhr.life",
+    "url": "https://fce39bf5bb297b.lhr.life",
     "provider": "local Docker stack via anonymous localhost.run HTTPS tunnel",
     "web_sha": "3b9af2b61b093152d451271e398920e679cf4276",
     "server_sha": "54ed3c85fd79807a7d7d0b539a587fffca259487",
@@ -48,6 +49,6 @@
     "ready": false,
     "production_ready": false,
     "report": "STAGING_DEPLOYMENT_REPORT.md",
-    "tunnel_refreshed_at": "2026-10-01T11:10:00+03:00"
+    "tunnel_refreshed_at": "2026-10-01T08:32:38.721Z"
   }
 }

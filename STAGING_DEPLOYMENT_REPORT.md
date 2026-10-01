@@ -1,8 +1,8 @@
 # MARSHGO Temporary Public Staging Report
 
 **Checked:** 2026-10-01 (Europe/Kyiv)
-**STAGING_URL:** https://adb01c5654955c.lhr.life
-**STAGING_READY:** NO (public smoke verified; paired-user acceptance remains incomplete)
+**STAGING_URL:** https://fce39bf5bb297b.lhr.life
+**STAGING_READY:** NO (public smoke and partial paired booking verified; complete paired-user acceptance remains incomplete)
 **READY_FOR_SERVER_DEPLOYMENT:** NO
 **PRODUCTION_READY:** NO
 
@@ -40,10 +40,13 @@ The active processes run from exact standalone worktrees at the Server and Site 
 
 | Current URL recheck (2026-10-01, after local E2E reruns) | Result | Evidence |
 |---|---|---|
-| Public Chromium homepage | PASS | Current tunnel `https://adb01c5654955c.lhr.life` returned 200; title and staging banner rendered. Screenshot: `.release/staging-current-validation-desktop.png`. |
+| Public Chromium homepage | PASS | Current tunnel `https://fce39bf5bb297b.lhr.life` returned 200; title and staging banner rendered. Screenshot: `.release/staging-current-validation-desktop.png`. |
 | Public Chromium direct `/navigation` | PASS (route delivery) | Direct navigation returned the SPA root and preserved `/navigation`; screenshot: `.release/staging-current-validation-navigation.png`. This is route delivery evidence, not the authenticated user flow. |
 | Public readiness | PASS | `/readyz` returned 200 with database and realtime connected. |
 | Browser errors during logged validation | PASS | Zero page exceptions or failed browser requests in this Chromium check. Earlier anonymous route refreshes still produce the expected protected-session 401s noted above. |
+| Paired booking attempt (2026-10-01) | PARTIAL | Three visible dev-OTP sign-ins created explicitly named `STAGING TEST` accounts. A test-only verified vehicle/offer fixture was inserted into the isolated staging DB; it did not pass moderator verification and must not be treated as a real verified driver. The passenger UI geocoded Striy/Lviv and created a confirmed booking. Postgres records 1 passenger seat and 3/4 available; the driver's `/trips` UI visibly shows the confirmed booking and `Скасувати`/`Написати` actions. Screenshot: `.release/staging-paired-driver-trips.png`. |
+| Paired chat and Rescue follow-up | NOT ACCEPTED | Follow-up browser harness locators did not resolve the intended booking card. No successful chat/cancellation/replacement booking is claimed. |
+| Live Nominatim result handling | PASS (lookup only) | Staging returned actual city labels with administrative areas. One acceptance selector expected the local-fixture label exactly; the staging geocoder itself returned HTTP 200. |
 
 | Latest local production-browser rerun (2026-10-01) | Result | Evidence |
 |---|---|---|
@@ -85,8 +88,9 @@ The active processes run from exact standalone worktrees at the Server and Site 
 | Private upload adapter smoke | PASS (staging emulator only) | Browser uploaded a generated test vehicle image; UI confirmed private S3-compatible staging storage upload. S3Mock is not production S3. |
 | Driver test profile/vehicle | PASS (staging only) | Test user enabled driver role and created a four-seat test vehicle. This synthetic test vehicle was rejected by moderation and cannot publish or establish a real driver inventory. |
 | Reverse Marketplace demand | PASS (creation only) | Server-backed demand persisted. No independent driver proposal/negotiation was available to complete. |
-| Full passenger booking lifecycle | BLOCKED / NOT ACCEPTED | No verified, independent driver offer in staging, so booking → boarding → completion → reviews could not be exercised through UI. |
-| Passive matching / multi-passenger | PARTIAL / PUBLIC STAGING NOT ACCEPTED | Local two-account Chromium E2E covers one passenger end-to-end through consent, proposal, booking, waypoint insertion and rerouting using a verified test fixture. Public staging's synthetic vehicle is rejected and cannot publish; >1 passenger capacity flow remains untested. |
+| Passenger booking and driver visibility | PASS (staging fixture scope only) | Passenger UI created a confirmed booking; the independent driver UI displays it with lifecycle actions; Postgres shows 3/4 seats remaining. The driver vehicle is a direct staging-only fixture and was not moderator-approved. |
+| Full passenger booking lifecycle | BLOCKED / NOT ACCEPTED | Boarding, trip completion, both reviews and the full two-party cancellation/rebooking cycle were not exercised through public UI. |
+| Passive matching / multi-passenger | PARTIAL / PUBLIC STAGING NOT ACCEPTED | Local two-account Chromium E2E covers one passenger through consent, proposal, booking, waypoint insertion and rerouting. Public staging matching with the staging-only vehicle is not accepted; >1 passenger capacity flow remains untested. |
 | Rerouting after controlled gradual GPS replay | PASS LOCALLY / PUBLIC STAGING NOT ACCEPTED | Local production-browser E2E moves simulated browser GPS in gradual 80 m steps, verifies persisted position, off-route route-version increment, reroute UI, and matching pause until renewed consent. Public staging and physical-device GPS have not been accepted. |
 | Chat / notifications / rendezvous / full Rescue journey | BLOCKED / NOT ACCEPTED | The route-corridor candidate search and UI explanation now pass local PostGIS and browser E2E, but the public staging did not complete the paired-user cancellation → alternative booking → continued trip flow. |
 | WebSocket reconnect | NOT TESTED | No accepted paired-user realtime lifecycle to drive this acceptance. |
@@ -135,10 +139,10 @@ Trace archives can include staging authentication/session context. Keep them pri
 ## Remaining blockers
 
 1. Keep a durable public hostname and host stack rather than an anonymous tunnel.
-2. Complete paired Passenger/Driver UI acceptance for offer verification, booking, chat, notification, rendezvous, boarding, trip completion and reviews.
+2. Complete paired Passenger/Driver UI acceptance for moderator-approved offer verification, booking, chat, notification, rendezvous, boarding, trip completion and reviews. The current staging test fixture is not evidence of moderator approval.
 3. Complete gradual controlled GPS replay, off-route rerouting and passive matching/multi-passenger acceptance.
 4. Exercise cancellation/Rescue and WebSocket reconnect/restart durability across independent users.
 5. Replace S3Mock and public test geocoder/routing/map endpoints with configured production-grade services for production.
 6. Real SMS, domain/TLS, production server, push, payments/commercial partners and physical iPhone acceptance remain external release gates.
 
-The local staging stack and renewed tunnel are left running. The current URL is `https://adb01c5654955c.lhr.life`; localhost.run may rotate it when the tunnel reconnects. This URL serves Site SHA `3b9af2b61b093152d451271e398920e679cf4276` and Server SHA `54ed3c85fd79807a7d7d0b539a587fffca259487`. The public homepage and health/readiness endpoints returned 200 and the staging banner rendered in the browser. The URL remains valid only while the host processes and this machine stay available.
+The local staging stack and renewed tunnel are left running. The current URL is `https://fce39bf5bb297b.lhr.life`; localhost.run may rotate the hostname when the tunnel reconnects. This URL serves Site SHA `3b9af2b61b093152d451271e398920e679cf4276` and Server SHA `54ed3c85fd79807a7d7d0b539a587fffca259487`. The public homepage and health/readiness endpoints returned 200 and the staging banner rendered in Chromium. Public paired UI created one confirmed test booking and the driver UI displayed it; no chat/rescue/boarding/completion pass is claimed. The URL remains valid only while the host processes and this machine stay available.
