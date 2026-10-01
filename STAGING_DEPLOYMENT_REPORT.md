@@ -17,7 +17,8 @@
 | Current staging deployment | PASS | `https://7ebc6d14f05d36.lhr.life`; `/healthz` and `/readyz` returned 200 with Postgres and Redis connected. |
 | Renewed tunnel browser smoke | PASS | Current hostname was opened in Chromium; the MARSHGO landing page and explicit staging/test-data banner rendered. Browser reported no console errors on this page. Tunnel URL is temporary and may rotate again. |
 | Staging deployed revisions | PASS | Server `237d14f1b3e4d69936433f46f290d1cd4b920d9d`; runtime Site `79222d65beecb8bba5d234acfab47bb34070453e`. The Site source candidate below changes only the bundle guard. |
-| Canonical Site production build and demo-data guard | PASS LOCALLY | `npm run build` and `npm run check:bundle` on Site `10addc3093d9defea02496006741eb21cbd28b5f`; Vite transformed 1,787 modules. Guard denies 11 known seeded user/vehicle/conversation identities and demo partner inventory labels. Negative probe injected `usr_drv_alex` into a generated asset and the gate failed as expected; after cleanup, the production bundle passed. Runtime JavaScript chunk names remained identical to the deployed build. GitHub PR #2 Verify passes on this candidate. |
+| Canonical Site production build and demo-data guard | PASS | `npm run build` and `npm run check:bundle` on Site `10addc3093d9defea02496006741eb21cbd28b5f`; Vite transformed 1,787 modules. Guard denies 11 known seeded user/vehicle/conversation identities and demo partner inventory labels. Negative probe injected `usr_drv_alex` into a generated asset and the gate failed as expected; after cleanup, the production bundle passed. Runtime JavaScript chunk names remained identical to the deployed build. GitHub PR #2 Verify passes on this candidate. |
+| Server multi-passenger source candidate | PASS LOCALLY; STAGING NOT UPDATED | Server `23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46` supports a plan of up to 30 ordered stops. Five unit tests include a 15-rider/30-stop invariant case; full PostGIS/Redis integration passes 18/18 and includes two passengers inserted into one route. Candidate GitHub PR #2 Verify passes. Deployed staging API remains `237d14f1b3e4d69936433f46f290d1cd4b920d9d`; no 15-rider browser acceptance is claimed. |
 | Passenger review UI | PASS (staging test fixture) | Visible Chromium completed OTP, opened a clearly labeled completed fixture booking, selected 4/5 and submitted a test comment; UI displayed the saved acknowledgement. |
 | Review persistence after reload | PASS (staging test fixture) | After reloading the direct `/trips` URL, the booking remained completed and showed “Дякуємо! Ваш відгук збережено.” from server-owned review state. |
 | Driver review UI | PASS (same staging services; local edge) | Public driver OTP was rate-limited, so the same Site build and staging DB/Redis/S3Mock were reached via an isolated local staging edge. Driver submitted a 5-star review and the reviewed state returned after reload. Screenshot: `.release/staging-paired-driver-trips.png`. |
@@ -43,7 +44,8 @@
 
 | Component | SHA | Deployment |
 |---|---|---|
-| MarshGO-Server | `237d14f1b3e4d69936433f46f290d1cd4b920d9d` | `codex/security-parse-bearer`; migration 028; review state API |
+| MarshGO-Server (deployed) | `237d14f1b3e4d69936433f46f290d1cd4b920d9d` | `codex/security-parse-bearer`; migration 028; review state API |
+| MarshGO-Server (source candidate) | `23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46` | 30-stop navigation cap and invariant tests; not yet deployed to staging |
 | MarshGO-Site (deployed) | `79222d65beecb8bba5d234acfab47bb34070453e` | `codex/navigation-deep-link-alias`; Home navigation fix, OpenFreeMap build configuration, review UI |
 | MarshGO-Site (source candidate) | `10addc3093d9defea02496006741eb21cbd28b5f` | Adds the release bundle demo-data gate; runtime assets unchanged |
 | MarshGO-iOS | `b8b1fcbfe9997e1a7a27594b5759690147de75df` | Not deployed to web staging |
