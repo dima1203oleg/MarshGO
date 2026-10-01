@@ -1,6 +1,6 @@
 # MARSHGO Temporary Public Staging Report
 
-**Checked:** 2026-10-01 13:06 Europe/Kyiv
+**Checked:** 2026-10-01 13:13 Europe/Kyiv
 **STAGING_URL:** https://78ba949ed82fea.lhr.life
 **STAGING_READY:** NO (public smoke and partial paired booking verified; complete paired-user acceptance remains incomplete)
 **READY_FOR_SERVER_DEPLOYMENT:** NO
@@ -23,7 +23,7 @@
 | Component | SHA | Deployment |
 |---|---|---|
 | MarshGO-Server | 6c069dda22030a74928227097f699491e5e89cd3 | Deployed from `codex/security-parse-bearer` (PR #2; migration 028 candidate; not yet merged to `main`) |
-| MarshGO-Site | bc4b254bbaae09ba8de96352cf7790f756e51312 | Deployed from `codex/navigation-deep-link-alias` PR #2 head (main baseline remains `c7f76a4…`) |
+| MarshGO-Site | 26b32c9f9c351c4a52c188b16ecc55b1aa483392 | Deployed from `codex/navigation-deep-link-alias` PR #2 head (main baseline remains `c7f76a4…`) |
 | MarshGO-iOS | b8b1fcbfe9997e1a7a27594b5759690147de75df | Not deployed to web staging |
 | MarshGO integration baseline | cf9da4f6f4e4e0e22417da090d2bd9d8bf83cb3e | Verified integration code; current docs record the deployed standalone pair |
 | Umbrella deployment/orchestration branch | bca2c9297a313a40f9804411e47c74f6c5f579c0 | `codex/marshgo-production`; report/manifest metadata at current branch head |
@@ -68,6 +68,7 @@ The active processes run from exact standalone worktrees at the Server and Site 
 | Browser traces / machine-readable results | SAVED | `.release/staging-candidate-desktop.trace.zip`, `.release/staging-candidate-mobile.trace.zip`, `.release/staging-candidate-browser-matrix.json`. Traces may include staging session context; keep local/private. |
 | Public readiness after browser run | PASS | The prior hostname `https://6fc2e0f67fc4ad.lhr.life/readyz` returned `ready`, `database=connected`, `realtime=connected` before it expired. The renewed current hostname is rechecked below. |
 | Renewed temporary hostname (2026-10-01 13:06 Europe/Kyiv) | PASS | Previous anonymous hostname expired; the same local edge/API pair was re-exposed at `https://78ba949ed82fea.lhr.life`. Browser rendered the staging banner and welcome page; `/readyz` returned ready with DB and realtime connected. Deployed Server/Site SHAs are unchanged. |
+| OTP rate-limit recovery message (2026-10-01 13:13 Europe/Kyiv) | PASS (UI copy) / OTP BLOCKED BY RATE LIMIT | After repeated acceptance requests, the API returned HTTP 429 with `rate_limit_exceeded`. The updated visible sign-in UI maps that response to Ukrainian wait-and-retry guidance. OTP could not be completed again during this window; Redis restart preserved its rate-limit key, as expected for the persistent Redis volume. |
 
 | Manual public browser acceptance (2026-10-01 12:30 Europe/Kyiv) | Result | Evidence |
 |---|---|---|
@@ -180,4 +181,4 @@ Trace archives can include staging authentication/session context. Keep them pri
 5. Replace S3Mock and public test geocoder/routing/map endpoints with configured production-grade services for production.
 6. Real SMS, domain/TLS, production server, push, payments/commercial partners and physical iPhone acceptance remain external release gates.
 
-The local staging stack and renewed tunnel are left running. At 2026-10-01 13:06 Europe/Kyiv, the current URL is `https://78ba949ed82fea.lhr.life`; localhost.run may rotate the hostname when the tunnel reconnects. This URL serves Site SHA `bc4b254bbaae09ba8de96352cf7790f756e51312` and Server SHA `6c069dda22030a74928227097f699491e5e89cd3`. Public Chromium verified the desktop/mobile route shell, authenticated profile direct-open/session restore, unauthenticated navigation deep-link handling, and public readiness. Migration 028 is applied to staging, but unread/read has not passed a two-user staging acceptance. The URL remains valid only while the host processes and this machine stay available.
+The local staging stack and renewed tunnel are left running. At 2026-10-01 13:13 Europe/Kyiv, the current URL is `https://78ba949ed82fea.lhr.life`; localhost.run may rotate the hostname when the tunnel reconnects. This URL serves Site SHA `26b32c9f9c351c4a52c188b16ecc55b1aa483392` and Server SHA `6c069dda22030a74928227097f699491e5e89cd3`. Public Chromium verified the desktop/mobile route shell, authenticated profile direct-open/session restore, unauthenticated navigation deep-link handling, health/readiness, and Ukrainian 429 guidance. Migration 028 is applied to staging, but unread/read has not passed a two-user staging acceptance. The URL remains valid only while the host processes and this machine stay available.

@@ -38,7 +38,7 @@ The percentages below are engineering estimates across the requested capability 
 - Added parser tests and verified umbrella and Server CI plus the Server integration suite.
 - Reconciled the current standalone main SHAs, open PR heads, and canonical ownership in [docs/REPOSITORY_STATE_FINAL.md](REPOSITORY_STATE_FINAL.md).
 - Added [docs/SECURITY_FINAL_AUDIT.md](SECURITY_FINAL_AUDIT.md) and a staging-only Redis outage/recovery record in [docs/REDIS_RECOVERY.md](REDIS_RECOVERY.md).
-- Refreshed the anonymous tunnel to `https://78ba949ed82fea.lhr.life`; staging runs Server PR #2 `6c069dda22030a74928227097f699491e5e89cd3` and Site PR #2 `bc4b254bbaae09ba8de96352cf7790f756e51312`, with migration 028 applied to the isolated DB. Browser verified health/readiness, authenticated profile direct-open/session restore and the unauthenticated `/navigation` deep-link path. Full two-user acceptance remains incomplete.
+- Refreshed the anonymous tunnel to `https://78ba949ed82fea.lhr.life`; staging runs Server PR #2 `6c069dda22030a74928227097f699491e5e89cd3` and Site PR #2 `26b32c9f9c351c4a52c188b16ecc55b1aa483392`, with migration 028 applied to the isolated DB. Browser verified health/readiness, authenticated profile direct-open/session restore, unauthenticated `/navigation` handling and the Ukrainian rate-limit message. Full two-user acceptance remains incomplete.
 - Hardened immutable release materialization: canonical GitHub origin and real-directory checks, rejection of untracked/modified pinned sources, strict Server/Site Docker contexts, and SHA-256 materialization metadata. Canonical API/Web images build locally and in CI.
 - Updated the deployment-readiness decision and release gap audit to reflect performed staging and Redis checks while retaining `NO` for incomplete acceptance.
 
@@ -137,7 +137,7 @@ Then verify app/API HTTPS routes, database migration version, SMS, map/routing/g
 - Server canonical `main`: `bdfdf24941809f4581965b9847022c68e0b2f127`.
 - Server staging PR #2 branch: `codex/security-parse-bearer` at `6c069dda22030a74928227097f699491e5e89cd3`.
 - Site `main`: `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7`.
-- Site staging PR #2: `bc4b254bbaae09ba8de96352cf7790f756e51312`.
+- Site staging PR #2: `26b32c9f9c351c4a52c188b16ecc55b1aa483392`.
 - iOS `main`: `b8b1fcbfe9997e1a7a27594b5759690147de75df`.
 
 The temporary URL and test data are documented in [STAGING_DEPLOYMENT_REPORT.md](../STAGING_DEPLOYMENT_REPORT.md). The repository-backed release baseline is recorded in [RELEASE_MANIFEST.json](../RELEASE_MANIFEST.json); neither document authorizes production traffic.
