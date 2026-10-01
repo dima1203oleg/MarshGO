@@ -31,6 +31,6 @@ Exact repository refs: [root RELEASE_MANIFEST.json](../RELEASE_MANIFEST.json). E
 ## Temporary public staging (2026-10-01)
 
 - Public temporary HTTPS URL: https://e212f8eb21d418.lhr.life (ephemeral localhost.run tunnel).
-- Health/readiness and Chromium smoke checks passed; demand creation persisted across API restart and staging-only Redis stop/start recovery. Separate staging driver and moderator test identities completed the visible OTP login; driver dashboard server reads passed. `/navigation` deep link was corrected in Site PR #2 and now opens the navigation screen.
+- Health/readiness and Chromium smoke checks passed; demand creation persisted across API restart and staging-only Redis stop/start recovery. Separate staging driver and moderator test identities completed the visible OTP login; driver dashboard reads, test-vehicle creation, and private test-photo upload passed. The synthetic test vehicle remains unverified. `/navigation` deep link was corrected in Site PR #2 and now opens the navigation screen.
 - Full paired-user booking, matching, rendezvous, chat, Rescue and browser realtime flows did not pass acceptance. Therefore STAGING_READY=NO, READY_FOR_SERVER_DEPLOYMENT=NO, and PRODUCTION_READY=NO.
 - URL is anonymous localhost.run forwarding to the current local host and may rotate/expire. Details and evidence: STAGING_DEPLOYMENT_REPORT.md.
