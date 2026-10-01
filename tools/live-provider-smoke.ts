@@ -47,7 +47,11 @@ async function main() {
     const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
     const tileRequests: string[] = [];
     const failures: string[] = [];
-    page.on('request', (request) => { if (request.url().includes('tiles.openfreemap.org')) tileRequests.push(request.url()); });
+    page.on('request', (request) => {
+      try {
+        if (new URL(request.url()).hostname === 'tiles.openfreemap.org') tileRequests.push(request.url());
+      } catch { /* Ignore non-URL browser requests in the provider counter. */ }
+    });
     page.on('requestfailed', (request) => failures.push(`${request.url()} ${request.failure()?.errorText ?? ''}`));
     page.on('pageerror', (error) => failures.push(error.message));
     await page.goto(`http://127.0.0.1:${address.port}/`);
