@@ -411,3 +411,16 @@ The active anonymous tunnel URL is `https://0c7342d01f4706.lhr.life` (the earlie
 
 
 Pinned simulator evidence: `.release/staging-ios-c9-iphone15pm.png` visually shows onboarding after the 120-second settle period. A blank 25-second capture exposes slow first rendering; report this as partial usability, not a clean startup-time PASS.
+
+
+## Latest verified deployment — paginated chat and restored tunnel (2026-10-01)
+
+- **STAGING_URL:** https://superblessed-herlinda-epiphragmal.ngrok-free.dev
+- **Provider/status:** local isolated Docker PostgreSQL/PostGIS, Redis and S3-compatible test storage behind an ngrok HTTPS tunnel; currently reachable, but it is a temporary host tied to this machine/session and has no uptime guarantee.
+- **Web SHA / served bundle:** `029aae486e164f02660c36130114527b19898001`; asset `assets/index-_KmOE8LV.js`, SHA-256 `01a6e3ce9795367043f3782a74dc2b405cde13e3da7e2bab9428dc424baf6db1`, verified equal to the local Site production bundle.
+- **API SHA:** `533f500bd9fa821d6b8aea7048037d4b7f897486`; `/healthz` returns HTTP 200 (`staging-edge-ok`); `/readyz` returns HTTP 200 with database and realtime connected.
+- **Browser checks:** public Chromium opened/reloaded the direct saved search URL at its existing 390×844 tab. The staging banner is visible, route criteria remain visible, and the zero-inventory state is honest (no fixture offer shown on that query). No location permission was granted.
+- **Local acceptance:** `npm run test:e2e` — 8 passed, 0 failed; `npm run test:browser-compat` — Chromium, Firefox, WebKit 3 passed, 0 failed. The paginated-chat test seeds 55 older messages in the isolated test DB and verifies cursor page boundaries, ordering and deduplication. Server/Site Verify CI passed (Server `36917975891`, `36917969978`; Site `36917987335`, `36917981271`).
+- **Not accepted:** complete paired public user lifecycle; map tile rendering/route overlay with live session; public GPS/reroute; public two-user realtime chat/rendezvous/boarding/completion; durable hosting. The 8/8 local E2E is isolated browser evidence, not proof that these public flows work.
+- **Screenshots/traces:** existing Playwright traces and screenshots under ignored `test-results/` and `.release/` are local artifacts; no new public trace was produced in this recheck. Treat authenticated traces as private.
+- **Flags:** `STAGING_READY=NO`; `READY_FOR_SERVER_DEPLOYMENT=NO`; `PRODUCTION_READY=NO`. Real SMS, production hosting/domain/TLS, push, payment/partner credentials and physical-device acceptance remain external gates.

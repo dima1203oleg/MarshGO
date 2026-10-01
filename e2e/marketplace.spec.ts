@@ -225,6 +225,12 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     await passengerPage.getByPlaceholder('Напишіть повідомлення…').fill('Буду на місці о 08:45.');
     await passengerPage.getByPlaceholder('Напишіть повідомлення…').press('Enter');
     await expect(passengerPage.getByText('Буду на місці о 08:45.')).toBeVisible();
+    await pool.query(
+      `INSERT INTO messages(conversation_id,sender_id,body,created_at)
+       SELECT c.id,b.passenger_id,'Стара історія E2E ' || seq::text,now()-((1000-seq)*interval '1 second')
+         FROM conversations c JOIN bookings b ON b.id=c.booking_id
+         CROSS JOIN generate_series(1,55) AS seq WHERE b.id=$1`, [createdBooking.id],
+    );
     expect((await passengerContext.cookies()).some((cookie) => cookie.name === 'mg_refresh')).toBe(true);
     expect((await passengerContext.cookies('http://127.0.0.1:3300/api/v1/auth/refresh')).some((cookie) => cookie.name === 'mg_refresh')).toBe(true);
     const refreshResponse = passengerPage.waitForResponse((response) => response.url().endsWith('/api/v1/auth/refresh'));
@@ -235,6 +241,12 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     // Entity deep links restore the specific server-owned conversation after reload.
     await expect(passengerPage).toHaveURL(/\/messages\/[A-Za-z0-9_-]+$/);
     await expect(passengerPage.getByRole('heading', { name: 'MARSHGO E2E Driver' })).toBeVisible();
+    const olderMessagesButton = passengerPage.getByRole('button', { name: 'Завантажити попередні повідомлення' });
+    await expect(olderMessagesButton).toBeVisible();
+    await expect(passengerPage.getByText('Стара історія E2E 55', { exact: true })).toBeVisible();
+    await olderMessagesButton.click();
+    await expect(passengerPage.getByText('Стара історія E2E 1', { exact: true })).toBeVisible();
+    await expect(passengerPage.getByText('Стара історія E2E 55', { exact: true })).toHaveCount(1);
     await passengerPage.getByRole('button', { name: 'Поїздки', exact: true }).click();
     await expect(passengerPage.getByText(/2 місця/).first()).toBeVisible();
     await passengerPage.getByRole('button', { name: 'Відкрити зустріч' }).click();
@@ -369,7 +381,9 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
       `SELECT m.body FROM messages m JOIN conversations c ON c.id=m.conversation_id
        JOIN bookings b ON b.id=c.booking_id WHERE b.offer_id=$1 ORDER BY m.created_at`, [offerId],
     );
-    expect(messages.rows.map((row) => row.body)).toEqual(['Буду на місці о 08:45.', realtimeMessage]);
+    expect(messages.rows.filter((row) => !row.body.startsWith('Стара історія E2E ')).map((row) => row.body))
+      .toEqual(['Буду на місці о 08:45.', realtimeMessage]);
+    expect(messages.rows.filter((row) => row.body.startsWith('Стара історія E2E '))).toHaveLength(55);
 
     await passengerPage.getByRole('button', { name: 'Поїздки', exact: true }).click();
     await passengerPage.getByRole('button', { name: /Написати/ }).first().click();

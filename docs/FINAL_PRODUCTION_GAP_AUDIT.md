@@ -1,5 +1,12 @@
 # Final production gap audit — 2026-10-01
 
+## Latest verified delta — chat pagination and staging bundle identity (2026-10-01)
+
+Server `533f500bd9fa821d6b8aea7048037d4b7f897486` and Site `029aae486e164f02660c36130114527b19898001` close older-message retrieval with authorized cursor pagination and explicit response metadata. Local Playwright verifies a 55-message history across two pages, no duplicate messages, and an independent-user chat flow. Fresh browser suite: E2E 8/8; Chromium/Firefox/WebKit compatibility 3/3. Server and Site PR Verify runs pass.
+
+The temporary public URL is `https://superblessed-herlinda-epiphragmal.ngrok-free.dev`. `/healthz` and `/readyz` return 200; the latter reports database/realtime connected. Public Chromium confirms the exact current Site bundle (served JS SHA-256 `01a6e3ce9795367043f3782a74dc2b405cde13e3da7e2bab9428dc424baf6db1`), staging banner, direct route reload, and honest zero-result state. Full paired public lifecycle and live map/GPS acceptance remain unverified. `STAGING_READY=NO`, `READY_FOR_SERVER_DEPLOYMENT=NO`, `PRODUCTION_READY=NO`. See `STAGING_DEPLOYMENT_REPORT.md`.
+
+
 ## Latest verified delta — 2026-10-01
 
 Site `336787900c645277a7284568d573ce079fb05010` fixes refresh-safe search deep links and mobile route-heading truncation: successful geocoded searches serialize validated endpoints, provider IDs, coordinates, date, time, passenger count, and strategy into the URL; authenticated direct opening/reload restores the route heading and criteria; long Ukrainian place labels wrap on narrow screens. The planner requires explicit resubmission rather than silently creating another saved Journey. Site typecheck, repository-wide lint, production build, bundle gate and both Site PR Verify checks pass. Sequential umbrella Playwright E2E is 7/7, browser compatibility is 3/3, and `npm run check:production` is green (79 pass, 0 fail, 1 opt-in skip) on the exact Server/Site candidate pair. Independent chat now uses the explicit accessible back control before unread-state assertion; its isolated and full-suite runs both pass.
