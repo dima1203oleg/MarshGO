@@ -21,7 +21,7 @@
 | Component | SHA | Deployment |
 |---|---|---|
 | MarshGO-Server | f0a6cdb2fd918733770f65f997dfea5d7c302b0c | Deployed from `codex/security-parse-bearer` (PR #2; not yet merged to `main`) |
-| MarshGO-Site | 97b29ed77e0cfc49ad37b59e856af364184492fc | Staging build from `codex/navigation-deep-link-alias` (PR #2; `main` baseline remains `c7f76a4…`) |
+| MarshGO-Site | 779e29e0572d290ab1111d3cb5b7ba334d4fccdc | Rebuilt from the updated `codex/navigation-deep-link-alias` PR #2 head (main baseline remains `c7f76a4…`) |
 | MarshGO-iOS | b8b1fcbfe9997e1a7a27594b5759690147de75df | Not deployed to web staging |
 | MarshGO integration baseline | 904874f11eee6a19b77c2356230a82ab7c45569f | Test/deployment baseline |
 | Umbrella deployment/orchestration branch | 0127de32b125af0a7feb1ec85261582921cd6df3 | `codex/marshgo-production`; follow-up audit reports are being committed separately |
@@ -35,6 +35,7 @@ The locally materialized pinned Server and Site source trees contain untracked b
 | Public homepage / staging banner | PASS | Real browser displayed MARSHGO STAGING · TEST DATA ONLY. |
 | API health/readiness | PASS | Public HTTPS /healthz and /readyz returned 200. |
 | Navigation direct link | PASS | `/navigation` previously returned the app's 404; the Site PR #2 alias now opens the navigation destination form on the public staging URL. Site PR checks pass. |
+| Driver navigation CTA copy | PASS | Updated production build now accurately says route matching requires driver consent and a verified vehicle; rebuilt bundle was served from staging over HTTPS. |
 | Driver dashboard after login | PASS | Independent driver test account reached the production dashboard after OTP verification; server-backed offers, demands, vehicles and navigation-match reads returned successfully. No driver vehicle is verified, so publishing/matching acceptance remains blocked by the real verification flow. |
 | Moderator authentication | PASS (screen incomplete) | Moderator test account authenticated and read protected account/booking APIs. The admin verification decision flow was not completed through the UI. |
 | Login with development OTP | PASS | Separate Chromium contexts authenticated the staging driver and moderator test identities through the visible OTP flow; all post-login API reads returned 200. OTP values were not retained in output. |
@@ -74,6 +75,7 @@ Local, ignored artifacts (not committed or publicly linked):
 - .release/staging-passenger-desktop.png
 - .release/staging-passenger-mobile.png
 - .release/staging-driver-dashboard.png (driver test account after visible OTP login)
+- .release/staging-driver-dashboard-current.png (updated Site bundle; CTA opened navigation)
 - .release/staging-map-desktop.png
 - .release/staging-map-mobile.png
 - .release/staging-map-openfreemap-desktop.png
