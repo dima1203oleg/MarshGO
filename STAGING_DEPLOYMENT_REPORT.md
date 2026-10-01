@@ -1,7 +1,7 @@
 # MARSHGO Temporary Public Staging Report
 
 **Checked:** 2026-10-01 (Europe/Kyiv)
-**STAGING_URL:** https://ddf46115771bfd.lhr.life
+**STAGING_URL:** https://916f7e2ee0e658.lhr.life
 **STAGING_READY:** NO (public smoke verified; paired-user acceptance remains incomplete)
 **READY_FOR_SERVER_DEPLOYMENT:** NO
 **PRODUCTION_READY:** NO
@@ -30,7 +30,7 @@ The active processes run from exact standalone worktrees at the Server and Site 
 
 ## Verification
 
-| Current tunnel refresh (2026-10-01 10:36 Europe/Kyiv) | Result | Evidence |
+| Current tunnel refresh (2026-10-01 11:09 Europe/Kyiv) | Result | Evidence |
 |---|---|---|
 | Public homepage / responsive views | PASS with expected unauthenticated API responses | Chromium opened the current HTTPS URL at 1440×900 and 390×844; both returned 200, rendered the staging banner and app title. Six direct routes (`/search`, `/trips`, `/navigation`, `/profile`, `/notifications`, `/admin/verification`) returned successful SPA responses at each viewport. Screenshots: `.release/staging-public-desktop.png`, `.release/staging-public-mobile.png`. |
 | Public readiness | PASS | `/healthz` returned `staging-edge-ok`; `/readyz` returned ready with database and realtime connected. |
@@ -126,4 +126,4 @@ Trace archives can include staging authentication/session context. Keep them pri
 5. Replace S3Mock and public test geocoder/routing/map endpoints with configured production-grade services for production.
 6. Real SMS, domain/TLS, production server, push, payments/commercial partners and physical iPhone acceptance remain external release gates.
 
-The local staging stack and renewed tunnel are left running. The current URL is `https://ddf46115771bfd.lhr.life`; localhost.run may rotate it when the tunnel reconnects. This URL serves Site SHA `3b9af2b61b093152d451271e398920e679cf4276` and Server SHA `54ed3c85fd79807a7d7d0b539a587fffca259487`. The public homepage and health/readiness endpoints returned 200 and the staging banner rendered in the browser. The URL remains valid only while the host processes and this machine stay available.
+The local staging stack and renewed tunnel are left running. The current URL is `https://916f7e2ee0e658.lhr.life`; localhost.run may rotate it when the tunnel reconnects. This URL serves Site SHA `3b9af2b61b093152d451271e398920e679cf4276` and Server SHA `54ed3c85fd79807a7d7d0b539a587fffca259487`. The public homepage and health/readiness endpoints returned 200 and the staging banner rendered in the browser. The URL remains valid only while the host processes and this machine stay available.
