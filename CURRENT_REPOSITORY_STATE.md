@@ -4,7 +4,7 @@ Reconciliation was performed from each local checkout after fetching `origin`. E
 
 | Repository | Local branch / SHA | Working tree | Remote state | Open PR |
 |---|---|---|---|---|
-| `dima1203oleg/MarshGO` | `codex/marshgo-production` / `0800a0db490e6274618d232737697820f72a47b1` (release docs over code baseline `6a251fc71177f0b9ba0c1124e01965227a5411aa`) | clean | `origin/codex/marshgo-production` matches; pushed | #1 draft `codex/marshgo-production`, head advanced to this branch |
+| `dima1203oleg/MarshGO` | `codex/marshgo-production` / `904874f11eee6a19b77c2356230a82ab7c45569f` (deployment code; report-only descendant follows) | release manifest/report-only metadata pending commit | pushed; metadata commit will advance the branch | #1 draft `codex/marshgo-production`, head advanced to this branch |
 | `dima1203oleg/MarshGO-Server` | `main` / `2fcdeed196e262547342927ac1ddcfed9906865f` | clean | `origin/main` matches; pushed, CI success | #1 `codex/rendezvous-live-pickup`, head `f788a96a5365a8a7d7f1eef416868f97217706c4`; main now has the behavior and tests, review whether to close after PR diff audit |
 | `dima1203oleg/MarshGO-Site` | `main` / `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7` | clean | `origin/main` matches; pushed, CI success | #1 `codex/rendezvous-live-pickup`, head `045f138bd9c31cb8bcc40231da867db7d7e8e531`; current main includes rendezvous controls and mobile onboarding, PR still open |
 | `dima1203oleg/MarshGO-iOS` | `main` / `b8b1fcbfe9997e1a7a27594b5759690147de75df` | clean | `origin/main` matches; pushed, CI success | #1 `codex/simulator-smoke-capture`, head `328d9af2b3f7095d3f9afca8fcbe4e9c5e1df0ad`; only safe settled-screenshot behavior was ported because full PR conflicts with newer immutable release-input workflow |
