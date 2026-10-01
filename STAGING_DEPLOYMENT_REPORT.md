@@ -8,10 +8,20 @@
 
 **Site SHA:** `336787900c645277a7284568d573ce079fb05010`
 
+> Superseded by the latest delta below: public staging now serves Site `2031fdaba88662f4dec4669bdfa15de8bf29b800`. The new build intentionally has no tile provider configured; do not read local E2E tile-fixture coverage as public tile availability.
+
 **Provider:** local isolated Postgres/PostGIS, Redis, S3Mock and static Site, exposed by the temporary ngrok HTTPS tunnel
 **STAGING_READY:** NO · **READY_FOR_SERVER_DEPLOYMENT:** NO · **PRODUCTION_READY:** NO
 
 The local API candidate runs on the staging edge and the Site production bundle was rebuilt from the exact Site SHA above. Public Chromium hard reload loaded that refreshed bundle and retained the geocoded search URL. `GET /readyz` returned HTTP 200 with PostgreSQL and Redis connected; homepage and health routes returned HTTP 200. No production SMS/payment/storage credentials are configured.
+
+### Latest delta — GPS failure recovery and navigation feedback
+
+The Site fix maps browser GPS permission/unavailable/stale/invalid/low-accuracy failures to actionable Ukrainian guidance, hides unknown machine error codes, and returns the start action to an enabled retry state. Site `2031fdaba88662f4dec4669bdfa15de8bf29b800` is served by the current staging edge. A public Chromium reload of `/navigate` visibly showed “Не вдалося отримати точне місце. Перевірте дозвіл і сигнал GPS, потім спробуйте ще раз.” and an enabled “Почати навігацію” retry. No navigation session was created without a location permission grant. Public `/healthz` and `/readyz` both return HTTP 200; readiness reports PostgreSQL and realtime connected.
+
+Local E2E: `npm run test:e2e` — **8/8 Chromium passed** after the runner checked out exact Site SHA `2031fdaba88662f4dec4669bdfa15de8bf29b800`; this includes isolated tile-fixture success/partial failure/recovery, simulated GPS route matching and reroute, denied GPS recovery, direct URL restoration, and Journey offer flow. Site typecheck, `lint:all`, production build and bundle transfer budget passed. The public bundle does not contain the localhost-only test tile URL. It is built with HTTPS `tile.openstreetmap.org` and visible OpenStreetMap attribution for low-volume staging visualization; this is not a contracted production map provider. The public product map has not yet been opened in a live authorized route, so real public tile rendering, route polyline, live marker and reroute remain unaccepted. `STAGING_READY=NO`.
+
+Evidence retained in the local ignored `test-results/artifacts/` directory: `iphone-15-pro-max-route.png`, `iphone-16-pro-max-route.png`, `navigation-foreground-route-trace.zip`, and `navigation-gps-denied-retry-trace.zip`. The route screenshots use the intentionally synthetic E2E tile fixture; they demonstrate route geometry, simulated position and UI behavior, not real map tiles. Traces contain only isolated test accounts/data. They are local artifacts and are not committed.
 
 ### Public browser delta — search URL persistence
 

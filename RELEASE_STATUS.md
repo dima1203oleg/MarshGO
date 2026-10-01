@@ -2,6 +2,10 @@
 
 This status records the tested candidate revisions and explicitly separates local/fixture checks from a real public production release. `DONE` means the stated software slice was verified; it does not imply the entire product is production-ready.
 
+## Latest delta — navigation GPS failure recovery
+
+Site `2031fdaba88662f4dec4669bdfa15de8bf29b800` now gives actionable Ukrainian guidance for denied/unavailable/stale/invalid/low-accuracy GPS and restores an enabled retry action. Site typecheck, full lint, production build and bundle budget pass locally. The umbrella Playwright suite passes 8/8 Chromium scenarios against Server `699b1fa7e007f5f8b56e597922523cf4659dd942` and the exact Site candidate, including simulated route match/reroute and tile fixture failure/recovery. Public staging reload visibly verifies the localized GPS failure and retry UI, with no session created without location permission. Public tile-provider URL is intentionally unset; maps honestly show degraded/no street tiles. Site GitHub CI and umbrella CI for the just-updated immutable pin are pending. `STAGING_READY=NO`, `READY_FOR_SERVER_DEPLOYMENT=NO`, and `PRODUCTION_READY=NO`.
+
 ## Latest delta — Journey Rescue closure
 
 Site `336787900c645277a7284568d573ce079fb05010` closes refresh-safe geocoded search URLs, wraps long route headings on mobile, and exposes an accessible chat back action used by the independent-account E2E. Direct opening and reload restore route endpoints/criteria from validated URL state; public staging at 390×844 confirms the full Стрий → Львів heading remains visible after reload, with the expected zero-live-offer state and no console errors/warnings. Site Verify passes on this exact SHA; local sequential browser coverage is 7/7 E2E and 3/3 browser compatibility on the exact candidate pair. `npm run check:production` passes 79 unit tests with one opt-in integration skip. Public staging Site dist was rebuilt from this exact SHA, and public browser reload plus `/readyz` checks pass.
@@ -10,8 +14,8 @@ Canonical Server `699b1fa7e007f5f8b56e597922523cf4659dd942` now attaches an elig
 
 | Capability | Status | Evidence / remaining acceptance |
 |---|---|---|
-| Repository candidate CI | PARTIAL | Server `699b1fa…` and Site `3367879…` PR Verify checks pass. Umbrella full Verify passes on candidate code baseline `eaa37b2…`; a later report/CI-trigger-only head has a PR Verify pending at Playwright browser installation. |
-| Staging public reachability | PARTIAL | Temporary ngrok URL serves Server `699b1fa…` and Site `3367879…`; `/readyz` confirms service, PostgreSQL and Redis connected. Free tunnel has no uptime guarantee. |
+| Repository candidate CI | PARTIAL | Server `699b1fa…` checks pass. Site `2031fda…` CI runs 36910256850, 36910251574, 36910250303 pass. Umbrella CI for the updated immutable Site pin is pending push. |
+| Staging public reachability | PARTIAL | Temporary ngrok URL serves Server `699b1fa…` and Site `2031fda…`; `/healthz` and `/readyz` return 200, PostgreSQL and Redis are connected. A low-volume HTTPS OSM raster endpoint is configured for staging with visible attribution; it is not a contracted production map provider. Free tunnel and community tile service have no uptime guarantee. |
 | Staging geocoding and road search | PARTIAL | Photon suggestions and OSRM-backed search were exercised through Chromium. These public demo endpoints are not contracted production providers. |
 | Passenger OTP/session | PARTIAL | Synthetic development OTP and protected route restore tested. No real SMS or two-account session acceptance. |
 | Community offer search and booking | PARTIAL | One clearly labeled seeded `STAGING TEST` offer booked from visible UI; booking/Journey persisted across reload. This is not real driver inventory. |
@@ -27,7 +31,7 @@ Canonical Server `699b1fa7e007f5f8b56e597922523cf4659dd942` now attaches an elig
 | iOS Simulator | PARTIAL | iOS branch `codex/reliable-capacitor-sync` at `1f08e73…`: GitHub simulator CI passes; local Node 24.21 build used exact Site `3367879…`/Server `699b1fa…`, sync/install/launch and onboarding screenshot pass. No authenticated flow. |
 | Physical iPhone / TestFlight | BLOCKED_EXTERNAL | Requires Apple signing/App Store access and a physical device. |
 | Backup / restore and failure drills | PARTIAL | Local disposable backup/restore and selected Redis/Postgres drills passed; no off-host production restore evidence. |
-| Overall staging acceptance | PARTIAL | Temporary endpoint is reachable and exact candidate SHAs are deployed. Local production-bundle E2E is 7/7 against immutable canonical Server/Site; responsive Chromium/Firefox/WebKit smoke is 3/3. Public search URL reload and mobile heading wrap are verified; public full paired-user Golden Path is not accepted. `STAGING_READY=NO`. |
+| Overall staging acceptance | PARTIAL | Temporary endpoint is reachable and exact candidate SHAs are deployed. Local production-bundle E2E is 8/8 against immutable canonical Server/Site; responsive Chromium/Firefox/WebKit smoke is 3/3. Public search URL reload, mobile heading wrap and localized GPS-denied retry are verified. Public real map tile rendering and full paired-user Golden Path are not accepted. `STAGING_READY=NO`. |
 | Overall server deployment readiness | PARTIAL | Production-like deployment artifacts and local checks exist, but outstanding software/acceptance gaps remain. `READY_FOR_SERVER_DEPLOYMENT=NO`. |
 | Production release | BLOCKED_EXTERNAL | Server/domain/DNS/TLS, production providers, operational verification and physical-device acceptance remain outstanding. `PRODUCTION_READY=NO`. |
 

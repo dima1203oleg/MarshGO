@@ -24,6 +24,7 @@ const navigationPassengerPhone = `+38068${String(Date.now() + 4).slice(-7)}`;
 const navigationFlowDriverPhone = `+38069${String(Date.now() + 5).slice(-7)}`;
 const journeyPassengerPhone = `+38070${String(Date.now() + 6).slice(-7)}`;
 const searchRestorePhone = `+38071${String(Date.now() + 7).slice(-7)}`;
+const gpsDeniedPhone = `+38072${String(Date.now() + 8).slice(-7)}`;
 const navigationFlowVehicleId = randomUUID();
 let navigationFlowDemandId = '';
 
@@ -119,7 +120,7 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
-  const testUsers = await pool.query<{ id: string }>('SELECT id FROM users WHERE phone_e164=ANY($1::text[])', [[passengerPhone, navigationPhone, navigationSecondPhone, navigationPassengerPhone, navigationFlowDriverPhone, journeyPassengerPhone, searchRestorePhone]]);
+  const testUsers = await pool.query<{ id: string }>('SELECT id FROM users WHERE phone_e164=ANY($1::text[])', [[passengerPhone, navigationPhone, navigationSecondPhone, navigationPassengerPhone, navigationFlowDriverPhone, journeyPassengerPhone, searchRestorePhone, gpsDeniedPhone]]);
   const userIds = [driverId, ...testUsers.rows.map((row) => row.id)];
   const testBookingQuery = `SELECT b.id FROM bookings b JOIN offers o ON o.id=b.offer_id WHERE b.passenger_id=ANY($1::uuid[]) OR o.driver_id=ANY($1::uuid[])`;
   await pool.query('DELETE FROM audit_events WHERE actor_id=ANY($1::uuid[]) OR entity_id=ANY($2::uuid[])', [userIds, [offerId, vehicleId]]);
@@ -132,7 +133,7 @@ test.afterAll(async () => {
   await pool.query('DELETE FROM navigation_sessions WHERE driver_id=ANY($1::uuid[])', [userIds]);
   await pool.query('DELETE FROM passenger_demands WHERE passenger_id=ANY($1::uuid[])', [userIds]);
   await pool.query('DELETE FROM offers WHERE id=$1 OR driver_id=ANY($2::uuid[])', [offerId, userIds]);
-  await pool.query('DELETE FROM otp_challenges WHERE phone_e164=ANY($1::text[])', [[driverPhone, passengerPhone, navigationPhone, navigationSecondPhone, navigationPassengerPhone, navigationFlowDriverPhone, journeyPassengerPhone, searchRestorePhone]]);
+  await pool.query('DELETE FROM otp_challenges WHERE phone_e164=ANY($1::text[])', [[driverPhone, passengerPhone, navigationPhone, navigationSecondPhone, navigationPassengerPhone, navigationFlowDriverPhone, journeyPassengerPhone, searchRestorePhone, gpsDeniedPhone]]);
   await pool.query('DELETE FROM sessions WHERE user_id=ANY($1::uuid[])', [userIds]);
   await pool.query('DELETE FROM account_deletion_requests WHERE user_id=ANY($1::uuid[])', [userIds]);
   await pool.query('DELETE FROM vehicles WHERE id=$1 OR owner_id=ANY($2::uuid[])', [vehicleId, userIds]);
@@ -790,6 +791,42 @@ test('foreground road route renders on iPhone 15 Pro Max and 16 Pro Max viewport
     }
   }
 });
+
+test('navigation recovers from denied GPS permission with a localized retry message', async ({ browser, baseURL }) => {
+  expect(baseURL).toBeTruthy();
+  const context = await browser.newContext({ baseURL, timezoneId: 'Europe/Kyiv' });
+  await context.grantPermissions([], { origin: baseURL! });
+  const page = await context.newPage();
+  try {
+    const accessToken = await signIn(page, 'GPS Denied Driver', gpsDeniedPhone);
+    const roleStatus = await page.evaluate(async (token) => fetch('/api/v1/users/me/roles', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ role: 'driver' }),
+    }).then((response) => response.status), accessToken);
+    expect(roleStatus).toBe(200);
+    await page.reload();
+    await expect(page.getByText('Привіт, GPS!')).toBeVisible();
+
+    let navigationCreateRequests = 0;
+    page.on('request', (request) => {
+      if (request.url().endsWith('/api/v1/navigation/sessions') && request.method() === 'POST') navigationCreateRequests += 1;
+    });
+    await page.getByRole('button', { name: /Почати навігацію/ }).click();
+    await page.getByPlaceholder('Наприклад, Львів').fill('Львів');
+    await page.getByRole('button', { name: 'Знайти', exact: true }).click();
+    await page.getByRole('button', { name: /Львів, Львівська область, Україна/ }).click();
+    await page.getByRole('button', { name: 'Почати навігацію', exact: true }).click();
+
+    await expect(page.getByText(/Дозвольте MARSHGO доступ до геолокації/)).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText('GPS_UNAVAILABLE')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Почати навігацію', exact: true })).toBeEnabled();
+    expect(navigationCreateRequests).toBe(0);
+  } finally {
+    await context.close().catch(() => undefined);
+  }
+});
+
+
 
 test('route search URL restores geocoded criteria after direct reload', async ({ browser, baseURL }, testInfo) => {
   expect(baseURL).toBeTruthy();
