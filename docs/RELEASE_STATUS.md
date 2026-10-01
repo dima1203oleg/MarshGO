@@ -2,7 +2,7 @@
 
 `READY_FOR_SERVER_DEPLOYMENT=NO` · `PRODUCTION_READY=NO`
 
-**Latest staging recheck (2026-10-01 16:57 Europe/Kyiv):** `https://0c7342d01f4706.lhr.life` is currently reachable but ephemeral. Site `c9a288162065a819864200da80fd5bcd1218af69` and staging Server `237d14f1b3e4d69936433f46f290d1cd4b920d9d` serve the current local staging edge. `/healthz`, `/readyz`, and homepage return 200; visible Chromium completed test-only OTP login, and passenger access to `/admin/verification` now receives a 403 screen with no console warnings/errors. Prior review-form checks used a seeded completed-trip fixture, not a completed real lifecycle. `STAGING_READY=NO`; `READY_FOR_SERVER_DEPLOYMENT=NO`; `PRODUCTION_READY=NO`.
+**Latest staging recheck (2026-10-01 17:15 Europe/Kyiv):** `https://0c7342d01f4706.lhr.life` is currently reachable but ephemeral. Site `c9a288162065a819864200da80fd5bcd1218af69` and staging Server `237d14f1b3e4d69936433f46f290d1cd4b920d9d` serve the current local staging edge. `/healthz`, `/readyz`, and homepage return 200; visible Chromium completed test-only OTP login, and passenger access to `/admin/verification` now receives a 403 screen with no console warnings/errors. Prior review-form checks used a seeded completed-trip fixture, not a completed real lifecycle. `STAGING_READY=NO`; `READY_FOR_SERVER_DEPLOYMENT=NO`; `PRODUCTION_READY=NO`.
 
 Capability states use only `DONE`, `PARTIAL`, `BLOCKED_EXTERNAL`, or `FAILED`. A local fixture/simulator pass does not qualify a real provider or production integration as DONE.
 

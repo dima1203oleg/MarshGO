@@ -1,8 +1,19 @@
 # MARSHGO pre-production completion report
 
-**As of:** 2026-10-01 16:57 Europe/Kyiv
+**As of:** 2026-10-01 17:15 Europe/Kyiv
 **Overall release decision:** `READY_FOR_SERVER_DEPLOYMENT=NO` · `PRODUCTION_READY=NO`
 **Staging:** current temporary URL `https://0c7342d01f4706.lhr.life` serves Site `c9a288162065a819864200da80fd5bcd1218af69` and staging Server `237d14f1b3e4d69936433f46f290d1cd4b920d9d`. `/healthz`, `/readyz`, and homepage pass. Visible Chromium completed synthetic OTP and confirmed that passenger role is denied at `/admin/verification` with 403. A pinned iOS simulator build with complete Site/Server/API/migration metadata showed a blank 25-second capture and onboarding by the 120-second settle capture; no authenticated simulator flow passed. The complete paired product acceptance did not pass, so `STAGING_READY=NO`. The anonymous tunnel is ephemeral.
+
+
+
+## Latest verification addendum — 2026-10-01 17:15 Europe/Kyiv
+
+- Exact source heads: umbrella `71cff14edc60f6182d8f05c25325144418e35444`; Server `23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46`; Site `c9a288162065a819864200da80fd5bcd1218af69`; iOS `b8b1fcbfe9997e1a7a27594b5759690147de75df`. All four local worktrees are clean and match their pushed branches.
+- Umbrella CI on `71cff14edc60f6182d8f05c25325144418e35444`: both Verify runs (`36874015904`, `36874022374`), CodeQL and Gitleaks passed. The Verify workflow completed lint, typecheck, unit, DB migrations, PostGIS/Redis integration, production build, image builds, Playwright E2E and browser compatibility.
+- Site `c9a288162065a819864200da80fd5bcd1218af69`: typecheck, full lint, production build, bundle budget and both PR #2 Verify runs passed. Server `23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46`: 51 unit passed / 0 failed / 2 skipped; PostGIS/Redis integration 18/18 passed; Verify passed.
+- Current staging `https://0c7342d01f4706.lhr.life`: `/healthz` 200, `/readyz` 200 with database and realtime connected, homepage 200. The URL is short-lived. `STAGING_READY=NO` because full paired booking → boarding → completion → rescue and public GPS/realtime acceptance are not complete.
+- Pinned iPhone 15 Pro Max Simulator build embeds exact Site/Server/API/migration metadata and shows onboarding in the 120-second settle screenshot; 25-second screenshot was blank. No authenticated simulator flow or physical device acceptance.
+- Release decision remains `READY_FOR_SERVER_DEPLOYMENT=NO` and `PRODUCTION_READY=NO`.
 
 The percentages below are engineering estimates across the requested capability groups. They are progress indicators only; a partial item is not a release pass and percentages do not override the release gates.
 

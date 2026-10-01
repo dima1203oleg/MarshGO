@@ -1,5 +1,10 @@
 # Final production gap audit — 2026-10-01
 
+## Latest CI snapshot — 2026-10-01 17:15 Europe/Kyiv
+
+- Umbrella `71cff14edc60f6182d8f05c25325144418e35444`: both Verify runs, CodeQL and Gitleaks passed. The CI Verify includes Playwright E2E and browser compatibility. Site `c9a288162065a819864200da80fd5bcd1218af69` and Server `23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46` Verify checks pass.
+- Current staging `https://0c7342d01f4706.lhr.life`: `/healthz`, `/readyz` and homepage return 200. This temporary hostname is not durable. Paired trip closure remains unaccepted, so `STAGING_READY=NO`.
+
 ## Evidence basis
 
 - Latest staging reconnect (2026-10-01 16:57 Europe/Kyiv): `https://0c7342d01f4706.lhr.life` serves Site `c9a288162065a819864200da80fd5bcd1218af69` and Server `237d14f1b3e4d69936433f46f290d1cd4b920d9d`; Chromium showed the home page and staging/test-only banner; `/healthz`, `/readyz`, and homepage returned 200 with Postgres and Redis connected. A passenger account direct-opened `/admin/verification` on the immediately previous ephemeral hostname and received 403 after the Site UI guard fix; console was clean. The refreshed hostname currently passes reachability/home checks. Anonymous tunnel is ephemeral; `STAGING_READY=NO` until the paired product flows pass.
