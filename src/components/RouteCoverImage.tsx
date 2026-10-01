@@ -1,15 +1,15 @@
 import React from 'react';
 import {
-  Car,
-  Compass,
-  MapPin,
+
+
+
   Sparkles,
-  Sun,
-  Moon,
-  Mountain,
-  Waves,
-  Trees,
-  Building2,
+
+
+
+
+
+
   Navigation
 } from 'lucide-react';
 
@@ -102,9 +102,9 @@ function getRouteTheme(origin: string, destination: string): RouteTheme {
 export const RouteCoverImage: React.FC<RouteCoverImageProps> = ({
   origin,
   destination,
-  category,
+  category: _category,
   className = 'w-full h-full',
-  departureTime
+  departureTime: _departureTime
 }) => {
   const theme = getRouteTheme(origin, destination);
 

@@ -5,7 +5,6 @@ import {
   User,
   Booking,
   Proposal,
-  MatchCandidate,
   NavigationSession,
   ChatMessage,
   RouteAlert,
@@ -23,7 +22,7 @@ import {
 
 type Listener = () => void;
 
-class MarshgoRepository {
+export class MarshgoRepository {
   private listeners: Set<Listener> = new Set();
 
   private user: User;
@@ -466,6 +465,9 @@ class MarshgoRepository {
     if (!proposal) throw new Error('Пропозицію не знайдено');
     const demand = this.getDemandById(proposal.demandId);
     if (!demand) throw new Error('Запит не знайдено');
+    if (proposal.status === 'accepted' || demand.status === 'booked') {
+      throw new Error('Для цього запиту вже підтверджено бронювання');
+    }
 
     // Atomic update
     proposal.status = 'accepted';
@@ -520,6 +522,9 @@ class MarshgoRepository {
   public bookOffer(offerId: string, seatsCount: number = 1): Booking {
     const offer = this.getOfferById(offerId);
     if (!offer) throw new Error('Пропозицію не знайдено');
+    if (!Number.isInteger(seatsCount) || seatsCount < 1) {
+      throw new Error('Вкажіть коректну кількість місць');
+    }
     if (offer.availableSeats < seatsCount) {
       throw new Error('Недостатньо вільних місць');
     }
@@ -569,7 +574,7 @@ class MarshgoRepository {
 
   public cancelBooking(bookingId: string) {
     const booking = this.bookings.find((b) => b.id === bookingId);
-    if (!booking) return;
+    if (!booking || booking.status === 'cancelled' || booking.status === 'completed') return;
 
     booking.status = 'cancelled';
 
@@ -609,6 +614,10 @@ class MarshgoRepository {
   }): Review {
     const booking = this.bookings.find((b) => b.id === params.bookingId);
     if (!booking) throw new Error('Поїздку не знайдено');
+    if (booking.hasReviewed) throw new Error('Відгук для цієї поїздки вже залишено');
+    if (!Number.isInteger(params.rating) || params.rating < 1 || params.rating > 5) {
+      throw new Error('Оцінка має бути від 1 до 5');
+    }
 
     const isPassenger = this.user.activeRole === 'passenger';
     const targetUserId = isPassenger ? booking.driverId : booking.passengerId;
@@ -741,7 +750,7 @@ class MarshgoRepository {
   public acceptNavigationMatch(candidateId: string) {
     if (!this.activeNavSession) return;
     const candidate = this.activeNavSession.candidates.find((c) => c.id === candidateId);
-    if (!candidate) return;
+    if (!candidate || !this.activeNavSession.matchmakingOptIn || candidate.status !== 'suggested') return;
 
     candidate.status = 'accepted';
 

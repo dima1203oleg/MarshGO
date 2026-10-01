@@ -1,16 +1,16 @@
 import React, { useState, useMemo } from 'react';
 import {
-  TrendingUp,
+
   PieChart,
   Calendar,
   Wallet,
-  Car,
-  Bus,
-  Sparkles,
-  ArrowUpRight,
+
+
+
+
   TrendingDown,
-  ShieldCheck,
-  ChevronDown,
+
+
   Info
 } from 'lucide-react';
 import { Booking, TransportCategory } from '../types';
