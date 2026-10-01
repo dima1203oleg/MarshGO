@@ -23,6 +23,14 @@ Capability states use only `DONE`, `PARTIAL`, `BLOCKED_EXTERNAL`, or `FAILED`. A
 | Backup / restore | PARTIAL | AES-GCM/tamper checks and disposable PostGIS restore drill pass. No scheduled/off-host production backups, RPO/RTO or staging restore proof. |
 | Security pipeline | PARTIAL | Runtime validation, headers/rate limits and dependency checks exist; complete SAST/secrets/container scans and staging authorization/upload abuse acceptance are outstanding. |
 | Monitoring / operations | FAILED | No production metrics, alerting, error tracking, incident rota or verified recovery objectives. |
-| Hosted staging / production | BLOCKED_EXTERNAL | Host/domain/TLS/secrets/real providers are not available. |
+| Hosted staging / production | PARTIAL | A public temporary localhost.run HTTPS staging tunnel is reachable and local isolated services are healthy; it is ephemeral and paired-user golden-path E2E is incomplete. Production remains blocked on server/domain/TLS/secrets/providers. See STAGING_DEPLOYMENT_REPORT.md. |
 
 Exact repository refs: [root RELEASE_MANIFEST.json](../RELEASE_MANIFEST.json). External inputs: [OWNER_ACTIONS_REQUIRED.md](../OWNER_ACTIONS_REQUIRED.md). Deployment decision: [READY_FOR_SERVER_DEPLOYMENT.md](../READY_FOR_SERVER_DEPLOYMENT.md).
+
+
+## Temporary public staging (2026-10-01)
+
+- Public temporary HTTPS URL: https://92dcb80f09f946.lhr.life
+- Health/readiness and Chromium smoke checks passed; demand creation and persistence after API restart passed.
+- Full paired-user booking, matching, rendezvous, chat, Rescue and browser realtime flows did not pass acceptance. Therefore STAGING_READY=NO, READY_FOR_SERVER_DEPLOYMENT=NO, and PRODUCTION_READY=NO.
+- URL is anonymous localhost.run forwarding to the current local host and may rotate/expire. Details and evidence: STAGING_DEPLOYMENT_REPORT.md.

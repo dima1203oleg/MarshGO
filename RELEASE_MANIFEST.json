@@ -25,9 +25,18 @@
     "browser_matrix": "Chromium, Firefox, WebKit across 6 viewport widths",
     "canonical_server_site_images": "PASS; built from the pinned Server and Site revisions",
     "backup_restore_drill": "PASS on isolated disposable PostGIS database",
-    "hosted_staging": "BLOCKED_EXTERNAL",
+    "hosted_staging": "PARTIAL; public temporary URL reachable, core paired-user E2E incomplete",
     "production_deployment": "BLOCKED_EXTERNAL",
     "physical_iphone": "BLOCKED_EXTERNAL"
   },
-  "note": "integration_sha identifies the verified code/deployment baseline. Subsequent integration-branch commits may update release metadata and reports only; this manifest is not a deployment authorization."
+  "note": "integration_sha identifies the verified code/deployment baseline. Subsequent integration-branch commits may update release metadata and reports only; this manifest is not a deployment authorization.",
+  "staging": {
+    "url": "https://92dcb80f09f946.lhr.life",
+    "provider": "local Docker stack via anonymous localhost.run HTTPS tunnel",
+    "web_sha": "c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7",
+    "server_sha": "bdfdf24941809f4581965b9847022c68e0b2f127",
+    "ready": false,
+    "production_ready": false,
+    "report": "STAGING_DEPLOYMENT_REPORT.md"
+  }
 }

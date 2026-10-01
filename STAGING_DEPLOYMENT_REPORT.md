@@ -1,0 +1,89 @@
+# MARSHGO Temporary Public Staging Report
+
+**Checked:** 2026-10-01 (Europe/Kyiv)
+**STAGING_URL:** https://92dcb80f09f946.lhr.life
+**STAGING_READY:** NO
+**READY_FOR_SERVER_DEPLOYMENT:** NO
+**PRODUCTION_READY:** NO
+
+## Deployment
+
+- **Provider:** Local Docker staging stack exposed over an anonymous localhost.run HTTPS reverse tunnel. No Vercel/Cloudflare/Render/Railway/Fly deployment credentials were available.
+- **Reachability:** Public HTTPS URL returned the staging web app, /healthz HTTP 200, and /readyz HTTP 200 (database=connected, realtime=connected) at report time.
+- **Lifetime:** Temporary URL and stack depend on the current host, Docker services and SSH tunnel session. localhost.run may rotate the hostname after a tunnel reconnect. This is not a durable hosted staging deployment.
+- **Isolation:** Separate marshgo-staging PostgreSQL/PostGIS database/volume, Redis instance/volume, and private S3-compatible S3Mock bucket/volume. Staging uses dev OTP and test data. Payments and commercial providers are disabled. No production secrets or production records were used.
+- **Services:** Production-built Site bundle; pinned API; PostgreSQL/PostGIS; Redis; S3Mock; Node edge/proxy; API process-hosted outbox/realtime worker. There is no separately deployed worker service in this stack.
+- **Geocoding/routing/maps:** Nominatim geocoding; OSRM-compatible road routing; MapLibre with OpenFreeMap style/vector tiles and attribution. These public services are staging integrations, not contracted or production-operated providers.
+- **Migrations:** Fresh isolated database accepted migrations 001–027.
+
+## Exact source revisions
+
+| Component | SHA | Deployment |
+|---|---|---|
+| MarshGO-Server | bdfdf24941809f4581965b9847022c68e0b2f127 | Deployed |
+| MarshGO-Site | c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7 | Production build deployed |
+| MarshGO-iOS | b8b1fcbfe9997e1a7a27594b5759690147de75df | Not deployed to web staging |
+| MarshGO integration baseline | 904874f11eee6a19b77c2356230a82ab7c45569f | Test/deployment baseline |
+| Current umbrella branch head | 65eb3082913d250afdc9bded1184fa6c679eec5d | Staging ops/report changes were uncommitted at report creation |
+
+The locally materialized pinned Server and Site source trees contain untracked build/deployment materialization files. The staging overlay itself is under ops/staging/; no changes were made to the canonical Server or Site commits.
+
+## Verification
+
+| Check | Result | Evidence |
+|---|---|---|
+| Public homepage / staging banner | PASS | Real browser displayed MARSHGO STAGING · TEST DATA ONLY. |
+| API health/readiness | PASS | Public HTTPS /healthz and /readyz returned 200. |
+| Login with development OTP | PASS | Browser authenticated isolated test user; dev OTP only, no SMS sent. |
+| Passenger demand creation | PASS | UI published Стрий → Львів, 2 passengers, 300 UAH total. |
+| API restart recovery | PASS | After API restart, browser reauthenticated and demand persisted in “Мої заявки”; the direct /demands/mine URL also survived reload. |
+| Geocoding | PASS | UI address search returned and selected geocoded Стрий and Львів place results. |
+| Route calculation | PASS | OSRM road route returned 98.9 km / 2 h 2 min and geometry. |
+| MapLibre / tiles | PASS | Chromium loaded MapLibre canvas, OpenFreeMap style/sprites/vector tiles/fonts, attribution and route geometry. |
+| Desktop rendering | PASS | Chromium at 1440×900; no horizontal overflow observed. |
+| Mobile rendering | PASS | Chromium at 430×932; document width matched viewport (430 px), no horizontal overflow. |
+| Private upload adapter smoke | PASS (staging emulator only) | Browser uploaded a generated test vehicle image; UI confirmed private S3-compatible staging storage upload. S3Mock is not production S3. |
+| Driver test profile/vehicle | PASS (staging only) | Test user enabled driver role and created a four-seat test vehicle. This vehicle is not verified and cannot establish a real driver inventory. |
+| Reverse Marketplace demand | PASS (creation only) | Server-backed demand persisted. No independent driver proposal/negotiation was available to complete. |
+| Full passenger booking lifecycle | BLOCKED / NOT ACCEPTED | No verified, independent driver offer in staging, so booking → boarding → completion → reviews could not be exercised through UI. |
+| Passive matching / multi-passenger | BLOCKED / NOT ACCEPTED | Product UI reports matching during navigation unavailable pending verified vehicle; route-overlap end-to-end was not demonstrated. |
+| Rerouting after realistic GPS replay | BLOCKED / NOT ACCEPTED | One large synthetic GPS jump was correctly rejected by anti-teleport validation. No gradual replay/off-route reroute acceptance was completed. |
+| Chat / notifications / rendezvous / Rescue | BLOCKED / NOT ACCEPTED | Full paired independent-user UI lifecycle was not completed. |
+| WebSocket reconnect | NOT TESTED | No accepted paired-user realtime lifecycle to drive this acceptance. |
+| Firefox / WebKit over public staging | NOT TESTED | Public staging acceptance used Chromium. Existing repository browser-matrix results are separate and are not evidence for this public deployment. |
+| Physical iPhone / production push / SMS | BLOCKED_EXTERNAL | Requires Apple signing/device and provider credentials. |
+
+STAGING_READY=NO follows the acceptance definition: public reachability and foundational browser checks passed, but the main two-sided booking/navigation/realtime lifecycle did not.
+
+## Browser errors and limitations
+
+- An unauthenticated fresh session probes /api/v1/auth/refresh; the API returns 401 as expected, and Chromium may surface that expected probe as a failed-resource console entry. No other unexpected console/API failure was observed in the final route/map run.
+- Browser console capture on the final direct-URL reload had no console errors or warnings.
+- A route display screenshot shows the road polyline over real vector tiles. The current navigation UI also reports stale GPS after long acceptance delays; live movement marker and reroute behavior remain unaccepted.
+- The temporary staging banner states development OTP is exposed for acceptance and real payments are disabled. Use only fake staging identities/data.
+
+## Screenshots and traces
+
+Local, ignored artifacts (not committed or publicly linked):
+
+- .release/staging-desktop-home.png
+- .release/staging-passenger-desktop.png
+- .release/staging-passenger-mobile.png
+- .release/staging-map-desktop.png
+- .release/staging-map-mobile.png
+- .release/staging-map-openfreemap-desktop.png
+- .release/staging-final.trace.zip
+- .release/staging-map-openfreemap.trace.zip
+
+Trace archives can include staging authentication/session context. Keep them private; do not upload them to public issue trackers.
+
+## Remaining blockers
+
+1. Keep a durable public hostname and host stack rather than an anonymous tunnel.
+2. Complete paired Passenger/Driver UI acceptance for offer verification, booking, chat, notification, rendezvous, boarding, trip completion and reviews.
+3. Complete gradual controlled GPS replay, off-route rerouting and passive matching/multi-passenger acceptance.
+4. Exercise cancellation/Rescue and WebSocket reconnect/restart durability across independent users.
+5. Replace S3Mock and public test geocoder/routing/map endpoints with configured production-grade services for production.
+6. Real SMS, domain/TLS, production server, push, payments/commercial partners and physical iPhone acceptance remain external release gates.
+
+The local staging stack and tunnel are left running. The URL remains valid only while those processes and this host stay available.
