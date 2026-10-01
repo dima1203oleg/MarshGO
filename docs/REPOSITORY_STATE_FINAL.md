@@ -17,8 +17,8 @@ Reconciliation ran against umbrella product-code baseline `854c93f9440be60381084
 | Repository | Local branch / HEAD | `origin/main` | Purpose / production relevance | Open PR / CI | Local worktree |
 |---|---|---|---|---|---|
 | `MarshGO` | `codex/marshgo-production` / code baseline `854c93f9440be603810844c27889a84e21a0c0f6`, report commits through `2125eb28964d2c57a1c704257bc823711662a528` | `1e7d0ee74f11121a7d5a29c6379944a5360581c4` | Integration, release/deployment orchestration and docs. | PR #1 draft; Verify, CodeQL and Gitleaks pass at `2125eb2`. | Clean after committed reports. |
-| `MarshGO-Server` | `codex/security-parse-bearer` / `de2209bc71557a14b20afac07b5067a7139b8b42` | `bdfdf24941809f4581965b9847022c68e0b2f127` | Canonical backend and migrations. | PR #2 (`de2209b`) checks pass; PR #1 Rendezvous (`f788a96...`) remains open. | Clean. |
-| `MarshGO-Site` | `codex/navigation-deep-link-alias` / `150aa7ade03871cd12b80c6b3e205f345d37f996` | `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7` | Canonical Web/PWA. | PR #2 (`150aa7a`) checks pass; PR #1 Rendezvous (`045f138...`) remains open. | Clean. |
+| `MarshGO-Server` | `codex/security-parse-bearer` / `237d14f1b3e4d69936433f46f290d1cd4b920d9d` | `bdfdf24941809f4581965b9847022c68e0b2f127` | Canonical backend and migrations. | PR #2 advanced with review-state API/test; checks pending after push; PR #1 Rendezvous (`f788a96...`) remains open. | Clean. |
+| `MarshGO-Site` | `codex/navigation-deep-link-alias` / `79222d65beecb8bba5d234acfab47bb34070453e` | `c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7` | Canonical Web/PWA. | PR #2 advanced with server-backed review UI; local typecheck/lint/build pass; checks pending after push. PR #1 Rendezvous (`045f138...`) remains open. | Clean. |
 | `MarshGO-iOS` | `main` / `b8b1fcbfe9997e1a7a27594b5759690147de75df` | same | Native container and integrations. | PR #1 simulator capture (`328d9af...`) checks pass. | Clean. |
 
 ## Reconciliation notes
@@ -32,6 +32,6 @@ Reconciliation ran against umbrella product-code baseline `854c93f9440be60381084
 
 ## Staging deployed source
 
-The temporary public HTTPS tunnel currently serves Server `de2209bc71557a14b20afac07b5067a7139b8b42` and Site `150aa7ade03871cd12b80c6b3e205f345d37f996`. Staging uses separate PostGIS, Redis and private S3-compatible test storage with development OTP. The localhost.run hostname is ephemeral. Public browser acceptance remains partial and `STAGING_READY=NO`.
+The temporary public HTTPS tunnel currently serves Server `de2209bc71557a14b20afac07b5067a7139b8b42` and Site `150aa7ade03871cd12b80c6b3e205f345d37f996`; latest review-flow candidate commits `237d14f`/`79222d6` are pushed but not deployed to that tunnel. Staging uses separate PostGIS, Redis and private S3-compatible test storage with development OTP. The localhost.run hostname is ephemeral. Public browser acceptance remains partial and `STAGING_READY=NO`.
 
 The release manifest pins immutable full SHAs. Its integration SHA is the umbrella code baseline before this documentation-only reconciliation commit. See [`RELEASE_MANIFEST.json`](RELEASE_MANIFEST.json), [`RELEASE_STATUS.md`](RELEASE_STATUS.md), and [`STAGING_DEPLOYMENT_REPORT.md`](../STAGING_DEPLOYMENT_REPORT.md).

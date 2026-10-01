@@ -1,12 +1,25 @@
 # MARSHGO Temporary Public Staging Report
 
-**Checked:** 2026-10-01 14:43 Europe/Kyiv
-**STAGING_URL:** https://b017cccb204056.lhr.life
+**Checked:** 2026-10-01 15:13 Europe/Kyiv
+**STAGING_URL:** https://aeee84a436c69d.lhr.life
 **STAGING_READY:** NO (public smoke and partial paired booking verified; complete paired-user acceptance remains incomplete)
 **READY_FOR_SERVER_DEPLOYMENT:** NO
 **PRODUCTION_READY:** NO
 
-**Latest reconnect:** 2026-10-01, temporary URL `https://b017cccb204056.lhr.life`. localhost.run rotates hostnames; old URLs can return 503 after reconnect. Chromium UI acceptance passed on the previous renewed hostname `e134c817e388ca.lhr.life`; it later expired. The latest hostname `b017cccb204056.lhr.life` returns the staging landing page with the staging banner and `/readyz` HTTP 200; authenticated product-flow checks were performed on the preceding hostname.
+**Credential hygiene note:** A diagnostic process-environment inspection showed unrelated AI provider API keys inherited by the prior edge process. The edge did not use those keys for MARSHGO, but the diagnostic output included them. That process was stopped and the staging edge relaunched using an empty environment with only the staging Site/API/S3 port and path settings. See `OWNER_ACTIONS_REQUIRED.md`; if those were live keys, rotate them. No production SMS/payment/provider secret is configured in the current staging processes.
+
+**Latest reconnect:** 2026-10-01, temporary URL `https://aeee84a436c69d.lhr.life`. localhost.run rotates hostnames; old URLs can return 503 after reconnect. The current edge proxies the production-built canonical Site and the API from the current Server PR head. `/healthz` and `/readyz` return 200. Public Chromium logged in a staging passenger, opened an explicitly seeded completed test trip, submitted a 4-star test review and confirmed that the reviewed state survives a page reload. This does not count as full-trip acceptance because the booking was a staging-only DB fixture. A second OTP login attempt for the seeded driver hit the shared staging OTP rate limit; the driver-side review UI remains unverified in public browser.
+
+## Latest delta acceptance — review flow
+
+| Check | Result | Evidence / limits |
+|---|---|---|
+| Current staging deployment | PASS | `https://aeee84a436c69d.lhr.life`; `/healthz` and `/readyz` returned 200 with Postgres and Redis connected. |
+| Current source revisions | PASS | Server `237d14f1b3e4d69936433f46f290d1cd4b920d9d`; Site `79222d65beecb8bba5d234acfab47bb34070453e`. The public edge now points at these candidate builds. |
+| Passenger review UI | PASS (staging test fixture) | Visible Chromium completed OTP, opened a clearly labeled completed fixture booking, selected 4/5 and submitted a test comment; UI displayed the saved acknowledgement. |
+| Review persistence after reload | PASS (staging test fixture) | After reloading the direct `/trips` URL, the booking remained completed and showed “Дякуємо! Ваш відгук збережено.” from server-owned review state. |
+| Driver review UI | FAILED / RETRY AFTER RATE WINDOW | A second UI login attempt was rate-limited after repeated staging OTP requests. No driver review was submitted. Server integration covers the two-party review API and Site rendering is shared by role. |
+| Full user-flow acceptance | PARTIAL | This validates review UI/API persistence only. The completed booking was inserted as a staging-only fixture; public UI booking → boarding → trip → both-party review has not been completed. `STAGING_READY=NO`. |
 
 ## Latest delta acceptance
 
@@ -15,21 +28,21 @@
 | Current hostname landing smoke | PASS | Visible Chromium loaded `b017cccb204056.lhr.life`, rendered the MARSHGO staging landing page and explicit test-only banner; `/readyz` returned HTTP 200. Authenticated checks below were on the immediately preceding hostname. |
 | Previous renewed URL Chromium retry | PASS (partial) | On `e134c817e388ca.lhr.life`, visible development OTP login succeeded; Photon returned selectable Kyiv/Lviv suggestions; direct `/journeys/search` rendered the honest zero-inventory state; direct `/navigation` rendered and correctly stated that driver role is required. This hostname later expired. No GPS permission was granted and no navigation was started. |
 | Trusted proxy rate-limit isolation | PASS | Server requires bounded `TRUST_PROXY_HOPS` in production, defaults to zero in development, and configures Express trust explicitly. Two API instances with Redis verified different forwarded client IPs receive independent buckets and the same client still receives 429. |
-| Server quality gates | PASS | Exact Server head `de2209bc71557a14b20afac07b5067a7139b8b42`: typecheck and full ESLint pass; unit tests 49 passed / 0 failed / 2 skipped; isolated PostGIS/Redis integration 18/18 passes, including migrations 001–028, bookings, navigation, realtime, restart durability and shared rate limits. |
+| Server quality gates | PASS | Exact Server head `237d14f1b3e4d69936433f46f290d1cd4b920d9d`: typecheck and full ESLint pass; unit tests 49 passed / 0 failed / 2 skipped; isolated PostGIS/Redis integration 18/18 passes, including migrations 001–028, booking review-state durability, navigation, realtime, restart durability and shared rate limits. GitHub Verify passed. |
 | Public UI OTP | PASS | Visible Chromium completed development OTP login on the then-current tunnel. A fresh browser tab restored the authenticated profile after API restart. OTP and phone are omitted. |
 | Ukrainian address lookup | PASS | Authenticated Chromium on the renewed URL queried Photon and returned selectable Kyiv/Lviv suggestions. Backend filters Photon results to Ukraine. This public demo endpoint is low-volume staging only and has no uptime guarantee. |
 | Offer search / Journey planner | PARTIAL | Selected real geocoder place IDs; server search/planning returned a truthful zero-results state because staging has no suitable current inventory. No fake offer was shown. |
 | Navigation deep link | PARTIAL | Direct `/navigation` opening returned the production navigation screen and correctly required an activated driver role. GPS route, movement and reroute were not completed in this browser session. |
 | Public readiness | PASS | Renewed tunnel homepage and `/readyz` returned HTTP 200; PostgreSQL and Redis were connected. URL is ephemeral and needs rechecking after reconnect. |
-| Return-home navigation | FIXED; build gates PASS | Fixed the stale `showResults` UI state on Site `150aa7a`; typecheck, full lint and production build pass. Browser click regression was not rerun on the current tunnel. |
+| Return-home navigation | FIXED; build gates PASS | Fixed the stale `showResults` UI state on Site `150aa7a`; latest Site `79222d6` additionally adds server-backed post-completion review UI. Typecheck, full lint and production build pass; GitHub Verify passed. |
 | Local production-browser E2E | PASS | `npm run test:e2e`: 6/6 on Chromium against the production Vite bundle with isolated PostGIS/Redis and deterministic test providers. Covers responsive smoke, onboarding, independent passenger/driver contexts, search/booking/demand negotiation/persisted chat, simulated GPS reroute, route rendering and Journey result details. This does not establish public-staging real-provider or full trip-closure acceptance. |
 
 ## Updated deployed revisions
 
 | Component | SHA | Deployment |
 |---|---|---|
-| MarshGO-Server | `de2209bc71557a14b20afac07b5067a7139b8b42` | `codex/security-parse-bearer`; migration 028 |
-| MarshGO-Site | `150aa7ade03871cd12b80c6b3e205f345d37f996` | `codex/navigation-deep-link-alias`; Home navigation fix, OpenFreeMap build configuration |
+| MarshGO-Server | `237d14f1b3e4d69936433f46f290d1cd4b920d9d` | `codex/security-parse-bearer`; migration 028; review state API |
+| MarshGO-Site | `79222d65beecb8bba5d234acfab47bb34070453e` | `codex/navigation-deep-link-alias`; Home navigation fix, OpenFreeMap build configuration, review UI |
 | MarshGO-iOS | `b8b1fcbfe9997e1a7a27594b5759690147de75df` | Not deployed to web staging |
 | Umbrella code baseline | `854c93f9440be603810844c27889a84e21a0c0f6` | `codex/marshgo-production`; report-only commits follow this product-code baseline, latest `2125eb28964d2c57a1c704257bc823711662a528` |
 
@@ -43,6 +56,7 @@ Staging runs isolated PostGIS/Redis/S3Mock with dev OTP, Photon geocoding, OSRM 
 - **Reachability:** Public HTTPS URL returned the staging web app, /healthz HTTP 200, and /readyz HTTP 200 (database=connected, realtime=connected) at report time.
 - **Lifetime:** Temporary URL and stack depend on the current host, Docker services and SSH tunnel session. localhost.run may rotate the hostname after a tunnel reconnect. This is not a durable hosted staging deployment.
 - **Isolation:** Separate marshgo-staging PostgreSQL/PostGIS database/volume, Redis instance/volume, and private S3-compatible S3Mock bucket/volume. Staging uses dev OTP and test data. Payments and commercial providers are disabled. No production secrets or production records were used.
+- **Edge process isolation:** Current edge is launched with an allowlisted empty environment; the API uses staging-only Postgres/Redis/S3Mock settings and test OTP. Prior unrelated inherited AI-provider keys were not consumed by application logic and are noted for owner rotation if live.
 - **Services:** Production-built Site bundle; pinned API; PostgreSQL/PostGIS; Redis; S3Mock; Node edge/proxy; API process-hosted outbox/realtime worker. There is no separately deployed worker service in this stack.
 - **Geocoding/routing/maps:** Photon search adapter; OSRM-compatible road routing; MapLibre with OpenFreeMap style/vector tiles and attribution. Photon and OSRM public demo endpoints are staging-only and have no production SLA. The exact current reconnect did not show a route because no matching inventory was available.
 - **Migrations:** Fresh isolated database accepted migrations 001–028.
@@ -51,8 +65,8 @@ Staging runs isolated PostGIS/Redis/S3Mock with dev OTP, Photon geocoding, OSRM 
 
 | Component | SHA | Deployment |
 |---|---|---|
-| MarshGO-Server | `de2209bc71557a14b20afac07b5067a7139b8b42` | Deployed from `codex/security-parse-bearer` (migration 028; not yet merged to `main`) |
-| MarshGO-Site | `150aa7ade03871cd12b80c6b3e205f345d37f996` | Deployed from `codex/navigation-deep-link-alias` (feature branch; main baseline remains separate) |
+| MarshGO-Server | `237d14f1b3e4d69936433f46f290d1cd4b920d9d` | Deployed from `codex/security-parse-bearer` (migration 028; not yet merged to `main`) |
+| MarshGO-Site | `79222d65beecb8bba5d234acfab47bb34070453e` | Deployed from `codex/navigation-deep-link-alias` (feature branch; main baseline remains separate) |
 | MarshGO-iOS | b8b1fcbfe9997e1a7a27594b5759690147de75df | Not deployed to web staging |
 | MarshGO integration baseline | cf9da4f6f4e4e0e22417da090d2bd9d8bf83cb3e | Verified integration code; current docs record the deployed standalone pair |
 | Umbrella deployment/orchestration branch | 854c93f9440be603810844c27889a84e21a0c0f6 | `codex/marshgo-production`; report update is documentation-only |

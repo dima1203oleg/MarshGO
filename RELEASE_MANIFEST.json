@@ -5,15 +5,15 @@
   "status": "NOT_RELEASED",
   "ready_for_server_deployment": false,
   "production_ready": false,
-  "server_sha": "de2209bc71557a14b20afac07b5067a7139b8b42",
-  "site_sha": "150aa7ade03871cd12b80c6b3e205f345d37f996",
+  "server_sha": "237d14f1b3e4d69936433f46f290d1cd4b920d9d",
+  "site_sha": "79222d65beecb8bba5d234acfab47bb34070453e",
   "ios_sha": "b8b1fcbfe9997e1a7a27594b5759690147de75df",
   "integration_sha": "854c93f9440be603810844c27889a84e21a0c0f6",
   "database_migration": "028",
   "api_version": "v1",
   "source_repositories": {
-    "server": "dima1203oleg/MarshGO-Server@main",
-    "site": "dima1203oleg/MarshGO-Site@main",
+    "server": "dima1203oleg/MarshGO-Server@codex/security-parse-bearer",
+    "site": "dima1203oleg/MarshGO-Site@codex/navigation-deep-link-alias",
     "ios": "dima1203oleg/MarshGO-iOS@main",
     "integration": "dima1203oleg/MarshGO@codex/marshgo-production"
   },
@@ -22,10 +22,10 @@
     "umbrella_unit_tests": "PASS: 80 tests, 79 passed, 0 failed, 1 skipped (opt-in local integration)",
     "umbrella_production_check": "PASS: npm run check:production; repository-wide lint, typecheck, unit, build, bundle budget",
     "umbrella_browser_e2e": "PASS: npm run test:e2e, 6/6 Chromium production-bundle scenarios with isolated PostGIS/Redis and deterministic test providers",
-    "server_unit": "PASS: npm test on de2209bc71557a14b20afac07b5067a7139b8b42; 49 passed, 0 failed, 2 skipped",
-    "server_integration": "PASS: npm run test:integration on de2209bc71557a14b20afac07b5067a7139b8b42; 18/18, isolated PostGIS/Redis, migrations 001-028",
-    "server_typecheck_lint": "PASS: npm run typecheck and npm run lint:all on deployed SHA",
-    "site_ci": "PASS: GitHub Verify on Site PR #2 head 150aa7ade03871cd12b80c6b3e205f345d37f996; local typecheck, full lint and production build pass",
+    "server_unit": "PASS: npm test on 237d14f1b3e4d69936433f46f290d1cd4b920d9d; 49 passed, 0 failed, 2 skipped",
+    "server_integration": "PASS: npm run test:integration on 237d14f1b3e4d69936433f46f290d1cd4b920d9d; 18/18, isolated PostGIS/Redis, migrations 001-028; persistent participant review state covered",
+    "server_typecheck_lint": "PASS: npm run typecheck and npm run lint:all; GitHub Verify PASS on 237d14f1b3e4d69936433f46f290d1cd4b920d9d",
+    "site_ci": "PASS: local typecheck, full lint and production build; GitHub Verify PASS on 79222d65beecb8bba5d234acfab47bb34070453e",
     "ios_simulator_ci": "PASS: GitHub simulator-build on iOS main b8b1fcbfe9997e1a7a27594b5759690147de75df; physical device not tested",
     "umbrella_github_ci": "PASS: GitHub PR #1 Verify, CodeQL and Gitleaks at pre-report documentation commit 854c93f9440be603810844c27889a84e21a0c0f6",
     "local_browser_matrix": "PARTIAL: earlier Chromium/Firefox/WebKit responsive smoke; latest full E2E Chromium only",
@@ -35,15 +35,15 @@
     "physical_iphone": "BLOCKED_EXTERNAL",
     "umbrella_integration_tests": "PASS: npm run test:integration, 17/17 across Journey schema, booking, navigation, Redis realtime, restart durability and shared rate-limit suites"
   },
-  "note": "Immutable source revisions are feature-branch PR heads for staging, not a production release. integration_sha is the tested umbrella product-code baseline before report-only reconciliation edits. The tunnel hostname can rotate. This manifest is not a production deployment authorization.",
+  "note": "Immutable source revisions are feature-branch PR heads for candidate verification, not a production release. The review-flow commits are not deployed to the temporary public staging tunnel yet. integration_sha is the tested umbrella product-code baseline before report-only reconciliation edits. The tunnel hostname can rotate. This manifest is not a production deployment authorization.",
   "staging": {
-    "url": "https://b017cccb204056.lhr.life",
+    "url": "https://aeee84a436c69d.lhr.life",
     "provider": "local Docker services via temporary anonymous localhost.run HTTPS tunnel",
     "status": "PARTIAL; ephemeral; do not treat as durable hosting",
-    "deployed_server_sha": "de2209bc71557a14b20afac07b5067a7139b8b42",
-    "deployed_site_sha": "150aa7ade03871cd12b80c6b3e205f345d37f996",
+    "deployed_server_sha": "237d14f1b3e4d69936433f46f290d1cd4b920d9d",
+    "deployed_site_sha": "79222d65beecb8bba5d234acfab47bb34070453e",
     "migration": "028",
-    "checked_at": "2026-10-01 14:43 Europe/Kyiv"
+    "checked_at": "2026-10-01 15:13 Europe/Kyiv"
   },
   "candidate_database_migration": "028 on Server PR #2; canonical release baseline remains 027 until merged"
 }
