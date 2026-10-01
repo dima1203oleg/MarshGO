@@ -45,6 +45,7 @@
   },
   "releaseGates": {
     "localBuildAndTests": "PASS",
+    "productionContainerBuild": "PASS_LOCAL_BUILD_ONLY",
     "canonicalRepositoryCompatibility": "PASS_LOCAL_SOURCE_SYNC",
     "crossRepositoryBrowserE2E": "PASS_LOCAL_FIXTURES",
     "iosSimulator": "PASS_LOCAL_PINNED_SOURCES_LOOPBACK_API",

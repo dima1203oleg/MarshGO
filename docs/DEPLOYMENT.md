@@ -4,7 +4,7 @@
 
 There is no production/staging target configured in this repository or local environment. `docker-compose.yml` is loopback-only PostgreSQL/PostGIS and Redis for development/integration. Do not treat it, Vite preview, or localhost as staging/production. No production deploy was attempted because no host/domain/credentials or secret manager is available.
 
-Production-ready multi-stage API/web Dockerfiles and `compose.production.yml` now define non-root API/web containers, PostgreSQL/PostGIS and password-protected Redis with persistent volumes, one-shot migrations before API startup, and Caddy-managed HTTPS. Compose refuses to render without explicit production configuration. Image builds and compose interpolation are validated separately; no production service was started against placeholder credentials.
+Production-shaped multi-stage API/web Dockerfiles and `compose.production.yml` define non-root API/web containers, PostgreSQL/PostGIS and password-protected Redis with persistent volumes, one-shot migrations before API startup, and Caddy-managed HTTPS. Compose refuses to render without explicit production configuration. On 2026-10-01, `docker compose -f compose.production.yml config --quiet` and both API/Web image builds passed with disposable test values and `*.invalid` provider URLs. No service was started and no placeholder credential was used to contact an external service. This verifies container construction only, not production readiness.
 
 ## Release sequence
 

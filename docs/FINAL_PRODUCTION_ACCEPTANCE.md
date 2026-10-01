@@ -35,7 +35,8 @@
 | Typecheck/lint/unit/build/bundle check | PASS locally (71 pass, 1 opt-in skip) |
 | PostGIS/Redis integration suite | PASS 17/17 after migration 027 |
 | Browser E2E | PASS 6/6 on committed Site bundle + synchronized Server API; independent users, booking/negotiation/chat, matching, GPS deviation/reroute, map and Journey UI. Uses local deterministic providers. |
-| Browser compatibility | PASS 3 engines × phone/tablet/desktop representative sizes on committed Site production bundle |
+| Browser compatibility | PASS 3 engines × 6 widths (375, 430, 768, 1024, 1440, 1920 px) on production build; no horizontal overflow or unexpected browser/server errors |
+| Production API/Web container build | PASS locally; Compose interpolation and both images build with disposable values. No live services were started. |
 | Live contracted map/routing/geocoding | BLOCKED_EXTERNAL |
 | Real SMS | BLOCKED_EXTERNAL |
 | Private S3 and malware scanning | BLOCKED_EXTERNAL |

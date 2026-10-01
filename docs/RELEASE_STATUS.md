@@ -20,6 +20,7 @@ These are local commits only. They have not been pushed, merged, signed, deploye
 - Umbrella `npm run check:production`: typecheck, repository-wide lint, 72 unit tests, Vite production build, emitted JavaScript gzip/demo-marker checks all pass; one opt-in database test is skipped in the unit command.
 - Umbrella PostGIS/Redis integration: 17/17 pass.
 - A newly created isolated local database applied migrations `001–027`; all 17 PostGIS/Redis integration checks then passed.
+- Docker Compose production configuration parsed successfully and multi-stage `marshgo-api`/`marshgo-web` images built successfully with disposable values and `*.invalid` providers. No containers were started from those placeholder credentials; this is build validation only.
 - Umbrella browser E2E: 6/6 pass in Chromium against the isolated local stack and deterministic provider fixtures. The marketplace scenario directly opens `/bookings/:id`, reloads it, and confirms the server-backed booking is restored as the single matching item.
 - Browser compatibility: Chromium, Firefox and WebKit each pass widths 375, 430, 768, 1024, 1440 and 1920 (18 engine/viewport combinations) against the production build. Checks assert no horizontal overflow, usable content, expected navigation and no unexpected browser or server errors.
 - Site local clone: full-source lint, typecheck, production build and bundle checks pass; no Leaflet chunk is emitted; largest JavaScript file is 285.1 KB gzip.
