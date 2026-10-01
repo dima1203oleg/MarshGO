@@ -8,7 +8,7 @@
   "server_sha": "bdfdf24941809f4581965b9847022c68e0b2f127",
   "site_sha": "c7f76a4be2f6cd7ef31fe66ef6f04d3d29454ef7",
   "ios_sha": "b8b1fcbfe9997e1a7a27594b5759690147de75df",
-  "integration_sha": "172cf0e2087d557938df4aa9dcefc1bfd0fbe345",
+  "integration_sha": "fc404fcab5d663b2dce33b08ca8856792ec676c8",
   "database_migration": "027",
   "api_version": "v1",
   "source_repositories": {
@@ -37,7 +37,7 @@
     "provider": "local Docker stack via anonymous localhost.run HTTPS tunnel",
     "web_sha": "e789f5af5f4abc99b09b745da6eb9a867613c2d0",
     "server_sha": "54ed3c85fd79807a7d7d0b539a587fffca259487",
-    "integration_sha": "172cf0e2087d557938df4aa9dcefc1bfd0fbe345",
+    "integration_sha": "fc404fcab5d663b2dce33b08ca8856792ec676c8",
     "ready": false,
     "production_ready": false,
     "report": "STAGING_DEPLOYMENT_REPORT.md"

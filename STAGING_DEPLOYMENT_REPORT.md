@@ -24,7 +24,7 @@
 | MarshGO-Site | e789f5af5f4abc99b09b745da6eb9a867613c2d0 | Deployed from `codex/navigation-deep-link-alias` PR #2 head (main baseline remains `c7f76a4…`) |
 | MarshGO-iOS | b8b1fcbfe9997e1a7a27594b5759690147de75df | Not deployed to web staging |
 | MarshGO integration baseline | 904874f11eee6a19b77c2356230a82ab7c45569f | Test/deployment baseline |
-| Umbrella deployment/orchestration branch | 172cf0e2087d557938df4aa9dcefc1bfd0fbe345 | `codex/marshgo-production`; synchronized source mirrors and verified rescue UI E2E |
+| Umbrella deployment/orchestration branch | fc404fcab5d663b2dce33b08ca8856792ec676c8 | `codex/marshgo-production`; synchronized source mirrors and verified rescue UI E2E |
 
 The active processes run from exact standalone worktrees at the Server and Site SHAs listed above. Their generated build output and local-only staging `.env` are ignored and are not committed. The source revisions themselves are committed and pushed on their respective feature branches.
 
