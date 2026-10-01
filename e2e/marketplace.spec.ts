@@ -432,9 +432,9 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     await expect(corridorAlternative).toContainText('Початок уздовж вашого маршруту');
     await expect(corridorAlternative).toContainText('км від маршруту');
     await expect(corridorAlternative).toHaveAttribute('data-offer-id', rescueCorridorAlternativeId);
-    await rescueAlternative.click();
-    await expect(passengerPage.getByRole('heading', { name: /Rescue E2E Origin/ })).toBeVisible();
-    await expect(passengerPage.getByTestId('offer-book-button')).toHaveAttribute('data-offer-id', rescueAlternativeId);
+    await corridorAlternative.click();
+    await expect(passengerPage.getByRole('heading', { name: /Rescue E2E Corridor Origin/ })).toBeVisible();
+    await expect(passengerPage.getByTestId('offer-book-button')).toHaveAttribute('data-offer-id', rescueCorridorAlternativeId);
     const rescueBookingResponse = passengerPage.waitForResponse(response =>
       response.url().endsWith('/api/v1/bookings') && response.request().method() === 'POST',
     );
@@ -442,12 +442,12 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     const bookingResponse = await rescueBookingResponse;
     const rescueBookingPayload = await bookingResponse.json() as { data: { id: string; offer_id: string; status: string; total_price_minor: number } };
     expect(bookingResponse.status()).toBe(201);
-    expect(rescueBookingPayload.data).toMatchObject({ offer_id: rescueAlternativeId, status: 'confirmed', total_price_minor: 22000 });
+    expect(rescueBookingPayload.data).toMatchObject({ offer_id: rescueCorridorAlternativeId, status: 'confirmed', total_price_minor: 24000 });
     const rescueBooking = await pool.query<{ status: string; total_price_minor: number }>(
       'SELECT status,total_price_minor FROM bookings WHERE id=$1 AND offer_id=$2 AND passenger_id=(SELECT id FROM users WHERE phone_e164=$3)',
-      [rescueBookingPayload.data.id, rescueAlternativeId, passengerPhone],
+      [rescueBookingPayload.data.id, rescueCorridorAlternativeId, passengerPhone],
     );
-    expect(rescueBooking.rows).toEqual([{ status: 'confirmed', total_price_minor: 22000 }]);
+    expect(rescueBooking.rows).toEqual([{ status: 'confirmed', total_price_minor: 24000 }]);
   } finally {
     await passengerContext.close();
     await driverContext.close();

@@ -32,7 +32,7 @@
   },
   "note": "Top-level Server/Site SHAs identify canonical main release baselines; staging contains explicit immutable PR-branch SHAs. integration_sha identifies the verified integration code baseline. This manifest is not a deployment authorization.",
   "staging": {
-    "url": "https://68c5275490212d.lhr.life",
+    "url": "https://e9eace7bc61a1f.lhr.life",
     "provider": "local Docker stack via anonymous localhost.run HTTPS tunnel",
     "web_sha": "20a75798f2baffa4f3615e21799359e69ab6e651",
     "server_sha": "54ed3c85fd79807a7d7d0b539a587fffca259487",

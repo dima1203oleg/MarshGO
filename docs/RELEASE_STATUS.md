@@ -30,7 +30,7 @@ Exact repository refs: [root RELEASE_MANIFEST.json](../RELEASE_MANIFEST.json). E
 
 ## Temporary public staging (2026-10-01)
 
-- Public temporary HTTPS URL: https://f11b9ded66e729.lhr.life (ephemeral localhost.run tunnel).
+- Public temporary HTTPS URL: https://e9eace7bc61a1f.lhr.life (ephemeral localhost.run tunnel; anonymous hostnames may rotate).
 - Health/readiness and Chromium smoke checks passed; demand creation persisted across API restart and staging-only Redis stop/start recovery. Separate staging driver and moderator test identities completed visible OTP login; driver dashboard reads, test-vehicle creation, private test-photo upload, and moderator rejection of synthetic documents passed. The driver profile displays the stored rejection reason and retry action. A UI retry with two explicit synthetic fixtures created new pending records and showed the pending-review state; nothing was approved. `/navigation` opens the navigation screen; `/admin/verification` directly opens and auto-loads staff queues. The complete paired-user golden path remains unaccepted; the resubmission browser harness recorded two unclassified page/request errors. See STAGING_DEPLOYMENT_REPORT.md.
 - Full paired-user booking, matching, rendezvous, chat, Rescue and browser realtime flows did not pass acceptance. Therefore STAGING_READY=NO, READY_FOR_SERVER_DEPLOYMENT=NO, and PRODUCTION_READY=NO.
 - URL is anonymous localhost.run forwarding to the current local host and may rotate/expire. Details and evidence: STAGING_DEPLOYMENT_REPORT.md.
