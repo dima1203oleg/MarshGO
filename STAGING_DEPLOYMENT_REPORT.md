@@ -1,6 +1,6 @@
 # MARSHGO Temporary Public Staging Report
 
-**Checked:** 2026-10-01 17:37 Europe/Kyiv
+**Checked:** 2026-10-01 17:48 Europe/Kyiv
 **STAGING_URL:** https://superblessed-herlinda-epiphragmal.ngrok-free.dev
 **STAGING_READY:** NO (public reachability and review UI slices verified; complete paired-user acceptance remains incomplete)
 **READY_FOR_SERVER_DEPLOYMENT:** NO
@@ -13,12 +13,17 @@
 **Latest search-navigation fix:** Site `3a8ce9af81a4986ecdc182ed12d86e70bbf4d8e7` fixes the journey-results back action, which previously left the Search tab on results. The updated production bundle is serving on staging. Chromium opened `/journeys/search`, clicked “Повернутися до пошуку,” then showed the home route search form at `/`. Site typecheck, repository-wide lint, production build and bundle budget all passed. This was a browser-verified interaction; it does not imply a full journey booking acceptance.
 
 
-## Latest repository and deployment snapshot (2026-10-01 17:37 Europe/Kyiv)
+## Latest repository and deployment snapshot (2026-10-01 17:48 Europe/Kyiv)
 
 - Current public URL: `https://superblessed-herlinda-epiphragmal.ngrok-free.dev`; `/healthz`, `/readyz` (PostgreSQL and Redis connected) and homepage return HTTP 200. Chromium rendered the staging homepage after the one-time ngrok warning; no application console warnings/errors. The URL works only while the free tunnel process remains connected and has no uptime guarantee.
-- Source candidates: umbrella `d51fd41a3b5eac2d0a0e07531598431c2f610b6a`, Server `23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46`, Site `3a8ce9af81a4986ecdc182ed12d86e70bbf4d8e7`, iOS `b8b1fcbfe9997e1a7a27594b5759690147de75df`. Deployed staging Server is `237d14f1b3e4d69936433f46f290d1cd4b920d9d`; deployed Site is `3a8ce9af81a4986ecdc182ed12d86e70bbf4d8e7`. The current iOS simulator build metadata still pins prior Site `c9a288162065a819864200da80fd5bcd1218af69`, deployed Server, API `v1` and migration `028`.
+- Source candidates: umbrella `d51fd41a3b5eac2d0a0e07531598431c2f610b6a`, Server `23b58cc98d2cc88b61ddc1aeb904e5eb24b7ad46`, Site `3a8ce9af81a4986ecdc182ed12d86e70bbf4d8e7`, iOS `b8b1fcbfe9997e1a7a27594b5759690147de75df`. Deployed staging Server is `237d14f1b3e4d69936433f46f290d1cd4b920d9d`; deployed Site is `3a8ce9af81a4986ecdc182ed12d86e70bbf4d8e7`. Latest iOS simulator build metadata pins the same Site SHA, deployed Server, API `v1` and migration `028`.
 - Umbrella code head `d51fd41a3b5eac2d0a0e07531598431c2f610b6a` passed both Verify runs (`36877369189`, `36877378804`), both CodeQL action runs (`36877369256`, `36877378823`) and Gitleaks. The current umbrella branch head advances only for this report/manifest refresh. Verify covers lint, typecheck, unit, migrations, PostGIS/Redis integration, Docker builds, Playwright E2E and browser compatibility.
 - `STAGING_READY=NO`: public access, test OTP, search/address lookup, route/map slices and staff-route denial have passed in the stated scopes, but complete paired Passenger/Driver booking-to-completion, cancellation/Rescue, public simulated-GPS reroute and realtime recovery are not fully accepted.
+
+## Latest staging heartbeat (17:48 Europe/Kyiv)
+
+- Public HTTPS: `/healthz` HTTP 200, `/readyz` HTTP 200 (`database=connected`, `realtime=connected`), homepage HTTP 200. The free ngrok tunnel is still active but has no uptime guarantee.
+- iPhone 15 Pro Max Simulator: Debug build/install/launch PASS using iOS `b8b1fcbfe9997e1a7a27594b5759690147de75df`, pinned Site `3a8ce9af81a4986ecdc182ed12d86e70bbf4d8e7`, Server `237d14f1b3e4d69936433f46f290d1cd4b920d9d`, API `v1`, migration `028`. The 60-second settle screenshot shows the MARSHGO onboarding screen: `.release/staging-ios-3a-iphone15pm.png`. No authenticated simulator flow or physical-device acceptance was performed. npm reported a non-fatal engine mismatch: Site asks for Node 24.21.0 while the host ran Node 25.4.0; npm audit found 0 vulnerabilities.
 
 ## Latest hostname refresh (17:06 Europe/Kyiv)
 
@@ -43,7 +48,6 @@
 | Browser page | PASS, with provider interstitial | Chromium displayed ngrok's one-time warning, then MARSHGO rendered with its staging/test-only banner. No application console warnings/errors. Other visitors may see ngrok's interstitial once. |
 | Staging OTP and route guards | PASS, scoped | Synthetic staging-only passenger used the visible development OTP (no SMS sent). Authenticated unknown path displayed 404; the passenger direct-opening `/admin/verification` displayed 403. This does not exercise moderator functions or a paired booking lifecycle. |
 | Search results back action | PASS after fix | In Chromium, `/journeys/search` → click “Повернутися до пошуку” → URL `/` and route search form visible. Site `3a8ce9af81a4986ecdc182ed12d86e70bbf4d8e7`; typecheck, repository-wide lint, production build and bundle budget passed, and both Site PR #2 Verify runs passed. |
-| Search results back action | PASS after fix | In Chromium, `/journeys/search` → click “Повернутися до пошуку” → URL `/` and route search form visible. This reproduced and fixed a dead UI action in Site `3a8ce9af81a4986ecdc182ed12d86e70bbf4d8e7`; typecheck, full Site lint, build and bundle budget passed. |
 | Overall acceptance | PARTIAL / `STAGING_READY=NO` | Tunnel improves public access while this host session is alive; no additional paired-user lifecycle tests were completed. No uptime guarantee. |
 
 ## Latest delta acceptance — protected staff route (16:57 Europe/Kyiv)

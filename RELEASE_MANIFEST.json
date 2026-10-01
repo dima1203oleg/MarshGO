@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "product": "MARSHGO",
-  "release_candidate": "RC-2026-10-01-staging.13",
+  "release_candidate": "RC-2026-10-01-staging.14",
   "status": "NOT_RELEASED",
   "ready_for_server_deployment": false,
   "production_ready": false,
@@ -17,7 +17,7 @@
     "ios": "dima1203oleg/MarshGO-iOS@main",
     "integration": "dima1203oleg/MarshGO@codex/marshgo-production"
   },
-  "ios_simulator_site_sha": "c9a288162065a819864200da80fd5bcd1218af69",
+  "ios_simulator_site_sha": "3a8ce9af81a4986ecdc182ed12d86e70bbf4d8e7",
   "verification": {
     "umbrella_unit_tests": "PASS: 80 tests, 79 passed, 0 failed, 1 skipped (opt-in local integration)",
     "umbrella_production_check": "PASS: npm run check:production; repository-wide lint, typecheck, unit, build, bundle budget",
@@ -37,19 +37,19 @@
     "physical_iphone": "BLOCKED_EXTERNAL",
     "umbrella_integration_tests": "PASS: npm run test:integration, 17/17 across Journey schema, booking, navigation, Redis realtime, restart durability and shared rate-limit suites",
     "current_staff_route_guard": "PASS: passenger direct-open of /admin/verification on public staging now renders 403; no console warnings/errors",
-    "ios_pinned_candidate_simulator": "PASS: Debug simulator build/install/launch using exact Site c9a288162065a819864200da80fd5bcd1218af69, Server 237d14f1b3e4d69936433f46f290d1cd4b920d9d, API v1, migration 028; screenshot at 120-second settle shows onboarding; no authenticated flow or physical-device acceptance",
-    "staging_current_url": "PASS at 2026-10-01 17:37 Europe/Kyiv: https://superblessed-herlinda-epiphragmal.ngrok-free.dev; /healthz 200, /readyz 200 (database/realtime connected), homepage 200; Chromium showed the staging banner with no application console warnings/errors after ngrok first-visit interstitial. Synthetic staging OTP passed; authenticated unknown route showed 404, passenger admin route showed 403, and journey-results back action returned to the search form. Free tunnel is temporary with no uptime guarantee.",
+    "ios_pinned_candidate_simulator": "PASS: Debug simulator build/install/launch on iPhone 15 Pro Max Simulator using exact Site 3a8ce9af81a4986ecdc182ed12d86e70bbf4d8e7, Server 237d14f1b3e4d69936433f46f290d1cd4b920d9d, API v1, migration 028; 60-second screenshot shows onboarding at .release/staging-ios-3a-iphone15pm.png; no authenticated flow or physical-device acceptance. npm emitted non-fatal engine mismatch (required Node 24.21.0, host Node 25.4.0); npm audit found 0 vulnerabilities.",
+    "staging_current_url": "PASS at 2026-10-01 17:48 Europe/Kyiv: https://superblessed-herlinda-epiphragmal.ngrok-free.dev; /healthz 200, /readyz 200 (database/realtime connected), homepage 200. Chromium showed the staging banner with no application console warnings/errors after ngrok first-visit interstitial. Synthetic staging OTP passed; authenticated unknown route showed 404, passenger admin route showed 403, and journey-results back action returned to the search form. Free tunnel is temporary with no uptime guarantee.",
     "staging_ready": "NO: only selected flows accepted; full paired-user booking lifecycle and recovery scenarios remain incomplete"
   },
-  "note": "Immutable source revisions are feature-branch PR heads for candidate verification, not a production release. Passenger review UI was exercised through the public tunnel; driver review UI was exercised through a local edge against the same staging services after the public OTP rate limit. Both used a seeded completed-trip fixture, so the complete trip lifecycle is not accepted. integration_sha is the tested umbrella product-code baseline before report-only reconciliation edits. The tunnel hostname can rotate. This manifest is not a production deployment authorization. Pinned iOS candidate simulator build embeds exact Site/Server/API/migration metadata; it reaches onboarding only after a prolonged cold start and is not authenticated or physical-device acceptance.",
+  "note": "Immutable source revisions are feature-branch PR heads for candidate verification, not a production release. Passenger review UI was exercised through the public tunnel; driver review UI was exercised through a local edge against the same staging services after the public OTP rate limit. Both used a seeded completed-trip fixture, so the complete trip lifecycle is not accepted. integration_sha is the tested umbrella product-code baseline before report-only reconciliation edits. The temporary free tunnel has no uptime guarantee. This manifest is not a production deployment authorization. Pinned iOS candidate simulator build embeds exact Site/Server/API/migration metadata and reaches the onboarding screen; it is not authenticated or physical-device acceptance.",
   "staging": {
     "url": "https://superblessed-herlinda-epiphragmal.ngrok-free.dev",
     "provider": "local Docker services via temporary ngrok-free.dev HTTPS tunnel",
-    "status": "PARTIAL; temporary hostname passed health/readiness, Chromium homepage, synthetic OTP and scoped direct-route checks at 2026-10-01 17:37 Europe/Kyiv; paired-user lifecycle not accepted; free tunnel has no uptime guarantee",
+    "status": "PARTIAL; temporary hostname passed health/readiness, Chromium homepage, synthetic OTP and scoped direct-route checks at 2026-10-01 17:37 Europe/Kyiv; latest heartbeat at 17:48 also passed; paired-user lifecycle not accepted; free tunnel has no uptime guarantee",
     "deployed_server_sha": "237d14f1b3e4d69936433f46f290d1cd4b920d9d",
     "deployed_site_sha": "3a8ce9af81a4986ecdc182ed12d86e70bbf4d8e7",
     "migration": "028",
-    "checked_at": "2026-10-01 17:37 Europe/Kyiv"
+    "checked_at": "2026-10-01 17:48 Europe/Kyiv"
   },
   "candidate_database_migration": "028 on Server PR #2; canonical release baseline remains 027 until merged"
 }
