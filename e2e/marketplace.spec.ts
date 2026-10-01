@@ -552,15 +552,11 @@ test('two accounts accept a route match, insert pickup stops, and reroute after 
     await expect.poll(async () => pool.query<{ state: string }>(
       'SELECT state FROM navigation_sessions WHERE id=$1', [navigationSessionId],
     ).then(result => result.rows[0]?.state)).toBe('paused');
-    const candidateState = await pool.query(`SELECT c.navigation_session_id,c.status,c.expires_at,d.status AS demand_status,s.driver_id,s.state,s.opt_in,s.current_location_at
-      FROM navigation_match_candidates c JOIN passenger_demands d ON d.id=c.demand_id JOIN navigation_sessions s ON s.id=c.navigation_session_id WHERE c.id=$1`, [candidate!.id]);
-    const driverInterest = await driverPage.evaluate(async ({ token, sessionId, candidateId }) => fetch(`/api/v1/navigation/sessions/${sessionId}/matches/${candidateId}/interest`, {
-      method: 'POST', headers: { Authorization: `Bearer ${token}` },
-    }).then(async response => ({ status: response.status, body: await response.json() })), { token: driverAccessToken, sessionId: navigationSessionId, candidateId: candidate!.id });
-    expect(driverInterest.status, JSON.stringify({ body: driverInterest.body, state: candidateState.rows })).toBe(200);
-    const passengerMatchList = await passengerPage.evaluate(async token => fetch('/api/v1/demands/mine/navigation-matches', { headers: { Authorization: `Bearer ${token}` } }).then(async response => ({ status: response.status, body: await response.json() })), passengerToken);
-    expect(passengerMatchList.status, JSON.stringify(passengerMatchList.body)).toBe(200);
-    expect(passengerMatchList.body.data).toEqual(expect.arrayContaining([expect.objectContaining({ candidate_id: candidate!.id, status: 'driver_interested' })]));
+    await expect(driverPage.getByRole('button', { name: 'Підтвердити інтерес водія' })).toBeVisible();
+    const driverInterestResponse = driverPage.waitForResponse(response => response.url().endsWith(`/matches/${candidate!.id}/interest`));
+    await driverPage.getByRole('button', { name: 'Підтвердити інтерес водія' }).click();
+    expect((await driverInterestResponse).status()).toBe(200);
+    await expect(driverPage.getByText(/Ваш інтерес надіслано\. Чекаємо підтвердження пасажира/)).toBeVisible();
 
     const refreshedPassengerSession = passengerPage.waitForResponse(response => response.url().endsWith('/api/v1/auth/refresh'));
     await passengerPage.reload();
@@ -576,20 +572,34 @@ test('two accounts accept a route match, insert pickup stops, and reroute after 
     await expect(passengerPage.getByRole('button', { name: 'Підтвердити взаємний інтерес' })).toHaveCount(0);
     await expect(passengerPage.getByText(/Взаємний інтерес підтверджено\. Водій може надіслати ціну у пропозиції/)).toBeVisible();
 
-    const proposalId = await driverPage.evaluate(async ({ token, demandId, candidateId, vehicle }) => {
-      const response = await fetch(`/api/v1/demands/${demandId}/proposals`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ vehicleId: vehicle, priceMinor: 30000, departureAt: new Date(Date.now() + 60 * 60_000).toISOString(), comment: 'E2E mutual route offer', navigationCandidateId: candidateId }),
-      });
-      const body = await response.json();
-      return { status: response.status, id: body.data?.id as string | undefined };
-    }, { token: driverAccessToken, demandId: navigationFlowDemandId, candidateId: candidate!.id, vehicle: navigationFlowVehicleId });
-    expect(proposalId.status).toBe(201);
-    expect(proposalId.id).toBeTruthy();
-    const acceptance = await passengerPage.evaluate(async ({ token, id }) => fetch(`/api/v1/proposals/${id}/accept`, {
-      method: 'POST', headers: { Authorization: `Bearer ${token}` },
-    }).then(async response => ({ status: response.status, body: await response.json() })), { token: passengerToken, id: proposalId.id! });
+    const driverRefreshAfterConfirmation = driverPage.waitForResponse(response => response.url().endsWith('/api/v1/auth/refresh'));
+    await driverPage.reload();
+    const refreshedDriverAfterConfirmation = await driverRefreshAfterConfirmation;
+    expect(refreshedDriverAfterConfirmation.status()).toBe(200);
+    driverAccessToken = (await refreshedDriverAfterConfirmation.json()).data.accessToken as string;
+    const openDemandButton = driverPage.getByRole('button', { name: 'Відкрити заявку та запропонувати ціну' });
+    await expect(openDemandButton).toBeVisible();
+    await openDemandButton.click();
+    await expect(driverPage.getByLabel('Ціна, грн')).toBeVisible();
+    await expect(driverPage.getByText(/Пропозиція прив’язана до підтвердженого збігу навігації/)).toBeVisible();
+    const proposalResponse = driverPage.waitForResponse(response => response.url().endsWith(`/api/v1/demands/${navigationFlowDemandId}/proposals`) && response.request().method() === 'POST');
+    await driverPage.getByRole('button', { name: 'Надіслати пропозицію' }).click();
+    expect((await proposalResponse).status()).toBe(201);
+    await expect(driverPage.getByRole('status')).toContainText('Цінову пропозицію надіслано пасажиру');
+    const proposalRecord = await pool.query<{ id: string; price_minor: number; status: string }>(
+      'SELECT id,price_minor,status FROM proposals WHERE demand_id=$1 AND driver_id=$2 ORDER BY created_at DESC LIMIT 1',
+      [navigationFlowDemandId, driverUserId],
+    );
+    expect(proposalRecord.rows).toEqual([expect.objectContaining({ price_minor: 30000, status: 'pending' })]);
+
+    await passengerPage.getByTestId(`owned-demand-${navigationFlowDemandId}`).click();
+    await expect(passengerPage.getByText('Переговори')).toBeVisible();
+    const proposalAcceptance = passengerPage.waitForResponse(response => response.url().endsWith(`/api/v1/proposals/${proposalRecord.rows[0].id}/accept`) && response.request().method() === 'POST');
+    await passengerPage.getByRole('button', { name: 'Підтвердити домовленість і бронювання' }).click();
+    const acceptanceResponse = await proposalAcceptance;
+    const acceptance = { status: acceptanceResponse.status(), body: await acceptanceResponse.json() };
     expect(acceptance.status).toBe(201);
+    await expect(passengerPage.getByRole('status')).toContainText('Домовленість підтверджено; бронювання створено на сервері');
     const booking = await pool.query<{ status: string; total_price_minor: number }>('SELECT status,total_price_minor FROM bookings WHERE id=$1', [acceptance.body.data.id]);
     expect(booking.rows).toEqual([{ status: 'confirmed', total_price_minor: 30000 }]);
     expect(acceptance.body.data).toMatchObject({ fee_class: 'community', platform_fee_minor: 0, fee_rule_version: 'community-0pct-v1' });
@@ -603,6 +613,8 @@ test('two accounts accept a route match, insert pickup stops, and reroute after 
     const refreshedDriverAfterBooking = await driverRefreshAfterBooking;
     expect(refreshedDriverAfterBooking.status()).toBe(200);
     driverAccessToken = (await refreshedDriverAfterBooking.json()).data.accessToken as string;
+    await driverPage.getByRole('button', { name: 'Створити поїздку чи запит' }).click();
+    await driverPage.getByRole('button', { name: /Прокласти маршрут/ }).click();
     const reroutedMap = driverPage.locator('[data-marshgo-map-renderer="maplibre"]');
     await expect(reroutedMap.locator('.maplibregl-canvas')).toBeVisible();
     await expect.poll(async () => Number(await reroutedMap.getAttribute('data-marshgo-route-point-count'))).not.toBe(initialRoutePointCount);

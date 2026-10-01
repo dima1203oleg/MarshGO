@@ -1,7 +1,7 @@
 # MARSHGO Temporary Public Staging Report
 
 **Checked:** 2026-10-01 (Europe/Kyiv)
-**STAGING_URL:** https://e9eace7bc61a1f.lhr.life
+**STAGING_URL:** https://e56962a49685c1.lhr.life
 **STAGING_READY:** NO
 **READY_FOR_SERVER_DEPLOYMENT:** NO
 **PRODUCTION_READY:** NO
@@ -21,7 +21,7 @@
 | Component | SHA | Deployment |
 |---|---|---|
 | MarshGO-Server | 54ed3c85fd79807a7d7d0b539a587fffca259487 | Deployed from `codex/security-parse-bearer` (PR #2; not yet merged to `main`) |
-| MarshGO-Site | 20a75798f2baffa4f3615e21799359e69ab6e651 | Deployed from `codex/navigation-deep-link-alias` PR #2 head (main baseline remains `c7f76a4…`) |
+| MarshGO-Site | e789f5af5f4abc99b09b745da6eb9a867613c2d0 | Deployed from `codex/navigation-deep-link-alias` PR #2 head (main baseline remains `c7f76a4…`) |
 | MarshGO-iOS | b8b1fcbfe9997e1a7a27594b5759690147de75df | Not deployed to web staging |
 | MarshGO integration baseline | 904874f11eee6a19b77c2356230a82ab7c45569f | Test/deployment baseline |
 | Umbrella deployment/orchestration branch | 172cf0e2087d557938df4aa9dcefc1bfd0fbe345 | `codex/marshgo-production`; synchronized source mirrors and verified rescue UI E2E |
@@ -43,6 +43,9 @@ The active processes run from exact standalone worktrees at the Server and Site 
 | Rescue corridor replacement booking | PASS (local production-browser E2E) | The passenger selected the along-route alternative, booked it through the production UI, and verified the confirmed booking, exact fare, offer ID and persisted PostGIS-backed row. This does not exercise the paired-user rescue flow on public staging. |
 | Navigation direct link | PASS | `/navigation` previously returned the app's 404; the Site PR #2 alias now opens the navigation destination form on the public staging URL. Site PR checks pass. |
 | Driver navigation CTA copy | PASS | Updated production build now accurately says route matching requires driver consent and a verified vehicle; rebuilt bundle was served from staging over HTTPS. |
+| Latest Site commit deployed | PASS (browser smoke) | Built standalone Site SHA `e789f5af5f4abc99b09b745da6eb9a867613c2d0` with relative same-origin API and OpenFreeMap Liberty style configuration, switched the staging edge to that immutable checkout build, and opened the public HTTPS page in the browser. The staging banner rendered; public `/healthz` and `/readyz` returned 200. |
+| Latest public browser smoke | PASS with expected auth response | Chromium opened the current public `/navigation` URL at 1440×900 and 390×844. Both requests returned 200, the correct MARSHGO title, app root and staging banner rendered, and screenshots were captured as `.release/staging-e789-desktop.png` and `.release/staging-e789-mobile.png`. The unauthenticated session-refresh probe returned its expected 401; no page exception occurred. |
+| Local cross-browser compatibility | PASS | Chromium, Firefox and WebKit each passed the production UI smoke at phone, tablet and desktop sizes (3/3 projects). This is local E2E evidence, separate from public-staging browser coverage. |
 | Driver vehicle form and private photo upload | PASS (test fixture only) | A clearly marked staging driver created a vehicle in the UI; a synthetic PNG passed the signed private S3 upload and was recorded as the primary photo in Postgres. The synthetic-document review rejected this test vehicle; it cannot publish. |
 | Driver dashboard after login | PASS | Independent driver test account reached the production dashboard after OTP verification; server-backed offers, demands, vehicles and navigation-match reads returned successfully. The test vehicle is unverified, so publishing/matching acceptance remains blocked by the real verification flow. |
 | Moderator authentication and direct route | PASS | Moderator test account authenticated, opened `/admin/verification` directly, and the production UI automatically loaded its verification and moderation queues without a manual refresh. |
@@ -62,7 +65,7 @@ The active processes run from exact standalone worktrees at the Server and Site 
 | Driver test profile/vehicle | PASS (staging only) | Test user enabled driver role and created a four-seat test vehicle. This synthetic test vehicle was rejected by moderation and cannot publish or establish a real driver inventory. |
 | Reverse Marketplace demand | PASS (creation only) | Server-backed demand persisted. No independent driver proposal/negotiation was available to complete. |
 | Full passenger booking lifecycle | BLOCKED / NOT ACCEPTED | No verified, independent driver offer in staging, so booking → boarding → completion → reviews could not be exercised through UI. |
-| Passive matching / multi-passenger | BLOCKED / NOT ACCEPTED | Product UI reports matching during navigation unavailable pending verified vehicle; route-overlap end-to-end was not demonstrated. |
+| Passive matching / multi-passenger | PARTIAL / PUBLIC STAGING NOT ACCEPTED | Local two-account Chromium E2E uses an explicitly verified test vehicle to match a demand along the remaining route, obtains driver and passenger consent, sends a price through the driver UI, confirms the booking through the passenger UI, inserts waypoints, and verifies rerouting. Public staging's driver vehicle is rejected synthetic evidence, so its UI correctly disables matching; >1 passenger capacity flow is not yet tested. |
 | Rerouting after realistic GPS replay | BLOCKED / NOT ACCEPTED | One large synthetic GPS jump was correctly rejected by anti-teleport validation. No gradual replay/off-route reroute acceptance was completed. |
 | Chat / notifications / rendezvous / full Rescue journey | BLOCKED / NOT ACCEPTED | The route-corridor candidate search and UI explanation now pass local PostGIS and browser E2E, but the public staging did not complete the paired-user cancellation → alternative booking → continued trip flow. |
 | WebSocket reconnect | NOT TESTED | No accepted paired-user realtime lifecycle to drive this acceptance. |
@@ -73,7 +76,7 @@ STAGING_READY=NO follows the acceptance definition: public reachability and foun
 
 ## Browser errors and limitations
 
-- An unauthenticated fresh session probes /api/v1/auth/refresh; the API returns 401 as expected, and Chromium may surface that expected probe as a failed-resource console entry. No other unexpected console/API failure was observed in the final route/map run.
+- An unauthenticated fresh session probes /api/v1/auth/refresh; the API returns 401 as expected, and Chromium reported that expected response as a console resource error on the latest public route smoke. There were no page exceptions. No other unexpected console/API failure was observed in the final route/map run.
 - The direct staff deep-link check had no browser console errors. The later resubmission run recorded two page/request error events without retaining their details; the upload POSTs returned 200, the API resubmission returned 202, the database state was pending, and the success/pending UI was captured. Treat those two events as unresolved until a detailed rerun.
 - A route display screenshot shows the road polyline over real vector tiles. The current navigation UI also reports stale GPS after long acceptance delays; live movement marker and reroute behavior remain unaccepted.
 - The temporary staging banner states development OTP is exposed for acceptance and real payments are disabled. Use only fake staging identities/data.
@@ -91,9 +94,11 @@ Local, ignored artifacts (not committed or publicly linked):
 - .release/staging-admin-direct-url.png (direct staff route with automatic queue loading)
 - .release/staging-verification-rejection-reason.png (driver profile shows fixture rejection reason and retry action)
 - .release/staging-verification-resubmitted.png (success notice and pending-review state after UI resubmission)
-- .release/staging-current-desktop.png (current pinned Site build, 1440×900)
-- .release/staging-current-mobile.png (current pinned Site build, 390×844)
-- .release/staging-current-login.png (headed Chromium test OTP login)
+- .release/staging-current-desktop.png (previous pinned Site build, 1440×900)
+- .release/staging-current-mobile.png (previous pinned Site build, 390×844)
+- .release/staging-current-login.png (previous headed Chromium test OTP login)
+- .release/staging-e789-desktop.png (latest public Site SHA e789, Chromium, 1440×900)
+- .release/staging-e789-mobile.png (latest public Site SHA e789, Chromium, 390×844)
 - .release/staging-current-routes.trace.zip (direct `/`, `/navigation`, `/admin/verification` opens; unauthenticated trace)
 - .release/staging-ios-simulator.png (iPhone 16 Pro Max Simulator onboarding render; not a physical-device artifact)
 - .release/staging-map-desktop.png
@@ -113,4 +118,4 @@ Trace archives can include staging authentication/session context. Keep them pri
 5. Replace S3Mock and public test geocoder/routing/map endpoints with configured production-grade services for production.
 6. Real SMS, domain/TLS, production server, push, payments/commercial partners and physical iPhone acceptance remain external release gates.
 
-The local staging stack and renewed tunnel are left running. The current URL is `https://e9eace7bc61a1f.lhr.life`; localhost.run may rotate it when the tunnel reconnects. The replacement URL served the Site build and API over HTTPS and returned 200 for health/readiness. It was opened in the browser, displayed the staging banner and rendered the homepage. The URL remains valid only while the host processes and this machine stay available.
+The local staging stack and renewed tunnel are left running. The current URL is `https://e56962a49685c1.lhr.life`; localhost.run may rotate it when the tunnel reconnects. This URL serves Site SHA `e789f5af5f4abc99b09b745da6eb9a867613c2d0` and Server SHA `54ed3c85fd79807a7d7d0b539a587fffca259487`. The public homepage and health/readiness endpoints returned 200 and the staging banner rendered in the browser. The URL remains valid only while the host processes and this machine stay available.

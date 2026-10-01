@@ -6,6 +6,8 @@ test('converts Kyiv local times to UTC across standard and daylight time', () =>
   assert.equal(kyivDateTimeInputToIso('2026-01-15T08:00'), '2026-01-15T06:00:00.000Z');
   assert.equal(kyivDateTimeInputToIso('2026-07-15T08:00'), '2026-07-15T05:00:00.000Z');
   assert.equal(formatKyivDateTimeInput('2026-07-15T05:00:00.000Z'), '2026-07-15T08:00');
+  assert.equal(formatKyivDateTimeInput('2026-07-15T05:00:01.000Z'), '2026-07-15T08:01');
+  assert.equal(formatKyivDateTimeInput('2026-07-15T20:59:30.000Z'), '2026-07-16T00:00');
 });
 
 test('rejects a local time that does not exist during the spring DST jump', () => {
