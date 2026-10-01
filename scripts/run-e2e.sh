@@ -12,7 +12,13 @@ fi
 export E2E_DATABASE_URL="$DATABASE_URL"
 export DATABASE_URL
 node scripts/ensure-e2e-database.ts
-npm run db:migrate
+node ops/scripts/materialize-release.mjs
+SERVER_SHA="$(node -e 'process.stdout.write(JSON.parse(require("node:fs").readFileSync("RELEASE_MANIFEST.json","utf8")).server_sha)')"
+export E2E_SERVER_DIR="$PWD/.release/server-${SERVER_SHA}"
+if [[ ! -f "$E2E_SERVER_DIR/node_modules/.package-lock.json" ]]; then
+  npm ci --prefix "$E2E_SERVER_DIR" --no-audit --no-fund
+fi
+npm run db:migrate --prefix "$E2E_SERVER_DIR"
 node scripts/reset-e2e-otp.ts
 if [[ -n "${E2E_DIST_DIR:-}" ]]; then
   if [[ ! -d "$E2E_DIST_DIR/assets" || ! -f "$E2E_DIST_DIR/index.html" ]]; then

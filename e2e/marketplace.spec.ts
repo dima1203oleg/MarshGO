@@ -819,11 +819,12 @@ test('Journey Planner ranks a persisted Community route and opens its current of
     expect(payload.journeys.some(item => item.strategy === 'CHEAPEST' && item.offerId === offerId)).toBe(true);
     await expect(page.getByRole('heading', { name: 'Найкращі доступні варіанти' })).toBeVisible();
     await expect(page.getByText('Автобуси, таксі й громадський транспорт не підключені як реальні джерела.')).toBeVisible();
-    const saved = await pool.query<{ owner_id: string; offer_id: string }>(
-      `SELECT j.user_id AS owner_id,l.offer_id FROM journeys j JOIN journey_legs l ON l.journey_id=j.id WHERE j.id=$1`, [payload.journeys.find(item => item.strategy === 'CHEAPEST')!.id],
+    const saved = await pool.query<{ owner_id: string; offer_id: string; journey_leg_id: string }>(
+      `SELECT j.user_id AS owner_id,l.offer_id,l.id AS journey_leg_id FROM journeys j JOIN journey_legs l ON l.journey_id=j.id WHERE j.id=$1`, [payload.journeys.find(item => item.strategy === 'CHEAPEST')!.id],
     );
     const profile = await page.evaluate(async token => fetch('/api/v1/users/me', { headers: { Authorization: `Bearer ${token}` } }).then(response => response.json()), accessToken);
-    expect(saved.rows).toEqual([{ owner_id: profile.data.id, offer_id: offerId }]);
+    expect(saved.rows).toHaveLength(1);
+    expect(saved.rows[0]).toMatchObject({ owner_id: profile.data.id, offer_id: offerId });
 
     const offerDetail = page.waitForResponse(response => response.url().endsWith(`/api/v1/offers/${offerId}`));
     await page.getByRole('button', { name: /Переглянути поїздку/ }).first().click();
@@ -856,6 +857,31 @@ test('Journey Planner ranks a persisted Community route and opens its current of
     expect((await cancelResponse).status()).toBe(200);
     await expect(page.getByText('Потрібне перепланування')).toBeVisible();
     await expect(page.getByText('Ціна оновиться після перепланування')).toBeVisible();
+
+    const rescueTripCard = page.locator('article').filter({ hasText: 'Інші поїздки MARSHGO поруч' }).first();
+    const replacement = rescueTripCard.getByRole('button').filter({ hasText: 'Rescue E2E Corridor Origin' }).first();
+    await expect(replacement).toHaveAttribute('data-offer-id', rescueCorridorAlternativeId);
+    await replacement.click();
+    await expect(page.getByRole('heading', { name: /Rescue E2E Corridor Origin/ })).toBeVisible();
+    const rescueBookingResponse = page.waitForResponse(response => response.url().endsWith('/api/v1/bookings') && response.request().method() === 'POST');
+    await page.getByRole('button', { name: /Забронювати місце/ }).click();
+    const rescueBookingHttp = await rescueBookingResponse;
+    expect(rescueBookingHttp.status()).toBe(201);
+    const replacementBooking = await rescueBookingHttp.json() as { data: { id: string; offer_id: string } };
+    expect(replacementBooking.data.offer_id).toBe(rescueCorridorAlternativeId);
+    await expect(page.getByText('Journey оновлено сервером і збережено як готовий маршрут.')).toBeVisible();
+    const rescuedJourney = await pool.query<{ state: string; confirmed_price_minor: number; legs: Array<{ ordinal: number; state: string; booking_id: string | null; metadata: Record<string, string> }> }>(
+      `SELECT j.state,j.confirmed_price_minor,
+              jsonb_agg(jsonb_build_object('ordinal',l.ordinal,'state',l.state,'booking_id',l.booking_id,'metadata',l.metadata) ORDER BY l.ordinal) AS legs
+         FROM journeys j JOIN journey_legs l ON l.journey_id=j.id WHERE j.user_id=(SELECT id FROM users WHERE phone_e164=$1) GROUP BY j.id`, [journeyPassengerPhone],
+    );
+    expect(rescuedJourney.rows).toHaveLength(1);
+    expect(rescuedJourney.rows[0].state).toBe('READY');
+    expect(rescuedJourney.rows[0].confirmed_price_minor).toBe(24000);
+    expect(rescuedJourney.rows[0].legs).toHaveLength(2);
+    expect(rescuedJourney.rows[0].legs.map(leg => leg.state)).toEqual(['REPLACED','CONFIRMED']);
+    expect(rescuedJourney.rows[0].legs[1].booking_id).toBe(replacementBooking.data.id);
+    expect(rescuedJourney.rows[0].legs[1].metadata.rescue_from_leg_id).toBe(saved.rows[0].journey_leg_id);
 
     const inboxResponse = page.waitForResponse(response => response.url().includes('/api/v1/notifications?limit=30'));
     await page.getByRole('button', { name: /Сповіщення/ }).click();

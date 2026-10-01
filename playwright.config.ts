@@ -40,7 +40,7 @@ export default defineConfig({
       env: { OSRM_STUB_PORT: '3305' },
     },
     {
-      command: 'npm run api',
+      command: 'node scripts/run-e2e-server.mjs',
       url: 'http://127.0.0.1:3302/healthz',
       reuseExistingServer: false,
       timeout: 30_000,
