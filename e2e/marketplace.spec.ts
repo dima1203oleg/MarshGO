@@ -196,6 +196,17 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     const inventory = await pool.query<{ available_seats: number }>('SELECT available_seats FROM offers WHERE id=$1', [offerId]);
     expect(inventory.rows[0].available_seats).toBe(2);
 
+    // A booking deep link must resolve to the server-owned entity after a cold load and reload.
+    await passengerPage.goto(`/bookings/${createdBooking.id}`);
+    await expect(passengerPage).toHaveURL(new RegExp(`/bookings/${createdBooking.id}$`));
+    const linkedBooking = passengerPage.locator('article').filter({ hasText: 'Стрий' });
+    await expect(linkedBooking).toHaveCount(1);
+    await expect(linkedBooking).toContainText('Львів');
+    await passengerPage.reload();
+    await expect(passengerPage).toHaveURL(new RegExp(`/bookings/${createdBooking.id}$`));
+    await expect(passengerPage.locator('article').filter({ hasText: 'Стрий' })).toHaveCount(1);
+    await expect(passengerPage.getByRole('heading', { name: 'Мої поїздки' })).toBeVisible();
+
     await passengerPage.getByRole('button', { name: /Написати/ }).click();
     await passengerPage.getByPlaceholder('Напишіть повідомлення…').fill('Буду на місці о 08:45.');
     await passengerPage.getByPlaceholder('Напишіть повідомлення…').press('Enter');
