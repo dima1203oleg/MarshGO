@@ -74,7 +74,7 @@
     "public_browser": "PASS scoped: current served asset hash, staging banner, direct search URL reload, honest empty inventory state",
     "public_paired_user_lifecycle": "NOT_ACCEPTED",
     "ios_simulator": "PASS scoped local build: iOS 1f08e73e351ed0e7e7d4c522b47c0ed5cb06e8a0 + immutable Site 029aae486e164f02660c36130114527b19898001; Capacitor sync, Xcode compile, install and launch succeeded on iPhone 16 Pro Max Simulator. Screenshot .release/staging-ios-current-029aae4-iphone16pm.png shows welcome screen only; no authenticated flow or physical-device acceptance. Host Node v25.4.0 emitted engine warnings; no dependency vulnerabilities.",
-    "ci_after_current_push": "PASS: umbrella PR CI 36925456845; Security 36925456827 and 36925449186",
+    "ci_after_current_push": "IN_PROGRESS: docs/report HEAD b06560b1460389503b1e7dfef9af6b7c738dea61; umbrella CI 36926141548 and Security 36926141590 / 36926135276",
     "ci": "PASS: umbrella PR CI 36925456845; Security 36925456827 and 36925449186"
   }
 }
