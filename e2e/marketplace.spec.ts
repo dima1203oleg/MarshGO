@@ -915,8 +915,11 @@ test('foreground road route renders on iPhone 15 Pro Max and 16 Pro Max viewport
 
       await page.request.get(`${tileFixture}/__test/mode?value=mixed`);
       await page.mouse.move(viewport.width / 2, 320);
-      await page.mouse.wheel(0, -1400);
-      await expect(page.getByRole('alert')).toContainText('Карта завантажилася частково.');
+      // Zooming right after the map becomes ready can be swallowed; repeat until new tiles are requested and the degraded state shows.
+      await expect(async () => {
+        await page.mouse.wheel(0, -700);
+        await expect(page.getByRole('alert')).toContainText('Карта завантажилася частково.', { timeout: 2_500 });
+      }).toPass({ timeout: 20_000 });
       await expect.poll(async () => page.request.get(`${tileFixture}/__test/stats`).then(response => response.json()).then(stats => stats.failed))
         .toBeGreaterThan(0);
 
