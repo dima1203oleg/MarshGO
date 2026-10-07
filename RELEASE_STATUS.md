@@ -1,5 +1,14 @@
 # MARSHGO release status — 2026-10-01
 
+## Workspace sync — 2026-10-07
+
+- Pushed source branches: umbrella `codex/marshgo-production` (`9e9d7c3`), Server `codex/sync-mobility-registry` (`954b110`), and Site `codex/sync-journey-mobility-ui` (`4e40211`).
+- Server typecheck/lint and Site typecheck/lint/build pass on these candidate branches. Unit and integration suites were not run during this sync.
+- No staging deployment was made; the deployed candidate and database remain on the earlier recorded revisions. `STAGING_READY=NO`, `READY_FOR_SERVER_DEPLOYMENT=NO`, `PRODUCTION_READY=NO`.
+- No new iOS source changes were present; its current branch is already on GitHub. The new Site candidate has not been built in the iOS simulator.
+- The experimental GetOtp adapter uses an unverified endpoint/payload and is not accepted for release; production configuration still permits Twilio only.
+
+
 This status records the tested candidate revisions and explicitly separates local/fixture checks from a real public production release. `DONE` means the stated software slice was verified; it does not imply the entire product is production-ready.
 
 ## Latest delta — rating DTO failure fixed; full acceptance blocked by host storage (2026-10-02)

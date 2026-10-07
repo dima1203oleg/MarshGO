@@ -5,15 +5,15 @@
   "status": "NOT_RELEASED",
   "ready_for_server_deployment": false,
   "production_ready": false,
-  "server_sha": "5e8cc4ce4d5e58babcc306c1cf5173f1f4600ea1",
-  "site_sha": "029aae486e164f02660c36130114527b19898001",
+  "server_sha": "954b1105db73d76e482831ece70c0f1d48de0482",
+  "site_sha": "4e40211ec788e980f03464de62b5a3d7a8d88468",
   "ios_sha": "1f08e73e351ed0e7e7d4c522b47c0ed5cb06e8a0",
-  "integration_sha": "07172adc0940234aac88b042468cd03ab3fa78d7",
-  "database_migration": "028",
+  "integration_sha": "0f06beaa7fb95cbd6dbe7d7a3636e28fc2f12949",
+  "database_migration": "030 (workspace candidate; staging remains at 028)",
   "api_version": "v1",
   "source_repositories": {
-    "server": "dima1203oleg/MarshGO-Server@codex/security-parse-bearer",
-    "site": "dima1203oleg/MarshGO-Site@codex/navigation-deep-link-alias",
+    "server": "dima1203oleg/MarshGO-Server@codex/sync-mobility-registry",
+    "site": "dima1203oleg/MarshGO-Site@codex/sync-journey-mobility-ui",
     "ios": "dima1203oleg/MarshGO-iOS@codex/reliable-capacitor-sync",
     "integration": "dima1203oleg/MarshGO@codex/marshgo-production"
   },
@@ -77,5 +77,19 @@
     "ios_simulator": "PASS scoped local build: iOS 1f08e73e351ed0e7e7d4c522b47c0ed5cb06e8a0 + immutable Site 029aae486e164f02660c36130114527b19898001; Capacitor sync, Xcode compile, install and launch succeeded on iPhone 16 Pro Max Simulator. Screenshot .release/staging-ios-current-029aae4-iphone16pm.png shows welcome screen only; no authenticated flow or physical-device acceptance. Host Node v25.4.0 emitted engine warnings; no dependency vulnerabilities.",
     "ci_after_current_push": "IN_PROGRESS: docs/report HEAD b06560b1460389503b1e7dfef9af6b7c738dea61; umbrella CI 36926141548 and Security 36926141590 / 36926135276",
     "ci": "PASS: umbrella PR CI 36925456845; Security 36925456827 and 36925449186"
+  },
+  "latest_workspace_sync_2026_10_07": {
+    "server_sha": "954b1105db73d76e482831ece70c0f1d48de0482",
+    "site_sha": "4e40211ec788e980f03464de62b5a3d7a8d88468",
+    "integration_code_sha": "0f06beaa7fb95cbd6dbe7d7a3636e28fc2f12949",
+    "server_typecheck": "PASS",
+    "server_lint": "PASS",
+    "site_typecheck": "PASS",
+    "site_lint": "PASS",
+    "site_build": "PASS",
+    "unit_and_integration_tests": "NOT RUN during this source sync",
+    "staging": "NOT DEPLOYED; existing staging remains on its previously recorded SHAs and migration 028",
+    "ios": "No iOS source delta; existing iOS branch is already on GitHub. No simulator build against this Site candidate.",
+    "sms_provider": "The getotp adapter is an unverified implementation; production config continues to require Twilio."
   }
 }
