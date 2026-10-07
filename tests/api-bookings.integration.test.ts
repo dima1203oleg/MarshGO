@@ -156,7 +156,7 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     assert.equal(enabledDriver.status, 200, roleBody.error?.message);
     assert.deepEqual(roleBody.data?.roles, ['driver', 'passenger']);
     const ownCar = await fetch(`${apiUrl}/api/v1/vehicles`, {
-      method: 'POST', headers: authHeaders, body: JSON.stringify({ make: 'Test', model: 'OTP Car', modelYear: 2022, seats: 4 }),
+      method: 'POST', headers: authHeaders, body: JSON.stringify({ make: 'Test', model: 'OTP Car', modelYear: 2022, seats: 4, plate: 'AA7441OT' }),
     });
     assert.equal(ownCar.status, 201);
     const createdVehicle = await ownCar.json() as { data: { id: string } };
@@ -649,12 +649,13 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
 
     const vehicleResponse = await fetch(`${apiUrl}/api/v1/vehicles`, {
       method: 'POST', headers: { 'content-type': 'application/json', 'x-dev-user-id': ids.driver },
-      body: JSON.stringify({ make: 'Kia', model: 'Ceed', modelYear: 2022, seats: 3 }),
+      body: JSON.stringify({ make: 'Kia', model: 'Ceed', modelYear: 2022, seats: 3, plate: 'AA7441KC' }),
     });
     assert.equal(vehicleResponse.status, 201);
     const vehicle = await vehicleResponse.json() as { data: { id: string; verification_status: string; is_active: boolean } };
     apiCreatedVehicleId = vehicle.data.id;
     assert.equal(vehicle.data.verification_status, 'pending');
+    assert.equal((vehicle.data as { trust_level?: number }).trust_level, 0, 'a new vehicle starts below level 1 until its photo is validated');
     assert.equal(vehicle.data.is_active, true);
 
     const forbiddenEdit = await fetch(`${apiUrl}/api/v1/vehicles/${apiCreatedVehicleId}`, {
@@ -670,7 +671,7 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
 
     const secondVehicle = await fetch(`${apiUrl}/api/v1/vehicles`, {
       method: 'POST', headers: { 'content-type': 'application/json', 'x-dev-user-id': ids.driver },
-      body: JSON.stringify({ make: 'Skoda', model: 'Octavia', modelYear: 2023, seats: 4 }),
+      body: JSON.stringify({ make: 'Skoda', model: 'Octavia', modelYear: 2023, seats: 4, plate: 'AA7441SO' }),
     });
     const second = await secondVehicle.json() as { data: { id: string; is_active: boolean } };
     extraVehicleIds.push(second.data.id);
@@ -695,7 +696,8 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     });
     assert.equal(pendingOffer.status, 404);
 
-    await pool.query("UPDATE vehicles SET verification_status = 'verified' WHERE id = $1", [apiCreatedVehicleId]);
+    // Level 1 is normally reached automatically when a validated photo is attached to a vehicle with a plate.
+    await pool.query("UPDATE vehicles SET trust_level = 1 WHERE id = $1", [apiCreatedVehicleId]);
     const missingPhoto = await fetch(`${apiUrl}/api/v1/offers`, {
       method: 'POST', headers: { 'content-type': 'application/json', 'x-dev-user-id': ids.driver },
       body: JSON.stringify(offerPayload),
@@ -788,8 +790,9 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     assert.equal(stillPending.rows[0].verification_status, 'pending');
     const licenseApproval = await decide(licenseRecord);
     assert.equal(licenseApproval.status, 200);
-    const verifiedVehicle = await pool.query('SELECT verification_status FROM vehicles WHERE id=$1', [apiCreatedVehicleId]);
+    const verifiedVehicle = await pool.query('SELECT verification_status,trust_level FROM vehicles WHERE id=$1', [apiCreatedVehicleId]);
     assert.equal(verifiedVehicle.rows[0].verification_status, 'verified');
+    assert.equal(verifiedVehicle.rows[0].trust_level, 3, 'both document approvals raise the vehicle to the driver-verified trust level');
     const verifiedDriver = await pool.query('SELECT verification_level,profile_status FROM driver_profiles WHERE user_id=$1', [ids.driver]);
     assert.deepEqual(verifiedDriver.rows[0], { verification_level: 'identity', profile_status: 'active' });
     assert.equal((await decide(vehicleRecord)).status, 409);
@@ -830,7 +833,7 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     const unrelatedUserVerification = await fetch(`${apiUrl}/api/v1/users/me/verification`, { headers: { 'x-dev-user-id': passengerA } });
     assert.equal((await unrelatedUserVerification.json() as { data: unknown[] }).data.length, 0);
     // This shared fixture is used by the next negotiation test; restore its verified state after asserting rejection behavior.
-    await pool.query("UPDATE vehicles SET verification_status='verified' WHERE id=$1", [apiCreatedVehicleId]);
+    await pool.query("UPDATE vehicles SET verification_status='verified',trust_level=3 WHERE id=$1", [apiCreatedVehicleId]);
   });
 
   it('keeps negotiation history and atomically converts an accepted proposal into a booking', async () => {

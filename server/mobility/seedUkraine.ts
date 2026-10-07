@@ -1,13 +1,13 @@
 import 'dotenv/config';
 import { Pool } from 'pg';
 import { testProviderConnection } from './connection';
-import { ukraineCatalog } from './ukraineCatalog';
+import { ukraineCatalog, ukraineCatalogWave2 } from './ukraineCatalog';
 
 /** Idempotent: registers every catalogue source, tests the open ones and enables those that are healthy. */
 async function main() {
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
   try {
-    for (const entry of ukraineCatalog) {
+    for (const entry of [...ukraineCatalog, ...ukraineCatalogWave2]) {
       const { rows } = await pool.query<{ id: string; status: string }>(
         `INSERT INTO mobility_providers(name,city,provider_type,source_type,feed_url,priority,access,license,update_frequency,coverage,source_ref,country)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'UA')

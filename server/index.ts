@@ -22,7 +22,9 @@ import { selectRepresentativeJourneys } from './journey/scoring';
 import { JOURNEY_STRATEGIES, type JourneyOption, type JourneyStrategy } from './journey/types';
 import { getRendezvousSettings, isWithinPickupGeofence, resolveRendezvousAction, type RendezvousAction, type RendezvousState } from './rendezvous';
 import { cachedSnapshot, selectNearby } from './mobility/nearby';
+import { bboxContains } from './mobility/types';
 import type { MobilityAssetType } from './mobility/types';
+import { normalizePlate } from './vehiclePlate';
 import { shouldGrantAdmin } from './adminPhones';
 import { testProviderConnection } from './mobility/connection';
 import { assertPublicHttpsUrl, UnsafeUrlError } from './mobility/safeFetch';
@@ -359,17 +361,60 @@ const rentalTypeMap: Record<string, { providerTypes: string[]; assetTypes: Mobil
 /** What the client may offer: rental modes backed by healthy GBFS providers and public-transit types backed by healthy GTFS feeds. */
 app.get('/api/v1/mobility/availability', requireAuth, asyncHandler(async (_req, res) => {
   const { rows } = await pool.query<{ provider_type: string; source_type: string; city: string; last_report: { counts?: Record<string, number> } }>(
-    `SELECT provider_type,source_type,city,last_report FROM mobility_providers WHERE status='enabled' AND health='healthy' AND source_type IN ('gbfs','gtfs')`);
+    `SELECT provider_type,source_type,city,last_report FROM mobility_providers WHERE status='enabled' AND health='healthy' AND source_type IN ('gbfs','gtfs','gtfs_rt','json')`);
   const modes = Object.entries(rentalTypeMap).map(([mode, config]) => {
     const matching = rows.filter((row) => row.source_type === 'gbfs' && config.providerTypes.includes(row.provider_type));
     return { mode, available: matching.length > 0, cities: [...new Set(matching.map((row) => row.city))].sort() };
   });
   const transit: Record<string, { available: boolean; cities: string[] }> = {};
-  for (const type of ['bus', 'tram', 'trolleybus', 'metro', 'train']) {
-    const cities = [...new Set(rows.filter((row) => row.source_type === 'gtfs' && (row.last_report?.counts?.[`routes_${type}`] ?? 0) > 0).map((row) => row.city))].sort();
+  for (const type of ['bus', 'marshrutka', 'tram', 'trolleybus', 'metro', 'train']) {
+    const cities = [...new Set(rows.filter((row) => row.provider_type === 'public_transit' && ((row.last_report?.counts?.[`routes_${type}`] ?? 0) > 0 || (row.last_report?.counts?.[`vehicles_${type}`] ?? 0) > 0)).map((row) => row.city))].sort();
     transit[type] = { available: cities.length > 0, cities };
   }
   res.json({ data: { modes, transit } });
+}));
+
+/** The 19 transport tiles. `service` narrows public-transit providers by what their feeds actually contain; `nationwide` tiles use sources with city "Україна". */
+const transportTiles: Array<{ id: string; providerTypes: string[]; service?: string; nationwide?: boolean }> = [
+  { id: 'carpool', providerTypes: ['carpool'] }, { id: 'taxi', providerTypes: ['taxi'] }, { id: 'carsharing', providerTypes: ['carsharing'] },
+  { id: 'car_rental', providerTypes: [] }, { id: 'transfer', providerTypes: [] },
+  { id: 'bus', providerTypes: ['public_transit'], service: 'bus', nationwide: false }, { id: 'marshrutka', providerTypes: ['public_transit'], service: 'marshrutka', nationwide: false },
+  { id: 'trolleybus', providerTypes: ['public_transit'], service: 'trolleybus', nationwide: false }, { id: 'tram', providerTypes: ['public_transit'], service: 'tram', nationwide: false }, { id: 'metro', providerTypes: ['public_transit'], service: 'metro', nationwide: false },
+  { id: 'train', providerTypes: ['public_transit'], service: 'train', nationwide: true }, { id: 'suburban_train', providerTypes: [] },
+  { id: 'intercity_bus', providerTypes: ['public_transit'], service: 'bus', nationwide: true },
+  { id: 'bike', providerTypes: ['bike', 'ebike'] }, { id: 'scooter', providerTypes: ['scooter'] }, { id: 'moped', providerTypes: ['moped'] },
+  { id: 'plane', providerTypes: [] }, { id: 'ferry', providerTypes: [] }, { id: 'walk', providerTypes: [] },
+];
+
+/**
+ * Providers per transport tile for a search area. Registry → connected (enabled, healthy) → covers the point (source coverage box) → serves the tile.
+ * Every tile is always returned (with an empty provider list when nothing serves it) so the client can keep it visible.
+ */
+app.get('/api/v1/mobility/providers', requireAuth, asyncHandler(async (req, res) => {
+  const lat = req.query.lat === undefined ? null : Number(req.query.lat), lon = req.query.lon === undefined ? null : Number(req.query.lon);
+  if ((lat !== null && (!Number.isFinite(lat) || Math.abs(lat) > 90)) || (lon !== null && (!Number.isFinite(lon) || Math.abs(lon) > 180))) throw new ApiError(400, 'lat and lon must be valid coordinates', 'invalid_coordinate');
+  const { rows } = await pool.query<{ name: string; city: string; provider_type: string; source_type: string; last_report: { bbox?: [number, number, number, number]; counts?: Record<string, number> } }>(
+    `SELECT name,city,provider_type,source_type,last_report FROM mobility_providers WHERE status='enabled' AND health='healthy' ORDER BY priority,name`);
+  const servicesOf = (report: { counts?: Record<string, number> }) => new Set(Object.entries(report?.counts ?? {}).filter(([key, count]) => count > 0 && /^(routes|vehicles)_(bus|marshrutka|tram|trolleybus|metro|train)$/.test(key)).map(([key]) => key.split('_')[1]));
+  const data = transportTiles.map((tile) => {
+    if (tile.id === 'carpool') return { transportType: tile.id, providers: [{ id: 'carpool:MARSHGO', name: 'MARSHGO Community', available: true, cities: [], sources: ['marshgo'], services: [] }] };
+    const entries = new Map<string, { id: string; name: string; available: true; cities: Set<string>; sources: Set<string>; services: Set<string> }>();
+    for (const row of rows) {
+      if (!tile.providerTypes.includes(row.provider_type)) continue;
+      const services = servicesOf(row.last_report);
+      if (tile.service && !services.has(tile.service)) continue;
+      const nationwide = row.city === 'Україна';
+      if (tile.nationwide !== undefined && tile.nationwide !== nationwide) continue;
+      const box = row.last_report?.bbox;
+      if (lat !== null && lon !== null && !nationwide && (!box || !bboxContains(box, lon, lat))) continue;
+      const operator = row.name.split(' — ')[0];
+      const entry = entries.get(operator) ?? { id: `${tile.id}:${operator}`, name: operator, available: true as const, cities: new Set<string>(), sources: new Set<string>(), services: new Set<string>() };
+      entry.cities.add(row.city); entry.sources.add(row.source_type); services.forEach((service) => entry.services.add(service));
+      entries.set(operator, entry);
+    }
+    return { transportType: tile.id, providers: [...entries.values()].map((entry) => ({ id: entry.id, name: entry.name, available: entry.available, cities: [...entry.cities], sources: [...entry.sources], services: [...entry.services] })) };
+  });
+  res.json({ data });
 }));
 
 app.get('/api/v1/mobility/nearby', requireAuth, placeSearchLimiter, asyncHandler(async (req, res) => {
@@ -757,7 +802,7 @@ app.post('/api/v1/navigation/sessions', requireAuth, requireRole('driver'), asyn
     const active = await client.query('SELECT id FROM navigation_sessions WHERE driver_id=$1 AND state IN (\'active\',\'paused\')', [req.userId]);
     if (active.rows[0]) throw new ApiError(409, 'End the existing navigation session before starting another', 'navigation_already_active');
     const verifiedVehicle = await client.query<{ id: string; seat_count: number }>(
-      `SELECT id,seat_count FROM vehicles WHERE owner_id=$1 AND is_active=true AND verification_status='verified' AND archived_at IS NULL
+      `SELECT id,seat_count FROM vehicles WHERE owner_id=$1 AND is_active=true AND trust_level>=1 AND archived_at IS NULL
        ORDER BY created_at DESC LIMIT 1 FOR SHARE`, [req.userId],
     );
     const matchingVehicle = verifiedVehicle.rows[0];
@@ -1430,7 +1475,7 @@ app.post('/api/v1/users/me/roles', requireAuth, asyncHandler(async (req, res) =>
 app.get('/api/v1/users/me/export', requireAuth, asyncHandler(async (req, res) => {
   const [profile, vehicles, bookings, demands] = await Promise.all([
     pool.query('SELECT id,phone_e164,display_name,email,roles,is_verified,created_at FROM users WHERE id=$1', [req.userId]),
-    pool.query('SELECT id,make,model,model_year,seat_count,verification_status,created_at FROM vehicles WHERE owner_id=$1', [req.userId]),
+    pool.query('SELECT id,make,model,model_year,seat_count,verification_status,plate,trust_level,created_at FROM vehicles WHERE owner_id=$1', [req.userId]),
     pool.query(
       `SELECT b.id,b.offer_id,b.seat_count,b.total_price_minor,b.currency,b.fee_class,b.platform_fee_minor,b.fee_rule_version,b.status,b.created_at
          FROM bookings b JOIN offers o ON o.id=b.offer_id WHERE b.passenger_id=$1 OR o.driver_id=$1`, [req.userId],
@@ -1728,7 +1773,7 @@ app.post('/api/v1/journeys/search', requireAuth, asyncHandler(async (req, res) =
 
 app.get('/api/v1/vehicles', requireAuth, asyncHandler(async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT id, make, model, model_year, seat_count, verification_status, is_active, created_at
+    `SELECT id, make, model, model_year, seat_count, verification_status, plate, trust_level, is_active, created_at
        FROM vehicles WHERE owner_id = $1 AND archived_at IS NULL ORDER BY is_active DESC,created_at DESC`, [req.userId],
   );
   res.json({ data: rows });
@@ -1902,7 +1947,8 @@ app.post('/api/v1/admin/verification/:id/decision', requireAuth, requireStaff, a
       const { vehicle_document, driver_license } = statuses.rows[0];
       vehicleStatus = vehicle_document === 'approved' && driver_license === 'approved' ? 'verified'
         : vehicle_document === 'rejected' || driver_license === 'rejected' ? 'rejected' : 'pending';
-      await client.query('UPDATE vehicles SET verification_status=$2 WHERE id=$1', [record.vehicle_id, vehicleStatus]);
+      await client.query(`UPDATE vehicles SET verification_status=$2,trust_level=GREATEST(trust_level,CASE WHEN $3::text='approved' AND $4::text='approved' THEN 3 WHEN $3::text='approved' THEN 2 ELSE 0 END) WHERE id=$1`,
+        [record.vehicle_id, vehicleStatus, vehicle_document, driver_license]);
       if (driver_license === 'approved') {
         await client.query(
           `INSERT INTO driver_profiles(user_id,verification_level,profile_status)
@@ -1928,6 +1974,8 @@ app.post('/api/v1/admin/verification/:id/decision', requireAuth, requireStaff, a
 
 app.post('/api/v1/vehicles', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
   const { make, model, modelYear, seats } = req.body ?? {};
+  const plate = normalizePlate(req.body?.plate);
+  if (!plate) throw new ApiError(400, 'A valid licence plate is required (e.g. AA1234BB)', 'invalid_plate');
   if (typeof make !== 'string' || make.trim().length < 1 || make.length > 80 ||
       typeof model !== 'string' || model.trim().length < 1 || model.length > 100 ||
       !Number.isInteger(modelYear) || modelYear < 1950 || modelYear > new Date().getUTCFullYear() + 1 ||
@@ -1941,14 +1989,15 @@ app.post('/api/v1/vehicles', requireAuth, requireRole('driver'), asyncHandler(as
     await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))', [req.userId]);
     const active = await client.query('SELECT 1 FROM vehicles WHERE owner_id=$1 AND is_active AND archived_at IS NULL', [req.userId]);
     ({ rows } = await client.query(
-      `INSERT INTO vehicles(owner_id,make,model,model_year,seat_count,is_active)
-       VALUES ($1,$2,$3,$4,$5,$6)
-       RETURNING id,make,model,model_year,seat_count,verification_status,is_active,created_at`,
-      [req.userId, make.trim(), model.trim(), modelYear, seats, active.rowCount === 0],
+      `INSERT INTO vehicles(owner_id,make,model,model_year,seat_count,is_active,plate)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)
+       RETURNING id,make,model,model_year,seat_count,verification_status,plate,trust_level,is_active,created_at`,
+      [req.userId, make.trim(), model.trim(), modelYear, seats, active.rowCount === 0, plate],
     ));
     await client.query('COMMIT');
   } catch (error) {
     await client.query('ROLLBACK');
+    if ((error as { code?: string }).code === '23505') throw new ApiError(409, 'A vehicle with this plate is already registered', 'plate_exists');
     throw error;
   } finally {
     client.release();
@@ -1959,6 +2008,8 @@ app.post('/api/v1/vehicles', requireAuth, requireRole('driver'), asyncHandler(as
 
 app.patch('/api/v1/vehicles/:id', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
   const { make, model, modelYear, seats } = req.body ?? {};
+  const plate = req.body?.plate === undefined ? undefined : normalizePlate(req.body.plate);
+  if (plate === null) throw new ApiError(400, 'A valid licence plate is required (e.g. AA1234BB)', 'invalid_plate');
   if ((make !== undefined && (typeof make !== 'string' || make.trim().length < 1 || make.trim().length > 80)) ||
       (model !== undefined && (typeof model !== 'string' || model.trim().length < 1 || model.trim().length > 100)) ||
       (modelYear !== undefined && (!Number.isInteger(modelYear) || modelYear < 1950 || modelYear > new Date().getUTCFullYear() + 1)) ||
@@ -1977,10 +2028,11 @@ app.patch('/api/v1/vehicles/:id', requireAuth, requireRole('driver'), asyncHandl
       if (incompatible.rows[0]) throw new ApiError(409, 'Vehicle capacity cannot be reduced below an upcoming published trip', 'vehicle_capacity_in_use');
     }
     const { rows } = await client.query(
-      `UPDATE vehicles SET make=COALESCE($3,make),model=COALESCE($4,model),model_year=COALESCE($5,model_year),seat_count=COALESCE($6,seat_count)
+      `UPDATE vehicles SET make=COALESCE($3,make),model=COALESCE($4,model),model_year=COALESCE($5,model_year),seat_count=COALESCE($6,seat_count),plate=COALESCE($7,plate),
+        trust_level=CASE WHEN COALESCE($7,plate) IS NOT NULL AND trust_level<1 AND EXISTS (SELECT 1 FROM vehicle_photos p WHERE p.vehicle_id=vehicles.id) THEN 1 ELSE trust_level END
         WHERE id=$1 AND owner_id=$2 AND archived_at IS NULL
-        RETURNING id,make,model,model_year,seat_count,verification_status,is_active,created_at`,
-      [req.params.id, req.userId, make?.trim() ?? null, model?.trim() ?? null, modelYear ?? null, seats ?? null],
+        RETURNING id,make,model,model_year,seat_count,verification_status,plate,trust_level,is_active,created_at`,
+      [req.params.id, req.userId, make?.trim() ?? null, model?.trim() ?? null, modelYear ?? null, seats ?? null, plate ?? null],
     );
     await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'vehicle.updated', 'vehicle', req.params.id]);
     await client.query('COMMIT');
@@ -2003,7 +2055,7 @@ app.post('/api/v1/vehicles/:id/activate', requireAuth, requireRole('driver'), as
     await client.query('UPDATE vehicles SET is_active=false WHERE owner_id=$1 AND is_active', [req.userId]);
     const { rows } = await client.query(
       `UPDATE vehicles SET is_active=true WHERE id=$1 AND owner_id=$2
-       RETURNING id,make,model,model_year,seat_count,verification_status,is_active,created_at`, [req.params.id, req.userId],
+       RETURNING id,make,model,model_year,seat_count,verification_status,plate,trust_level,is_active,created_at`, [req.params.id, req.userId],
     );
     await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'vehicle.activated', 'vehicle', req.params.id]);
     await client.query('COMMIT');
@@ -2090,8 +2142,11 @@ app.post('/api/v1/vehicles/:id/photos', requireAuth, requireRole('driver'), asyn
       [req.params.id, key, existing.rowCount === 0],
     );
     await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'vehicle.photo.added', 'vehicle', req.params.id]);
+    // Level 1 is automatic: a valid plate plus a validated photo make the vehicle usable without an administrator.
+    const promoted = await client.query("UPDATE vehicles SET trust_level=GREATEST(trust_level,1) WHERE id=$1 AND plate IS NOT NULL AND trust_level<1 RETURNING id", [req.params.id]);
+    if (promoted.rowCount) await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'vehicle.auto_verified', 'vehicle', req.params.id]);
     await client.query('COMMIT');
-    res.status(201).json({ data: { ...rows[0], url: photoUrl } });
+    res.status(201).json({ data: { ...rows[0], url: photoUrl, trust_level: Math.max(promoted.rowCount ? 1 : 0, 0) } });
   } catch (error) {
     await client.query('ROLLBACK');
     throw error;
@@ -2212,7 +2267,7 @@ app.post('/api/v1/offers', requireAuth, requireRole('driver'), asyncHandler(asyn
     await client.query('BEGIN');
     const vehicle = await client.query<{ seat_count: number; has_photo: boolean }>(
       `SELECT v.seat_count,EXISTS(SELECT 1 FROM vehicle_photos p WHERE p.vehicle_id=v.id) AS has_photo
-         FROM vehicles v WHERE v.id=$1 AND v.owner_id=$2 AND v.verification_status='verified' FOR SHARE`,
+         FROM vehicles v WHERE v.id=$1 AND v.owner_id=$2 AND v.trust_level>=1 FOR SHARE`,
       [vehicleId, req.userId],
     );
     if (!vehicle.rows[0]) throw new ApiError(404, 'verified vehicle unavailable');
@@ -3097,7 +3152,7 @@ app.post('/api/v1/demands/:id/proposals', requireAuth, requireRole('driver'), as
         `SELECT c.id,s.vehicle_id,s.vehicle_seat_count,v.seat_count,s.route_version,c.route_version AS candidate_route_version
            FROM navigation_match_candidates c
            JOIN navigation_sessions s ON s.id=c.navigation_session_id
-           LEFT JOIN vehicles v ON v.id=s.vehicle_id AND v.owner_id=s.driver_id AND v.verification_status='verified'
+           LEFT JOIN vehicles v ON v.id=s.vehicle_id AND v.owner_id=s.driver_id AND v.trust_level>=1
           WHERE c.id=$1 AND c.demand_id=$2 AND s.driver_id=$3 AND s.state='paused' AND s.opt_in=true
             AND s.current_location_at>now()-interval '2 minutes' AND c.status='passenger_confirmed' AND c.expires_at>now()
           FOR UPDATE OF c,s`, [navigationCandidateId, req.params.id, req.userId],
@@ -3111,7 +3166,7 @@ app.post('/api/v1/demands/:id/proposals', requireAuth, requireRole('driver'), as
       if (existing.rowCount) throw new ApiError(409, 'a proposal already exists for this navigation match', 'navigation_proposal_exists');
     }
     const { rows: vehicles } = await client.query<{ seat_count: number }>(
-      "SELECT seat_count FROM vehicles WHERE id=$1 AND owner_id=$2 AND verification_status='verified' FOR SHARE", [vehicleId, req.userId],
+      "SELECT seat_count FROM vehicles WHERE id=$1 AND owner_id=$2 AND trust_level>=1 FOR SHARE", [vehicleId, req.userId],
     );
     if (!vehicles[0]) throw new ApiError(404, 'verified vehicle unavailable');
     if (Number(vehicles[0].seat_count) < Number(demand.passenger_count)) throw new ApiError(400, 'vehicle has too few passenger seats');
@@ -3258,7 +3313,7 @@ app.post('/api/v1/proposals/:id/accept', requireAuth, asyncHandler(async (req, r
        FROM proposals p JOIN navigation_match_candidates c ON c.id=p.navigation_candidate_id
        JOIN navigation_sessions s ON s.id=c.navigation_session_id
        JOIN passenger_demands d ON d.id=c.demand_id
-       JOIN vehicles v ON v.id=s.vehicle_id AND v.owner_id=s.driver_id AND v.verification_status='verified'
+       JOIN vehicles v ON v.id=s.vehicle_id AND v.owner_id=s.driver_id AND v.trust_level>=1
        WHERE p.id=$1 AND d.passenger_id=$2 AND p.vehicle_id=s.vehicle_id
          AND d.status='open' AND c.status='passenger_confirmed' AND c.expires_at>now()
          AND c.route_version=s.route_version AND s.state='paused' AND s.opt_in=true
@@ -3342,7 +3397,7 @@ app.post('/api/v1/proposals/:id/accept', requireAuth, asyncHandler(async (req, r
                 ST_Distance(s.current_location,ST_SetSRID(ST_MakePoint($3,$4),4326)::geography) AS movement_m
            FROM navigation_match_candidates c
            JOIN navigation_sessions s ON s.id=c.navigation_session_id
-           LEFT JOIN vehicles v ON v.id=s.vehicle_id AND v.owner_id=s.driver_id AND v.verification_status='verified'
+           LEFT JOIN vehicles v ON v.id=s.vehicle_id AND v.owner_id=s.driver_id AND v.trust_level>=1
           WHERE c.id=$1 AND c.demand_id=$2 AND s.state='paused' AND s.opt_in=true
             AND s.current_location_at>now()-interval '2 minutes' AND c.status='passenger_confirmed' AND c.expires_at>now()
              AND s.route_version=$5
@@ -3371,7 +3426,7 @@ app.post('/api/v1/proposals/:id/accept', requireAuth, asyncHandler(async (req, r
     const departure = new Date(proposal.departure_at);
     if (departure < new Date(demand.earliest_departure) || departure > new Date(demand.latest_departure)) throw new ApiError(409, 'proposal time is outside the demand window');
     const { rows: vehicles } = await client.query(
-      "SELECT id FROM vehicles WHERE id=$1 AND owner_id=$2 AND verification_status='verified' FOR SHARE", [proposal.vehicle_id, proposal.driver_id],
+      "SELECT id FROM vehicles WHERE id=$1 AND owner_id=$2 AND trust_level>=1 FOR SHARE", [proposal.vehicle_id, proposal.driver_id],
     );
     if (!vehicles[0]) throw new ApiError(409, 'driver vehicle is no longer verified');
     const { rows: offers } = await client.query(

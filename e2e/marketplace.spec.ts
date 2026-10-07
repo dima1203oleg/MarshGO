@@ -53,9 +53,15 @@ async function signIn(page: import('@playwright/test').Page, name: string, phone
     page.waitForResponse(response => response.url().endsWith('/api/v1/auth/otp/verify')),
     page.getByRole('button', { name: 'Підтвердити номер' }).click(),
   ]);
-  await expect(page.getByText(`Привіт, ${name.split(' ')[0]}!`)).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Їдеш\? MARSHGO знайде попутника/ })).toBeVisible();
   expect(Boolean((await authResponse.allHeaders())['set-cookie']), 'OTP verification should issue a refresh cookie').toBe(true);
   return (await authResponse.json()).data.accessToken as string;
+}
+
+/** Search lives in its own tab; the home screen only shows what is around the user. */
+async function openSearchTab(page: import('@playwright/test').Page) {
+  await page.getByRole('navigation', { name: 'Основна навігація' }).getByRole('button', { name: 'Пошук', exact: true }).click();
+  await expect(page.getByPlaceholder('Місто відправлення')).toBeVisible();
 }
 
 test('onboarding explains the real transport scope and keeps location permission optional', async ({ page }) => {
@@ -180,6 +186,7 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     if (process.env.E2E_SCREENSHOT_PATH) {
       await passengerPage.screenshot({ path: process.env.E2E_SCREENSHOT_PATH, fullPage: true });
     }
+    await openSearchTab(passengerPage);
     await passengerPage.getByPlaceholder('Місто відправлення').fill('Стрий');
     await passengerPage.getByRole('button', { name: 'Знайти', exact: true }).nth(0).click();
     await passengerPage.getByRole('button', { name: /Стрий, Львівська область, Україна/ }).click();
@@ -413,8 +420,12 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     await expect(driverPage).toHaveURL(/\/demands\/[A-Za-z0-9_-]+$/);
     await expect(driverPage.getByRole('heading', { name: 'Стрий → Львів' })).toBeVisible();
     await driverPage.getByRole('button', { name: 'Поїздки', exact: true }).click();
+    // The negotiated booking is confirmed, so it lives in the "Майбутні" section of the trips screen.
+    await driverPage.getByRole('tab', { name: /Майбутні/ }).click();
     await expect(driverPage.getByText('320 грн')).toBeVisible();
-    await driverPage.getByRole('button', { name: /Написати/ }).last().click();
+    // The persisted chat belongs to the first (completed) booking, which is listed under "Минулі".
+    await driverPage.getByRole('tab', { name: /Минулі/ }).click();
+    await driverPage.getByRole('button', { name: /Написати/ }).first().click();
     await expect(driverPage.getByText(realtimeMessage)).toBeVisible();
 
     const messages = await pool.query<{ body: string }>(
@@ -466,10 +477,22 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
 
     await passengerPage.getByRole('button', { name: 'Розблокувати', exact: true }).click();
     await expect(passengerPage.getByText('Список порожній. Заблокувати контакт можна з його чату.')).toBeVisible();
+    await driverChatInput.fill(deniedMessage);
     await driverChatInput.press('Enter');
+    await expect.poll(async () => (await pool.query<{ count: number }>('SELECT count(*)::int AS count FROM messages WHERE body=$1', [deniedMessage])).rows[0].count, { message: 'unblocked message is persisted' }).toBe(1);
     await expect(driverPage.getByText(deniedMessage)).toBeVisible();
     await passengerPage.getByRole('button', { name: 'Поїздки', exact: true }).click();
-    await passengerPage.getByRole('button', { name: /Написати/ }).last().click();
+    // Bookings are split across the Trips sections; open each chat until the one holding the message.
+    chatSearch: for (const section of ['Майбутні', 'Минулі'] as const) {
+      await passengerPage.getByRole('tab', { name: new RegExp(`^${section}`) }).click();
+      const chatButtons = await passengerPage.getByRole('button', { name: /Написати/ }).count();
+      for (let index = 0; index < chatButtons; index += 1) {
+        await passengerPage.getByRole('button', { name: /Написати/ }).nth(index).click();
+        if (await passengerPage.getByText(deniedMessage).waitFor({ timeout: 4_000 }).then(() => true, () => false)) break chatSearch;
+        await passengerPage.getByRole('button', { name: 'Повернутися до поїздок' }).click();
+        await passengerPage.getByRole('tab', { name: new RegExp(`^${section}`) }).click();
+      }
+    }
     await expect(passengerPage.getByText(deniedMessage)).toBeVisible();
 
     await refreshTokenResponses;
@@ -531,7 +554,6 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
 });
 
 test('driver safely matches two independent riders, inserts ordered stops, and reroutes after browser GPS deviation', async ({ browser, baseURL }) => {
-  test.setTimeout(180_000);
   expect(baseURL).toBeTruthy();
   const driverContext = await browser.newContext({
     ...devices['iPhone 16 Pro Max'], baseURL, timezoneId: 'Europe/Kyiv',
@@ -877,7 +899,7 @@ test('foreground road route renders on iPhone 15 Pro Max and 16 Pro Max viewport
       }).then((response) => response.status), accessToken);
       expect(roleResponse).toBe(200);
       await page.reload();
-      await expect(page.getByText('Привіт, MARSHGO!')).toBeVisible();
+      await expect(page.getByRole('heading', { name: /Їдеш\? MARSHGO знайде попутника/ })).toBeVisible();
       const viewport = await page.evaluate(() => ({ width: window.innerWidth, documentWidth: document.documentElement.scrollWidth }));
       expect(viewport.documentWidth).toBeLessThanOrEqual(viewport.width + 1);
       const modelFileName = model.toLowerCase().replaceAll(' ', '-');
@@ -909,7 +931,7 @@ test('foreground road route renders on iPhone 15 Pro Max and 16 Pro Max viewport
       await expect(page.getByText('Стиль і підкладка MARSHGO не налаштовані. Геометрія реального маршруту залишається доступною.')).toHaveCount(0);
       const tileFixture = 'http://127.0.0.1:3306';
       const initialTileStats = await page.request.get(`${tileFixture}/__test/stats`).then(response => response.json());
-      expect(initialTileStats.loaded).toBeGreaterThan(0);
+      await expect.poll(async () => page.request.get(`${tileFixture}/__test/stats`).then(response => response.json()).then(stats => stats.loaded)).toBeGreaterThan(0);
       expect(initialTileStats.failed).toBe(0);
       await expect(page.getByRole('alert')).toHaveCount(0);
 
@@ -962,7 +984,7 @@ test('navigation recovers from denied GPS permission with a localized retry mess
     }).then((response) => response.status), accessToken);
     expect(roleStatus).toBe(200);
     await page.reload();
-    await expect(page.getByText('Привіт, GPS!')).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Їдеш\? MARSHGO знайде попутника/ })).toBeVisible();
 
     let navigationCreateRequests = 0;
     page.on('request', (request) => {
@@ -991,6 +1013,7 @@ test('route search URL restores geocoded criteria after direct reload', async ({
   const page = await context.newPage();
   try {
     await signIn(page, 'Search Restore Passenger', searchRestorePhone);
+    await openSearchTab(page);
     await page.getByPlaceholder('Місто відправлення').fill('Стрий');
     await page.getByRole('button', { name: 'Знайти', exact: true }).nth(0).click();
     await page.getByRole('button', { name: /Стрий, Львівська область, Україна/ }).click();
@@ -1026,6 +1049,7 @@ test('Journey Planner ranks a persisted Community route and opens its current of
   const page = await context.newPage();
   try {
     const accessToken = await signIn(page, 'Journey Passenger', journeyPassengerPhone);
+    await openSearchTab(page);
     await page.getByPlaceholder('Місто відправлення').fill('Стрий');
     await page.getByRole('button', { name: 'Знайти', exact: true }).nth(0).click();
     await page.getByRole('button', { name: /Стрий, Львівська область, Україна/ }).click();
@@ -1101,6 +1125,8 @@ test('Journey Planner ranks a persisted Community route and opens its current of
     await expect(page.getByText('Потрібне перепланування')).toBeVisible();
     await expect(page.getByText('Ціна оновиться після перепланування')).toBeVisible();
 
+    // The cancelled booking (with its rescue alternatives) is listed under "Минулі".
+    await page.getByRole('tab', { name: /Минулі/ }).click();
     const rescueTripCard = page.locator('article').filter({ hasText: 'Інші поїздки MARSHGO поруч' }).first();
     const replacement = rescueTripCard.getByRole('button').filter({ hasText: 'Rescue E2E Corridor Origin' }).first();
     await expect(replacement).toHaveAttribute('data-offer-id', rescueCorridorAlternativeId);

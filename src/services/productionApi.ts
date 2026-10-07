@@ -101,6 +101,10 @@ export type ApiVehicle = {
   model_year: number;
   seat_count: number;
   verification_status: string;
+  /** Licence plate (canonical form). */
+  plate: string | null;
+  /** 0 none, 1 plate + photo (automatic), 2 vehicle documents verified, 3 driver verified. */
+  trust_level?: number;
   is_active: boolean;
 };
 export type ApiVehiclePhoto = { id: string; url: string; is_primary: boolean; created_at: string };
@@ -125,6 +129,8 @@ export type ApiMobilityAudit = { id: number; action: string; entity_id: string; 
 export type ApiTransitAvailability = Record<string, { available: boolean; cities: string[] }>;
 export type ApiMobilityAvailability = { modes: ApiRentalAvailability[]; transit: ApiTransitAvailability };
 export type ApiRentalAvailability = { mode: 'bike' | 'scooter' | 'moped' | 'carsharing'; available: boolean; cities: string[] };
+export type ApiProvider = { id: string; name: string; available: boolean; cities: string[]; sources: string[]; services: string[] };
+export type ApiTransportProviders = { transportType: string; providers: ApiProvider[] };
 export type ApiNearbyAsset = { id: string; type: string; location: [number, number]; distanceM: number; providerName: string; batteryPercent?: number; rangeMeters?: number };
 export type ApiNearbyStation = { id: string; name: string; location: [number, number]; distanceM: number; providerName: string; availableAssets?: number; capacity?: number; returnAllowed?: boolean };
 export type ApiNearby = { mode: string; radiusM: number; providers: number; failedProviders: number; assets: ApiNearbyAsset[]; stations: ApiNearbyStation[]; totalAssets: number };
@@ -457,7 +463,7 @@ export const productionApi = {
   enableRole(role: 'passenger' | 'driver') {
     return request<{ id: string; roles: string[] }>('/users/me/roles', { method: 'POST', body: JSON.stringify({ role }) });
   },
-  createVehicle(input: { make: string; model: string; modelYear: number; seats: number }) {
+  createVehicle(input: { make: string; model: string; modelYear: number; seats: number; plate: string }) {
     return request<ApiVehicle>('/vehicles', { method: 'POST', body: JSON.stringify(input) });
   },
   vehiclePhotos(vehicleId: string) { return request<ApiVehiclePhoto[]>(`/vehicles/${vehicleId}/photos`); },
@@ -500,6 +506,7 @@ export const productionApi = {
   submitVehicleVerification(vehicleId: string, input: { registrationEvidenceKey: string; registrationContentType: string; driverLicenseEvidenceKey: string; driverLicenseContentType: string }) {
     return request<{ vehicleId: string; status: string }>(`/vehicles/${vehicleId}/verification`, { method: 'POST', body: JSON.stringify(input) });
   },
+  providersByTransport(point?: { latitude: number; longitude: number }) { return request<ApiTransportProviders[]>(`/mobility/providers${point ? `?lat=${point.latitude}&lon=${point.longitude}` : ''}`); },
   mobilityAvailability() { return request<ApiMobilityAvailability>('/mobility/availability'); },
   nearbyRentals(mode: string, latitude: number, longitude: number, radiusM = 1000) {
     return request<ApiNearby>(`/mobility/nearby?mode=${encodeURIComponent(mode)}&lat=${latitude}&lon=${longitude}&radiusM=${radiusM}`);

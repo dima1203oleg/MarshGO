@@ -41,8 +41,8 @@ test('production UI stays usable at phone, tablet and desktop sizes with current
     page.getByRole('button', { name: 'Підтвердити номер' }).click(),
   ]);
   await expect(page.locator('.production-app')).toBeVisible();
-  await expect(page.getByRole('heading', { name: /Подорожуйте Україною простіше/ })).toBeVisible();
-  await expect(page.getByText(/Ще немає завантажених пропозицій/)).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Їдеш\? MARSHGO знайде попутника/ })).toBeVisible();
+  await expect(page.getByText('Куди їдемо?')).toBeVisible();
   await expect(page.getByText('100+ маршрутів')).toHaveCount(0);
 
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -70,12 +70,15 @@ test('production UI stays usable at phone, tablet and desktop sizes with current
     const metrics = await page.evaluate(() => ({
       viewport: window.innerWidth,
       document: document.documentElement.scrollWidth,
-      content: document.querySelector('.home-screen')?.getBoundingClientRect().width ?? 0,
+      content: document.querySelector('.home-hero')?.getBoundingClientRect().width ?? 0,
       navigation: getComputedStyle(document.querySelector('.app-tabbar')!).position,
     }));
     expect(metrics.document, `${browserName} ${viewport.name} has horizontal overflow`).toBeLessThanOrEqual(viewport.width);
     expect(metrics.content, `${browserName} ${viewport.name} main content is missing`).toBeGreaterThan(Math.min(viewport.width * 0.72, 680));
     if (viewport.width <= 430) {
+      // The search form lives in the Search tab.
+      await page.getByRole('navigation', { name: 'Основна навігація' }).getByRole('button', { name: 'Пошук', exact: true }).click();
+      await expect(page.getByRole('button', { name: 'Менше пасажирів' })).toBeVisible();
       const passengerCounter = page.getByRole('button', { name: 'Менше пасажирів' }).locator('..');
       const itemBounds = await passengerCounter.locator(':scope > *').evaluateAll(elements => elements.map(element => {
         const rect = element.getBoundingClientRect();
@@ -87,6 +90,7 @@ test('production UI stays usable at phone, tablet and desktop sizes with current
         if (index > 0) expect(itemBounds[index].left, `${browserName} phone passenger counter items overlap`).toBeGreaterThanOrEqual(itemBounds[index - 1].right);
       }
     }
+    if (viewport.width <= 430) await page.getByRole('navigation', { name: 'Основна навігація' }).getByRole('button', { name: 'Головна', exact: true }).click();
     if (viewport.width >= 1024) {
       await expect(page.getByRole('navigation', { name: 'Розділи MARSHGO' })).toBeVisible();
       expect(metrics.navigation).toBe('sticky');
