@@ -6,6 +6,7 @@ import { bboxOf, type ConnectionReport } from './types';
 export function routeTypeLabel(routeType: number): string {
   if (routeType === 0 || (routeType >= 900 && routeType < 1000)) return 'tram';
   if (routeType === 1 || (routeType >= 400 && routeType < 500)) return 'metro';
+  if (routeType === 106 || routeType === 109) return 'suburban';
   if (routeType === 2 || (routeType >= 100 && routeType < 200)) return 'train';
   if (routeType === 3 || (routeType >= 700 && routeType < 800)) return 'bus';
   if (routeType === 11 || routeType === 800) return 'trolleybus';

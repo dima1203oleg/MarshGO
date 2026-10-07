@@ -380,7 +380,7 @@ const transportTiles: Array<{ id: string; providerTypes: string[]; service?: str
   { id: 'car_rental', providerTypes: [] }, { id: 'transfer', providerTypes: [] },
   { id: 'bus', providerTypes: ['public_transit'], service: 'bus', nationwide: false }, { id: 'marshrutka', providerTypes: ['public_transit'], service: 'marshrutka', nationwide: false },
   { id: 'trolleybus', providerTypes: ['public_transit'], service: 'trolleybus', nationwide: false }, { id: 'tram', providerTypes: ['public_transit'], service: 'tram', nationwide: false }, { id: 'metro', providerTypes: ['public_transit'], service: 'metro', nationwide: false },
-  { id: 'train', providerTypes: ['public_transit'], service: 'train', nationwide: true }, { id: 'suburban_train', providerTypes: [] },
+  { id: 'train', providerTypes: ['public_transit'], service: 'train', nationwide: true }, { id: 'suburban_train', providerTypes: ['public_transit'], service: 'suburban', nationwide: true },
   { id: 'intercity_bus', providerTypes: ['public_transit'], service: 'bus', nationwide: true },
   { id: 'bike', providerTypes: ['bike', 'ebike'] }, { id: 'scooter', providerTypes: ['scooter'] }, { id: 'moped', providerTypes: ['moped'] },
   { id: 'plane', providerTypes: [] }, { id: 'ferry', providerTypes: [] }, { id: 'walk', providerTypes: [] },
@@ -395,7 +395,7 @@ app.get('/api/v1/mobility/providers', requireAuth, asyncHandler(async (req, res)
   if ((lat !== null && (!Number.isFinite(lat) || Math.abs(lat) > 90)) || (lon !== null && (!Number.isFinite(lon) || Math.abs(lon) > 180))) throw new ApiError(400, 'lat and lon must be valid coordinates', 'invalid_coordinate');
   const { rows } = await pool.query<{ name: string; city: string; provider_type: string; source_type: string; last_report: { bbox?: [number, number, number, number]; counts?: Record<string, number> } }>(
     `SELECT name,city,provider_type,source_type,last_report FROM mobility_providers WHERE status='enabled' AND health='healthy' ORDER BY priority,name`);
-  const servicesOf = (report: { counts?: Record<string, number> }) => new Set(Object.entries(report?.counts ?? {}).filter(([key, count]) => count > 0 && /^(routes|vehicles)_(bus|marshrutka|tram|trolleybus|metro|train)$/.test(key)).map(([key]) => key.split('_')[1]));
+  const servicesOf = (report: { counts?: Record<string, number> }) => new Set(Object.entries(report?.counts ?? {}).filter(([key, count]) => count > 0 && /^(routes|vehicles)_(bus|marshrutka|tram|trolleybus|metro|suburban|train)$/.test(key)).map(([key]) => key.split('_')[1]));
   const data = transportTiles.map((tile) => {
     if (tile.id === 'carpool') return { transportType: tile.id, providers: [{ id: 'carpool:MARSHGO', name: 'MARSHGO Community', available: true, cities: [], sources: ['marshgo'], services: [] }] };
     const entries = new Map<string, { id: string; name: string; available: true; cities: Set<string>; sources: Set<string>; services: Set<string> }>();

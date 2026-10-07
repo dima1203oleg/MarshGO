@@ -94,6 +94,7 @@ describe('GTFS parsing', () => {
   it('maps route types to transport labels', () => {
     assert.equal(routeTypeLabel(0), 'tram'); assert.equal(routeTypeLabel(1), 'metro'); assert.equal(routeTypeLabel(2), 'train');
     assert.equal(routeTypeLabel(3), 'bus'); assert.equal(routeTypeLabel(11), 'trolleybus'); assert.equal(routeTypeLabel(715), 'bus');
+    assert.equal(routeTypeLabel(102), 'train'); assert.equal(routeTypeLabel(106), 'suburban');
   });
   it('summarises a feed and flags missing files and bad coordinates', () => {
     const files = {
