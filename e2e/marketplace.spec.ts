@@ -1059,7 +1059,7 @@ test('Journey Planner ranks a persisted Community route and opens its current of
     const journeyDriverRating = payload.journeys.find(item => item.offerId === offerId)?.legs?.[0]?.driver?.averageRating;
     expect(journeyDriverRating === null || typeof journeyDriverRating === 'number').toBe(true);
     await expect(page.getByRole('heading', { name: 'Найкращі доступні варіанти' })).toBeVisible();
-    await expect(page.getByText('Автобуси, таксі й громадський транспорт не підключені як реальні джерела.')).toBeVisible();
+    await expect(page.getByText(/Маршрути зараз будуються лише з підтверджених попуток MARSHGO/)).toBeVisible();
     const saved = await pool.query<{ owner_id: string; offer_id: string; journey_leg_id: string }>(
       `SELECT j.user_id AS owner_id,l.offer_id,l.id AS journey_leg_id FROM journeys j JOIN journey_legs l ON l.journey_id=j.id WHERE j.id=$1`, [payload.journeys.find(item => item.strategy === 'CHEAPEST')!.id],
     );
