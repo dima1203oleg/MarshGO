@@ -3,6 +3,7 @@ import { ArrowLeft, MapPin, Navigation, LocateFixed, ShieldCheck, Square, Volume
 import { ApiNavigationMatch, ApiNavigationSession, ApiPlace, productionApi } from '../services/productionApi';
 import type { LocationFix } from '../../shared/navigation/contracts';
 import { MarshGoMap } from '../map/MarshGoMap';
+import { MapLayersControl } from '../components/MapLayersControl';
 import type { MapAdapter, MapStatus } from '../map/MapAdapter';
 import { WebGeolocationProvider, validateLocationFix } from '../platform/LocationProvider';
 import { NavigationStore } from '../navigation/NavigationStore';
@@ -12,6 +13,22 @@ import { boundsOf, encodePolyline6 } from '../../shared/navigation/geometry';
 import { routeResultSchema } from '../../shared/navigation/contracts';
 import { navigationError } from '../../shared/navigation/errors';
 import { OffRouteGuard } from '../navigation/OffRouteGuard';
+
+function navigationErrorMessage(error: unknown, fallback: string) {
+  if (!(error instanceof Error)) return fallback;
+  if (error.message === 'Required role is missing') return 'Щоб користуватися навігацією, активуйте роль водія у профілі.';
+  const locationMessages: Record<string, string> = {
+    GPS_PERMISSION_DENIED: 'Дозвольте MARSHGO доступ до геолокації в налаштуваннях браузера або пристрою, потім спробуйте ще раз.',
+    GPS_UNAVAILABLE: 'Не вдалося отримати точне місце. Перевірте дозвіл і сигнал GPS, потім спробуйте ще раз.',
+    GPS_INVALID_FIX: 'Пристрій надав некоректну GPS-точку. Перевірте точність геолокації та спробуйте ще раз.',
+    GPS_LOW_ACCURACY: 'Поточне місце визначено неточно. Увімкніть точну геолокацію та спробуйте ще раз.',
+    GPS_STALE: 'GPS-точка застаріла. Зачекайте на свіже місце розташування та повторіть спробу.',
+  };
+  const locationMessage = locationMessages[error.message];
+  if (locationMessage) return locationMessage;
+  if (/^[A-Z][A-Z0-9_]+$/.test(error.message)) return fallback;
+  return error.message;
+}
 
 function canonicalRoute(session: ApiNavigationSession) {
   const points = session.route;
@@ -128,7 +145,7 @@ export function ProductionNavigation({ onBack, onOpenDemand }: Props) {
         navigationStore.dispatch({ type: 'NAVIGATION_SESSION_RECONCILED', sessionId: cached.sessionId, route: cached.route, paused: cached.session.state === 'paused' });
         navigationStore.dispatch({ type: 'CONNECTIVITY_LOST' });
         setGpsMessage('Офлайн-режим: показуємо кешований маршрут. Підбір попутників, оновлення маршруту й актуальна ETA недоступні.');
-      } else setGpsMessage(error instanceof Error ? error.message : 'Не вдалося відновити навігаційну сесію.');
+      } else setGpsMessage(navigationErrorMessage(error, 'Не вдалося відновити навігаційну сесію.'));
     }).finally(() => setRestoring(false));
   }, [navigationStore]);
 
@@ -241,7 +258,7 @@ export function ProductionNavigation({ onBack, onOpenDemand }: Props) {
       const created = await productionApi.startNavigation({ origin: [fix.longitude, fix.latitude], destination: [destination.longitude, destination.latitude], destinationName: destination.label });
       navigationStore.dispatch({ type: 'NAVIGATION_SESSION_RECONCILED', sessionId: created.id, route: canonicalRoute(created), paused: false });
       setSession(created); setMatchingEnabled(false); setMatches([]); setOnRoute(null); lastSentRef.current = null; setGpsMessage('');
-    } catch (error) { setGpsMessage(error instanceof Error && error.message === 'GPS_PERMISSION_DENIED' ? 'Надайте дозвіл на геолокацію в налаштуваннях iPhone.' : error instanceof Error ? error.message : 'Не вдалося побудувати дорожній маршрут.'); }
+    } catch (error) { setGpsMessage(navigationErrorMessage(error, 'Не вдалося розпочати навігацію. Перевірте геолокацію та спробуйте ще раз.')); }
     finally { setBusy(false); }
   };
 
@@ -348,7 +365,7 @@ export function ProductionNavigation({ onBack, onOpenDemand }: Props) {
       {mapStatus === 'failed' && 'Не вдалося завантажити стиль карти. Перевірте мережу або manifest провайдера.'}
       {(mapStatus === 'degraded' || mapStatus === 'failed') && <button type="button" className="ml-2 underline" onClick={() => mapRef.current?.retry()}>Повторити завантаження карти</button>}
     </div>}
-    <div className="absolute right-4 top-1/2 z-[500] -translate-y-1/2 space-y-2"><button aria-label="Звук" onClick={() => setGpsMessage('Голосові інструкції поки не підключені.')} className="grid h-12 w-12 place-items-center rounded-full bg-white text-slate-700 shadow-lg"><Volume2 size={20}/></button><button aria-label="Центрувати маршрут" onClick={() => mapRef.current?.recenter(session.current_location ?? undefined)} className="grid h-12 w-12 place-items-center rounded-full bg-white text-blue-700 shadow-lg"><LocateFixed size={20}/></button></div>
+    <div className="absolute right-4 top-1/2 z-[500] -translate-y-1/2 space-y-2"><MapLayersControl/><button aria-label="Звук" onClick={() => setGpsMessage('Голосові інструкції поки не підключені.')} className="grid h-12 w-12 place-items-center rounded-full bg-white text-slate-700 shadow-lg"><Volume2 size={20}/></button><button aria-label="Центрувати маршрут" onClick={() => mapRef.current?.recenter(session.current_location ?? undefined)} className="grid h-12 w-12 place-items-center rounded-full bg-white text-blue-700 shadow-lg"><LocateFixed size={20}/></button></div>
     <section className="absolute inset-x-0 bottom-0 z-[500] rounded-t-[1.8rem] bg-white px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4 shadow-[0_-12px_35px_rgba(14,37,70,.18)]">
       <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-slate-200"/><div className="flex items-center justify-between"><div><p className="text-lg font-extrabold">{session.state === 'paused' ? 'Навігацію призупинено' : fixAge === null ? 'Очікуємо GPS' : fixAge > 30 || !visible ? 'GPS застарів' : 'Навігація активна'}</p><p className="mt-1 text-xs text-slate-500">{session.current_location_accuracy_m ? `Точність ±${Math.round(session.current_location_accuracy_m)} м` : 'Очікуємо першу GPS-точку'}{fixAge !== null ? ` · ${fixAge} с тому` : ''}</p></div><span className={`rounded-full px-3 py-1.5 text-xs font-bold ${session.state === 'paused' || !visible || fixAge !== null && fixAge > 30 ? 'bg-amber-100 text-amber-800' : onRoute === false ? 'bg-rose-100 text-rose-700' : onRoute === true ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>{session.state === 'paused' ? 'Безпечно зупинено' : !visible || fixAge !== null && fixAge > 30 ? 'GPS пауза' : onRoute === false ? 'Поза маршрутом' : onRoute === true ? 'На маршруті' : 'Перевірка GPS'}</span></div>
       {gpsMessage && <p role="status" className="mt-3 rounded-xl bg-amber-50 p-3 text-xs leading-5 text-amber-900">{gpsMessage}</p>}

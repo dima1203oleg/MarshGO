@@ -47,6 +47,8 @@ export type ApiOffer = {
   review_count: number;
   status?: string;
   vehicle_photo_url?: string | null;
+  /** Road geometry from the routing backend, [longitude, latitude]; only present on offer detail responses. */
+  route_geometry?: Array<[number, number]> | null;
 };
 
 export type ApiBooking = {
@@ -67,7 +69,9 @@ export type ApiBooking = {
   current_user_is_driver: boolean;
   completion_confirmation_count: number;
   current_user_confirmed_completion: boolean;
+  current_user_has_review: boolean;
 };
+export type ApiReview = { id: string; booking_id: string; author_id: string; target_id: string; rating: number; comment: string | null; created_at: string };
 export type ApiRendezvousLocation = { coordinates: [number, number]; accuracyMeters: number; capturedAt: string; freshness: 'LIVE' | 'STALE' } | null;
 export type ApiRendezvous = {
   id: string; bookingId: string; journeyLegId: string | null; state: string;
@@ -108,6 +112,22 @@ export type ApiVerificationQueueItem = ApiVerificationRecord & {
   user_id: string; display_name: string; make: string | null; model: string | null;
   model_year: number | null; seat_count: number | null;
 };
+
+export type ApiMobilityProvider = {
+  id: string; name: string; city: string; provider_type: string; source_type: string; feed_url: string; realtime_url: string | null;
+  priority: number; status: 'enabled' | 'disabled' | 'paused'; health: 'unknown' | 'healthy' | 'degraded' | 'offline';
+  country: string; access: 'open' | 'requires_credentials' | 'requires_partner_access' | 'insecure_endpoint'; license: string | null; update_frequency: string | null; coverage: string | null; source_ref: string | null;
+  last_checked_at: string | null; last_sync_at: string | null; last_error: string | null;
+  last_report: { checks?: Array<{ name: string; ok: boolean; detail?: string }>; counts?: Record<string, number>; responseMs?: number };
+};
+export type ApiMobilityAudit = { id: number; action: string; entity_id: string; details: Record<string, unknown>; created_at: string; actor: string | null };
+
+export type ApiTransitAvailability = Record<string, { available: boolean; cities: string[] }>;
+export type ApiMobilityAvailability = { modes: ApiRentalAvailability[]; transit: ApiTransitAvailability };
+export type ApiRentalAvailability = { mode: 'bike' | 'scooter' | 'moped' | 'carsharing'; available: boolean; cities: string[] };
+export type ApiNearbyAsset = { id: string; type: string; location: [number, number]; distanceM: number; providerName: string; batteryPercent?: number; rangeMeters?: number };
+export type ApiNearbyStation = { id: string; name: string; location: [number, number]; distanceM: number; providerName: string; availableAssets?: number; capacity?: number; returnAllowed?: boolean };
+export type ApiNearby = { mode: string; radiusM: number; providers: number; failedProviders: number; assets: ApiNearbyAsset[]; stations: ApiNearbyStation[]; totalAssets: number };
 
 export type ApiMessage = { id: string; sender_id: string; sender_name: string; body: string; created_at: string };
 export type ApiConversationUnread = { conversation_id: string; booking_id: string | null; unread_count: number };
@@ -223,7 +243,7 @@ async function request<T>(path: string, init: RequestInit = {}, retryAuth = true
   if (init.body && !headers.has('content-type')) headers.set('content-type', 'application/json');
   if (accessToken) headers.set('authorization', `Bearer ${accessToken}`);
   const response = await fetch(`${apiBase}/api/v1${path}`, { ...init, headers, credentials: 'include' });
-  const body = await response.json().catch(() => null) as { data?: T; error?: { message?: string } } | null;
+  const body = await response.json().catch(() => null) as { data?: T; error?: { code?: string; message?: string } } | null;
   if (response.status === 401 && retryAuth && accessToken && !path.startsWith('/auth/')) {
     try {
       const session = await request<{ user: ApiUser; accessToken: string }>('/auth/refresh', { method: 'POST' }, false);
@@ -233,16 +253,30 @@ async function request<T>(path: string, init: RequestInit = {}, retryAuth = true
       accessToken = null;
     }
   }
-  if (!response.ok) throw new Error(body?.error?.message || `Request failed (${response.status})`);
+  if (!response.ok) {
+    if (response.status === 429 || body?.error?.code === 'rate_limit_exceeded') {
+      throw new Error('Забагато запитів за короткий час. Зачекайте кілька хвилин і спробуйте ще раз.');
+    }
+    throw new Error(body?.error?.message || `Request failed (${response.status})`);
+  }
   if (response.status === 204) return undefined as T;
   return (body as ApiEnvelope<T>).data;
 }
 
 export const productionApi = {
   async restoreSession() {
-    const session = await request<{ user: ApiUser; accessToken: string }>('/auth/refresh', { method: 'POST' });
-    accessToken = session.accessToken;
-    return session.user;
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 8_000);
+    try {
+      const session = await request<{ user: ApiUser; accessToken: string }>('/auth/refresh', {
+        method: 'POST',
+        signal: controller.signal,
+      });
+      accessToken = session.accessToken;
+      return session.user;
+    } finally {
+      window.clearTimeout(timeoutId);
+    }
   },
   async requestOtp(phone: string, displayName: string) {
     return request<{ expiresInSeconds: number; delivery: string; developmentCode?: string }>('/auth/otp/request', {
@@ -257,7 +291,10 @@ export const productionApi = {
     return session.user;
   },
   async logout() {
-    try { await request('/auth/logout'); } finally { accessToken = null; }
+    try { await request('/auth/logout', { method: 'POST' }); } finally { accessToken = null; }
+  },
+  async logoutAll() {
+    try { await request('/auth/logout-all', { method: 'POST' }); } finally { accessToken = null; }
   },
   offers(params: { origin: string; destination: string; date: string; seats: number; originCoordinates?: [number, number]; destinationCoordinates?: [number, number] }) {
     const query = new URLSearchParams({ origin: params.origin, destination: params.destination, date: params.date, seats: String(params.seats) });
@@ -287,6 +324,7 @@ export const productionApi = {
     departureAt: string;
     passengers: number;
     strategy: ApiJourneyStrategy;
+    preferences?: Record<string, boolean>;
   }) {
     return request<ApiJourneySearchResult>('/journeys/search', { method: 'POST', body: JSON.stringify(input) });
   },
@@ -395,6 +433,9 @@ export const productionApi = {
   confirmTripCompletion(bookingId: string) {
     return request<{ id: string; status: string; confirmations: number; requiredConfirmations: number; replayed?: boolean }>(`/bookings/${bookingId}/complete`, { method: 'POST' });
   },
+  createBookingReview(bookingId: string, input: { rating: number; comment?: string }) {
+    return request<ApiReview>(`/bookings/${bookingId}/reviews`, { method: 'POST', body: JSON.stringify(input) });
+  },
   blockedUsers() { return request<ApiBlockedUser[]>('/users/me/blocks'); },
   blockBookingOther(bookingId: string) { return request<void>(`/bookings/${bookingId}/block-other`, { method: 'POST' }); },
   unblockUser(userId: string) { return request<void>(`/users/${encodeURIComponent(userId)}/block`, { method: 'DELETE' }); },
@@ -459,6 +500,20 @@ export const productionApi = {
   submitVehicleVerification(vehicleId: string, input: { registrationEvidenceKey: string; registrationContentType: string; driverLicenseEvidenceKey: string; driverLicenseContentType: string }) {
     return request<{ vehicleId: string; status: string }>(`/vehicles/${vehicleId}/verification`, { method: 'POST', body: JSON.stringify(input) });
   },
+  mobilityAvailability() { return request<ApiMobilityAvailability>('/mobility/availability'); },
+  nearbyRentals(mode: string, latitude: number, longitude: number, radiusM = 1000) {
+    return request<ApiNearby>(`/mobility/nearby?mode=${encodeURIComponent(mode)}&lat=${latitude}&lon=${longitude}&radiusM=${radiusM}`);
+  },
+  mobilityProviders() { return request<ApiMobilityProvider[]>('/admin/mobility/providers'); },
+  createMobilityProvider(input: { name: string; city: string; providerType: string; sourceType: string; feedUrl: string; realtimeUrl?: string; priority?: number }) {
+    return request<ApiMobilityProvider>('/admin/mobility/providers', { method: 'POST', body: JSON.stringify(input) });
+  },
+  updateMobilityProvider(id: string, input: { status?: 'enabled' | 'disabled' | 'paused'; priority?: number }) {
+    return request<ApiMobilityProvider>(`/admin/mobility/providers/${encodeURIComponent(id)}`, { method: 'PATCH', body: JSON.stringify(input) });
+  },
+  deleteMobilityProvider(id: string) { return request<void>(`/admin/mobility/providers/${encodeURIComponent(id)}`, { method: 'DELETE' }); },
+  testMobilityProvider(id: string) { return request<{ provider: ApiMobilityProvider }>(`/admin/mobility/providers/${encodeURIComponent(id)}/test`, { method: 'POST' }); },
+  mobilityAudit() { return request<ApiMobilityAudit[]>('/admin/mobility/audit'); },
   adminVerificationQueue() { return request<ApiVerificationQueueItem[]>('/admin/verification'); },
   adminVerificationEvidence(id: string) { return request<{ url: string; expiresInSeconds: number }>(`/admin/verification/${id}/evidence`); },
   decideVerification(id: string, decision: 'approved' | 'rejected', note?: string) {
@@ -468,7 +523,20 @@ export const productionApi = {
   },
   conversation(bookingId: string) { return request<ApiConversation>(`/bookings/${bookingId}/conversation`); },
   conversationById(conversationId: string) { return request<ApiConversation>(`/conversations/${encodeURIComponent(conversationId)}`); },
-  messages(conversationId: string) { return request<ApiMessage[]>(`/conversations/${conversationId}/messages`); },
+  async messages(conversationId: string) {
+    const page = await request<{ messages: ApiMessage[]; pagination: { hasMore: boolean; nextCursor: string | null } }>(
+      `/conversations/${conversationId}/messages`,
+    );
+    return page.messages;
+  },
+  async messagePage(conversationId: string, before?: string) {
+    const params = new URLSearchParams({ limit: '50' });
+    if (before) params.set('before', before);
+    const page = await request<{ messages: ApiMessage[]; pagination: { hasMore: boolean; nextCursor: string | null } }>(
+      `/conversations/${conversationId}/messages?${params}`,
+    );
+    return { messages: page.messages, hasMore: page.pagination.hasMore, nextCursor: page.pagination.nextCursor };
+  },
   conversationUnreadCounts() { return request<ApiConversationUnread[]>('/conversation-unread-counts'); },
   markConversationRead(conversationId: string) {
     return request<{ conversation_id: string; last_read_message_id: string | null; unread_count: number }>(

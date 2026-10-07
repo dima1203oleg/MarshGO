@@ -12,3 +12,4 @@ playwright-report/
 backups/
 *.dump.gpg
 /.release/
+.zrok-share.txt

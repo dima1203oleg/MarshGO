@@ -3,10 +3,16 @@ import { expect, test } from '@playwright/test';
 test('production UI stays usable at phone, tablet and desktop sizes with current API data', async ({ page, browserName }) => {
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(`pageerror: ${error.message}`));
+  // The pinned Server release predates the optional Mobility API; its 404 is tolerated, other 404s are not.
+  let tolerated404s = 0;
+  page.on('response', response => { if (response.status() === 404 && new URL(response.url()).pathname.startsWith('/api/v1/mobility/')) tolerated404s++; });
   page.on('console', message => {
     // A 401 while restoring an absent refresh cookie is the expected signed-out
     // startup path. Surface all other console errors as compatibility failures.
-    if (message.type() === 'error' && !/401 \(Unauthorized\)/.test(message.text())) errors.push(`console: ${message.text()}`);
+    if (message.type() !== 'error') return;
+    if (/401 \(Unauthorized\)/.test(message.text())) return;
+    if (/404 \(Not Found\)/.test(message.text()) && tolerated404s > 0) { tolerated404s--; return; }
+    errors.push(`console: ${message.text()}`);
   });
   page.on('response', response => { if (response.status() >= 500) errors.push(`http ${response.status()}: ${response.url()}`); });
 

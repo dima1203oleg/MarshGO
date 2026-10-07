@@ -24,5 +24,6 @@
     "allowImportingTsExtensions": true,
     "noEmit": true
   },
-  "exclude": ["node_modules", "dist", "coverage"]
+  "include": ["src", "server", "shared", "tests", "e2e", "scripts", "ops", "tools", "*.ts"],
+  "exclude": ["node_modules", "dist", "coverage", "MarshGO-Server", "MarshGO-Site", "MarshGO-iOS", ".release"]
 }

@@ -456,7 +456,7 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     await passengerPage.reload();
     await expect(passengerPage.getByText('Попередній запит скасовано. Дані залишаються в акаунті.')).toBeVisible();
 
-    const deniedMessage = 'Це повідомлення має бути заблоковане.';
+    const deniedMessage = `Це повідомлення має бути заблоковане. ${Date.now()}`;
     const driverChatInput = driverPage.getByPlaceholder('Напишіть повідомлення…');
     await driverChatInput.fill(deniedMessage);
     await driverChatInput.press('Enter');
