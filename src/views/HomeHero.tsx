@@ -12,32 +12,32 @@ import { HeroIllustration } from '../components/HeroIllustration';
  */
 export function HomeHero({ onStartNavigation, onSearchTrip, onPlanTrip }: { onStartNavigation: () => void; onSearchTrip: () => void; onPlanTrip: () => void }) {
   const root = useRef<HTMLDivElement | null>(null);
-  const [fit, setFit] = useState<{ height: number; compact: boolean } | null>(null);
+  const probe = useRef<HTMLDivElement | null>(null);
+  const [height, setHeight] = useState<number | null>(null);
 
+  // The hero gets exactly the space between the app header and the bottom navigation. The viewport height is read from a
+  // fixed, viewport-sized probe element observed with ResizeObserver: unlike resize events or vh/svh units it follows every
+  // viewport change in every browser (WebKit does not always deliver those after the window is resized).
   useLayoutEffect(() => {
     const measure = () => {
-      const element = root.current;
-      if (!element || window.innerWidth >= 1024) { setFit(null); return; }
+      const element = root.current, viewport = probe.current;
+      if (!element || !viewport || window.innerWidth >= 1024) { setHeight(null); return; }
       const top = element.getBoundingClientRect().top + window.scrollY;
-      // The app shell reserves bottom padding for the fixed navigation (incl. the home-indicator safe area).
       const shell = element.closest('.production-app');
       const reserved = shell ? parseFloat(getComputedStyle(shell).paddingBottom) || 0 : 0;
-      // Layout viewport height: stays correct when the browser (e.g. WebKit) updates it without a visualViewport event.
-      const viewport = document.documentElement.clientHeight || window.innerHeight;
-      const height = Math.max(300, Math.floor(viewport - top - reserved - 4));
-      setFit({ height, compact: height < 560 });
+      setHeight(Math.max(300, Math.floor(viewport.getBoundingClientRect().height - top - reserved - 4)));
     };
     measure();
     const frame = requestAnimationFrame(measure); // once more after the first layout (header height, web fonts)
     window.addEventListener('resize', measure);
     window.addEventListener('orientationchange', measure);
-    window.visualViewport?.addEventListener('resize', measure);
-    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
-    observer?.observe(document.documentElement);
-    return () => { cancelAnimationFrame(frame); observer?.disconnect(); window.removeEventListener('resize', measure); window.removeEventListener('orientationchange', measure); window.visualViewport?.removeEventListener('resize', measure); };
+    const observer = typeof ResizeObserver === 'undefined' || !probe.current ? null : new ResizeObserver(measure);
+    if (probe.current) observer?.observe(probe.current);
+    return () => { cancelAnimationFrame(frame); observer?.disconnect(); window.removeEventListener('resize', measure); window.removeEventListener('orientationchange', measure); };
   }, []);
 
-  return <div ref={root} className={`home-hero mx-auto flex w-full max-w-xl flex-col px-5 pb-2 pt-2 ${fit ? 'overflow-hidden' : ''} ${fit?.compact ? 'home-hero--compact' : ''}`} style={fit ? { height: fit.height } : undefined}>
+  return <div ref={root} className={`home-hero mx-auto flex w-full max-w-xl flex-col px-5 pb-2 pt-2 ${height === null ? '' : 'home-hero--fit overflow-hidden'}`} style={height === null ? undefined : { height }}>
+    <div ref={probe} aria-hidden="true" className="pointer-events-none invisible fixed inset-0 -z-10"/>
     <section aria-label="Головна ідея" className="shrink-0 text-center">
       <h1 className="home-hero-title text-[1.7rem] font-extrabold leading-[1.15] tracking-tight text-[#0E1F35]">Їдеш? MARSHGO знайде попутника по дорозі.</h1>
       <p className="home-hero-sub mx-auto mt-2.5 max-w-sm text-[15px] leading-6 text-slate-600">Просто почни навігацію. Ми шукатимемо попутників уздовж твого маршруту.</p>

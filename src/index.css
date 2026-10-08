@@ -664,9 +664,11 @@ html.dark .home-screen .home-greeting { color: #6db4ff !important; }
 html.dark [data-marshgo-map-layer="hybrid"] .maplibregl-canvas { filter: none; }
 
 /* ---- Home screen never scrolls: HomeHero measures the free height on the device; the illustration flexes into it. ---- */
-.home-hero--compact .home-hero-title { font-size: 1.4rem; }
-.home-hero--compact .home-hero-sub { margin-top: .35rem; font-size: 13px; line-height: 1.3rem; }
-.home-hero--compact > button { margin-top: .45rem !important; padding-top: .78rem; padding-bottom: .78rem; }
+@media (max-height: 700px) {
+  .home-hero--fit .home-hero-title { font-size: 1.4rem; }
+  .home-hero--fit .home-hero-sub { margin-top: .35rem; font-size: 13px; line-height: 1.3rem; }
+  .home-hero--fit > button { margin-top: .45rem !important; padding-top: .78rem; padding-bottom: .78rem; }
+}
 /* Desktop: the home hero becomes one calm card — copy and actions on the left, illustration on the right. */
 @media (min-width: 1024px) {
   .production-app > .pt-1 > .home-hero { width: 100%; max-width: 1120px; padding-inline: 48px; }
