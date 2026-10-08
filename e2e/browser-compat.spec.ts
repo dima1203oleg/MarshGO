@@ -52,7 +52,8 @@ test('production UI stays usable at phone, tablet and desktop sizes with current
     { name: 'iphone-15-pro-max-430x932', width: 430, height: 932 }, { name: 'iphone-16-pro-max-440x956', width: 440, height: 956 },
   ]) {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
-    await page.waitForTimeout(150);
+    // Slow runners (WebKit on Linux) lay the page out a few frames after a viewport change: wait for the layout to settle, then measure.
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollHeight - window.innerHeight), { timeout: 5000, message: `${viewport.name}: home must not scroll vertically` }).toBeLessThanOrEqual(0).catch(() => undefined);
     const fit = await page.evaluate(() => {
       const root = document.documentElement;
       const nav = document.querySelector('nav[aria-label="Основна навігація"]')?.getBoundingClientRect();
