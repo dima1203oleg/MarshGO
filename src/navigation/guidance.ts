@@ -50,14 +50,18 @@ export function bearingBetween(a: Coordinate, b: Coordinate): number {
  * Direction of the planned road at the driver's place: from the position to a point `lookAheadMeters` further along the route.
  * Null when the driver is off the route (more than `maxOffsetMeters` away) or the route is finished.
  */
-export function routeBearingAhead(route: Coordinate[], vertex: number, position: Coordinate, lookAheadMeters = 45, maxOffsetMeters = 60): number | null {
-  if (route.length < 2 || vertex >= route.length - 1) return null;
-  const from = Math.max(0, Math.min(vertex, route.length - 2));
-  if (distanceBetween(route[from], position) > maxOffsetMeters && distanceBetween(route[from + 1], position) > maxOffsetMeters) return null;
-  let target = from + 1, travelled = distanceBetween(position, route[target]);
+export function routeBearingAhead(route: Coordinate[], vertex: number, position: Coordinate, lookAheadMeters = 45, maxOffsetMeters = 80): number | null {
+  if (route.length < 2) return null;
+  // Re-find the driver's place on the road from the last known progress (the stored vertex can lag behind on long, sparse highway geometry).
+  const start = Math.max(0, Math.min(vertex, route.length - 1) - 3);
+  const nearest = progressVertex(route, position, start);
+  if (nearest >= route.length - 1) return null;
+  // The driver sits between vertex `nearest - 1` and `nearest + 1`: pick the closer of the two neighbouring segments' far ends.
+  if (distanceBetween(route[nearest], position) > maxOffsetMeters) return null;
+  let target = nearest + 1, travelled = distanceBetween(position, route[target]);
+  // A vertex we have just passed (or are standing on) must not turn the arrow backwards: always look at a point ahead of it.
   while (travelled < lookAheadMeters && target < route.length - 1) { travelled += distanceBetween(route[target], route[target + 1]); target++; }
-  const origin = distanceBetween(position, route[target]) < 3 ? route[from] : position;
-  return bearingBetween(origin, route[target]);
+  return bearingBetween(route[nearest], route[target]);
 }
 
 export interface GuidanceState { next: Maneuver | null; distanceMeters: number; currentStreet: string | null; remainingMeters: number }
