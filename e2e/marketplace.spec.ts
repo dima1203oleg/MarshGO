@@ -1084,7 +1084,7 @@ test('Journey Planner ranks a persisted Community route and opens its current of
     // Dismiss the native datetime-local picker before interacting with controls below it.
     await plannedDeparture.press('Tab');
 
-    const searchResponse = page.waitForResponse(response => response.url().endsWith('/api/v1/journeys/search') && response.request().method() === 'POST');
+    const searchResponse = page.waitForResponse(response => response.url().endsWith('/api/v1/journeys/search') && response.request().method() === 'POST' && response.status() === 200);
     await page.getByRole('button', { name: /Оптимізувати весь маршрут/ }).click();
     const response = await searchResponse;
     expect(response.status()).toBe(200);
@@ -1099,12 +1099,12 @@ test('Journey Planner ranks a persisted Community route and opens its current of
       blockedProviders: string[];
     };
     expect(payload.partial).toBe(true);
-    expect(payload.blockedProviders).toContain('bus');
+    expect(payload.blockedProviders).toContain('taxi');
     expect(payload.journeys.some(item => item.strategy === 'CHEAPEST' && item.offerId === offerId)).toBe(true);
     const journeyDriverRating = payload.journeys.find(item => item.offerId === offerId)?.legs?.[0]?.driver?.averageRating;
     expect(journeyDriverRating === null || typeof journeyDriverRating === 'number').toBe(true);
     await expect(page.getByRole('heading', { name: 'Найкращі доступні варіанти' })).toBeVisible();
-    await expect(page.getByText(/Маршрути зараз будуються лише з підтверджених попуток MARSHGO/)).toBeVisible();
+    await expect(page.getByText(/Показані джерела: розклади громадського транспорту та попутки MARSHGO/)).toBeVisible();
     const saved = await pool.query<{ owner_id: string; offer_id: string; journey_leg_id: string }>(
       `SELECT j.user_id AS owner_id,l.offer_id,l.id AS journey_leg_id FROM journeys j JOIN journey_legs l ON l.journey_id=j.id WHERE j.id=$1`, [payload.journeys.find(item => item.strategy === 'CHEAPEST')!.id],
     );

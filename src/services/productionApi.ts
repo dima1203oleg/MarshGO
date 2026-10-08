@@ -371,7 +371,7 @@ export const productionApi = {
   reverseGeocode(latitude: number, longitude: number) {
     return request<ApiPlace>(`/places/reverse?lat=${encodeURIComponent(String(latitude))}&lon=${encodeURIComponent(String(longitude))}`);
   },
-  searchJourneys(input: {
+  async searchJourneys(input: {
     origin: { name: string; coordinates: [number, number] };
     destination: { name: string; coordinates: [number, number] };
     departureAt: string;
@@ -379,7 +379,14 @@ export const productionApi = {
     strategy: ApiJourneyStrategy;
     preferences?: Record<string, boolean | string[]>;
   }) {
-    return request<ApiJourneySearchResult>('/journeys/search', { method: 'POST', body: JSON.stringify(input) });
+    const send = (body: typeof input) => request<ApiJourneySearchResult>('/journeys/search', { method: 'POST', body: JSON.stringify(body) });
+    try { return await send(input); } catch (error) {
+      // An older API release does not know the schedule-provider preferences and rejects the request: retry once with the legacy fields only.
+      const { allowedTransportTypes, allowedTransitProviders, ...legacy } = input.preferences ?? {};
+      if (allowedTransportTypes === undefined && allowedTransitProviders === undefined) throw error;
+      if (error instanceof Error && /Забагато запитів/.test(error.message)) throw error;
+      return send({ ...input, preferences: legacy });
+    }
   },
   journeys() { return request<ApiStoredJourney[]>('/journeys/me'); },
   journey(id: string) { return request<ApiStoredJourney>(`/journeys/${encodeURIComponent(id)}`); },
