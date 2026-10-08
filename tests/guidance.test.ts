@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Maneuver } from '../shared/navigation/contracts';
-import { dueAnnouncement, formatGuidanceDistance, instructionText, nextGuidance, prepareGuidance, voiceLine } from '../src/navigation/guidance';
+import { progressVertex, dueAnnouncement, formatGuidanceDistance, instructionText, nextGuidance, prepareGuidance, voiceLine } from '../src/navigation/guidance';
 
 // A straight road east along 49.84°N with one right turn into «вулиця Городоцька», then arrival.
 const route: Array<[number, number]> = Array.from({ length: 11 }, (_, index) => [24.0 + index * 0.001, 49.84]);
@@ -31,6 +31,12 @@ describe('turn-by-turn guidance', () => {
     assert.equal(voiceLine(maneuvers[1], 300), 'Через 300 метрів поверніть праворуч на вулиця Городоцька');
     assert.equal(voiceLine(maneuvers[1], 20), 'Зараз поверніть праворуч на вулиця Городоцька');
     assert.equal(voiceLine(maneuvers[2], 10), 'Ви прибули до пункту призначення');
+  });
+  it('tracks progress forward only, within a window, even when the route loops back near itself', () => {
+    const loop: Array<[number, number]> = [[24, 49], [24.001, 49], [24.002, 49], [24.002, 49.001], [24.001, 49.001], [24, 49.001], [24, 49.0002], [24.001, 49.0002]];
+    assert.equal(progressVertex(loop, [24.0021, 49.0001], 0), 2, 'nearest forward vertex');
+    assert.equal(progressVertex(loop, [24.0001, 49.0001], 2), 6, 'a point near the start does not rewind progress');
+    assert.ok(progressVertex(loop, [24.001, 49], 5) >= 5, 'never goes behind the last progress');
   });
   it('announces each checkpoint once and never replays a farther one later', () => {
     const spoken = new Set<string>();

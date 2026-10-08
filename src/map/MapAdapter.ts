@@ -6,6 +6,7 @@ export type CameraMode = 'OVERVIEW' | 'FOLLOW' | 'FOLLOW_HEADING' | 'MANEUVER' |
 export interface MapAdapter {
   setRoute(points: Coordinate[]): void;
   setVehicle(point: Coordinate, heading?: number | null, speedMps?: number | null): void;
+  setRouteProgress(vertex: number, position?: Coordinate | null): void;
   setGuidanceContext(maneuverDistanceMeters: number | null, urban: boolean): void;
   toggleOrientation(): 'NORTH_UP' | 'HEADING_UP';
   getOrientation(): 'NORTH_UP' | 'HEADING_UP';

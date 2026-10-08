@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { ArrowLeft, ArrowUp, CornerUpLeft, CornerUpRight, Flag, MapPin, Navigation, LocateFixed, RotateCcw, RefreshCw, Search, ShieldCheck, Square, Volume2, VolumeX, type LucideIcon } from 'lucide-react';
 import { formatBearing, isUrbanContext } from '../navigation/cameraEngine';
+import { progressVertex } from '../navigation/guidance';
 import { dueAnnouncement, formatGuidanceDistance, instructionText, nextGuidance, prepareGuidance, voiceLine } from '../navigation/guidance';
 import type { Maneuver } from '../../shared/navigation/contracts';
 import { ApiNavigationMatch, ApiNavigationSession, ApiPlace, productionApi } from '../services/productionApi';
@@ -336,6 +337,15 @@ export function ProductionNavigation({ onBack, onOpenDemand, autoStart = false, 
       .map((step) => guidancePrepared.cumulative[step.vertex] - guidancePrepared.cumulative[guidancePrepared.steps.find((item) => item.id === guidance.next!.id)?.vertex ?? 0]);
     mapRef.current?.setGuidanceContext(guidance.distanceMeters, isUrbanContext(ahead));
   }, [guidancePrepared, guidance?.next?.id, Math.round((guidance?.distanceMeters ?? 0) / 25)]);
+  // Grey out the part of the route that has been driven (only moves forward; resets with a new route).
+  const progressRef = useRef<{ version: number | null; vertex: number }>({ version: null, vertex: 0 });
+  useEffect(() => {
+    if (!session || !hasRoute(session) || !guidancePosition) return;
+    if (progressRef.current.version !== session.route_version) progressRef.current = { version: session.route_version, vertex: 0 };
+    const vertex = progressVertex(session.route!, guidancePosition, progressRef.current.vertex);
+    progressRef.current.vertex = vertex;
+    mapRef.current?.setRouteProgress(vertex, guidancePosition);
+  }, [session?.id, session?.route_version, guidancePosition?.[0], guidancePosition?.[1]]);
   const lastRouteVersion = useRef<number | null>(null);
   useEffect(() => {
     if (!session) return;

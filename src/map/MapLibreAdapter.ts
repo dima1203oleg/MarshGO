@@ -31,6 +31,7 @@ export class MapLibreAdapter implements MapAdapter {
   private layer: MapLayer = 'standard';
   private transport: TransportLayerController | null = null;
   private heading: number | null = null;
+  private progressVertex = 0;
   private readonly headingFilter = new HeadingFilter();
   private readonly zoomController = new ZoomController();
   private readonly modeState = new CameraModeState(readOrientation());
@@ -91,6 +92,9 @@ export class MapLibreAdapter implements MapAdapter {
     if (!this.map.getSource('marshgo-waypoints')) this.map.addSource('marshgo-waypoints', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
     if (!this.map.getLayer('marshgo-route-casing')) this.map.addLayer({ id: 'marshgo-route-casing', type: 'line', source: 'marshgo-route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': colors.routeCasing, 'line-width': ['interpolate', ['linear'], ['zoom'], 5, 5 * mapModes[this.mode].width, 15, 13 * mapModes[this.mode].width], 'line-opacity': 0.92 } });
     if (!this.map.getLayer('marshgo-route')) this.map.addLayer({ id: 'marshgo-route', type: 'line', source: 'marshgo-route', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': colors.route, 'line-width': ['interpolate', ['linear'], ['zoom'], 5, 3 * mapModes[this.mode].width, 15, 8 * mapModes[this.mode].width], 'line-opacity': 0.98 } });
+    // Already-driven part of the route: drawn over the route line in a muted colour so the driver sees what is left.
+    if (!this.map.getSource('marshgo-route-done')) this.map.addSource('marshgo-route-done', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+    if (!this.map.getLayer('marshgo-route-done')) this.map.addLayer({ id: 'marshgo-route-done', type: 'line', source: 'marshgo-route-done', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#94A3B8', 'line-opacity': 0.95, 'line-width': ['interpolate', ['linear'], ['zoom'], 5, 3, 15, 8] } });
     if (!this.map.getLayer('marshgo-waypoints')) this.map.addLayer({ id: 'marshgo-waypoints', type: 'circle', source: 'marshgo-waypoints', paint: { 'circle-radius': 8, 'circle-color': ['match', ['get', 'kind'], 'PICKUP', colors.pickup, 'DROPOFF', colors.dropoff, colors.route], 'circle-stroke-color': colors.routeCasing, 'circle-stroke-width': 3 } });
     if (!this.map.getLayer('marshgo-vehicle-halo')) this.map.addLayer({ id: 'marshgo-vehicle-halo', type: 'circle', source: 'marshgo-vehicle', paint: { 'circle-radius': 13, 'circle-color': colors.vehicle, 'circle-opacity': 0.2 } });
     if (!this.map.getLayer('marshgo-vehicle')) this.map.addLayer({ id: 'marshgo-vehicle', type: 'circle', source: 'marshgo-vehicle', paint: { 'circle-radius': 8, 'circle-color': colors.vehicle, 'circle-stroke-color': colors.routeCasing, 'circle-stroke-width': 3 } });
@@ -100,15 +104,26 @@ export class MapLibreAdapter implements MapAdapter {
     // 3D navigation keeps its tilt after every style load (a style swap resets the camera on some browsers).
     if (this.layer === 'navigation' && Math.abs(this.map.getPitch() - mapLayers.navigation.pitch) > 1) this.map.easeTo({ pitch: mapLayers.navigation.pitch, duration: 500, essential: true });
     this.setRoute(this.route);
+    this.setRouteProgress(this.progressVertex, this.vehicle);
     if (this.vehicle) this.setVehicle(this.vehicle);
     this.setWaypoints(this.waypoints);
   }
 
   setRoute(points: Coordinate[]) {
     this.route = points;
+    this.progressVertex = 0;
     this.map.getContainer().dataset.marshgoRoutePointCount = String(points.length);
     const source = this.map.getSource('marshgo-route') as maplibregl.GeoJSONSource | undefined;
     if (source) source.setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: points } });
+  }
+  /** Marks the route as driven up to `vertex` (and the live position): that part turns grey. */
+  setRouteProgress(vertex: number, position?: Coordinate | null) {
+    this.progressVertex = vertex;
+    const done = this.route.slice(0, Math.max(0, vertex) + 1);
+    if (position) done.push(position);
+    const source = this.map.getSource('marshgo-route-done') as maplibregl.GeoJSONSource | undefined;
+    source?.setData(done.length >= 2 ? { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: done } } : { type: 'FeatureCollection', features: [] });
+    this.map.getContainer().dataset.marshgoRouteProgress = String(vertex);
   }
   setVehicle(point: Coordinate, heading?: number | null, speedMps?: number | null) {
     this.vehicle = point;

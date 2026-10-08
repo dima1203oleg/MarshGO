@@ -29,6 +29,17 @@ export function prepareGuidance(route: Coordinate[], maneuvers: Maneuver[]): Pre
   return { route, cumulative, steps };
 }
 
+/** Index of the route vertex the driver has reached (the nearest one, never behind the previous). */
+export function progressVertex(route: Coordinate[], position: Coordinate, from = 0): number {
+  // Look only a bounded window ahead of the last progress, so a route that passes near itself cannot make the progress leap forward.
+  let best = from, bestDistance = Infinity;
+  for (let index = from; index < Math.min(route.length, from + 400); index++) {
+    const distance = distanceBetween(route[index], position);
+    if (distance < bestDistance) { bestDistance = distance; best = index; }
+  }
+  return best;
+}
+
 export interface GuidanceState { next: Maneuver | null; distanceMeters: number; currentStreet: string | null; remainingMeters: number }
 
 /** The next manoeuvre ahead of the driver and the distance to it, measured along the road (not as the crow flies). */
