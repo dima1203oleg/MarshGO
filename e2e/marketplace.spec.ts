@@ -612,6 +612,14 @@ test('driver safely matches two independent riders, inserts ordered stops, and r
     await expect(driverPage.locator('[data-marshgo-map-renderer="maplibre"]')).toHaveAttribute('data-marshgo-camera-mode', 'FOLLOW_HEADING');
     await expect(driverPage.getByRole('button', { name: 'Показати моє місце' })).toHaveAttribute('aria-pressed', 'true');
     await expect(driverPage.getByTestId('navigation-speed')).toBeVisible();
+    // Compass button: Heading Up ⇄ North Up, the chosen orientation sticks, and following resumes.
+    const orientationButton = driverPage.getByTestId('orientation-button');
+    await expect(driverPage.locator('[data-marshgo-map-renderer="maplibre"]')).toHaveAttribute('data-marshgo-orientation', 'HEADING_UP');
+    await orientationButton.click();
+    await expect(driverPage.locator('[data-marshgo-map-renderer="maplibre"]')).toHaveAttribute('data-marshgo-orientation', 'NORTH_UP');
+    await expect(orientationButton).toHaveAccessibleName(/північ зверху/);
+    await orientationButton.click();
+    await expect(driverPage.locator('[data-marshgo-map-renderer="maplibre"]')).toHaveAttribute('data-marshgo-orientation', 'HEADING_UP');
     await expect.poll(async () => pool.query<{ current_location_at: Date | null }>('SELECT current_location_at FROM navigation_sessions WHERE id=$1', [navigationSessionId]).then(result => result.rows[0]?.current_location_at ?? null)).not.toBeNull();
 
     const departureStart = new Date(Date.now() + 15 * 60_000);

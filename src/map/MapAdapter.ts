@@ -5,7 +5,11 @@ export type MapTheme = 'MARSHGO_LIGHT' | 'MARSHGO_DARK' | 'MARSHGO_NAVIGATION_LI
 export type CameraMode = 'OVERVIEW' | 'FOLLOW' | 'FOLLOW_HEADING' | 'MANEUVER' | 'FREE' | 'RECENTER_PENDING';
 export interface MapAdapter {
   setRoute(points: Coordinate[]): void;
-  setVehicle(point: Coordinate, heading?: number | null): void;
+  setVehicle(point: Coordinate, heading?: number | null, speedMps?: number | null): void;
+  setGuidanceContext(maneuverDistanceMeters: number | null, urban: boolean): void;
+  toggleOrientation(): 'NORTH_UP' | 'HEADING_UP';
+  getOrientation(): 'NORTH_UP' | 'HEADING_UP';
+  onOrientationChange: (orientation: 'NORTH_UP' | 'HEADING_UP', bearing: number) => void;
   onCameraModeChange: (mode: CameraMode) => void;
   setWaypoints(points: Array<{ coordinate: Coordinate; kind: string }>): void;
   fitRoute(): void;

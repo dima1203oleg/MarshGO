@@ -8,7 +8,12 @@ import { mapStyleTokens } from './style/tokens';
 import { Protocol } from 'pmtiles';
 import { mapLayers, mapModes, styleForLayer, type MapLayer, type MapMode } from './mapMode';
 import { TransportLayerController, type TransportLayerId } from './transportLayers';
+import { CameraModeState, HeadingFilter, ZoomController, lookAheadShare, pitchFor, targetZoom, type Orientation } from '../navigation/cameraEngine';
 import { configuredMapStyleUrl } from './mapConfig';
+
+const ORIENTATION_KEY = 'marshgo.navigation.orientation';
+const cameraIntervalMs = 700;
+function readOrientation(): Orientation { try { return localStorage.getItem(ORIENTATION_KEY) === 'NORTH_UP' ? 'NORTH_UP' : 'HEADING_UP'; } catch { return 'HEADING_UP'; } }
 
 const pmtilesProtocol = new Protocol();
 let pmtilesProtocolRegistered = false;
@@ -26,6 +31,15 @@ export class MapLibreAdapter implements MapAdapter {
   private layer: MapLayer = 'standard';
   private transport: TransportLayerController | null = null;
   private heading: number | null = null;
+  private readonly headingFilter = new HeadingFilter();
+  private readonly zoomController = new ZoomController();
+  private readonly modeState = new CameraModeState(readOrientation());
+  private speedKmh = 0;
+  private urban = false;
+  private maneuverDistance: number | null = null;
+  private lastCameraUpdate = 0;
+  private autoReturnTimer: ReturnType<typeof setInterval> | null = null;
+  onOrientationChange: (orientation: Orientation, bearing: number) => void = () => undefined;
   private marker: maplibregl.Marker | null = null;
   /** Lets the UI highlight the "my location" button while the camera follows the driver. */
   onCameraModeChange: (mode: CameraMode) => void = () => undefined;
@@ -50,11 +64,22 @@ export class MapLibreAdapter implements MapAdapter {
     });
     this.map.on('sourcedata', (event) => { if (event.sourceId === 'marshgo-basemap' && event.isSourceLoaded && !this.seenTileError) this.publish('available'); });
     // Only the user's own gestures leave follow mode; our camera animations (zoom, bearing) must not.
-    const userGesture = (event: { originalEvent?: unknown }) => { if (event.originalEvent && this.cameraMode !== 'FREE') this.setCameraModeInternal('FREE'); };
+    const userGesture = (event: { originalEvent?: unknown }) => {
+      if (!event.originalEvent || this.cameraMode === 'OVERVIEW' && !this.vehicle) return;
+      this.modeState.userInteracted(Date.now());
+      if (this.cameraMode !== 'FREE') this.setCameraModeInternal('FREE');
+    };
     this.map.on('dragstart', userGesture);
     this.map.on('zoomstart', userGesture);
     this.map.on('rotatestart', userGesture);
     this.map.on('pitchstart', userGesture);
+    this.map.on('rotate', () => { this.map.getContainer().dataset.marshgoMapBearing = this.map.getBearing().toFixed(1); this.onOrientationChange(this.modeState.orientation, this.map.getBearing()); });
+    // Manual browsing ends by itself after a quiet period (any further touch restarts the clock).
+    this.autoReturnTimer = setInterval(() => {
+      if (this.modeState.autoReturnDue(Date.now())) { this.recenter(); return; }
+      // Keep following even between GPS fixes, so a change of speed or of the next manoeuvre re-frames the camera.
+      if (this.cameraMode === 'FOLLOW_HEADING' || this.cameraMode === 'FOLLOW') this.followCamera(900);
+    }, 1000);
   }
 
   private publish(status: MapStatus) { this.status = this.seenTileError && status === 'available' ? 'degraded' : status; this.onStatus(this.status); }
@@ -85,14 +110,30 @@ export class MapLibreAdapter implements MapAdapter {
     const source = this.map.getSource('marshgo-route') as maplibregl.GeoJSONSource | undefined;
     if (source) source.setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: points } });
   }
-  setVehicle(point: Coordinate, heading?: number | null) {
+  setVehicle(point: Coordinate, heading?: number | null, speedMps?: number | null) {
     this.vehicle = point;
-    if (typeof heading === 'number' && Number.isFinite(heading)) this.heading = heading;
+    this.speedKmh = typeof speedMps === 'number' && Number.isFinite(speedMps) ? Math.max(0, speedMps * 3.6) : this.speedKmh;
+    const stable = this.headingFilter.update({ gpsCourse: heading ?? null, speedKmh: this.speedKmh });
+    if (stable !== null) this.heading = stable; else if (typeof heading === 'number' && Number.isFinite(heading) && this.heading === null) this.heading = heading;
     const source = this.map.getSource('marshgo-vehicle') as maplibregl.GeoJSONSource | undefined;
     if (source) source.setData({ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: point } });
     this.updateMarker(point);
     if (this.cameraMode === 'FOLLOW_HEADING' || this.cameraMode === 'FOLLOW') this.followCamera(900);
   }
+
+  /** Guidance context for the camera: how far the next manoeuvre is and whether the route is urban. */
+  setGuidanceContext(maneuverDistanceMeters: number | null, urban: boolean) { this.maneuverDistance = maneuverDistanceMeters; this.urban = urban; }
+
+  /** Compass button: North Up ⇄ Heading Up. */
+  toggleOrientation(): Orientation {
+    const next = this.modeState.toggleOrientation();
+    try { localStorage.setItem(ORIENTATION_KEY, next); } catch { /* preference is optional */ }
+    this.setCameraModeInternal(next === 'HEADING_UP' ? 'FOLLOW_HEADING' : 'FOLLOW');
+    this.followCamera(900, true);
+    this.onOrientationChange(next, this.map.getBearing());
+    return next;
+  }
+  getOrientation(): Orientation { return this.modeState.orientation; }
 
   /** The driver's puck: a blue arrow that points where the car is heading, lying flat on the (tilted) road like in Apple Maps. */
   private updateMarker(point: Coordinate) {
@@ -113,18 +154,33 @@ export class MapLibreAdapter implements MapAdapter {
     this.onCameraModeChange(mode);
   }
 
-  /** Apple-Maps style follow camera: close zoom, tilted in 3D, map rotated to the driving direction, the car low on screen. */
-  private followCamera(duration: number) {
+  /** Follow camera driven by the camera engine: speed/context zoom with hysteresis, smoothed heading, look-ahead and tilt. */
+  private followCamera(duration: number, force = false) {
     if (!this.vehicle) return;
+    const now = Date.now();
+    if (!force && duration < 1000 && now - this.lastCameraUpdate < cameraIntervalMs) return;
+    this.lastCameraUpdate = now;
     const { clientHeight } = this.map.getContainer();
-    const tilt = this.layer === 'navigation' ? mapLayers.navigation.pitch : 0;
+    const tilt = pitchFor(this.speedKmh, this.layer === 'navigation');
+    const zoom = this.zoomController.update(targetZoom({ speedKmh: this.speedKmh, urban: this.urban, maneuverDistanceMeters: this.maneuverDistance }));
+    const headingUp = this.modeState.orientation === 'HEADING_UP';
+    const unwrapped = this.headingFilter.unwrapped;
+    // Heading Up rotates with the car along the shortest arc (the filter's angle is continuous across north); North Up pins north.
+    let bearing = 0;
+    if (headingUp) {
+      const current = this.map.getBearing();
+      const target = unwrapped ?? current;
+      bearing = current + (((target - current) % 360 + 540) % 360 - 180);
+    }
     this.map.easeTo({
-      center: this.vehicle, zoom: Math.max(this.map.getZoom(), 17), pitch: tilt,
-      bearing: this.heading ?? this.map.getBearing(),
-      padding: { top: Math.round(clientHeight * 0.32), bottom: Math.round(clientHeight * 0.08), left: 0, right: 0 },
-      duration, essential: true,
+      center: this.vehicle, zoom, pitch: tilt, bearing,
+      padding: { top: Math.round(clientHeight * lookAheadShare(this.speedKmh)), bottom: Math.round(clientHeight * 0.08), left: 0, right: 0 },
+      duration: Math.max(duration, 600), essential: true,
     });
+    this.map.getContainer().dataset.marshgoOrientation = this.modeState.orientation;
+    this.map.getContainer().dataset.marshgoTargetZoom = zoom.toFixed(2);
   }
+
   setWaypoints(points: Array<{ coordinate: Coordinate; kind: string }>) {
     this.waypoints = points;
     const source = this.map.getSource('marshgo-waypoints') as maplibregl.GeoJSONSource | undefined;
@@ -142,9 +198,10 @@ export class MapLibreAdapter implements MapAdapter {
   recenter(point?: Coordinate) {
     if (point) this.vehicle = point;
     if (!this.vehicle) { this.fitRoute(); return; }
+    this.modeState.returnToNavigation();
     this.updateMarker(this.vehicle);
-    this.setCameraModeInternal('FOLLOW_HEADING');
-    this.followCamera(1100);
+    this.setCameraModeInternal(this.modeState.orientation === 'HEADING_UP' ? 'FOLLOW_HEADING' : 'FOLLOW');
+    this.followCamera(1100, true);
   }
 
   setMode(mode: MapMode) {
@@ -193,6 +250,6 @@ export class MapLibreAdapter implements MapAdapter {
     if (this.map.getLayer('marshgo-background')) this.map.setPaintProperty('marshgo-background', 'background-color', colors.background);
   }
   retry() { this.seenTileError = false; this.publish(this.hasBasemap ? 'loading' : 'unconfigured'); if (this.hasBasemap) this.map.setStyle(this.map.getStyle()); else this.map.triggerRepaint(); }
-  destroy() { this.marker?.remove(); this.transport?.destroy(); this.map.remove(); }
+  destroy() { if (this.autoReturnTimer) clearInterval(this.autoReturnTimer); this.marker?.remove(); this.transport?.destroy(); this.map.remove(); }
   getStatus() { return this.status; }
 }

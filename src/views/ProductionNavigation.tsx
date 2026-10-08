@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { ArrowLeft, ArrowUp, CornerUpLeft, CornerUpRight, Flag, MapPin, Navigation, LocateFixed, RotateCcw, RefreshCw, Search, ShieldCheck, Square, Volume2, VolumeX, type LucideIcon } from 'lucide-react';
+import { formatBearing, isUrbanContext } from '../navigation/cameraEngine';
 import { dueAnnouncement, formatGuidanceDistance, instructionText, nextGuidance, prepareGuidance, voiceLine } from '../navigation/guidance';
 import type { Maneuver } from '../../shared/navigation/contracts';
 import { ApiNavigationMatch, ApiNavigationSession, ApiPlace, productionApi } from '../services/productionApi';
@@ -105,6 +106,8 @@ export function ProductionNavigation({ onBack, onOpenDemand, autoStart = false, 
   const [liveHeading, setLiveHeading] = useState<number | null>(null);
   const [liveSpeed, setLiveSpeed] = useState<number | null>(null);
   const [following, setFollowing] = useState(false);
+  const [orientation, setOrientation] = useState<'NORTH_UP' | 'HEADING_UP'>('HEADING_UP');
+  const [mapBearing, setMapBearing] = useState(0);
   const [voiceOn, setVoiceOn] = useState(voicePreferred);
   const spokenRef = useRef<Set<string>>(new Set());
   const [topQuery, setTopQuery] = useState('');
@@ -269,7 +272,7 @@ export function ProductionNavigation({ onBack, onOpenDemand, autoStart = false, 
       const speed = checked.fix.speedMps;
       setLiveSpeed(typeof speed === 'number' && Number.isFinite(speed) ? speed : null);
       // A compass heading is only meaningful while moving; standing still keeps the last direction.
-      if (typeof checked.fix.headingDegrees === 'number' && (speed ?? 0) > 1) setLiveHeading(checked.fix.headingDegrees);
+      if (typeof checked.fix.headingDegrees === 'number') setLiveHeading(checked.fix.headingDegrees);
       if (hasRoute(session)) {
         navigationStore.dispatch({ type: 'GPS_FIX_RECEIVED', fix: checked.fix });
         void mapMatchingProvider.current.match([checked.fix], { route: canonicalRoute(session) }).then((matched) => {
@@ -327,6 +330,12 @@ export function ProductionNavigation({ onBack, onOpenDemand, autoStart = false, 
   const guidancePosition: [number, number] | null = navigationState.currentLocation ? [navigationState.currentLocation.longitude, navigationState.currentLocation.latitude] : liveFix;
   const guidance = useMemo(() => guidancePrepared && guidancePosition ? nextGuidance(guidancePrepared, guidancePosition) : null,
     [guidancePrepared, guidancePosition?.[0], guidancePosition?.[1]]);
+  useEffect(() => {
+    if (!guidancePrepared || !guidance?.next) { mapRef.current?.setGuidanceContext(null, false); return; }
+    const ahead = guidancePrepared.steps.filter((step) => step.vertex >= (guidancePrepared.steps.find((item) => item.id === guidance.next!.id)?.vertex ?? 0))
+      .map((step) => guidancePrepared.cumulative[step.vertex] - guidancePrepared.cumulative[guidancePrepared.steps.find((item) => item.id === guidance.next!.id)?.vertex ?? 0]);
+    mapRef.current?.setGuidanceContext(guidance.distanceMeters, isUrbanContext(ahead));
+  }, [guidancePrepared, guidance?.next?.id, Math.round((guidance?.distanceMeters ?? 0) / 25)]);
   const lastRouteVersion = useRef<number | null>(null);
   useEffect(() => {
     if (!session) return;
@@ -498,7 +507,7 @@ export function ProductionNavigation({ onBack, onOpenDemand, autoStart = false, 
     : null;
   const fixAge = session.current_location_at ? Math.max(0, Math.floor((clock - new Date(session.current_location_at).getTime()) / 1000)) : null;
   return <main className="fixed inset-0 overflow-hidden bg-[#dbeafe] text-[#17243a]">
-    <MarshGoMap route={session.route ?? []} vehicle={navigationState.currentLocation ? [navigationState.currentLocation.longitude, navigationState.currentLocation.latitude] : liveFix ?? session.current_location} heading={liveHeading} onStatus={setMapStatus} onAdapter={(adapter) => { mapRef.current = adapter; if (adapter) adapter.onCameraModeChange = (mode) => setFollowing(mode === 'FOLLOW' || mode === 'FOLLOW_HEADING'); }} />
+    <MarshGoMap route={session.route ?? []} vehicle={navigationState.currentLocation ? [navigationState.currentLocation.longitude, navigationState.currentLocation.latitude] : liveFix ?? session.current_location} heading={liveHeading} speedMps={liveSpeed} onStatus={setMapStatus} onAdapter={(adapter) => { mapRef.current = adapter; if (!adapter) return; adapter.onCameraModeChange = (mode) => setFollowing(mode === 'FOLLOW' || mode === 'FOLLOW_HEADING'); adapter.onOrientationChange = (value, bearing) => { setOrientation(value); setMapBearing(bearing); }; setOrientation(adapter.getOrientation()); }} />
     {!routed && <>
     <div className="absolute left-4 right-4 top-[max(.8rem,env(safe-area-inset-top))] z-[500] rounded-[1.3rem] bg-white p-3 shadow-xl">
       <form onSubmit={(event) => { event.preventDefault(); if (topQuery.trim().length >= 3) void searchTopDestination(); }} className="flex items-center gap-2">
@@ -528,10 +537,13 @@ export function ProductionNavigation({ onBack, onOpenDemand, autoStart = false, 
       {mapStatus === 'failed' && 'Не вдалося завантажити стиль карти. Перевірте мережу або manifest провайдера.'}
       {(mapStatus === 'degraded' || mapStatus === 'failed') && <button type="button" className="ml-2 underline" onClick={() => mapRef.current?.retry()}>Повторити завантаження карти</button>}
     </div>}
-    <div className="absolute right-4 top-1/2 z-[500] -translate-y-1/2 space-y-2"><MapLayersControl/><button aria-label={voiceOn ? 'Вимкнути голос' : 'Увімкнути голос'} aria-pressed={voiceOn} onClick={toggleVoice} className={`grid h-12 w-12 place-items-center rounded-full shadow-lg ${voiceOn ? 'bg-white text-[#1789F4]' : 'bg-white text-slate-400'}`}>{voiceOn ? <Volume2 size={20}/> : <VolumeX size={20}/>}</button>{!sheetOpen && <button aria-label="Завершити навігацію" onClick={() => void end()} disabled={busy} className="grid h-12 w-12 place-items-center rounded-full bg-rose-600 text-white shadow-lg disabled:opacity-50"><Square size={16} fill="currentColor"/></button>}<button aria-label="Показати моє місце" aria-pressed={following} onClick={() => { const point = navigationState.currentLocation ? [navigationState.currentLocation.longitude, navigationState.currentLocation.latitude] as [number, number] : liveFix ?? session.current_location ?? undefined; mapRef.current?.recenter(point ?? undefined); }} className={`grid h-12 w-12 place-items-center rounded-full shadow-lg ${following ? 'bg-[#1789F4] text-white' : 'bg-white text-[#1789F4]'}`}><Navigation size={20} fill={following ? 'currentColor' : 'none'}/></button></div>
+    <div className="absolute right-4 z-[500] space-y-2 transition-[bottom] duration-300" style={{ bottom: sheetOpen ? (sheetHeight ? sheetHeight + 14 : 260) : 56 }}><MapLayersControl/><button aria-label={voiceOn ? 'Вимкнути голос' : 'Увімкнути голос'} aria-pressed={voiceOn} onClick={toggleVoice} className={`grid h-12 w-12 place-items-center rounded-full shadow-lg ${voiceOn ? 'bg-white text-[#1789F4]' : 'bg-white text-slate-400'}`}>{voiceOn ? <Volume2 size={20}/> : <VolumeX size={20}/>}</button>{!sheetOpen && <button aria-label="Завершити навігацію" onClick={() => void end()} disabled={busy} className="grid h-12 w-12 place-items-center rounded-full bg-rose-600 text-white shadow-lg disabled:opacity-50"><Square size={16} fill="currentColor"/></button>}<button aria-label={`Орієнтація карти: ${!following ? 'ручне керування' : orientation === 'HEADING_UP' ? 'за напрямком руху' : 'північ зверху'}`} aria-pressed={orientation === 'HEADING_UP'} data-testid="orientation-button" onClick={() => mapRef.current?.toggleOrientation()} className="relative grid h-12 w-12 place-items-center rounded-full bg-white text-slate-700 shadow-lg">
+        <span className="absolute inset-1 rounded-full border border-slate-200" style={{ transform: `rotate(${-mapBearing}deg)` }}><span className="absolute left-1/2 top-0.5 -translate-x-1/2 text-[9px] font-extrabold text-rose-600">N</span><span className="absolute left-1/2 top-[1.15rem] h-3 w-px -translate-x-1/2 bg-rose-500"/></span>
+        <span className="relative text-[8px] font-bold leading-none text-slate-500 translate-y-2">{orientation === 'HEADING_UP' ? '↑' : 'N↑'}</span></button><button aria-label="Показати моє місце" aria-pressed={following} onClick={() => { const point = navigationState.currentLocation ? [navigationState.currentLocation.longitude, navigationState.currentLocation.latitude] as [number, number] : liveFix ?? session.current_location ?? undefined; mapRef.current?.recenter(point ?? undefined); }} className={`grid h-12 w-12 place-items-center rounded-full shadow-lg ${following ? 'bg-[#1789F4] text-white' : 'bg-white text-[#1789F4]'}`}><Navigation size={20} fill={following ? 'currentColor' : 'none'}/></button></div>
     <div aria-label="Швидкість" style={sheetOpen && sheetHeight ? { bottom: sheetHeight + 14 } : undefined} className={`absolute left-4 z-[500] grid h-[4.4rem] w-[4.4rem] place-items-center rounded-full border-4 border-white bg-white/95 text-center shadow-lg transition-[bottom] duration-300 ${sheetOpen ? (sheetHeight ? '' : 'bottom-[16rem]') : 'bottom-[max(2.2rem,calc(env(safe-area-inset-bottom)+1.6rem))]'}`}>
-      <span><b data-testid="navigation-speed" className="block text-2xl font-extrabold leading-none text-[#0E1F35]">{liveSpeed === null ? '—' : Math.round(liveSpeed * 3.6)}</b><small className="text-[10px] font-bold text-slate-500">км/год</small></span>
+      <span><b data-testid="navigation-speed" className="block text-2xl font-extrabold leading-none text-[#0E1F35]">{liveSpeed === null ? '—' : Math.round(liveSpeed * 3.6)}</b><small className="text-[10px] font-bold text-slate-500">км/год</small>{liveHeading !== null && <small data-testid="navigation-compass" className="mt-0.5 block text-[9px] font-bold text-[#1789F4]">{formatBearing(liveHeading)}</small>}</span>
     </div>
+    {!following && <button type="button" onClick={() => mapRef.current?.recenter(liveFix ?? session.current_location ?? undefined)} className={`absolute left-1/2 z-[500] -translate-x-1/2 rounded-full bg-[#1789F4] px-4 py-2 text-xs font-bold text-white shadow-lg ${sheetOpen ? 'bottom-[calc(15rem+1rem)]' : 'bottom-24'}`} style={sheetOpen && sheetHeight ? { bottom: sheetHeight + 14 } : undefined}>Повернутися до навігації</button>}
     {!sheetOpen && <>
       {gpsMessage && <p role="status" className="absolute inset-x-4 bottom-[max(3.2rem,calc(env(safe-area-inset-bottom)+2.6rem))] z-[500] ml-24 rounded-xl bg-amber-50/95 p-2.5 text-xs leading-5 text-amber-900 shadow">{gpsMessage}</p>}
       <button type="button" aria-label="Розгорнути панель" aria-expanded={false} onClick={() => setSheetOpen(true)}
