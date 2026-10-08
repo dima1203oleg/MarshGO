@@ -8,6 +8,7 @@ const groups = [
   { transportType: 'scooter', providers: [{ id: 'scooter:Bolt', name: 'Bolt', available: true, cities: [], sources: [], services: [] }] },
   { transportType: 'bike', providers: [] },
   { transportType: 'bus', providers: [{ id: 'bus:Львівавтодор', name: 'Львівавтодор', available: true, cities: ['Львів'], sources: ['gtfs'], services: ['bus', 'tram'] }] },
+  { transportType: 'tram', providers: [{ id: 'tram:Львівавтодор', name: 'Львівавтодор', available: true, cities: ['Львів'], sources: ['gtfs'], services: ['tram'] }] },
 ];
 
 describe('transport types and providers', () => {
@@ -66,5 +67,10 @@ describe('transport types and providers', () => {
     const busOnly = toJourneyPreferences({ ...defaultSelection, active: ['bus' as const] }, groups);
     assert.equal(busOnly.allowBus && busOnly.allowPublicTransport, true);
     assert.equal(busOnly.allowRail || busOnly.allowMinibus || busOnly.allowCommunity, false);
+    const tramOnly = toJourneyPreferences({ ...defaultSelection, active: ['tram' as const] }, groups);
+    assert.deepEqual(tramOnly.allowedTransportTypes, ['tram']);
+    assert.equal(tramOnly.allowPublicTransport, true);
+    const selectedBusProvider = toggleProvider({ ...defaultSelection, active: ['bus'] }, 'bus', 'bus:Львівавтодор');
+    assert.deepEqual(toJourneyPreferences(selectedBusProvider, groups).allowedTransitProviders, ['Львівавтодор']);
   });
 });
