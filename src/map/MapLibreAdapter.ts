@@ -18,6 +18,13 @@ function readOrientation(): Orientation { try { return localStorage.getItem(ORIE
 const pmtilesProtocol = new Protocol();
 let pmtilesProtocolRegistered = false;
 
+export interface MeetingPoints { pickup?: Coordinate | null; driver?: Coordinate | null; passenger?: Coordinate | null }
+const meetingLook = {
+  pickup: { color: '#E11D48', glyph: '⚑' },
+  driver: { color: '#1789F4', glyph: '🚗' },
+  passenger: { color: '#16A34A', glyph: '🚶' },
+} as const;
+
 export class MapLibreAdapter implements MapAdapter {
   private map: MapLibreMap;
   private status: MapStatus = 'loading';
@@ -32,6 +39,11 @@ export class MapLibreAdapter implements MapAdapter {
   private transport: TransportLayerController | null = null;
   private heading: number | null = null;
   private progressVertex = 0;
+  private meeting: MeetingPoints | null = null;
+  private meetingMarkers: Partial<Record<'pickup' | 'driver' | 'passenger', maplibregl.Marker>> = {};
+  private meetingFitted = false;
+  private meetingBrowsed = false;
+  private meetingLastFit = 0;
   private readonly headingFilter = new HeadingFilter();
   private readonly zoomController = new ZoomController();
   private readonly modeState = new CameraModeState(readOrientation());
@@ -66,6 +78,7 @@ export class MapLibreAdapter implements MapAdapter {
     this.map.on('sourcedata', (event) => { if (event.sourceId === 'marshgo-basemap' && event.isSourceLoaded && !this.seenTileError) this.publish('available'); });
     // Only the user's own gestures leave follow mode; our camera animations (zoom, bearing) must not.
     const userGesture = (event: { originalEvent?: unknown }) => {
+      if (event.originalEvent && this.meeting) this.meetingBrowsed = true;
       if (!event.originalEvent || this.cameraMode === 'OVERVIEW' && !this.vehicle) return;
       this.modeState.userInteracted(Date.now());
       if (this.cameraMode !== 'FREE') this.setCameraModeInternal('FREE');
@@ -101,6 +114,7 @@ export class MapLibreAdapter implements MapAdapter {
     // The DOM puck (rotating arrow) replaces the old circle dot; the source stays for consumers of its data.
     for (const id of ['marshgo-vehicle-halo', 'marshgo-vehicle']) if (this.map.getLayer(id)) this.map.setLayoutProperty(id, 'visibility', 'none');
     this.transport?.reinstall();
+    if (this.meeting) this.setMeetingPoints(this.meeting, false);
     // 3D navigation keeps its tilt after every style load (a style swap resets the camera on some browsers).
     if (this.layer === 'navigation' && Math.abs(this.map.getPitch() - mapLayers.navigation.pitch) > 1) this.map.easeTo({ pitch: mapLayers.navigation.pitch, duration: 500, essential: true });
     this.setRoute(this.route);
@@ -116,6 +130,44 @@ export class MapLibreAdapter implements MapAdapter {
     const source = this.map.getSource('marshgo-route') as maplibregl.GeoJSONSource | undefined;
     if (source) source.setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: points } });
   }
+  /**
+   * Live meeting of driver and passenger: the pickup point plus both people, joined to the pickup by dashed lines.
+   * Called on every position update; the first call frames all points, later calls only move them (the user may be browsing).
+   */
+  setMeetingPoints(points: MeetingPoints | null, fit = true) {
+    this.meeting = points;
+    const map = this.map;
+    if (!points) { for (const marker of Object.values(this.meetingMarkers)) marker?.remove(); this.meetingMarkers = {}; (map.getSource('marshgo-meeting') as maplibregl.GeoJSONSource | undefined)?.setData({ type: 'FeatureCollection', features: [] }); this.meetingFitted = false; return; }
+    for (const key of ['pickup', 'driver', 'passenger'] as const) {
+      const point = points[key]; const existing = this.meetingMarkers[key];
+      if (!point) { existing?.remove(); delete this.meetingMarkers[key]; continue; }
+      if (existing) { existing.setLngLat(point); continue; }
+      const element = document.createElement('div');
+      element.setAttribute('data-testid', `meeting-${key}`);
+      element.style.cssText = `width:38px;height:38px;border-radius:9999px;background:${meetingLook[key].color};border:3px solid #fff;box-shadow:0 4px 12px rgba(9,35,69,.35);display:grid;place-items:center;font-size:18px;line-height:1`;
+      element.textContent = meetingLook[key].glyph;
+      this.meetingMarkers[key] = new maplibregl.Marker({ element }).setLngLat(point).addTo(map);
+    }
+    if (map.isStyleLoaded() || map.getStyle()) {
+      if (!map.getSource('marshgo-meeting')) map.addSource('marshgo-meeting', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+      if (!map.getLayer('marshgo-meeting')) map.addLayer({ id: 'marshgo-meeting', type: 'line', source: 'marshgo-meeting', layout: { 'line-cap': 'round' }, paint: { 'line-color': ['get', 'color'], 'line-width': 4, 'line-dasharray': [1.5, 1.5], 'line-opacity': 0.9 } });
+      const features = (['driver', 'passenger'] as const).flatMap((key) => points[key] && points.pickup ? [{ type: 'Feature' as const, properties: { color: meetingLook[key].color }, geometry: { type: 'LineString' as const, coordinates: [points[key]!, points.pickup] } }] : []);
+      (map.getSource('marshgo-meeting') as maplibregl.GeoJSONSource).setData({ type: 'FeatureCollection', features });
+    }
+    const all = Object.values(points).filter((point): point is Coordinate => Boolean(point));
+    map.getContainer().dataset.marshgoMeetingPoints = String(all.length);
+    // Keep everybody in view as they move (about every 3 s), until the user starts browsing the map themselves.
+    const now = Date.now();
+    if (fit && all.length >= 1 && (!this.meetingBrowsed || !this.meetingFitted) && (!this.meetingFitted || now - this.meetingLastFit > 3000 || all.length > (Number(map.getContainer().dataset.marshgoMeetingFitted) || 0))) {
+      this.meetingFitted = true; this.meetingLastFit = now; map.getContainer().dataset.marshgoMeetingFitted = String(all.length);
+      if (all.length === 1) map.easeTo({ center: all[0], zoom: 15, duration: 600 });
+      else {
+        const lons = all.map((point) => point[0]), lats = all.map((point) => point[1]);
+        map.fitBounds([[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]], { padding: { top: 120, bottom: 400, left: 60, right: 60 }, maxZoom: 17, duration: 700 });
+      }
+    }
+  }
+
   /** Marks the route as driven up to `vertex` (and the live position): that part turns grey. */
   setRouteProgress(vertex: number, position?: Coordinate | null) {
     this.progressVertex = vertex;
@@ -265,6 +317,6 @@ export class MapLibreAdapter implements MapAdapter {
     if (this.map.getLayer('marshgo-background')) this.map.setPaintProperty('marshgo-background', 'background-color', colors.background);
   }
   retry() { this.seenTileError = false; this.publish(this.hasBasemap ? 'loading' : 'unconfigured'); if (this.hasBasemap) this.map.setStyle(this.map.getStyle()); else this.map.triggerRepaint(); }
-  destroy() { if (this.autoReturnTimer) clearInterval(this.autoReturnTimer); this.marker?.remove(); this.transport?.destroy(); this.map.remove(); }
+  destroy() { for (const marker of Object.values(this.meetingMarkers)) marker?.remove(); if (this.autoReturnTimer) clearInterval(this.autoReturnTimer); this.marker?.remove(); this.transport?.destroy(); this.map.remove(); }
   getStatus() { return this.status; }
 }
