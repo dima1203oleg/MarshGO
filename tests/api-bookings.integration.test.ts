@@ -203,7 +203,7 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     assert.equal(response.status, 200);
     const result = await response.json() as { data: { partial: boolean; blockedProviders: string[]; journeys: Array<{ id: string; offerId: string; strategy: string; confirmedPriceMinor: number | null; totalPriceMinor: number; legs: Array<{ id: string; mode: string; priceStatus: string; availabilityStatus: string }> }> } };
     assert.equal(result.data.partial, true);
-    assert.ok(result.data.blockedProviders.includes('bus'));
+    assert.ok(result.data.blockedProviders.includes('taxi'));
     assert.equal(result.data.journeys.length, 1);
     const [journey] = result.data.journeys;
     assert.equal(journey.offerId, ids.journeyOffer);
