@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildNetwork, decimate, inBbox, intersects, parseBbox, routeInBbox } from '../server/mobility/transportLayers';
+import { buildGeoJsonNetwork, buildNetwork, decimate, geoJsonMode, inBbox, intersects, parseBbox, routeInBbox } from '../server/mobility/transportLayers';
 
 const files = {
   'routes.txt': 'route_id,route_short_name,route_type\nR1,47,3\nR2,2,0\nR3,M1,1\nR4,X,1700\n',
@@ -39,6 +39,27 @@ describe('transport layer network', () => {
     assert.equal(inBbox([24, 49, 25, 50], 24.5, 49.5), true);
     assert.equal(intersects([24, 49, 25, 50], [26, 49, 27, 50]), false);
     assert.equal(routeInBbox(network.routes[0], [24, 49, 24.04, 49.85]), true);
+  });
+});
+
+describe('official city GeoJSON normalization', () => {
+  it('joins route segments in order and keeps City Express and funicular modes separate', () => {
+    const body = { features: [
+      { geometry: { type: 'LineString', coordinates: [[30.1, 50.1], [30.2, 50.2]] }, properties: { num_route: 'E1', napryamok: 'clockwise', order_: 2, from_stop_: 'B', to_stop_: 'C' } },
+      { geometry: { type: 'LineString', coordinates: [[30, 50], [30.1, 50.1]] }, properties: { num_route: 'E1', napryamok: 'clockwise', order_: 1, from_stop_: 'A', to_stop_: 'B' } },
+      { geometry: { type: 'Point', coordinates: [30, 50] }, properties: { code1: 'a', name: 'Станція A' } },
+    ] };
+    const network = buildGeoJsonNetwork(body, 'city_train');
+    assert.deepEqual(network.routes[0].coordinates, [[30, 50], [30.1, 50.1], [30.2, 50.2]]);
+    assert.equal(network.routes[0].type, 'city_train');
+    assert.equal(network.routes[0].direction, 'A → C');
+    assert.equal(network.stops[0].types[0], 'city_train');
+    assert.equal(geoJsonMode('Київ — фунікулер (геометрія)'), 'funicular');
+  });
+  it('rejects malformed FeatureCollections and drops invalid coordinates', () => {
+    assert.throws(() => buildGeoJsonNetwork({}, 'metro'), /FeatureCollection/);
+    const network = buildGeoJsonNetwork({ features: [{ geometry: { type: 'Point', coordinates: [300, 50] }, properties: { name: 'invalid' } }] }, 'metro');
+    assert.equal(network.stops.length, 0);
   });
 });
 
