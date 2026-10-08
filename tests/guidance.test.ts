@@ -50,11 +50,15 @@ describe('turn-by-turn guidance', () => {
 });
 
 describe('routeBearingAhead', () => { it('follows the planned road, not the GPS course', () => {
-  const route: Array<[number, number]> = [[24, 49], [24, 49.001], [24.001, 49.001], [24.01, 49.001]];
+  const route: Array<[number, number]> = [[24, 49], [24, 49.001], [24, 49.003], [24.002, 49.003], [24.01, 49.003]];
   const north = routeBearingAhead(route, 0, [24, 49.0002]);
   assert.ok(north !== null && (north < 5 || north > 355));
-  const east = routeBearingAhead(route, 2, [24.0012, 49.001]);
+  const east = routeBearingAhead(route, 3, [24.0022, 49.003]);
   assert.ok(east !== null && Math.abs(east - 90) < 5);
   assert.equal(routeBearingAhead(route, 0, [24.1, 49.1]), null);
+  // A short sideways stub at the start of the route must not turn the map sideways: the road itself runs north.
+  const stub: Array<[number, number]> = [[24, 49], [24.00005, 49], [24.00005, 49.0005], [24.00005, 49.002]];
+  const road = routeBearingAhead(stub, 0, [24, 49]);
+  assert.ok(road !== null && (road < 8 || road > 352), `bearing ${road}`);
 });
 });

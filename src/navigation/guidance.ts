@@ -50,18 +50,21 @@ export function bearingBetween(a: Coordinate, b: Coordinate): number {
  * Direction of the planned road at the driver's place: from the position to a point `lookAheadMeters` further along the route.
  * Null when the driver is off the route (more than `maxOffsetMeters` away) or the route is finished.
  */
-export function routeBearingAhead(route: Coordinate[], vertex: number, position: Coordinate, lookAheadMeters = 45, maxOffsetMeters = 80): number | null {
+export function routeBearingAhead(route: Coordinate[], vertex: number, position: Coordinate, lookAheadMeters = 90, maxOffsetMeters = 80): number | null {
   if (route.length < 2) return null;
   // Re-find the driver's place on the road from the last known progress (the stored vertex can lag behind on long, sparse highway geometry).
   const start = Math.max(0, Math.min(vertex, route.length - 1) - 3);
   const nearest = progressVertex(route, position, start);
   if (nearest >= route.length - 1) return null;
-  // The driver sits between vertex `nearest - 1` and `nearest + 1`: pick the closer of the two neighbouring segments' far ends.
   if (distanceBetween(route[nearest], position) > maxOffsetMeters) return null;
-  let target = nearest + 1, travelled = distanceBetween(position, route[target]);
-  // A vertex we have just passed (or are standing on) must not turn the arrow backwards: always look at a point ahead of it.
+  // The direction of the road is measured between two points on it — one a few metres ahead, one further — never from the driver's own spot:
+  // a route often starts with a short stub from the GPS point onto the road, which would otherwise turn the map sideways.
+  let from = nearest + 1, travelled = distanceBetween(position, route[from]);
+  while (travelled < 12 && from < route.length - 1) { travelled += distanceBetween(route[from], route[from + 1]); from++; }
+  let target = from;
   while (travelled < lookAheadMeters && target < route.length - 1) { travelled += distanceBetween(route[target], route[target + 1]); target++; }
-  return bearingBetween(route[nearest], route[target]);
+  if (target === from) return bearingBetween(route[Math.max(0, from - 1)], route[from]);
+  return bearingBetween(route[from], route[target]);
 }
 
 export interface GuidanceState { next: Maneuver | null; distanceMeters: number; currentStreet: string | null; remainingMeters: number }
