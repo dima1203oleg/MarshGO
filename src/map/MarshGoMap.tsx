@@ -6,8 +6,8 @@ import { getMapLayer, getMapMode, styleForLayer, subscribeMapLayer, subscribeMap
 import { getTransportLayers, subscribeTransportLayers } from './transportLayers';
 import { configuredMapStyleUrl } from './mapConfig';
 
-type Props = { route: Coordinate[]; vehicle?: Coordinate | null; theme?: MapTheme; /** 2D information layers (metro, buses, bikes, ...). Off for navigation, which keeps a clean map. */ overlays?: boolean; onTransportHint?: (message: string | null) => void; onStatus: (status: MapStatus) => void; onAdapter: (adapter: MapAdapter | null) => void };
-export function MarshGoMap({ route, vehicle, theme = 'MARSHGO_NAVIGATION_LIGHT', overlays = false, onTransportHint, onStatus, onAdapter }: Props) {
+type Props = { route: Coordinate[]; vehicle?: Coordinate | null; heading?: number | null; theme?: MapTheme; /** 2D information layers (metro, buses, bikes, ...). Off for navigation, which keeps a clean map. */ overlays?: boolean; onTransportHint?: (message: string | null) => void; onStatus: (status: MapStatus) => void; onAdapter: (adapter: MapAdapter | null) => void };
+export function MarshGoMap({ route, vehicle, heading = null, theme = 'MARSHGO_NAVIGATION_LIGHT', overlays = false, onTransportHint, onStatus, onAdapter }: Props) {
   const container = useRef<HTMLDivElement | null>(null);
   const adapter = useRef<MapAdapter | null>(null);
   const syncOverlays = useRef<() => void>(() => undefined);
@@ -29,7 +29,7 @@ export function MarshGoMap({ route, vehicle, theme = 'MARSHGO_NAVIGATION_LIGHT',
     return () => { cancelled = true; adapter.current?.destroy(); adapter.current = null; onAdapter(null); };
   }, []);
   useEffect(() => { adapter.current?.setRoute(route); }, [route]);
-  useEffect(() => { if (vehicle) adapter.current?.setVehicle(vehicle); }, [vehicle?.[0], vehicle?.[1]]);
+  useEffect(() => { if (vehicle) adapter.current?.setVehicle(vehicle, heading); }, [vehicle?.[0], vehicle?.[1], heading]);
   useEffect(() => { adapter.current?.setTheme(theme); }, [theme]);
   useEffect(() => subscribeMapMode((mode) => adapter.current?.setMode(mode)), []);
   useEffect(() => subscribeMapLayer((layer) => adapter.current?.setLayer(layer)), []);

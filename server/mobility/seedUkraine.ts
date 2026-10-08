@@ -25,7 +25,7 @@ async function main() {
       const report = await testProviderConnection({ id: provider.id, source_type: entry.sourceType, feed_url: entry.feedUrl });
       await pool.query(
         `UPDATE mobility_providers SET health=$2,last_checked_at=now(),last_sync_at=CASE WHEN $2='healthy' THEN now() ELSE last_sync_at END,last_error=$3,last_report=$4,
-           status=CASE WHEN $2='healthy' THEN 'enabled' ELSE 'disabled' END,updated_at=now() WHERE id=$1`,
+           status=CASE WHEN $2='offline' THEN 'disabled' ELSE 'enabled' END,updated_at=now() WHERE id=$1`,
         [provider.id, report.health, report.error ?? null, JSON.stringify(report)],
       );
       console.log(`${report.health.padEnd(8)} ${entry.name} ${JSON.stringify(report.counts)}`);

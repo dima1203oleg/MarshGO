@@ -4,7 +4,9 @@ import { expect, test, type Page } from '@playwright/test';
  * Clicks every visible button, tab and link on each screen of the signed-in web app and checks that the click
  * does something (URL, DOM or network changes) without throwing. Destructive account actions are skipped.
  */
-const routes = ['/', '/journeys/search', '/trips', '/trips/plan', '/map', '/profile', '/offers/new', '/demands/new', '/demands', '/demands/mine', '/messages'];
+const routes = ['/', '/journeys/search', '/trips', '/trips/plan', '/map', '/profile', '/offers/new', '/demands/new', '/demands', '/demands/mine', '/messages', '/navigate'];
+/** Text that must never reach a user: raw values, internal errors. */
+const brokenText = /\bundefined\b|\bnull\b|\bNaN\b|\[object Object\]|Request failed|Internal Server Error|TypeError/;
 const skip = /Вийти|Видалити|Скасувати|Завершити|Вихід|Заблокувати|Поскаржитися/i;
 
 async function signIn(page: Page, name: string) {
@@ -40,6 +42,8 @@ test('every button on every main screen responds without errors', async ({ brows
     await page.goto(route);
     await page.waitForLoadState('networkidle').catch(() => undefined);
     await page.waitForTimeout(400);
+    const onLoad = (await page.evaluate(() => document.body.innerText)).match(brokenText);
+    if (onLoad) problems.push(`raw text «${onLoad[0]}» on ${route}`);
     const labels = await page.evaluate(() => [...document.querySelectorAll<HTMLElement>('button, [role="tab"], [role="switch"], [role="radio"], a[href]')]
       .filter((el) => { const box = el.getBoundingClientRect(); const style = getComputedStyle(el); return box.width > 0 && box.height > 0 && style.visibility !== 'hidden' && !(el as HTMLButtonElement).disabled && el.getAttribute('aria-disabled') !== 'true'; })
       .map((el) => (el.getAttribute('aria-label') || el.textContent || el.getAttribute('title') || '').replace(/\s+/g, ' ').trim()));
@@ -56,6 +60,9 @@ test('every button on every main screen responds without errors', async ({ brows
       try { await locator.click({ timeout: 3000 }); } catch { noEffect.push(`${route} → «${label}» (not clickable)`); continue; }
       await page.waitForTimeout(500);
       const after = await page.evaluate(() => ({ url: location.href, html: document.body.innerHTML.length, text: document.body.innerText.slice(0, 4000) }));
+      const visible = await page.evaluate(() => document.body.innerText);
+      const broken = visible.match(brokenText);
+      if (broken) problems.push(`raw text «${broken[0]}» after ${route} → «${label}»`);
       clicked.push(`${route} → ${label}`);
       if (before.url === after.url && before.html === after.html && before.text === after.text && requests === requestsBefore) noEffect.push(`${route} → «${label}»`);
     }

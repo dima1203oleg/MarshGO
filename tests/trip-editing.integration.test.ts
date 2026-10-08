@@ -2,6 +2,7 @@ import { after, before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import { Pool } from 'pg';
+import { refreshProviderHealth } from '../server/mobility/healthMonitor';
 
 const apiUrl = process.env.API_TEST_URL;
 const databaseUrl = process.env.API_TEST_DATABASE_URL;
@@ -121,5 +122,49 @@ describe('editing and cancelling a published trip (opt-in local integration test
     const me = await (await call('/users/me', driver)).json() as { data: { driver_photo_url: string | null } };
     assert.equal(me.data.driver_photo_url, null);
     assert.equal((await call('/users/me/driver-photo', driver, 'DELETE')).status, 200);
+  });
+
+  it('archives a vehicle instead of erasing it, hands "active" to the next one, and refuses while it has upcoming trips', async () => {
+    const owner = crypto.randomUUID(), first = crypto.randomUUID(), second = crypto.randomUUID();
+    await pool.query(`INSERT INTO users(id,display_name,roles) VALUES($1,'Garage owner',ARRAY['driver'])`, [owner]);
+    await pool.query(`INSERT INTO user_roles(user_id,role) VALUES($1,'driver')`, [owner]);
+    await pool.query(`INSERT INTO vehicles(id,owner_id,make,model,model_year,seat_count,is_active,trust_level,plate,created_at) VALUES
+      ($1,$3,'Avatr','11',2024,4,false,1,'GAR0001',now()-interval '1 day'),($2,$3,'Tesla','Model Y',2023,4,true,1,'GAR0002',now())`, [first, second, owner]);
+    const upcoming = crypto.randomUUID();
+    await pool.query(`INSERT INTO offers(id,driver_id,vehicle_id,origin_name,destination_name,origin,destination,departure_at,price_per_seat_minor,total_seats,available_seats)
+      VALUES($1,$2,$3,'A','B',ST_SetSRID(ST_MakePoint(24,49),4326)::geography,ST_SetSRID(ST_MakePoint(25,50),4326)::geography,now()+interval '2 days',10000,2,2)`, [upcoming, owner, second]);
+    try {
+      assert.equal((await call(`/vehicles/${second}`, owner, 'DELETE')).status, 409, 'a vehicle on an upcoming published trip cannot be removed');
+      await pool.query("UPDATE offers SET status='cancelled' WHERE id=$1", [upcoming]);
+      const removed = await call(`/vehicles/${second}`, owner, 'DELETE');
+      assert.equal(removed.status, 200);
+      assert.deepEqual(await removed.json(), { data: { id: second, archived: true, activatedVehicleId: first } });
+      const list = await (await call('/vehicles', owner)).json() as { data: Array<{ id: string; is_active: boolean }> };
+      assert.deepEqual(list.data.map((item) => [item.id, item.is_active]), [[first, true]], 'the archived car is hidden, the other one is active');
+      const kept = await pool.query('SELECT archived_at FROM vehicles WHERE id=$1', [second]);
+      assert.ok(kept.rows[0].archived_at, 'archived, not erased: history keeps pointing at it');
+      assert.equal((await call(`/vehicles/${second}`, owner, 'DELETE')).status, 404, 'deleting twice is a clean 404');
+      assert.equal((await call(`/vehicles/${first}`, stranger, 'DELETE')).status, 404, 'only the owner can delete');
+      const last = await call(`/vehicles/${first}`, owner, 'DELETE');
+      assert.equal((await last.json() as { data: { activatedVehicleId: string | null } }).data.activatedVehicleId, null, 'no vehicle left to activate');
+    } finally {
+      await pool.query('DELETE FROM audit_events WHERE actor_id=$1', [owner]);
+      await pool.query('DELETE FROM offers WHERE id=$1', [upcoming]);
+      await pool.query('DELETE FROM vehicles WHERE owner_id=$1', [owner]);
+      await pool.query('DELETE FROM user_roles WHERE user_id=$1', [owner]);
+      await pool.query('DELETE FROM users WHERE id=$1', [owner]);
+    }
+  });
+
+  it('health monitor marks an unreachable source offline without changing the administrator’s status', async () => {
+    const { rows } = await pool.query<{ id: string }>(`INSERT INTO mobility_providers(name,city,provider_type,source_type,feed_url,status,health,access,country,last_checked_at)
+      VALUES($1,'Тест','public_transit','gtfs','https://unreachable.invalid/gtfs.zip','enabled','healthy','open','UA',now()-interval '10 years') RETURNING id`, [`Health monitor ${crypto.randomUUID()}`]);
+    try {
+      await refreshProviderHealth(pool);
+      const after = await pool.query<{ status: string; health: string; last_error: string | null }>('SELECT status,health,last_error FROM mobility_providers WHERE id=$1', [rows[0].id]);
+      assert.equal(after.rows[0].status, 'enabled');
+      assert.equal(after.rows[0].health, 'offline');
+      assert.ok(after.rows[0].last_error);
+    } finally { await pool.query('DELETE FROM mobility_providers WHERE id=$1', [rows[0].id]); }
   });
 });

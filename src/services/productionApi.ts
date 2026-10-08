@@ -222,6 +222,8 @@ export type ApiNavigationSession = {
   route_distance_m: number | null; route_duration_s: number | null; route_version: number; opt_in: boolean;
   matching_vehicle_available: boolean; vehicle_seat_count: number | null;
   started_at: string; ended_at?: string | null; route: [number, number][] | null;
+  /** Turn-by-turn steps of the current route (absent on older servers). */
+  maneuvers?: import('../../shared/navigation/contracts').Maneuver[];
   current_location: [number, number] | null; current_location_accuracy_m: number | null; current_location_at: string | null;
 };
 export type ApiNavigationMatch = {
@@ -523,6 +525,7 @@ export const productionApi = {
   deleteVehiclePhoto(vehicleId: string, photoId: string) {
     return request<{ id: string; deleted: boolean }>(`/vehicles/${vehicleId}/photos/${photoId}`, { method: 'DELETE' });
   },
+  deleteVehicle(id: string) { return request<{ id: string; archived: true; activatedVehicleId: string | null }>(`/vehicles/${id}`, { method: 'DELETE' }); },
   activateVehicle(id: string) { return request<ApiVehicle>(`/vehicles/${id}/activate`, { method: 'POST' }); },
   verificationRecords() { return request<ApiVerificationRecord[]>('/users/me/verification'); },
   verificationEvidenceUploadUrl(vehicleId: string, contentType: string) {

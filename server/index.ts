@@ -29,6 +29,7 @@ import type { MobilityAssetType } from './mobility/types';
 import { normalizePlate } from './vehiclePlate';
 import { shouldGrantAdmin } from './adminPhones';
 import { testProviderConnection } from './mobility/connection';
+import { refreshProviderHealth } from './mobility/healthMonitor';
 import { assertPublicHttpsUrl, UnsafeUrlError } from './mobility/safeFetch';
 import { GeocodingUnavailableError, reverseGeocode, suggestPlaces } from './geocoding';
 import { retainNavigationSessions } from './navigation/sessionRetention';
@@ -905,12 +906,12 @@ app.post('/api/v1/navigation/sessions', requireAuth, asyncHandler(async (req, re
     );
     const matchingVehicle = verifiedVehicle.rows[0];
     const { rows } = await client.query(
-      `INSERT INTO navigation_sessions(driver_id,vehicle_id,vehicle_seat_count,destination_name,destination,route,route_distance_m,route_duration_s)
+      `INSERT INTO navigation_sessions(driver_id,vehicle_id,vehicle_seat_count,destination_name,destination,route,route_distance_m,route_duration_s,maneuvers)
        VALUES($1,$2,$3,$4,CASE WHEN $5::float8 IS NULL THEN NULL ELSE ST_SetSRID(ST_MakePoint($5,$6),4326)::geography END,
-         CASE WHEN $7::text IS NULL THEN NULL ELSE ST_SetSRID(ST_GeomFromGeoJSON($7),4326) END,$8,$9)
-       RETURNING id,state,destination_name,route_distance_m,route_duration_s,route_version,opt_in,started_at,vehicle_id,vehicle_seat_count,(vehicle_id IS NOT NULL) AS matching_vehicle_available`,
+         CASE WHEN $7::text IS NULL THEN NULL ELSE ST_SetSRID(ST_GeomFromGeoJSON($7),4326) END,$8,$9,$10::jsonb)
+       RETURNING id,state,destination_name,route_distance_m,route_duration_s,route_version,opt_in,started_at,vehicle_id,vehicle_seat_count,(vehicle_id IS NOT NULL) AS matching_vehicle_available,maneuvers`,
       [req.userId, matchingVehicle?.id ?? null, matchingVehicle ? Number(matchingVehicle.seat_count) : null, freeDrive ? null : destinationName.trim(), freeDrive ? null : destination[0], freeDrive ? null : destination[1],
-        route ? JSON.stringify({ type: 'LineString', coordinates: route.geometry }) : null, route ? Math.round(route.distanceMeters) : null, route ? Math.round(route.durationSeconds) : null],
+        route ? JSON.stringify({ type: 'LineString', coordinates: route.geometry }) : null, route ? Math.round(route.distanceMeters) : null, route ? Math.round(route.durationSeconds) : null, JSON.stringify(route?.maneuvers ?? [])],
     );
     await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES($1,$2,$3,$4)', [req.userId, 'navigation.started', 'navigation_session', rows[0].id]);
     await client.query('COMMIT');
@@ -924,7 +925,7 @@ app.post('/api/v1/navigation/sessions', requireAuth, asyncHandler(async (req, re
 app.get('/api/v1/navigation/sessions/active', requireAuth, asyncHandler(async (req, res) => {
   const { rows } = await pool.query(
     `SELECT id,state,destination_name,route_distance_m,route_duration_s,route_version,opt_in,started_at,ended_at,vehicle_id,vehicle_seat_count,(vehicle_id IS NOT NULL) AS matching_vehicle_available,
-       ST_AsGeoJSON(route)::json->'coordinates' AS route,
+       ST_AsGeoJSON(route)::json->'coordinates' AS route,maneuvers,
        CASE WHEN current_location IS NULL THEN NULL ELSE json_build_array(ST_X(current_location::geometry),ST_Y(current_location::geometry)) END AS current_location,
        current_location_accuracy_m,current_location_at
      FROM navigation_sessions WHERE driver_id=$1 AND state IN ('active','paused') LIMIT 1`, [req.userId],
@@ -1000,14 +1001,14 @@ app.put('/api/v1/navigation/sessions/:id/destination', requireAuth, asyncHandler
     await client.query('BEGIN');
     const updated = await client.query(
       `UPDATE navigation_sessions SET destination_name=$3,destination=ST_SetSRID(ST_MakePoint($4,$5),4326)::geography,route=ST_SetSRID(ST_GeomFromGeoJSON($6),4326),
-         route_distance_m=$7,route_duration_s=$8,route_version=route_version+1,last_activity_at=now()
+         route_distance_m=$7,route_duration_s=$8,route_version=route_version+1,last_activity_at=now(),maneuvers=$10::jsonb
        WHERE id=$1 AND driver_id=$2 AND state='active' AND route_version=$9
        RETURNING id,state,destination_name,route_distance_m,route_duration_s,route_version,opt_in,started_at,ended_at,
          vehicle_id,vehicle_seat_count,(vehicle_id IS NOT NULL) AS matching_vehicle_available,
-         ST_AsGeoJSON(route)::json->'coordinates' AS route,
+         ST_AsGeoJSON(route)::json->'coordinates' AS route,maneuvers,
          json_build_array(ST_X(current_location::geometry),ST_Y(current_location::geometry)) AS current_location,
          current_location_accuracy_m,current_location_at`,
-      [req.params.id, req.userId, destinationName.trim(), destination[0], destination[1], JSON.stringify({ type: 'LineString', coordinates: route.geometry }), Math.round(route.distanceMeters), Math.round(route.durationSeconds), snapshot.route_version],
+      [req.params.id, req.userId, destinationName.trim(), destination[0], destination[1], JSON.stringify({ type: 'LineString', coordinates: route.geometry }), Math.round(route.distanceMeters), Math.round(route.durationSeconds), snapshot.route_version, JSON.stringify(route.maneuvers ?? [])],
     );
     if (!updated.rows[0]) throw new ApiError(409, 'Navigation changed; retry', 'NAVIGATION_STATE_CONFLICT');
     await client.query(`UPDATE navigation_match_candidates SET status='expired' WHERE navigation_session_id=$1 AND status IN ('suggested','driver_interested','passenger_confirmed')`, [req.params.id]);
@@ -1047,14 +1048,14 @@ app.post('/api/v1/navigation/sessions/:id/reroute', requireAuth, asyncHandler(as
     await client.query('BEGIN');
     const updated = await client.query(
       `UPDATE navigation_sessions SET route=ST_SetSRID(ST_GeomFromGeoJSON($4),4326),route_distance_m=$5,route_duration_s=$6,
-         route_version=route_version+1,opt_in=false,last_activity_at=now()
+         route_version=route_version+1,opt_in=false,last_activity_at=now(),maneuvers=$8::jsonb
        WHERE id=$1 AND driver_id=$2 AND state='active' AND route_version=$3 AND current_location_at=$7
        RETURNING id,state,destination_name,route_distance_m,route_duration_s,route_version,opt_in,started_at,ended_at,
          vehicle_id,vehicle_seat_count,(vehicle_id IS NOT NULL) AS matching_vehicle_available,
-         ST_AsGeoJSON(route)::json->'coordinates' AS route,
+         ST_AsGeoJSON(route)::json->'coordinates' AS route,maneuvers,
          json_build_array(ST_X(current_location::geometry),ST_Y(current_location::geometry)) AS current_location,
          current_location_accuracy_m,current_location_at`,
-      [req.params.id, req.userId, snapshot.route_version, JSON.stringify({ type: 'LineString', coordinates: route.geometry }), Math.round(route.distanceMeters), Math.round(route.durationSeconds), snapshot.current_location_at],
+      [req.params.id, req.userId, snapshot.route_version, JSON.stringify({ type: 'LineString', coordinates: route.geometry }), Math.round(route.distanceMeters), Math.round(route.durationSeconds), snapshot.current_location_at, JSON.stringify(route.maneuvers ?? [])],
     );
     if (!updated.rows[0]) throw new ApiError(409, 'Navigation changed while rerouting; retry with the latest GPS fix', 'NAVIGATION_STATE_CONFLICT');
     await client.query(`UPDATE navigation_match_candidates SET status='expired' WHERE navigation_session_id=$1 AND status IN ('suggested','driver_interested','passenger_confirmed')`, [req.params.id]);
@@ -1161,7 +1162,7 @@ app.post('/api/v1/navigation/matches/:candidateId/passenger-confirm', requireAut
 app.get('/api/v1/navigation/sessions/:id', requireAuth, asyncHandler(async (req, res) => {
   const { rows } = await pool.query(
     `SELECT id,state,destination_name,route_distance_m,route_duration_s,route_version,opt_in,started_at,ended_at,vehicle_id,vehicle_seat_count,(vehicle_id IS NOT NULL) AS matching_vehicle_available,
-       ST_AsGeoJSON(route)::json->'coordinates' AS route,
+       ST_AsGeoJSON(route)::json->'coordinates' AS route,maneuvers,
        CASE WHEN current_location IS NULL THEN NULL ELSE json_build_array(ST_X(current_location::geometry),ST_Y(current_location::geometry)) END AS current_location,
        current_location_accuracy_m,current_location_at
      FROM navigation_sessions WHERE id=$1 AND driver_id=$2 AND state IN ('active','paused')`, [req.params.id, req.userId],
@@ -2428,16 +2429,25 @@ app.delete('/api/v1/vehicles/:id', requireAuth, requireRole('driver'), asyncHand
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    const vehicle = await client.query('SELECT id FROM vehicles WHERE id=$1 AND owner_id=$2 AND archived_at IS NULL FOR UPDATE', [req.params.id, req.userId]);
+    const vehicle = await client.query<{ id: string; is_active: boolean }>('SELECT id,is_active FROM vehicles WHERE id=$1 AND owner_id=$2 AND archived_at IS NULL FOR UPDATE', [req.params.id, req.userId]);
     if (!vehicle.rows[0]) throw new ApiError(404, 'vehicle unavailable');
     const activeTrips = await client.query(
       `SELECT 1 FROM offers o WHERE o.vehicle_id=$1 AND o.departure_at>now() AND o.status='published' LIMIT 1`, [req.params.id],
     );
     if (activeTrips.rows[0]) throw new ApiError(409, 'Vehicle has upcoming trips and cannot be archived', 'vehicle_has_upcoming_trips');
+    // Archived, not erased: past trips and bookings keep pointing at the vehicle they were made with.
     await client.query('UPDATE vehicles SET is_active=false,archived_at=now() WHERE id=$1', [req.params.id]);
     await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'vehicle.archived', 'vehicle', req.params.id]);
+    // The active vehicle was removed: the most recently added remaining one takes over so the driver is never left without an active car.
+    let activatedVehicleId: string | null = null;
+    if (vehicle.rows[0].is_active) {
+      const next = await client.query<{ id: string }>(
+        `UPDATE vehicles SET is_active=true WHERE id=(SELECT id FROM vehicles WHERE owner_id=$1 AND archived_at IS NULL ORDER BY (trust_level>=1) DESC,created_at DESC LIMIT 1) RETURNING id`, [req.userId]);
+      activatedVehicleId = next.rows[0]?.id ?? null;
+      if (activatedVehicleId) await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'vehicle.activated', 'vehicle', activatedVehicleId]);
+    }
     await client.query('COMMIT');
-    res.json({ data: { id: req.params.id, archived: true } });
+    res.json({ data: { id: req.params.id, archived: true, activatedVehicleId } });
   } catch (error) {
     await client.query('ROLLBACK');
     throw error;
@@ -3834,12 +3844,13 @@ app.post('/api/v1/proposals/:id/accept', requireAuth, asyncHandler(async (req, r
     if (navigationPlan) {
       const updatedSession = await client.query<{ route_version: number }>(
         `UPDATE navigation_sessions SET route=ST_SetSRID(ST_GeomFromGeoJSON($3),4326),route_distance_m=$4,route_duration_s=$5,
-            route_version=route_version+1,opt_in=false,last_activity_at=now()
+            route_version=route_version+1,opt_in=false,last_activity_at=now(),maneuvers=$7::jsonb
           WHERE id=$1 AND driver_id=$2 AND state='paused' AND opt_in=true AND route_version=$6
           RETURNING route_version`,
         [navigationPlan.sessionId, proposal.driver_id,
           JSON.stringify({ type: 'LineString', coordinates: navigationPlan.navigationRoute.geometry }),
-          Math.round(navigationPlan.navigationRoute.distanceMeters), Math.round(navigationPlan.navigationRoute.durationSeconds), navigationPlan.routeVersion],
+          Math.round(navigationPlan.navigationRoute.distanceMeters), Math.round(navigationPlan.navigationRoute.durationSeconds), navigationPlan.routeVersion,
+          JSON.stringify(navigationPlan.navigationRoute.maneuvers ?? [])],
       );
       if (!updatedSession.rows[0]) throw new ApiError(409, 'navigation session changed before route update', 'navigation_session_changed');
       const oldWaypointRows = await client.query<{
@@ -4283,6 +4294,12 @@ const navigationExpiryTimer = setInterval(() => {
 }, 15_000);
 navigationExpiryTimer.unref();
 void expireStaleProposals().catch((error: unknown) => console.error(JSON.stringify({ level: 'error', event: 'proposal.expiry_failed', message: error instanceof Error ? error.message : 'unknown_error' })));
+// Keep connected transport sources honest: re-check their health in the background (status stays an admin decision).
+const mobilityHealthIntervalMs = Math.max(5 * 60_000, Number(process.env.MOBILITY_HEALTH_INTERVAL_MS) || 30 * 60_000);
+const runMobilityHealth = () => { if (process.env.MOBILITY_HEALTH_DISABLED === 'true') return; void refreshProviderHealth(pool, (entry) => console.log(JSON.stringify(entry))).catch(() => undefined); };
+const mobilityHealthStart = setTimeout(runMobilityHealth, 60_000);
+const mobilityHealthTimer = setInterval(runMobilityHealth, mobilityHealthIntervalMs);
+mobilityHealthStart.unref(); mobilityHealthTimer.unref();
 const proposalExpiryTimer = setInterval(() => {
   void expireStaleProposals().catch((error: unknown) => console.error(JSON.stringify({ level: 'error', event: 'proposal.expiry_failed', message: error instanceof Error ? error.message : 'unknown_error' })));
 }, 30_000);

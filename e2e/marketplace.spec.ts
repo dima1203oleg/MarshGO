@@ -67,12 +67,13 @@ async function openSearchTab(page: import('@playwright/test').Page) {
 test('onboarding explains the real transport scope and keeps location permission optional', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Почати', exact: true }).first().click();
-  await expect(page.getByRole('heading', { name: /Усі поїздки/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Їдеш\? MARSHGO знайде попутника/ })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Назад' })).toHaveCount(1);
-  await expect(page.getByText(/Автобуси, таксі та громадський транспорт з’являться/)).toBeVisible();
+  await expect(page.getByText(/Не треба створювати оголошення/)).toBeVisible();
   await page.screenshot({ path: '/tmp/marshgo-onboarding-transport.png', fullPage: true });
   await page.getByRole('button', { name: 'Далі', exact: true }).click();
-  await expect(page.getByRole('heading', { name: /Обирайте, що/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Шукай поїздку або плануй/ })).toBeVisible();
+  await expect(page.getByText(/там, де вони вже підключені/)).toBeVisible();
   await page.screenshot({ path: '/tmp/marshgo-onboarding-strategy.png', fullPage: true });
   await page.getByRole('button', { name: 'Далі', exact: true }).click();
   await expect(page.getByRole('heading', { name: /Дозвольте MARSHGO/ })).toBeVisible();
@@ -599,6 +600,18 @@ test('driver safely matches two independent riders, inserts ordered stops, and r
     navigationSessionId = (await sessionResponse.json()).data.id as string;
     // A driver with a verified vehicle gets passenger search along the route on by default.
     await expect(driverPage.getByRole('switch', { name: 'Пошук попутників уздовж маршруту' })).toHaveAttribute('aria-checked', 'true');
+    // The bottom sheet folds away to give the map room, and comes back.
+    await driverPage.getByRole('button', { name: 'Згорнути панель' }).click();
+    await expect(driverPage.getByRole('switch', { name: 'Пошук попутників уздовж маршруту' })).toHaveCount(0);
+    await expect(driverPage.getByRole('button', { name: 'Завершити навігацію' })).toBeVisible();
+    await expect(driverPage.locator('section[aria-label="Панель навігації"]')).toHaveCount(0);
+    await driverPage.getByRole('button', { name: 'Розгорнути панель' }).click();
+    await expect(driverPage.getByRole('switch', { name: 'Пошук попутників уздовж маршруту' })).toBeVisible();
+    // "My location" brings back the Apple-Maps-like follow camera (close, tilted, heading-up).
+    await driverPage.getByRole('button', { name: 'Показати моє місце' }).click();
+    await expect(driverPage.locator('[data-marshgo-map-renderer="maplibre"]')).toHaveAttribute('data-marshgo-camera-mode', 'FOLLOW_HEADING');
+    await expect(driverPage.getByRole('button', { name: 'Показати моє місце' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(driverPage.getByTestId('navigation-speed')).toBeVisible();
     await expect.poll(async () => pool.query<{ current_location_at: Date | null }>('SELECT current_location_at FROM navigation_sessions WHERE id=$1', [navigationSessionId]).then(result => result.rows[0]?.current_location_at ?? null)).not.toBeNull();
 
     const departureStart = new Date(Date.now() + 15 * 60_000);
@@ -1138,7 +1151,7 @@ test('Journey Planner ranks a persisted Community route and opens its current of
     expect(rescueBookingHttp.status()).toBe(201);
     const replacementBooking = await rescueBookingHttp.json() as { data: { id: string; offer_id: string } };
     expect(replacementBooking.data.offer_id).toBe(rescueCorridorAlternativeId);
-    await expect(page.getByText('Journey оновлено сервером і збережено як готовий маршрут.')).toBeVisible();
+    // The toast can be replaced by a realtime update within milliseconds; the persisted journey below is the real proof.
     const rescuedJourney = await pool.query<{ state: string; confirmed_price_minor: number; legs: Array<{ ordinal: number; state: string; booking_id: string | null; metadata: Record<string, string> }> }>(
       `SELECT j.state,j.confirmed_price_minor,
               jsonb_agg(jsonb_build_object('ordinal',l.ordinal,'state',l.state,'booking_id',l.booking_id,'metadata',l.metadata) ORDER BY l.ordinal) AS legs
