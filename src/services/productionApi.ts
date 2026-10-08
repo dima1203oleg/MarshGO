@@ -49,6 +49,8 @@ export type ApiOffer = {
   review_count: number;
   status?: string;
   vehicle_id?: string;
+  /** The search found nothing on the chosen day; this offer is the same route on another day. */
+  other_date?: boolean;
   vehicle_photo_url?: string | null;
   /** Road geometry from the routing backend, [longitude, latitude]; only present on offer detail responses. */
   route_geometry?: Array<[number, number]> | null;

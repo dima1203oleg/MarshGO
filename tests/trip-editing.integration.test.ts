@@ -201,4 +201,25 @@ describe('editing and cancelling a published trip (opt-in local integration test
       await pool.query('DELETE FROM users WHERE id=$1', [owner]);
     }
   });
+
+  it('finds a trip for a passenger along its route, and the same route on other days when the chosen day is empty', async () => {
+    const lviv = [24.0297, 49.8397], stryi = [23.8556, 49.2603];
+    const search = async (from: number[], to: number[], date: string) => (await (await fetch(`${apiUrl}/api/v1/offers?${new URLSearchParams({
+      origin: 'A', destination: 'B', originLon: String(from[0]), originLat: String(from[1]), destinationLon: String(to[0]), destinationLat: String(to[1]), date, seats: '1' })}`)).json() as { data: Array<{ id: string; other_date: boolean }> }).data;
+    const tripDay = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Kyiv' }).format(departure);
+    // The driver's trip is Львів → Стрий (the test offer's own endpoints come from the fixture, so use a fresh offer along a longer line).
+    const longOffer = crypto.randomUUID();
+    await pool.query(`INSERT INTO offers(id,driver_id,vehicle_id,origin_name,destination_name,origin,destination,route,departure_at,price_per_seat_minor,total_seats,available_seats)
+      VALUES($1,$2,$3,'Дрогобич','Київ',ST_SetSRID(ST_MakePoint(23.5,49.35),4326)::geography,ST_SetSRID(ST_MakePoint(30.52,50.45),4326)::geography,
+        ST_MakeLine(ARRAY[ST_SetSRID(ST_MakePoint(23.5,49.35),4326),ST_SetSRID(ST_MakePoint(23.86,49.26),4326),ST_SetSRID(ST_MakePoint(24.03,49.84),4326),ST_SetSRID(ST_MakePoint(30.52,50.45),4326)]),
+        $4,20000,3,3)`, [longOffer, driver, vehicleTwo, new Date(Date.now() + 4 * 86_400_000)]);
+    try {
+      const day = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Kyiv' }).format(new Date(Date.now() + 4 * 86_400_000));
+      const onRoute = await search(stryi, lviv, day);
+      assert.ok(onRoute.some((offer) => offer.id === longOffer && !offer.other_date), 'a passenger on the way is matched by corridor and direction');
+      assert.equal((await search(lviv, stryi, day)).some((offer) => offer.id === longOffer), false, 'the opposite direction is not matched');
+      const otherDay = await search(stryi, lviv, tripDay === day ? '2031-01-01' : tripDay);
+      assert.ok(otherDay.some((offer) => offer.id === longOffer && offer.other_date), 'an empty day falls back to the same route on other days, flagged');
+    } finally { await pool.query('DELETE FROM offers WHERE id=$1', [longOffer]); }
+  });
 });
