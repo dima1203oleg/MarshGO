@@ -40,6 +40,26 @@ export function progressVertex(route: Coordinate[], position: Coordinate, from =
   return best;
 }
 
+export function bearingBetween(a: Coordinate, b: Coordinate): number {
+  const rad = Math.PI / 180, dLon = (b[0] - a[0]) * rad, lat1 = a[1] * rad, lat2 = b[1] * rad;
+  const y = Math.sin(dLon) * Math.cos(lat2), x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+  return ((Math.atan2(y, x) / rad) % 360 + 360) % 360;
+}
+
+/**
+ * Direction of the planned road at the driver's place: from the position to a point `lookAheadMeters` further along the route.
+ * Null when the driver is off the route (more than `maxOffsetMeters` away) or the route is finished.
+ */
+export function routeBearingAhead(route: Coordinate[], vertex: number, position: Coordinate, lookAheadMeters = 45, maxOffsetMeters = 60): number | null {
+  if (route.length < 2 || vertex >= route.length - 1) return null;
+  const from = Math.max(0, Math.min(vertex, route.length - 2));
+  if (distanceBetween(route[from], position) > maxOffsetMeters && distanceBetween(route[from + 1], position) > maxOffsetMeters) return null;
+  let target = from + 1, travelled = distanceBetween(position, route[target]);
+  while (travelled < lookAheadMeters && target < route.length - 1) { travelled += distanceBetween(route[target], route[target + 1]); target++; }
+  const origin = distanceBetween(position, route[target]) < 3 ? route[from] : position;
+  return bearingBetween(origin, route[target]);
+}
+
 export interface GuidanceState { next: Maneuver | null; distanceMeters: number; currentStreet: string | null; remainingMeters: number }
 
 /** The next manoeuvre ahead of the driver and the distance to it, measured along the road (not as the crow flies). */

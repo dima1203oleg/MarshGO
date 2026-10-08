@@ -8,6 +8,7 @@ import { mapStyleTokens } from './style/tokens';
 import { Protocol } from 'pmtiles';
 import { mapLayers, mapModes, styleForLayer, type MapLayer, type MapMode } from './mapMode';
 import { TransportLayerController, type TransportLayerId } from './transportLayers';
+import { routeBearingAhead } from '../navigation/guidance';
 import { CameraModeState, HeadingFilter, ZoomController, lookAheadShare, pitchFor, targetZoom, type Orientation } from '../navigation/cameraEngine';
 import { configuredMapStyleUrl } from './mapConfig';
 
@@ -222,8 +223,15 @@ export class MapLibreAdapter implements MapAdapter {
       element.innerHTML = '<span class="marshgo-puck__halo"></span><svg viewBox="0 0 40 40" class="marshgo-puck__arrow"><circle cx="20" cy="20" r="17" fill="#fff"/><circle cx="20" cy="20" r="13.5" fill="#1789F4"/><path d="M20 9 L28 28 L20 23.5 L12 28 Z" fill="#fff"/></svg>';
       this.marker = new maplibregl.Marker({ element, rotationAlignment: 'map', pitchAlignment: 'map' }).setLngLat(point).addTo(this.map);
     } else this.marker.setLngLat(point);
-    this.marker.setRotation(this.heading ?? 0);
-    this.map.getContainer().dataset.marshgoVehicleHeading = this.heading === null ? '' : String(Math.round(this.heading));
+    const facing = this.facingBearing();
+    this.marker.setRotation(facing ?? 0);
+    this.map.getContainer().dataset.marshgoVehicleHeading = facing === null ? '' : String(Math.round(facing));
+  }
+
+  /** Where the car faces: along the planned road while on the route (the camera looks the same way), otherwise where it is moving. */
+  private facingBearing(): number | null {
+    const onRoute = this.vehicle ? routeBearingAhead(this.route, this.progressVertex, this.vehicle) : null;
+    return onRoute ?? this.heading;
   }
 
   private setCameraModeInternal(mode: CameraMode) {
@@ -247,7 +255,8 @@ export class MapLibreAdapter implements MapAdapter {
     let bearing = 0;
     if (headingUp) {
       const current = this.map.getBearing();
-      const target = unwrapped ?? current;
+      const facing = this.facingBearing();
+      const target = facing !== null && facing !== this.heading ? facing : unwrapped ?? current;
       bearing = current + (((target - current) % 360 + 540) % 360 - 180);
     }
     this.map.easeTo({

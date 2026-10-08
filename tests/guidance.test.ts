@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import type { Maneuver } from '../shared/navigation/contracts';
-import { progressVertex, dueAnnouncement, formatGuidanceDistance, instructionText, nextGuidance, prepareGuidance, voiceLine } from '../src/navigation/guidance';
+import { progressVertex, dueAnnouncement, formatGuidanceDistance, instructionText, nextGuidance, prepareGuidance, routeBearingAhead, voiceLine } from '../src/navigation/guidance';
 
 // A straight road east along 49.84°N with one right turn into «вулиця Городоцька», then arrival.
 const route: Array<[number, number]> = Array.from({ length: 11 }, (_, index) => [24.0 + index * 0.001, 49.84]);
@@ -47,4 +47,14 @@ describe('turn-by-turn guidance', () => {
     assert.deepEqual(dueAnnouncement(30, spoken, '1'), ['1:now', '1:near', '1:far']);
     assert.equal(dueAnnouncement(1500, new Set(), '1'), null);
   });
+});
+
+describe('routeBearingAhead', () => { it('follows the planned road, not the GPS course', () => {
+  const route: Array<[number, number]> = [[24, 49], [24, 49.001], [24.001, 49.001], [24.01, 49.001]];
+  const north = routeBearingAhead(route, 0, [24, 49.0002]);
+  assert.ok(north !== null && (north < 5 || north > 355));
+  const east = routeBearingAhead(route, 2, [24.0012, 49.001]);
+  assert.ok(east !== null && Math.abs(east - 90) < 5);
+  assert.equal(routeBearingAhead(route, 0, [24.1, 49.1]), null);
+});
 });
