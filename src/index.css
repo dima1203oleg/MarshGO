@@ -685,3 +685,7 @@ html.dark [data-marshgo-map-layer="hybrid"] .maplibregl-canvas { filter: none; }
 .marshgo-puck__halo { position: absolute; inset: -14px; border-radius: 9999px; background: rgba(23, 137, 244, .18); animation: marshgo-puck-pulse 2.4s ease-out infinite; }
 @keyframes marshgo-puck-pulse { 0% { transform: scale(.6); opacity: .9; } 100% { transform: scale(1.25); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .marshgo-puck__halo { animation: none; } }
+
+/* Navigation has its own compass, speed badge and controls: keep MapLibre's corner widgets out of their way. */
+[data-marshgo-camera-mode] .maplibregl-ctrl-bottom-right { display: none; }
+[data-marshgo-camera-mode] .maplibregl-ctrl-bottom-left { left: 5.4rem; margin-bottom: max(.2rem, env(safe-area-inset-bottom)); }
