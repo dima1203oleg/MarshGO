@@ -18,6 +18,10 @@ export function parseNominatimSuggestions(payload: unknown): PlaceSuggestion[] {
     const latitude = typeof record.lat === 'string' || typeof record.lat === 'number' ? Number(record.lat) : NaN;
     const longitude = typeof record.lon === 'string' || typeof record.lon === 'number' ? Number(record.lon) : NaN;
     const providerId = record.place_id === undefined ? '' : String(record.place_id);
+    // A rivers, lakes or forests named like a town ("Стрий" the river) must never become a pickup point.
+    const category = String(record.category ?? record.class ?? '');
+    const kind = String(record.type ?? '');
+    if (category === 'waterway' || (category === 'natural' && /^(water|river|stream|bay|strait|wetland|coastline|spring|reservoir|wood|scrub|grassland|heath)$/.test(kind)) || category === 'landuse' || category === 'leisure') return [];
     if (!label || !providerId || !Number.isFinite(latitude) || !Number.isFinite(longitude) ||
         Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return [];
     return [{ label, latitude, longitude, providerId }];

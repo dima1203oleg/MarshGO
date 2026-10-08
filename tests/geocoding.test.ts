@@ -75,4 +75,14 @@ describe('Nominatim-compatible place search adapter', () => {
     delete process.env.GEOCODING_ENGINE_URL;
     await assert.rejects(() => suggestPlaces('Стрий'), GeocodingUnavailableError);
   });
+
+  it('never offers a river, lake or forest as a place (the river «Стрий» is not the town)', () => {
+    const places = parseNominatimSuggestions([
+      { place_id: 1, display_name: 'Стрий, Стрийська міська громада, Львівська область', lat: '49.2558', lon: '23.8530', category: 'boundary', type: 'administrative' },
+      { place_id: 2, display_name: 'Стрий, Львівська область, Україна', lat: '49.1372', lon: '23.4524', category: 'waterway', type: 'river' },
+      { place_id: 3, display_name: 'Озеро', lat: '49.1', lon: '23.4', category: 'natural', type: 'water' },
+      { place_id: 4, display_name: 'вулиця Шевченка, Стрий', lat: '49.26', lon: '23.85', category: 'highway', type: 'residential' },
+    ]);
+    assert.deepEqual(places.map((place) => place.providerId), ['1', '4']);
+  });
 });
