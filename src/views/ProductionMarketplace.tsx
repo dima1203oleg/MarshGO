@@ -1032,6 +1032,22 @@ export function ProductionMarketplace() {
     finally { setBusy(false); }
   };
 
+  const moveVehiclePhoto = async (vehicleId: string, photoId: string, direction: -1 | 1) => {
+    const photos = vehiclePhotos[vehicleId] ?? [];
+    const index = photos.findIndex((photo) => photo.id === photoId);
+    const nextIndex = index + direction;
+    if (index < 0 || nextIndex < 0 || nextIndex >= photos.length) return;
+    const reordered = [...photos];
+    [reordered[index], reordered[nextIndex]] = [reordered[nextIndex], reordered[index]];
+    setBusy(true);
+    try {
+      const result = await productionApi.reorderVehiclePhotos(vehicleId, reordered.map((photo) => photo.id));
+      const byId = new Map(photos.map((photo) => [photo.id, photo]));
+      setVehiclePhotos((current) => ({ ...current, [vehicleId]: result.photoIds.flatMap((id) => byId.has(id) ? [byId.get(id)!] : []) }));
+    } catch (error) { setStatusMessage(error instanceof Error ? error.message : 'Не вдалося змінити порядок фото.'); }
+    finally { setBusy(false); }
+  };
+
   const deleteVehiclePhoto = async (vehicleId: string, photoId: string) => {
     setBusy(true);
     try { await productionApi.deleteVehiclePhoto(vehicleId, photoId); await refreshVehicles(); }
@@ -1434,7 +1450,7 @@ export function ProductionMarketplace() {
     const photos = vehiclePhotos[vehicle.id] ?? [];
     return <article key={vehicle.id} className="rounded-xl bg-[#f6f8fc] p-3">
       <div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-white text-blue-600"><CarFront size={19}/></span><div className="min-w-0 flex-1"><b className="block text-sm">{vehicle.make} {vehicle.model}</b><small className="text-slate-500">{vehicle.plate ? `${vehicle.plate} · ` : ''}{vehicle.model_year} · {vehicle.seat_count} місць</small><div className="mt-1 flex flex-wrap gap-1">{vehicleUsable(vehicle) ? <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">✓ Авто додано</span> : <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-800">Додайте {vehicle.plate ? 'фото' : 'номер і фото'}</span>}{(vehicle.trust_level ?? 0) >= 2 && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">✓ Автомобіль підтверджено</span>}{(vehicle.trust_level ?? 0) >= 3 && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">✓ Водій підтверджений</span>}</div></div>{vehicle.is_active?<span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700">Активне</span>:<button onClick={async()=>{setBusy(true);try{await productionApi.activateVehicle(vehicle.id);await refreshVehicles();}catch(error){setStatusMessage(error instanceof Error?error.message:'Не вдалося активувати авто.');}finally{setBusy(false);}}} className="text-xs font-bold text-blue-600">Обрати</button>}</div>
-      {photos.length>0?<div className="mt-3 grid grid-cols-3 gap-2">{photos.map((photo)=><div key={photo.id} className="relative overflow-hidden rounded-lg bg-white"><img src={photo.url} alt={`${vehicle.make} ${vehicle.model}`} className="aspect-[4/3] w-full object-cover"/><div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-slate-950/60 px-2 py-1 text-[9px] text-white"><button onClick={()=>void setPrimaryVehiclePhoto(vehicle.id,photo.id)} className="font-bold">{photo.is_primary?'Головне':'Зробити головним'}</button><button onClick={()=>void deleteVehiclePhoto(vehicle.id,photo.id)} aria-label="Видалити фото">×</button></div></div>)}</div>:<p className="mt-2 text-[10px] text-slate-500">Фото потрібне для публікації поїздки.</p>}
+      {photos.length>0?<div className="mt-3 grid grid-cols-3 gap-2">{photos.map((photo,index)=><div key={photo.id} className="relative overflow-hidden rounded-lg bg-white"><img src={photo.url} alt={`${vehicle.make} ${vehicle.model}`} className="aspect-[4/3] w-full object-cover"/><div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-slate-950/70 px-1.5 py-1 text-[9px] text-white"><div className="flex items-center gap-1"><button type="button" disabled={busy||index===0} onClick={()=>void moveVehiclePhoto(vehicle.id,photo.id,-1)} aria-label={`Перемістити фото ${index+1} вище`} className="px-1 font-bold disabled:opacity-40">↑</button><button type="button" disabled={busy||index===photos.length-1} onClick={()=>void moveVehiclePhoto(vehicle.id,photo.id,1)} aria-label={`Перемістити фото ${index+1} нижче`} className="px-1 font-bold disabled:opacity-40">↓</button></div><button type="button" onClick={()=>void setPrimaryVehiclePhoto(vehicle.id,photo.id)} className="truncate font-bold">{photo.is_primary?'Головне':'Головне фото'}</button><button type="button" onClick={()=>void deleteVehiclePhoto(vehicle.id,photo.id)} aria-label="Видалити фото">×</button></div></div>)}</div>:<p className="mt-2 text-[10px] text-slate-500">Фото потрібне для публікації поїздки.</p>}
       {user.roles.includes('driver')&&(photos.length>=3?<p className="mt-2 text-center text-[11px] text-slate-500">Максимум 3 фото. Видаліть одне, щоб додати інше.</p>:<label className="mt-2 flex w-full cursor-pointer items-center justify-center rounded-lg bg-white py-2 text-xs font-bold text-blue-700">{busy?'Зачекайте…':photos.length===0?'Додати фото авто (обов’язково)':`Додати ще фото (${photos.length}/3)`}<input type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={event=>{const file=event.target.files?.[0];if(file)void uploadVehiclePhoto(vehicle.id,file);event.currentTarget.value='';}} className="sr-only"/></label>)}
       <button type="button" onClick={()=>setVehicleToDelete(vehicle)} className="mt-2 w-full rounded-lg py-2 text-xs font-bold text-rose-600">Видалити авто</button>
       {vehicle.verification_status==='rejected'&&latestRejected&&<p role="status" className="mt-2 rounded-lg border border-rose-100 bg-rose-50 p-2.5 text-xs leading-5 text-rose-800"><b>Потрібно виправити документи.</b> Причина: {latestRejected.review_note||'Модератор попросив подати документи повторно.'} Після виправлення їх можна надіслати ще раз.</p>}

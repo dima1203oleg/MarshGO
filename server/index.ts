@@ -15,7 +15,7 @@ import { sendVerificationCode, SmsProviderUnavailableError } from './sms';
 import { calculateCanonicalRoute, getRoadRoute, getRoadRouteThroughPoints, RoutingUnavailableError } from './routing';
 import { routeRequestSchema } from '../shared/navigation/contracts';
 import { calculatePlatformFee } from './fees';
-import { validateRuntimeConfig } from './config';
+import { getTrustedProxyHops, validateRuntimeConfig } from './config';
 import { parseJourneySearchRequest } from './journey/search';
 import { projectNotification } from './notifications';
 import { optimizeStopInsertion, type NavigationStop } from './navigation/stopOptimizer';
@@ -27,6 +27,7 @@ import { cachedNetwork, cachedVehicles, inBbox, intersects, isLineType, parseBbo
 import { bboxContains } from './mobility/types';
 import type { MobilityAssetType } from './mobility/types';
 import { normalizePlate } from './vehiclePlate';
+import { isExactVehiclePhotoOrder } from './vehiclePhotos';
 import { shouldGrantAdmin } from './adminPhones';
 import { testProviderConnection } from './mobility/connection';
 import { refreshProviderHealth } from './mobility/healthMonitor';
@@ -42,6 +43,7 @@ import {
 
 const app = express();
 validateRuntimeConfig(process.env);
+app.set('trust proxy', getTrustedProxyHops(process.env));
 const rendezvousSettings = getRendezvousSettings(process.env);
 if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required');
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, max: 12, idleTimeoutMillis: 30_000 });
@@ -199,7 +201,6 @@ const apiRateLimitLimit = Number(process.env.API_RATE_LIMIT_LIMIT) || 300;
 const apiRateLimitStore = process.env.REDIS_URL ? new RedisRateLimitStore(() => realtimeRedis, rateLimitPrefix) : undefined;
 
 app.disable('x-powered-by');
-app.set('trust proxy', 1);
 app.use((req, res, next) => {
   const requestId = crypto.randomUUID();
   res.locals.requestId = requestId;
@@ -2507,14 +2508,15 @@ app.post('/api/v1/vehicles/:id/photos', requireAuth, requireRole('driver'), asyn
   try {
     await client.query('BEGIN');
     await client.query('SELECT id FROM vehicles WHERE id=$1 AND owner_id=$2 FOR UPDATE', [req.params.id, req.userId]);
-    const existing = await client.query<{ count: number }>('SELECT count(*)::int AS count FROM vehicle_photos WHERE vehicle_id=$1', [req.params.id]);
+    const existing = await client.query<{ count: number; next_sort_order: number }>(
+      'SELECT count(*)::int AS count,(COALESCE(max(sort_order),-1)+1)::int AS next_sort_order FROM vehicle_photos WHERE vehicle_id=$1', [req.params.id]);
     if (existing.rows[0].count >= MAX_VEHICLE_PHOTOS) {
       await deleteStoredVehiclePhoto(key).catch(() => undefined);
       throw new ApiError(409, `A vehicle can have at most ${MAX_VEHICLE_PHOTOS} photos`, 'vehicle_photo_limit');
     }
     const { rows } = await client.query(
-      'INSERT INTO vehicle_photos(vehicle_id,object_key,is_primary) VALUES ($1,$2,$3) RETURNING id,vehicle_id,is_primary,created_at',
-      [req.params.id, key, existing.rows[0].count === 0],
+      'INSERT INTO vehicle_photos(vehicle_id,object_key,is_primary,sort_order) VALUES ($1,$2,$3,$4) RETURNING id,vehicle_id,is_primary,sort_order,created_at',
+      [req.params.id, key, existing.rows[0].count === 0, existing.rows[0].next_sort_order],
     );
     await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'vehicle.photo.added', 'vehicle', req.params.id]);
     // Level 1 is automatic: a valid plate plus a validated photo make the vehicle usable without an administrator.
@@ -2532,8 +2534,8 @@ app.post('/api/v1/vehicles/:id/photos', requireAuth, requireRole('driver'), asyn
 
 app.get('/api/v1/vehicles/:id/photos', requireAuth, asyncHandler(async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT p.id,p.is_primary,p.created_at,p.object_key FROM vehicle_photos p JOIN vehicles v ON v.id=p.vehicle_id
-      WHERE p.vehicle_id=$1 AND v.owner_id=$2 AND v.archived_at IS NULL ORDER BY p.is_primary DESC,p.created_at`, [req.params.id, req.userId],
+    `SELECT p.id,p.is_primary,p.sort_order,p.created_at,p.object_key FROM vehicle_photos p JOIN vehicles v ON v.id=p.vehicle_id
+      WHERE p.vehicle_id=$1 AND v.owner_id=$2 AND v.archived_at IS NULL ORDER BY p.sort_order,p.is_primary DESC,p.created_at,p.id`, [req.params.id, req.userId],
   );
   if (!rows.length) {
     const owned = await pool.query('SELECT 1 FROM vehicles WHERE id=$1 AND owner_id=$2 AND archived_at IS NULL', [req.params.id, req.userId]);
@@ -2551,6 +2553,33 @@ app.get('/api/v1/vehicles/:id/photos', requireAuth, asyncHandler(async (req, res
   }
 }));
 
+app.put('/api/v1/vehicles/:id/photos/order', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+  const requested = req.body?.photoIds;
+  if (!Array.isArray(requested) || requested.length > MAX_VEHICLE_PHOTOS) throw new ApiError(400, 'photoIds must list this vehicle\'s photos in display order', 'invalid_vehicle_photo_order');
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const vehicle = await client.query('SELECT id FROM vehicles WHERE id=$1 AND owner_id=$2 AND archived_at IS NULL FOR UPDATE', [req.params.id, req.userId]);
+    if (!vehicle.rows[0]) throw new ApiError(404, 'vehicle unavailable');
+    const photos = await client.query<{ id: string }>('SELECT id FROM vehicle_photos WHERE vehicle_id=$1 FOR UPDATE', [req.params.id]);
+    const existingIds = photos.rows.map((photo) => photo.id);
+    if (!isExactVehiclePhotoOrder(requested, existingIds, MAX_VEHICLE_PHOTOS)) {
+      throw new ApiError(409, 'photoIds must contain each owned vehicle photo exactly once', 'invalid_vehicle_photo_order');
+    }
+    await client.query(
+      `WITH ordered AS (SELECT id,ordinality::int-1 AS sort_order FROM unnest($2::uuid[]) WITH ORDINALITY AS item(id,ordinality))
+       UPDATE vehicle_photos AS photo SET sort_order=ordered.sort_order FROM ordered
+       WHERE photo.vehicle_id=$1 AND photo.id=ordered.id`, [req.params.id, requested],
+    );
+    await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'vehicle.photo.order_changed', 'vehicle', req.params.id]);
+    await client.query('COMMIT');
+    res.json({ data: { photoIds: requested } });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally { client.release(); }
+}));
+
 app.patch('/api/v1/vehicles/:id/photos/:photoId/primary', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
   const client = await pool.connect();
   try {
@@ -2562,7 +2591,7 @@ app.patch('/api/v1/vehicles/:id/photos/:photoId/primary', requireAuth, requireRo
     if (!photo.rows[0]) throw new ApiError(404, 'vehicle photo unavailable');
     await client.query('UPDATE vehicle_photos SET is_primary=false WHERE vehicle_id=$1', [req.params.id]);
     const { rows } = await client.query(
-      'UPDATE vehicle_photos SET is_primary=true WHERE id=$1 RETURNING id,vehicle_id,is_primary,created_at', [req.params.photoId],
+      'UPDATE vehicle_photos SET is_primary=true WHERE id=$1 RETURNING id,vehicle_id,is_primary,sort_order,created_at', [req.params.photoId],
     );
     await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'vehicle.photo.primary_changed', 'vehicle', req.params.id]);
     await client.query('COMMIT');
@@ -2598,9 +2627,13 @@ app.delete('/api/v1/vehicles/:id/photos/:photoId', requireAuth, requireRole('dri
     if (!removed.rows[0]) throw new ApiError(404, 'vehicle photo unavailable');
     if (removed.rows[0].is_primary) {
       await client.query(
-        'UPDATE vehicle_photos SET is_primary=true WHERE id=(SELECT id FROM vehicle_photos WHERE vehicle_id=$1 ORDER BY created_at,id LIMIT 1)', [req.params.id],
+        'UPDATE vehicle_photos SET is_primary=true WHERE id=(SELECT id FROM vehicle_photos WHERE vehicle_id=$1 ORDER BY sort_order,created_at,id LIMIT 1)', [req.params.id],
       );
     }
+    await client.query(
+      `WITH ordered AS (SELECT id,row_number() OVER (ORDER BY sort_order,created_at,id)-1 AS position FROM vehicle_photos WHERE vehicle_id=$1)
+       UPDATE vehicle_photos AS photo SET sort_order=ordered.position FROM ordered WHERE photo.id=ordered.id`, [req.params.id],
+    );
     await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'vehicle.photo.deleted', 'vehicle', req.params.id]);
     await client.query('COMMIT');
   } catch (error) {

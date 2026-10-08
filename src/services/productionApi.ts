@@ -115,7 +115,7 @@ export type ApiVehicle = {
   trust_level?: number;
   is_active: boolean;
 };
-export type ApiVehiclePhoto = { id: string; url: string; is_primary: boolean; created_at: string };
+export type ApiVehiclePhoto = { id: string; url: string; is_primary: boolean; sort_order: number; created_at: string };
 export type ApiVerificationRecord = {
   id: string; verification_type: 'vehicle' | 'driver_license' | 'identity' | 'commercial'; vehicle_id: string | null;
   status: 'pending' | 'approved' | 'rejected'; created_at: string; reviewed_at: string | null; review_note: string | null;
@@ -521,6 +521,9 @@ export const productionApi = {
   },
   setPrimaryVehiclePhoto(vehicleId: string, photoId: string) {
     return request<ApiVehiclePhoto>(`/vehicles/${vehicleId}/photos/${photoId}/primary`, { method: 'PATCH' });
+  },
+  reorderVehiclePhotos(vehicleId: string, photoIds: string[]) {
+    return request<{ photoIds: string[] }>(`/vehicles/${vehicleId}/photos/order`, { method: 'PUT', body: JSON.stringify({ photoIds }) });
   },
   deleteVehiclePhoto(vehicleId: string, photoId: string) {
     return request<{ id: string; deleted: boolean }>(`/vehicles/${vehicleId}/photos/${photoId}`, { method: 'DELETE' });

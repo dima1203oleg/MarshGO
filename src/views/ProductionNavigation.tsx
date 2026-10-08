@@ -516,7 +516,7 @@ export function ProductionNavigation({ onBack, onOpenDemand, autoStart = false, 
         <div className="min-w-0 flex-1"><p className="text-[1.9rem] font-extrabold leading-none tracking-tight">{formatGuidanceDistance(guidance.distanceMeters)}</p><p className="mt-1 line-clamp-2 text-[15px] font-bold leading-snug">{instructionText(guidance.next)}</p></div></div>
       <p data-testid="navigation-live-progress" className="border-t border-white/10 bg-white/5 px-4 py-2 text-xs text-blue-100">{guidance.currentStreet ? `${guidance.currentStreet} · ` : ''}{session.destination_name}: {distance} · {duration}{eta ? ` · прибуття ${eta}` : ''}</p>
     </div>; })() : <>
-      <div="pointer-events-none absolute left-4 right-4 top-[max(.8rem,env(safe-area-inset-top))] z-[500] rounded-[1.3rem] bg-[#0b2345]/95 p-4 text-white shadow-xl backdrop-blur">
+      <div className="pointer-events-none absolute left-4 right-4 top-[max(.8rem,env(safe-area-inset-top))] z-[500] rounded-[1.3rem] bg-[#0b2345]/95 p-4 text-white shadow-xl backdrop-blur">
       <div className="flex items-start gap-3"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-white/10"><Navigation size={21}/></span><div className="min-w-0 flex-1"><p className="truncate text-[11px] font-bold uppercase tracking-wide text-blue-200">{navigationState.lifecycle === 'ARRIVED' ? 'Ви досягли пункту призначення' : 'До пункту призначення'}</p><h1 className="truncate text-lg font-extrabold">{session.destination_name}</h1><p data-testid="navigation-live-progress" className="mt-1 text-xs text-blue-100">{distance} · {duration}{eta ? ` · прибуття ${eta}` : navigationState.connectivity === 'OFFLINE' ? ' · офлайн ETA' : ''}</p></div></div>
     </div>
     </>}
