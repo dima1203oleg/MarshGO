@@ -208,6 +208,7 @@ export class MapLibreAdapter implements MapAdapter {
     const next = this.modeState.toggleOrientation();
     try { localStorage.setItem(ORIENTATION_KEY, next); } catch { /* preference is optional */ }
     this.setCameraModeInternal(next === 'HEADING_UP' ? 'FOLLOW_HEADING' : 'FOLLOW');
+    if (this.vehicle) this.updateMarker(this.vehicle);
     this.followCamera(900, true);
     this.onOrientationChange(next, this.map.getBearing());
     return next;
@@ -224,7 +225,11 @@ export class MapLibreAdapter implements MapAdapter {
       this.marker = new maplibregl.Marker({ element, rotationAlignment: 'map', pitchAlignment: 'map' }).setLngLat(point).addTo(this.map);
     } else this.marker.setLngLat(point);
     const facing = this.facingBearing();
-    this.marker.setRotation(facing ?? 0);
+    // Heading Up: the camera is turned to face the road ahead, so the arrow simply points to the top of the screen (never sideways);
+    // North Up: it points to the real compass direction.
+    const headingUp = this.cameraMode === 'FOLLOW_HEADING';
+    this.marker.setRotationAlignment(headingUp ? 'viewport' : 'map');
+    this.marker.setRotation(headingUp ? 0 : facing ?? 0);
     this.map.getContainer().dataset.marshgoVehicleHeading = facing === null ? '' : String(Math.round(facing));
   }
 
@@ -286,8 +291,8 @@ export class MapLibreAdapter implements MapAdapter {
     if (point) this.vehicle = point;
     if (!this.vehicle) { this.fitRoute(); return; }
     this.modeState.returnToNavigation();
-    this.updateMarker(this.vehicle);
     this.setCameraModeInternal(this.modeState.orientation === 'HEADING_UP' ? 'FOLLOW_HEADING' : 'FOLLOW');
+    this.updateMarker(this.vehicle);
     this.followCamera(1100, true);
   }
 
