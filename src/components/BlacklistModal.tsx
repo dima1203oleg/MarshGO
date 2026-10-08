@@ -259,12 +259,8 @@ export const BlacklistModal: React.FC<BlacklistModalProps> = ({
                     >
                       <div className="flex items-start gap-3">
                         <div className="relative">
-                          {/^https:\/\//i.test(String(item.avatar)) ? <img
-                            src={item.avatar}
-                            alt={item.name}
-                            className="w-11 h-11 rounded-full object-cover border-2 border-red-300 dark:border-red-800"
-                            referrerPolicy="no-referrer"
-                          /> : <span className="block w-11 h-11 rounded-full bg-red-100 border-2 border-red-300" />}
+                          {/* Initial instead of a user-supplied image URL: nothing user-controlled reaches an img src. */}
+                          <span className="grid w-11 h-11 place-items-center rounded-full bg-red-100 border-2 border-red-300 text-sm font-extrabold text-red-700">{String(item.name ?? '?').slice(0, 1).toUpperCase()}</span>
                           <div className="absolute -bottom-1 -right-1 bg-red-600 text-white rounded-full p-0.5 shadow-xs">
                             <Ban className="w-3 h-3" />
                           </div>
