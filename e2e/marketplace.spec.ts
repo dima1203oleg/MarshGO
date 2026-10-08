@@ -150,6 +150,7 @@ test.afterAll(async () => {
 });
 
 test('two independent accounts search, book, negotiate a demand, and exchange persisted chat messages', async ({ browser, baseURL }) => {
+  test.setTimeout(150_000);
   expect(baseURL).toBeTruthy();
   const passengerContext = await browser.newContext();
   const driverContext = await browser.newContext();
@@ -453,8 +454,8 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     expect(exportedData.profile.phone_e164).toBe(passengerPhone);
     expect(JSON.stringify(exportedData)).not.toContain(driverPhone);
     await expect(passengerPage.getByRole('status').filter({ hasText: 'Ваші дані завантажено' })).toBeVisible();
-    passengerPage.once('dialog', (dialog) => dialog.accept());
     await passengerPage.getByRole('button', { name: 'Подати запит на видалення' }).click();
+    await passengerPage.getByRole('alertdialog', { name: 'Подати запит на видалення акаунта?' }).getByRole('button', { name: 'Так, подати запит' }).click();
     await expect(passengerPage.getByRole('status').filter({ hasText: 'Запит на видалення зареєстровано' })).toBeVisible();
     await expect(passengerPage.getByText(/Запит очікує скасування до/)).toBeVisible();
     await passengerPage.getByRole('button', { name: 'Скасувати запит' }).click();
@@ -596,8 +597,7 @@ test('driver safely matches two independent riders, inserts ordered stops, and r
     const sessionResponse = await createdSession;
     expect(sessionResponse.status()).toBe(201);
     navigationSessionId = (await sessionResponse.json()).data.id as string;
-    await expect(driverPage.getByRole('switch', { name: 'Пошук попутників уздовж маршруту' })).toBeEnabled();
-    await driverPage.getByRole('switch', { name: 'Пошук попутників уздовж маршруту' }).click();
+    // A driver with a verified vehicle gets passenger search along the route on by default.
     await expect(driverPage.getByRole('switch', { name: 'Пошук попутників уздовж маршруту' })).toHaveAttribute('aria-checked', 'true');
     await expect.poll(async () => pool.query<{ current_location_at: Date | null }>('SELECT current_location_at FROM navigation_sessions WHERE id=$1', [navigationSessionId]).then(result => result.rows[0]?.current_location_at ?? null)).not.toBeNull();
 

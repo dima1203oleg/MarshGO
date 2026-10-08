@@ -1158,4 +1158,29 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     const expiredProposalUiData = await expiredProposals.json() as { data: Array<{ id: string; status: string }> };
     assert.equal(expiredProposalUiData.data.find((item) => item.id === expiryProposalId)?.status, 'expired');
   });
+
+  it('serves map layers only to signed-in users and rejects oversized or malformed viewports', async () => {
+    const devUser = crypto.randomUUID();
+    await pool.query(`INSERT INTO users(id,display_name,roles) VALUES($1,'Layer reader',ARRAY['passenger'])`, [devUser]);
+    await pool.query(`INSERT INTO user_roles(user_id,role) VALUES($1,'passenger')`, [devUser]);
+    try {
+      const headers = { 'x-dev-user-id': devUser };
+      for (const path of ['layers', 'routes?bbox=24,49,24.1,49.1&types=bus', 'stops?bbox=24,49,24.1,49.1&types=bus', 'vehicles?bbox=24,49,24.1,49.1&types=bus', 'micromobility?bbox=24,49,24.1,49.1&types=scooter']) {
+        assert.equal((await fetch(`${apiUrl}/api/v1/transport/${path}`)).status, 401, `${path} requires sign-in`);
+      }
+      const layers = await fetch(`${apiUrl}/api/v1/transport/layers`, { headers });
+      assert.equal(layers.status, 200);
+      const ids = (await layers.json() as { data: Array<{ id: string; available: boolean }> }).data.map((item) => item.id);
+      assert.deepEqual(ids, ['PUBLIC_TRANSPORT', 'METRO', 'BUS', 'TRAM', 'TROLLEYBUS', 'STOPS', 'BICYCLE', 'SCOOTER', 'RENTAL_POINTS']);
+      for (const path of ['routes?types=bus', 'routes?bbox=24,49,24.1,49.1', 'routes?bbox=20,45,30,55&types=bus', 'stops?bbox=24,49,25,50&types=bus', 'vehicles?bbox=x&types=bus', 'micromobility?bbox=24,49,25,50&types=scooter', 'micromobility?bbox=24,49,24.1,49.1&types=cars']) {
+        assert.equal((await fetch(`${apiUrl}/api/v1/transport/${path}`, { headers })).status, 400, `${path} must be rejected`);
+      }
+      const empty = await fetch(`${apiUrl}/api/v1/transport/routes?bbox=-10,-10,-9.9,-9.9&types=bus`, { headers });
+      assert.equal(empty.status, 200);
+      assert.deepEqual((await empty.json() as { data: { features: unknown[] } }).data.features, []);
+    } finally {
+      await pool.query('DELETE FROM user_roles WHERE user_id=$1', [devUser]);
+      await pool.query('DELETE FROM users WHERE id=$1', [devUser]);
+    }
+  });
 });

@@ -42,8 +42,27 @@ test('production UI stays usable at phone, tablet and desktop sizes with current
   ]);
   await expect(page.locator('.production-app')).toBeVisible();
   await expect(page.getByRole('heading', { name: /Їдеш\? MARSHGO знайде попутника/ })).toBeVisible();
-  await expect(page.getByText('Куди їдемо?')).toBeVisible();
+  for (const name of ['Почати навігацію', 'Шукати поїздку', 'Запланувати поїздку']) await expect(page.getByRole('button', { name })).toBeVisible();
+  await expect(page.getByText('Куди їдемо?')).toHaveCount(0);
   await expect(page.getByText('100+ маршрутів')).toHaveCount(0);
+
+  // The first screen must fit one viewport: no scrolling, all three actions visible above the bottom navigation.
+  for (const viewport of [
+    { name: 'small-320x568', width: 320, height: 568 }, { name: 'iphone-se-375x667', width: 375, height: 667 }, { name: 'iphone-13-390x844', width: 390, height: 844 },
+    { name: 'iphone-15-pro-max-430x932', width: 430, height: 932 }, { name: 'iphone-16-pro-max-440x956', width: 440, height: 956 },
+  ]) {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await page.waitForTimeout(150);
+    const fit = await page.evaluate(() => {
+      const root = document.documentElement;
+      const nav = document.querySelector('nav[aria-label="Основна навігація"]')?.getBoundingClientRect();
+      const bottoms = ['Почати навігацію', 'Шукати поїздку', 'Запланувати поїздку'].map((label) => [...document.querySelectorAll('.home-hero > button')].find((b) => b.textContent?.includes(label))?.getBoundingClientRect().bottom ?? Infinity);
+      return { vertical: root.scrollHeight - window.innerHeight, horizontal: root.scrollWidth - window.innerWidth, lowestButton: Math.max(...bottoms), navTop: nav?.top ?? window.innerHeight };
+    });
+    expect(fit.vertical, `${viewport.name}: home must not scroll vertically`).toBeLessThanOrEqual(0);
+    expect(fit.horizontal, `${viewport.name}: home must not scroll horizontally`).toBeLessThanOrEqual(0);
+    expect(fit.lowestButton, `${viewport.name}: third action must be above the bottom navigation`).toBeLessThanOrEqual(fit.navTop + 1);
+  }
 
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.getByRole('navigation', { name: 'Розділи MARSHGO' }).getByRole('button', { name: 'Пошук поїздок' }).click();

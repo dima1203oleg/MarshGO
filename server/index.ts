@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { gzipSync } from 'node:zlib';
 import crypto from 'node:crypto';
 import { cert, getApps, initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
@@ -22,6 +23,7 @@ import { selectRepresentativeJourneys } from './journey/scoring';
 import { JOURNEY_STRATEGIES, type JourneyOption, type JourneyStrategy } from './journey/types';
 import { getRendezvousSettings, isWithinPickupGeofence, resolveRendezvousAction, type RendezvousAction, type RendezvousState } from './rendezvous';
 import { cachedSnapshot, selectNearby } from './mobility/nearby';
+import { cachedNetwork, cachedVehicles, inBbox, intersects, isLineType, parseBbox, routeInBbox, type LineType, type NetworkRoute } from './mobility/transportLayers';
 import { bboxContains } from './mobility/types';
 import type { MobilityAssetType } from './mobility/types';
 import { normalizePlate } from './vehiclePlate';
@@ -77,7 +79,7 @@ function deliverRealtime(userIds: string[], event: string) {
   }
 }
 const supportedOutboxEvents = new Set([
-  'conversation.message.created', 'booking.confirmed', 'booking.cancelled', 'booking.changed',
+  'conversation.message.created', 'booking.confirmed', 'booking.cancelled', 'booking.changed', 'booking.change-requested', 'trip.updated', 'trip.cancelled',
   'proposal.created', 'proposal.countered', 'proposal.updated', 'proposal.accepted', 'proposal.closed', 'proposal.expired',
   'navigation.match.driver-interested', 'navigation.match.passenger-confirmed', 'navigation.route-updated',
   'journey.updated', 'journey.started', 'journey.leg.started', 'journey.leg.completed', 'journey.completed',
@@ -433,6 +435,97 @@ app.get('/api/v1/mobility/nearby', requireAuth, placeSearchLimiter, asyncHandler
   res.json({ data: { mode, radiusM, providers: providers.length, failedProviders: settled.length - snapshots.length, ...result } });
 }));
 
+// ---- Map layers (2D). Everything is loaded per viewport and per layer; the client asks only for layers the user switched on. ----
+type LayerProviderRow = { id: string; name: string; city: string; provider_type: string; source_type: string; feed_url: string; last_report: { bbox?: [number, number, number, number]; counts?: Record<string, number> } };
+const layerProviders = async (sourceTypes: string[], providerTypes: string[]) => (await pool.query<LayerProviderRow>(
+  `SELECT id,name,city,provider_type,source_type,feed_url,last_report FROM mobility_providers WHERE status='enabled' AND health IN ('healthy','degraded') AND source_type = ANY($1) AND provider_type = ANY($2) ORDER BY priority,name`, [sourceTypes, providerTypes],
+)).rows;
+const providerTouches = (row: LayerProviderRow, box: [number, number, number, number]) => row.city === 'Україна' || !row.last_report?.bbox || intersects(box, [row.last_report.bbox[0] - .15, row.last_report.bbox[1] - .1, row.last_report.bbox[2] + .15, row.last_report.bbox[3] + .1]);
+/** Map layers can be hundreds of KB of GeoJSON; compress when the client accepts it. Coordinates are rounded to ~1 m. */
+const sendLayerJson = (req: express.Request, res: express.Response, payload: unknown) => {
+  const body = Buffer.from(JSON.stringify(payload).replace(/(\d+\.\d{5})\d+/g, '$1'));
+  res.setHeader('content-type', 'application/json; charset=utf-8'); res.setHeader('cache-control', 'private, max-age=10');
+  if (String(req.headers['accept-encoding'] ?? '').includes('gzip')) { res.setHeader('content-encoding', 'gzip'); res.setHeader('vary', 'accept-encoding'); res.end(gzipSync(body)); return; }
+  res.end(body);
+};
+const typesParam = (raw: unknown): LineType[] => (typeof raw === 'string' ? raw.split(',').filter(isLineType) : []);
+const layerFetch = <T>(task: Promise<T>) => task.then((value) => ({ ok: true as const, value }), () => ({ ok: false as const }));
+
+/** Which layers can show anything right now (from the connected feeds), so the client can grey out the rest. */
+app.get('/api/v1/transport/layers', requireAuth, asyncHandler(async (_req, res) => {
+  const { rows } = await pool.query<{ provider_type: string; source_type: string; last_report: { counts?: Record<string, number> } }>(
+    `SELECT provider_type,source_type,last_report FROM mobility_providers WHERE status='enabled' AND health IN ('healthy','degraded')`);
+  const lines = new Set<string>(); const micro = new Set<string>(); let stationsAvailable = false;
+  for (const row of rows) {
+    if (row.provider_type === 'public_transit') for (const [key, count] of Object.entries(row.last_report?.counts ?? {})) { const match = /^(routes|vehicles)_(\w+)$/.exec(key); if (match && count > 0) lines.add(match[2]); }
+    else { micro.add(row.provider_type); if ((row.last_report?.counts?.stations ?? 0) > 0) stationsAvailable = true; }
+  }
+  const publicTransport = ['bus', 'marshrutka', 'trolleybus', 'tram'].some((type) => lines.has(type));
+  res.json({ data: [
+    { id: 'PUBLIC_TRANSPORT', available: publicTransport }, { id: 'METRO', available: lines.has('metro') }, { id: 'BUS', available: lines.has('bus') || lines.has('marshrutka') },
+    { id: 'TRAM', available: lines.has('tram') }, { id: 'TROLLEYBUS', available: lines.has('trolleybus') }, { id: 'STOPS', available: publicTransport || lines.has('train') || lines.has('metro') },
+    { id: 'BICYCLE', available: micro.has('bike') || micro.has('ebike') }, { id: 'SCOOTER', available: micro.has('scooter') }, { id: 'RENTAL_POINTS', available: stationsAvailable },
+  ] });
+}));
+
+const loadRoutes = async (box: [number, number, number, number], types: LineType[] = []) => {
+  // Skip feeds that contain none of the requested transport types (e.g. a national rail feed when the user asked for trams).
+  const hasTypes = (row: LayerProviderRow) => types.length === 0 || types.some((type) => (row.last_report?.counts?.[`routes_${type}`] ?? 0) > 0);
+  const providers = (await layerProviders(['gtfs'], ['public_transit'])).filter((row) => providerTouches(row, box) && hasTypes(row));
+  const settled = await Promise.all(providers.map((row) => layerFetch(cachedNetwork(row.id, row.feed_url).then((network) => ({ row, network })))));
+  return { settled, loaded: settled.flatMap((item) => item.ok ? [item.value] : []) };
+};
+
+app.get('/api/v1/transport/routes', requireAuth, asyncHandler(async (req, res) => {
+  const box = parseBbox(req.query.bbox); const types = typesParam(req.query.types);
+  if (!box || types.length === 0) throw new ApiError(400, 'bbox (west,south,east,north, at most 2 degrees) and types are required', 'invalid_transport_query');
+  const { settled, loaded } = await loadRoutes(box, types);
+  const features = loaded.flatMap(({ row, network }) => network.routes.filter((route: NetworkRoute) => types.includes(route.type) && routeInBbox(route, box))
+    .map((route) => ({ type: 'Feature' as const, properties: { id: `${row.id}:${route.id}`, name: route.name, transport: route.type, provider: row.name.split(' — ')[0] }, geometry: { type: 'LineString' as const, coordinates: route.coordinates } })));
+  sendLayerJson(req, res, { data: { type: 'FeatureCollection', features: features.slice(0, 600) }, meta: { failedProviders: settled.length - loaded.length, truncated: features.length > 600 } });
+}));
+
+app.get('/api/v1/transport/stops', requireAuth, asyncHandler(async (req, res) => {
+  const box = parseBbox(req.query.bbox, 0.5); const types = typesParam(req.query.types);
+  if (!box || types.length === 0) throw new ApiError(400, 'bbox (west,south,east,north, at most 0.5 degree) and types are required; zoom in to see stops', 'invalid_transport_query');
+  const { settled, loaded } = await loadRoutes(box, types);
+  const features = loaded.flatMap(({ row, network }) => network.stops.filter((stop) => inBbox(box, stop.lon, stop.lat) && stop.types.some((type) => types.includes(type)))
+    .map((stop) => ({ type: 'Feature' as const, properties: { id: `${row.id}:${stop.id}`, name: stop.name, transports: stop.types.join(','), provider: row.name.split(' — ')[0] }, geometry: { type: 'Point' as const, coordinates: [stop.lon, stop.lat] } })));
+  sendLayerJson(req, res, { data: { type: 'FeatureCollection', features: features.slice(0, 2500) }, meta: { failedProviders: settled.length - loaded.length, truncated: features.length > 2500 } });
+}));
+
+app.get('/api/v1/transport/vehicles', requireAuth, asyncHandler(async (req, res) => {
+  const box = parseBbox(req.query.bbox); const types = typesParam(req.query.types);
+  if (!box || types.length === 0) throw new ApiError(400, 'bbox (west,south,east,north, at most 2 degrees) and types are required', 'invalid_transport_query');
+  const realtime = (await layerProviders(['gtfs_rt', 'json'], ['public_transit'])).filter((row) => providerTouches(row, box));
+  const { loaded } = await loadRoutes(box, types);
+  const names = new Map<string, { name: string; type: LineType }>();
+  for (const { network } of loaded) for (const route of network.routes) names.set(route.id.split('|')[0], { name: route.name, type: route.type });
+  const settled = await Promise.all(realtime.map((row) => layerFetch(cachedVehicles(row.id, row.source_type, row.feed_url, names))));
+  const vehicles = settled.flatMap((item) => item.ok ? item.value : []).filter((vehicle) => inBbox(box, vehicle.lon, vehicle.lat) && (vehicle.type === 'other' || types.includes(vehicle.type)));
+  const features = vehicles.slice(0, 1500).map((vehicle) => ({ type: 'Feature' as const, properties: { id: vehicle.id, route: vehicle.route, transport: vehicle.type, bearing: vehicle.bearing }, geometry: { type: 'Point' as const, coordinates: [vehicle.lon, vehicle.lat] } }));
+  sendLayerJson(req, res, { data: { type: 'FeatureCollection', features }, meta: { failedProviders: settled.filter((item) => !item.ok).length, updatedAt: new Date().toISOString() } });
+}));
+
+app.get('/api/v1/transport/micromobility', requireAuth, asyncHandler(async (req, res) => {
+  const box = parseBbox(req.query.bbox, 0.6);
+  const wanted = typeof req.query.types === 'string' ? req.query.types.split(',') : [];
+  const assetTypes = new Set<MobilityAssetType>(wanted.flatMap((type): MobilityAssetType[] => type === 'bike' ? ['BIKE', 'EBIKE'] : type === 'scooter' ? ['SCOOTER'] : []));
+  const wantStations = wanted.includes('stations');
+  if (!box || (assetTypes.size === 0 && !wantStations)) throw new ApiError(400, 'bbox (at most 0.6 degree) and types (bike, scooter, stations) are required', 'invalid_transport_query');
+  const providers = (await layerProviders(['gbfs'], ['bike', 'ebike', 'scooter'])).filter((row) => providerTouches(row, box));
+  const settled = await Promise.all(providers.map((row) => layerFetch(cachedSnapshot(row.id, row.feed_url).then((snapshot) => ({ row, snapshot })))));
+  const features: unknown[] = [];
+  for (const item of settled) {
+    if (!item.ok) continue;
+    for (const asset of item.value.snapshot.assets) if (asset.available && assetTypes.has(asset.type) && inBbox(box, asset.location[0], asset.location[1]))
+      features.push({ type: 'Feature', properties: { kind: asset.type === 'SCOOTER' ? 'scooter' : 'bike', provider: item.value.row.name.split(' — ')[0], battery: asset.batteryPercent ?? null }, geometry: { type: 'Point', coordinates: asset.location } });
+    if (wantStations) for (const station of item.value.snapshot.stations) if (inBbox(box, station.location[0], station.location[1]))
+      features.push({ type: 'Feature', properties: { kind: 'station', name: station.name, available: station.availableAssets ?? null, provider: item.value.row.name.split(' — ')[0] }, geometry: { type: 'Point', coordinates: station.location } });
+  }
+  sendLayerJson(req, res, { data: { type: 'FeatureCollection', features: features.slice(0, 3000) }, meta: { failedProviders: settled.filter((item) => !item.ok).length, truncated: features.length > 3000 } });
+}));
+
 app.get('/api/v1/admin/mobility/providers', requireAuth, requireAdmin, asyncHandler(async (_req, res) => {
   const { rows } = await pool.query(`SELECT ${providerColumns} FROM mobility_providers ORDER BY city, priority, name`);
   res.json({ data: rows });
@@ -659,7 +752,8 @@ async function refreshNavigationMatches(sessionId: string, driverId: string) {
   if (!session) throw new ApiError(404, 'navigation session unavailable');
   if (session.state !== 'active' || !session.opt_in) throw new ApiError(409, 'Pause navigation and opt in before looking for passengers', 'matching_not_enabled');
   if (!session.vehicle_seat_count) throw new ApiError(409, 'A verified active vehicle is required for passenger matching', 'verified_vehicle_required');
-  if (!session.current_location || !session.destination || !session.current_location_at || Date.now() - new Date(session.current_location_at).getTime() > 60_000) {
+  if (!session.destination) throw new ApiError(409, 'Choose a destination so MARSHGO can build the route and look for passengers along it', 'destination_required');
+  if (!session.current_location || !session.current_location_at || Date.now() - new Date(session.current_location_at).getTime() > 60_000) {
     throw new ApiError(409, 'A fresh GPS fix is required for route matching', 'location_stale');
   }
 
@@ -780,20 +874,24 @@ async function refreshNavigationMatches(sessionId: string, driverId: string) {
 
 // Foreground navigation stores only the driver's latest location. It is private to the
 // authenticated driver and removed when the session ends. Matching starts opt-in only.
-app.post('/api/v1/navigation/sessions', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+app.post('/api/v1/navigation/sessions', requireAuth, asyncHandler(async (req, res) => {
   const { origin, destination, destinationName } = req.body ?? {};
   const pointValid = (point: unknown) => Array.isArray(point) && point.length === 2 &&
     point.every((value) => typeof value === 'number' && Number.isFinite(value)) &&
     Math.abs(point[0]) <= 180 && Math.abs(point[1]) <= 90;
-  if (!pointValid(origin) || !pointValid(destination) || typeof destinationName !== 'string' ||
-      destinationName.trim().length < 1 || destinationName.trim().length > 120) {
-    throw new ApiError(400, 'A GPS origin, destination coordinates and destination name are required');
+  // Navigation is for everyone; only passenger matching needs a verified vehicle (enforced below). Navigation may start without a destination ("just drive"); the road route, and with it passenger matching, starts once one is chosen.
+  const freeDrive = destination === undefined || destination === null;
+  if (!pointValid(origin)) throw new ApiError(400, 'A GPS origin is required');
+  if (!freeDrive && (!pointValid(destination) || typeof destinationName !== 'string' || destinationName.trim().length < 1 || destinationName.trim().length > 120)) {
+    throw new ApiError(400, 'Destination coordinates and a destination name are required together');
   }
-  let route: Awaited<ReturnType<typeof getRoadRoute>>;
-  try { route = await getRoadRoute(origin as [number, number], destination as [number, number]); }
-  catch (error) {
-    if (error instanceof RoutingUnavailableError) throw new ApiError(503, error.message, 'routing_unavailable');
-    throw error;
+  let route: Awaited<ReturnType<typeof getRoadRoute>> | null = null;
+  if (!freeDrive) {
+    try { route = await getRoadRoute(origin as [number, number], destination as [number, number]); }
+    catch (error) {
+      if (error instanceof RoutingUnavailableError) throw new ApiError(503, error.message, 'routing_unavailable');
+      throw error;
+    }
   }
   const client = await pool.connect();
   try {
@@ -808,22 +906,22 @@ app.post('/api/v1/navigation/sessions', requireAuth, requireRole('driver'), asyn
     const matchingVehicle = verifiedVehicle.rows[0];
     const { rows } = await client.query(
       `INSERT INTO navigation_sessions(driver_id,vehicle_id,vehicle_seat_count,destination_name,destination,route,route_distance_m,route_duration_s)
-       VALUES($1,$2,$3,$4,ST_SetSRID(ST_MakePoint($5,$6),4326)::geography,
-         ST_SetSRID(ST_GeomFromGeoJSON($7),4326),$8,$9)
+       VALUES($1,$2,$3,$4,CASE WHEN $5::float8 IS NULL THEN NULL ELSE ST_SetSRID(ST_MakePoint($5,$6),4326)::geography END,
+         CASE WHEN $7::text IS NULL THEN NULL ELSE ST_SetSRID(ST_GeomFromGeoJSON($7),4326) END,$8,$9)
        RETURNING id,state,destination_name,route_distance_m,route_duration_s,route_version,opt_in,started_at,vehicle_id,vehicle_seat_count,(vehicle_id IS NOT NULL) AS matching_vehicle_available`,
-      [req.userId, matchingVehicle?.id ?? null, matchingVehicle ? Number(matchingVehicle.seat_count) : null, destinationName.trim(), destination[0], destination[1],
-        JSON.stringify({ type: 'LineString', coordinates: route.geometry }), Math.round(route.distanceMeters), Math.round(route.durationSeconds)],
+      [req.userId, matchingVehicle?.id ?? null, matchingVehicle ? Number(matchingVehicle.seat_count) : null, freeDrive ? null : destinationName.trim(), freeDrive ? null : destination[0], freeDrive ? null : destination[1],
+        route ? JSON.stringify({ type: 'LineString', coordinates: route.geometry }) : null, route ? Math.round(route.distanceMeters) : null, route ? Math.round(route.durationSeconds) : null],
     );
     await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES($1,$2,$3,$4)', [req.userId, 'navigation.started', 'navigation_session', rows[0].id]);
     await client.query('COMMIT');
-    res.status(201).json({ data: { ...rows[0], route: route.geometry, current_location: origin, current_location_accuracy_m: null, current_location_at: null } });
+    res.status(201).json({ data: { ...rows[0], route: route?.geometry ?? null, current_location: origin, current_location_accuracy_m: null, current_location_at: null } });
   } catch (error) {
     await client.query('ROLLBACK');
     throw error;
   } finally { client.release(); }
 }));
 
-app.get('/api/v1/navigation/sessions/active', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+app.get('/api/v1/navigation/sessions/active', requireAuth, asyncHandler(async (req, res) => {
   const { rows } = await pool.query(
     `SELECT id,state,destination_name,route_distance_m,route_duration_s,route_version,opt_in,started_at,ended_at,vehicle_id,vehicle_seat_count,(vehicle_id IS NOT NULL) AS matching_vehicle_available,
        ST_AsGeoJSON(route)::json->'coordinates' AS route,
@@ -834,7 +932,7 @@ app.get('/api/v1/navigation/sessions/active', requireAuth, requireRole('driver')
   res.json({ data: rows[0] ?? null });
 }));
 
-app.patch('/api/v1/navigation/sessions/:id/matching', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+app.patch('/api/v1/navigation/sessions/:id/matching', requireAuth, asyncHandler(async (req, res) => {
   const enabled = req.body?.enabled;
   if (typeof enabled !== 'boolean') throw new ApiError(400, 'enabled must be a boolean');
   const client = await pool.connect();
@@ -860,7 +958,7 @@ app.patch('/api/v1/navigation/sessions/:id/matching', requireAuth, requireRole('
   } finally { client.release(); }
 }));
 
-app.post('/api/v1/navigation/sessions/:id/pause', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+app.post('/api/v1/navigation/sessions/:id/pause', requireAuth, asyncHandler(async (req, res) => {
   const { rows } = await pool.query(
     `UPDATE navigation_sessions SET state='paused',last_activity_at=now() WHERE id=$1 AND driver_id=$2 AND state='active'
      RETURNING id,state,opt_in,current_location_at`, [req.params.id, req.userId],
@@ -869,7 +967,7 @@ app.post('/api/v1/navigation/sessions/:id/pause', requireAuth, requireRole('driv
   res.json({ data: rows[0] });
 }));
 
-app.post('/api/v1/navigation/sessions/:id/resume', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+app.post('/api/v1/navigation/sessions/:id/resume', requireAuth, asyncHandler(async (req, res) => {
   const { rows } = await pool.query(
     `UPDATE navigation_sessions SET state='active',last_activity_at=now() WHERE id=$1 AND driver_id=$2 AND state='paused'
      RETURNING id,state,opt_in,current_location_at`, [req.params.id, req.userId],
@@ -878,7 +976,51 @@ app.post('/api/v1/navigation/sessions/:id/resume', requireAuth, requireRole('dri
   res.json({ data: rows[0] });
 }));
 
-app.post('/api/v1/navigation/sessions/:id/reroute', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+app.put('/api/v1/navigation/sessions/:id/destination', requireAuth, asyncHandler(async (req, res) => {
+  const { destination, destinationName } = req.body ?? {};
+  const valid = Array.isArray(destination) && destination.length === 2 && destination.every((v) => typeof v === 'number' && Number.isFinite(v)) && Math.abs(destination[0]) <= 180 && Math.abs(destination[1]) <= 90;
+  if (!valid || typeof destinationName !== 'string' || destinationName.trim().length < 1 || destinationName.trim().length > 120) throw new ApiError(400, 'Destination coordinates and name are required');
+  const { rows } = await pool.query<{ state: string; route_version: number; current_location_at: Date | null; current_lon: number | null; current_lat: number | null }>(
+    `SELECT state,route_version,current_location_at,
+       CASE WHEN current_location IS NULL THEN NULL ELSE ST_X(current_location::geometry) END AS current_lon,
+       CASE WHEN current_location IS NULL THEN NULL ELSE ST_Y(current_location::geometry) END AS current_lat
+     FROM navigation_sessions WHERE id=$1 AND driver_id=$2`, [req.params.id, req.userId],
+  );
+  const snapshot = rows[0];
+  if (!snapshot || snapshot.state !== 'active') throw new ApiError(409, 'Only an active owned navigation session can get a destination', 'NAVIGATION_STATE_CONFLICT');
+  if (!snapshot.current_location_at || snapshot.current_lon === null || snapshot.current_lat === null || Date.now() - new Date(snapshot.current_location_at).getTime() > 90_000) throw new ApiError(409, 'A fresh GPS fix is required to build the route', 'GPS_STALE');
+  let route: Awaited<ReturnType<typeof getRoadRoute>>;
+  try { route = await getRoadRoute([snapshot.current_lon, snapshot.current_lat], destination as [number, number]); }
+  catch (error) {
+    if (error instanceof RoutingUnavailableError) throw new ApiError(503, error.message, error.detail.code);
+    throw error;
+  }
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const updated = await client.query(
+      `UPDATE navigation_sessions SET destination_name=$3,destination=ST_SetSRID(ST_MakePoint($4,$5),4326)::geography,route=ST_SetSRID(ST_GeomFromGeoJSON($6),4326),
+         route_distance_m=$7,route_duration_s=$8,route_version=route_version+1,last_activity_at=now()
+       WHERE id=$1 AND driver_id=$2 AND state='active' AND route_version=$9
+       RETURNING id,state,destination_name,route_distance_m,route_duration_s,route_version,opt_in,started_at,ended_at,
+         vehicle_id,vehicle_seat_count,(vehicle_id IS NOT NULL) AS matching_vehicle_available,
+         ST_AsGeoJSON(route)::json->'coordinates' AS route,
+         json_build_array(ST_X(current_location::geometry),ST_Y(current_location::geometry)) AS current_location,
+         current_location_accuracy_m,current_location_at`,
+      [req.params.id, req.userId, destinationName.trim(), destination[0], destination[1], JSON.stringify({ type: 'LineString', coordinates: route.geometry }), Math.round(route.distanceMeters), Math.round(route.durationSeconds), snapshot.route_version],
+    );
+    if (!updated.rows[0]) throw new ApiError(409, 'Navigation changed; retry', 'NAVIGATION_STATE_CONFLICT');
+    await client.query(`UPDATE navigation_match_candidates SET status='expired' WHERE navigation_session_id=$1 AND status IN ('suggested','driver_interested','passenger_confirmed')`, [req.params.id]);
+    await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES($1,$2,$3,$4)', [req.userId, 'navigation.destination_set', 'navigation_session', req.params.id]);
+    await client.query('COMMIT');
+    res.json({ data: updated.rows[0] });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally { client.release(); }
+}));
+
+app.post('/api/v1/navigation/sessions/:id/reroute', requireAuth, asyncHandler(async (req, res) => {
   const { rows } = await pool.query<{
     state: string; route_version: number; current_location_at: Date | null; current_lon: number | null; current_lat: number | null;
     destination_lon: number; destination_lat: number; destination_name: string; opt_in: boolean;
@@ -1016,7 +1158,7 @@ app.post('/api/v1/navigation/matches/:candidateId/passenger-confirm', requireAut
   } finally { client.release(); }
 }));
 
-app.get('/api/v1/navigation/sessions/:id', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+app.get('/api/v1/navigation/sessions/:id', requireAuth, asyncHandler(async (req, res) => {
   const { rows } = await pool.query(
     `SELECT id,state,destination_name,route_distance_m,route_duration_s,route_version,opt_in,started_at,ended_at,vehicle_id,vehicle_seat_count,(vehicle_id IS NOT NULL) AS matching_vehicle_available,
        ST_AsGeoJSON(route)::json->'coordinates' AS route,
@@ -1028,7 +1170,7 @@ app.get('/api/v1/navigation/sessions/:id', requireAuth, requireRole('driver'), a
   res.json({ data: rows[0] });
 }));
 
-app.post('/api/v1/navigation/sessions/:id/location', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+app.post('/api/v1/navigation/sessions/:id/location', requireAuth, asyncHandler(async (req, res) => {
   const { coordinates, accuracyMeters, capturedAt } = req.body ?? {};
   const validPoint = Array.isArray(coordinates) && coordinates.length === 2 && coordinates.every((v) => typeof v === 'number' && Number.isFinite(v)) &&
     Math.abs(coordinates[0]) <= 180 && Math.abs(coordinates[1]) <= 90;
@@ -1073,7 +1215,7 @@ app.post('/api/v1/navigation/sessions/:id/location', requireAuth, requireRole('d
     const waypointVisited = nextStop.rows[0] && Number(nextStop.rows[0].distance_m) <= Math.max(100, accuracyMeters + 40)
       ? await client.query(`UPDATE navigation_waypoints SET state='visited' WHERE id=$1 AND state='scheduled'`, [nextStop.rows[0].id]) : null;
     await client.query('COMMIT');
-    res.json({ data: { accepted: true, onRoute: update.rows[0].on_route, capturedAt: update.rows[0].current_location_at,
+    res.json({ data: { accepted: true, onRoute: update.rows[0].on_route ?? true, capturedAt: update.rows[0].current_location_at,
       visitedStop: waypointVisited?.rowCount ? { kind: nextStop.rows[0].kind, placeName: nextStop.rows[0].place_name } : null } });
   } catch (error) {
     await client.query('ROLLBACK');
@@ -1081,7 +1223,7 @@ app.post('/api/v1/navigation/sessions/:id/location', requireAuth, requireRole('d
   } finally { client.release(); }
 }));
 
-app.post('/api/v1/navigation/sessions/:id/end', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+app.post('/api/v1/navigation/sessions/:id/end', requireAuth, asyncHandler(async (req, res) => {
   const { rows } = await pool.query(
     `UPDATE navigation_sessions SET state='ended',opt_in=false,ended_at=COALESCE(ended_at,now()),destination_name=NULL,destination=NULL,route=NULL,
        current_location=NULL,current_location_accuracy_m=NULL,current_location_at=NULL
@@ -1360,11 +1502,47 @@ app.post('/api/v1/auth/logout-all', requireAuth, asyncHandler(async (req, res) =
 
 app.get('/api/v1/users/me', requireAuth, asyncHandler(async (req, res) => {
   const { rows } = await pool.query(
-    `SELECT id,phone_e164,display_name,email,roles,is_verified,account_status,created_at
+    `SELECT id,phone_e164,display_name,email,roles,is_verified,account_status,created_at,driver_photo_key
        FROM users WHERE id=$1 AND account_status='active'`, [req.userId],
   );
   if (!rows[0]) throw new ApiError(404, 'user unavailable');
-  res.json({ data: rows[0] });
+  const { driver_photo_key: photoKey, ...user } = rows[0];
+  res.json({ data: { ...user, driver_photo_url: photoKey ? await getVehiclePhotoUrl(photoKey).catch(() => null) : null } });
+}));
+
+// ---- Driver face photo (one per person; separate from vehicle photos) ----
+const storageError = (error: unknown) => error instanceof ObjectStorageUnavailableError || (error instanceof Error && error.name === 'CredentialsProviderError');
+app.post('/api/v1/users/me/driver-photo/upload-url', requireAuth, asyncHandler(async (req, res) => {
+  const contentType = req.body?.contentType;
+  if (!isAllowedPhotoType(contentType)) throw new ApiError(400, 'Only JPEG, PNG and WebP photos are allowed', 'invalid_photo_type');
+  const key = `driver-photos/${req.userId}/${crypto.randomUUID()}`;
+  try { res.json({ data: { key, ...(await createVehiclePhotoUpload(key, contentType)) } }); }
+  catch (error) { if (storageError(error)) throw new ApiError(503, 'Photo storage is not configured', 'object_storage_unavailable'); throw error; }
+}));
+app.post('/api/v1/users/me/driver-photo', requireAuth, asyncHandler(async (req, res) => {
+  const { key, contentType } = req.body ?? {};
+  const prefix = `driver-photos/${req.userId}/`;
+  if (typeof key !== 'string' || !key.startsWith(prefix) || !/^[0-9a-f-]{36}$/i.test(key.slice(prefix.length)) || !isAllowedPhotoType(contentType)) throw new ApiError(400, 'invalid driver photo reference');
+  let url: string;
+  try {
+    if (!await verifyVehiclePhotoObject(key, contentType)) { await deleteStoredVehiclePhoto(key).catch(() => undefined); throw new ApiError(400, 'Uploaded file does not match the required image type or size', 'invalid_driver_photo'); }
+    url = await getVehiclePhotoUrl(key);
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    if (storageError(error)) throw new ApiError(503, 'Photo storage is not configured', 'object_storage_unavailable');
+    throw new ApiError(503, 'Uploaded photo could not be verified', 'driver_photo_verification_failed');
+  }
+  const { rows } = await pool.query<{ previous: string | null }>(
+    'UPDATE users u SET driver_photo_key=$2 FROM (SELECT driver_photo_key AS previous FROM users WHERE id=$1 FOR UPDATE) old WHERE u.id=$1 RETURNING old.previous', [req.userId, key]);
+  if (rows[0]?.previous && rows[0].previous !== key) await deleteStoredVehiclePhoto(rows[0].previous).catch(() => undefined);
+  await pool.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'driver.photo.updated', 'user', req.userId]);
+  res.status(201).json({ data: { driver_photo_url: url } });
+}));
+app.delete('/api/v1/users/me/driver-photo', requireAuth, asyncHandler(async (req, res) => {
+  const { rows } = await pool.query<{ previous: string | null }>(
+    'UPDATE users u SET driver_photo_key=NULL FROM (SELECT driver_photo_key AS previous FROM users WHERE id=$1 FOR UPDATE) old WHERE u.id=$1 RETURNING old.previous', [req.userId]);
+  if (rows[0]?.previous) await deleteStoredVehiclePhoto(rows[0].previous).catch(() => undefined);
+  res.json({ data: { driver_photo_url: null } });
 }));
 
 app.get('/api/v1/places/suggest', requireAuth, placeSearchLimiter, asyncHandler(async (req, res) => {
@@ -1529,7 +1707,7 @@ app.get('/api/v1/offers/mine', requireAuth, requireRole('driver'), asyncHandler(
   const { rows } = await pool.query(
     `SELECT o.id,o.origin_name,o.destination_name,o.departure_at,o.arrival_at,o.distance_m,o.duration_s,o.route_source,
             o.price_per_seat_minor,o.currency,o.available_seats,o.total_seats,u.display_name AS driver_name,
-            ratings.average_rating,ratings.review_count,o.status,photo.object_key AS vehicle_photo_key
+            ratings.average_rating,ratings.review_count,o.status,o.vehicle_id,photo.object_key AS vehicle_photo_key
        FROM offers o JOIN users u ON u.id=o.driver_id
        LEFT JOIN vehicle_photos photo ON photo.vehicle_id=o.vehicle_id AND photo.is_primary=true
        LEFT JOIN LATERAL (SELECT round(avg(r.rating)::numeric,2) AS average_rating,count(*)::int AS review_count
@@ -1540,6 +1718,184 @@ app.get('/api/v1/offers/mine', requireAuth, requireRole('driver'), asyncHandler(
     ...offer, vehicle_photo_url: vehicle_photo_key ? await getVehiclePhotoUrl(vehicle_photo_key).catch(() => null) : null,
   }))) });
 }));
+
+// ---- Editing a published trip ----------------------------------------------------------------------------------------
+/** A departure shift above this, a price increase or another vehicle needs each booked passenger's approval. */
+const SIGNIFICANT_DEPARTURE_SHIFT_MS = 30 * 60_000;
+type ChangeSummary = { price?: { old: number; new: number }; departure?: { old: string; new: string }; vehicle?: { old: string; new: string }; seats?: { old: number; new: number } };
+
+app.patch('/api/v1/offers/:id', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+  const body = req.body ?? {};
+  const reason = typeof body.reason === 'string' && body.reason.trim() ? body.reason.trim().slice(0, 300) : null;
+  const wantsPrice = body.pricePerSeatMinor !== undefined, wantsDeparture = body.departureAt !== undefined, wantsSeats = body.totalSeats !== undefined, wantsVehicle = body.vehicleId !== undefined;
+  if (!wantsPrice && !wantsDeparture && !wantsSeats && !wantsVehicle) throw new ApiError(400, 'Nothing to change', 'offer_change_empty');
+  if (wantsPrice && (!Number.isInteger(body.pricePerSeatMinor) || body.pricePerSeatMinor < 0 || body.pricePerSeatMinor > 10_000_000)) throw new ApiError(400, 'pricePerSeatMinor must be a whole amount in kopiyky', 'invalid_price');
+  const newDeparture = wantsDeparture ? new Date(body.departureAt) : null;
+  if (newDeparture && (!Number.isFinite(newDeparture.getTime()) || newDeparture.getTime() < Date.now() + 10 * 60_000 || newDeparture.getTime() > Date.now() + 180 * 86_400_000)) throw new ApiError(400, 'Departure must be at least 10 minutes ahead and within 180 days', 'invalid_departure');
+  if (wantsSeats && (!Number.isInteger(body.totalSeats) || body.totalSeats < 1 || body.totalSeats > 20)) throw new ApiError(400, 'totalSeats must be 1-20', 'invalid_seats');
+  if (wantsVehicle && typeof body.vehicleId !== 'string') throw new ApiError(400, 'vehicleId must be a vehicle id', 'invalid_vehicle');
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows: offers } = await client.query<{ id: string; status: string; departure_at: Date; arrival_at: Date | null; price_per_seat_minor: number; total_seats: number; available_seats: number; vehicle_id: string }>(
+      'SELECT id,status,departure_at,arrival_at,price_per_seat_minor,total_seats,available_seats,vehicle_id FROM offers WHERE id=$1 AND driver_id=$2 FOR UPDATE', [req.params.id, req.userId]);
+    const offer = offers[0];
+    if (!offer) throw new ApiError(404, 'offer unavailable');
+    if (offer.status !== 'published' || new Date(offer.departure_at).getTime() <= Date.now()) throw new ApiError(409, 'Only an upcoming published trip can be edited', 'offer_not_editable');
+    const booked = offer.total_seats - offer.available_seats;
+    const changes: Array<{ field: 'price' | 'departure' | 'seats' | 'vehicle'; old: string; next: string; significant: boolean }> = [];
+    const summary: ChangeSummary = {};
+    let price = offer.price_per_seat_minor, departure = new Date(offer.departure_at), arrival = offer.arrival_at ? new Date(offer.arrival_at) : null, total = offer.total_seats, vehicleId = offer.vehicle_id;
+
+    if (wantsPrice && body.pricePerSeatMinor !== offer.price_per_seat_minor) {
+      price = body.pricePerSeatMinor;
+      changes.push({ field: 'price', old: String(offer.price_per_seat_minor), next: String(price), significant: price > offer.price_per_seat_minor });
+      summary.price = { old: offer.price_per_seat_minor, new: price };
+    }
+    if (newDeparture && Math.abs(newDeparture.getTime() - departure.getTime()) >= 60_000) {
+      const shift = newDeparture.getTime() - departure.getTime();
+      changes.push({ field: 'departure', old: departure.toISOString(), next: newDeparture.toISOString(), significant: Math.abs(shift) > SIGNIFICANT_DEPARTURE_SHIFT_MS });
+      summary.departure = { old: departure.toISOString(), new: newDeparture.toISOString() };
+      if (arrival) arrival = new Date(arrival.getTime() + shift);
+      departure = newDeparture;
+    }
+    if (wantsSeats && body.totalSeats !== offer.total_seats) {
+      if (body.totalSeats < booked) throw new ApiError(409, `${booked} seats are already booked; the trip cannot offer fewer`, 'seats_below_booked');
+      total = body.totalSeats;
+      changes.push({ field: 'seats', old: String(offer.total_seats), next: String(total), significant: false });
+      summary.seats = { old: offer.total_seats, new: total };
+    }
+    if (wantsVehicle && body.vehicleId !== offer.vehicle_id) {
+      const { rows: vehicles } = await client.query<{ id: string; seat_count: number; make: string; model: string }>(
+        'SELECT id,seat_count,make,model FROM vehicles WHERE id=$1 AND owner_id=$2 AND archived_at IS NULL AND trust_level>=1', [body.vehicleId, req.userId]);
+      const vehicle = vehicles[0];
+      if (!vehicle) throw new ApiError(409, 'Choose one of your vehicles with a plate and a photo', 'vehicle_not_usable');
+      if (vehicle.seat_count < total) throw new ApiError(409, 'This vehicle has fewer seats than the trip offers', 'vehicle_too_small');
+      const { rows: old } = await client.query<{ make: string; model: string }>('SELECT make,model FROM vehicles WHERE id=$1', [offer.vehicle_id]);
+      vehicleId = vehicle.id;
+      changes.push({ field: 'vehicle', old: offer.vehicle_id, next: vehicle.id, significant: true });
+      summary.vehicle = { old: old[0] ? `${old[0].make} ${old[0].model}` : '—', new: `${vehicle.make} ${vehicle.model}` };
+    }
+    if (changes.length === 0) { await client.query('COMMIT'); res.json({ data: { id: offer.id, changed: false, approvalsRequested: 0, bookingsNotified: 0 } }); return; }
+
+    const { rows: updated } = await client.query(
+      `UPDATE offers SET price_per_seat_minor=$2,departure_at=$3,arrival_at=$4,total_seats=$5::int,available_seats=$5::int-$6::int,vehicle_id=$7 WHERE id=$1
+       RETURNING id,origin_name,destination_name,departure_at,arrival_at,price_per_seat_minor,currency,total_seats,available_seats,status,vehicle_id`,
+      [offer.id, price, departure.toISOString(), arrival?.toISOString() ?? null, total, booked, vehicleId]);
+    for (const change of changes) {
+      await client.query('INSERT INTO offer_changes(offer_id,changed_by,field,old_value,new_value,significant,reason) VALUES($1,$2,$3,$4,$5,$6,$7)',
+        [offer.id, req.userId, change.field, change.old, change.next, change.significant, reason]);
+    }
+    await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'offer.updated', 'offer', offer.id]);
+
+    // Each confirmed booking: a cheaper price applies at once; significant changes wait for the passenger's decision.
+    const significant = changes.some((change) => change.significant);
+    const { rows: bookings } = await client.query<{ id: string; passenger_id: string; seat_count: number; unit_price_minor: number }>(
+      "SELECT id,passenger_id,seat_count,unit_price_minor FROM bookings WHERE offer_id=$1 AND status='confirmed' FOR UPDATE", [offer.id]);
+    let approvalsRequested = 0;
+    for (const booking of bookings) {
+      if (summary.price && price < booking.unit_price_minor) {
+        await client.query('UPDATE bookings SET unit_price_minor=$2,total_price_minor=$2*seat_count WHERE id=$1', [booking.id, price]);
+      }
+      if (significant) {
+        const { rows: previous } = await client.query<{ summary: ChangeSummary; new_unit_price_minor: number | null }>(
+          "UPDATE booking_change_approvals SET status='superseded',decided_at=now() WHERE booking_id=$1 AND status='pending' RETURNING summary,new_unit_price_minor", [booking.id]);
+        // A newer edit keeps the original "before" values the passenger agreed to, so they always compare with their booking.
+        const merged: ChangeSummary = { ...summary };
+        const earlier = previous[0]?.summary;
+        if (earlier?.price && merged.price) merged.price = { old: earlier.price.old, new: merged.price.new };
+        else if (earlier?.price && !merged.price) merged.price = { old: earlier.price.old, new: price };
+        if (earlier?.departure) merged.departure = { old: earlier.departure.old, new: departure.toISOString() };
+        if (earlier?.vehicle) merged.vehicle = { old: earlier.vehicle.old, new: merged.vehicle?.new ?? earlier.vehicle.new };
+        const newUnit = price > booking.unit_price_minor ? price : null;
+        const { rows: approval } = await client.query<{ id: string }>(
+          'INSERT INTO booking_change_approvals(booking_id,summary,new_unit_price_minor) VALUES($1,$2::jsonb,$3) RETURNING id', [booking.id, JSON.stringify(merged), newUnit]);
+        await insertRealtimeOutbox(client, 'booking.change-requested', `booking.change-requested:${approval[0].id}`, [booking.passenger_id], { booking_id: booking.id, offer_id: offer.id, status: 'pending' });
+        approvalsRequested++;
+      } else {
+        await insertRealtimeOutbox(client, 'trip.updated', `trip.updated:${offer.id}:${booking.id}:${Date.now()}`, [booking.passenger_id], { booking_id: booking.id, offer_id: offer.id });
+      }
+    }
+    await client.query('COMMIT');
+    res.json({ data: { ...updated[0], changed: true, approvalsRequested, bookingsNotified: bookings.length } });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally { client.release(); }
+}));
+
+app.post('/api/v1/offers/:id/cancel', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+  const reason = typeof req.body?.reason === 'string' && req.body.reason.trim() ? req.body.reason.trim().slice(0, 300) : null;
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query<{ id: string; status: string }>('SELECT id,status FROM offers WHERE id=$1 AND driver_id=$2 FOR UPDATE', [req.params.id, req.userId]);
+    const offer = rows[0];
+    if (!offer) throw new ApiError(404, 'offer unavailable');
+    if (offer.status === 'cancelled') { await client.query('COMMIT'); res.json({ data: { id: offer.id, status: 'cancelled', cancelledBookings: 0 }, replayed: true }); return; }
+    if (offer.status !== 'published') throw new ApiError(409, 'Only a trip that has not started can be cancelled', 'offer_not_cancellable');
+    await client.query("UPDATE offers SET status='cancelled',available_seats=total_seats WHERE id=$1", [offer.id]);
+    await client.query("INSERT INTO offer_changes(offer_id,changed_by,field,old_value,new_value,significant,reason) VALUES($1,$2,'status','published','cancelled',true,$3)", [offer.id, req.userId, reason]);
+    const { rows: bookings } = await client.query<{ id: string; passenger_id: string }>(
+      "UPDATE bookings SET status='cancelled',cancelled_at=now() WHERE offer_id=$1 AND status='confirmed' RETURNING id,passenger_id", [offer.id]);
+    for (const booking of bookings) {
+      await client.query("INSERT INTO booking_events(booking_id,from_status,to_status,actor_id,reason) VALUES ($1,'confirmed','cancelled',$2,'driver_cancelled_trip')", [booking.id, req.userId]);
+      await client.query("UPDATE booking_change_approvals SET status='superseded',decided_at=now() WHERE booking_id=$1 AND status='pending'", [booking.id]);
+      await client.query(`UPDATE rendezvous_sessions SET state='CANCELLED',location_sharing_enabled=false,cancelled_at=COALESCE(cancelled_at,now()),updated_at=now()
+        WHERE booking_id=$1 AND state NOT IN ('COMPLETED','CANCELLED','EXPIRED')`, [booking.id]);
+      await insertRealtimeOutbox(client, 'trip.cancelled', `trip.cancelled:${offer.id}:${booking.id}`, [booking.passenger_id], { booking_id: booking.id, offer_id: offer.id, status: 'cancelled' });
+    }
+    await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'offer.cancelled', 'offer', offer.id]);
+    await client.query('COMMIT');
+    res.json({ data: { id: offer.id, status: 'cancelled', cancelledBookings: bookings.length } });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally { client.release(); }
+}));
+
+app.get('/api/v1/offers/:id/changes', requireAuth, asyncHandler(async (req, res) => {
+  const { rows: access } = await pool.query(
+    `SELECT 1 FROM offers o WHERE o.id=$1 AND (o.driver_id=$2 OR EXISTS(SELECT 1 FROM bookings b WHERE b.offer_id=o.id AND b.passenger_id=$2))`, [req.params.id, req.userId]);
+  if (!access[0]) throw new ApiError(404, 'offer unavailable');
+  const { rows } = await pool.query('SELECT id,field,old_value,new_value,significant,reason,created_at FROM offer_changes WHERE offer_id=$1 ORDER BY created_at DESC,id LIMIT 200', [req.params.id]);
+  res.json({ data: rows });
+}));
+
+const decideBookingChange = (accept: boolean) => asyncHandler(async (req, res) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query<{ id: string; status: string; booking_id: string; new_unit_price_minor: number | null; passenger_id: string; driver_id: string; offer_id: string; seat_count: number; booking_status: string }>(
+      `SELECT a.id,a.status,a.booking_id,a.new_unit_price_minor,b.passenger_id,o.driver_id,b.offer_id,b.seat_count,b.status AS booking_status
+         FROM booking_change_approvals a JOIN bookings b ON b.id=a.booking_id JOIN offers o ON o.id=b.offer_id
+        WHERE a.id=$1 AND b.passenger_id=$2 FOR UPDATE OF a,b`, [req.params.id, req.userId]);
+    const approval = rows[0];
+    if (!approval) throw new ApiError(404, 'change unavailable');
+    if (approval.status !== 'pending' || approval.booking_status !== 'confirmed') throw new ApiError(409, 'This change was already decided or replaced by a newer one', 'change_not_pending');
+    if (accept) {
+      if (approval.new_unit_price_minor !== null) await client.query('UPDATE bookings SET unit_price_minor=$2,total_price_minor=$2*seat_count WHERE id=$1', [approval.booking_id, approval.new_unit_price_minor]);
+      await client.query("UPDATE booking_change_approvals SET status='accepted',decided_at=now() WHERE id=$1", [approval.id]);
+      await insertRealtimeOutbox(client, 'booking.changed', `booking.change-accepted:${approval.id}`, [approval.driver_id], { booking_id: approval.booking_id, offer_id: approval.offer_id, status: 'confirmed' });
+    } else {
+      // Declining a significant change is a free cancellation: the seats go back to the trip.
+      await client.query("UPDATE booking_change_approvals SET status='rejected',decided_at=now() WHERE id=$1", [approval.id]);
+      await client.query("UPDATE bookings SET status='cancelled',cancelled_at=now() WHERE id=$1", [approval.booking_id]);
+      await client.query("INSERT INTO booking_events(booking_id,from_status,to_status,actor_id,reason) VALUES ($1,'confirmed','cancelled',$2,'passenger_declined_change')", [approval.booking_id, req.userId]);
+      await client.query("UPDATE offers SET available_seats=LEAST(total_seats,available_seats+$2) WHERE id=$1 AND status='published'", [approval.offer_id, approval.seat_count]);
+      await insertRealtimeOutbox(client, 'booking.cancelled', `booking.change-rejected:${approval.id}`, [approval.driver_id], { booking_id: approval.booking_id, offer_id: approval.offer_id, status: 'cancelled' });
+    }
+    await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, accept ? 'booking.change.accepted' : 'booking.change.rejected', 'booking', approval.booking_id]);
+    await client.query('COMMIT');
+    res.json({ data: { id: approval.id, status: accept ? 'accepted' : 'rejected', bookingStatus: accept ? 'confirmed' : 'cancelled' } });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally { client.release(); }
+});
+app.post('/api/v1/booking-changes/:id/accept', requireAuth, decideBookingChange(true));
+app.post('/api/v1/booking-changes/:id/reject', requireAuth, decideBookingChange(false));
 
 app.get('/api/v1/offers', asyncHandler(async (req, res) => {
   const origin = String(req.query.origin || '').trim();
@@ -2090,11 +2446,16 @@ app.delete('/api/v1/vehicles/:id', requireAuth, requireRole('driver'), asyncHand
   }
 }));
 
+/** Photos per vehicle: one is required, up to this many are allowed. The limit lives in one place so it can be raised without changing the data model. */
+const MAX_VEHICLE_PHOTOS = Math.max(1, Math.min(10, Number(process.env.MAX_VEHICLE_PHOTOS) || 3));
+
 app.post('/api/v1/vehicles/:id/photos/upload-url', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
   const contentType = req.body?.contentType;
   if (!isAllowedPhotoType(contentType)) throw new ApiError(400, 'Only JPEG, PNG, and WebP vehicle photos are allowed');
   const { rows } = await pool.query('SELECT 1 FROM vehicles WHERE id=$1 AND owner_id=$2 AND archived_at IS NULL', [req.params.id, req.userId]);
   if (!rows[0]) throw new ApiError(404, 'vehicle unavailable');
+  const stored = await pool.query<{ count: number }>('SELECT count(*)::int AS count FROM vehicle_photos WHERE vehicle_id=$1', [req.params.id]);
+  if (stored.rows[0].count >= MAX_VEHICLE_PHOTOS) throw new ApiError(409, `A vehicle can have at most ${MAX_VEHICLE_PHOTOS} photos`, 'vehicle_photo_limit');
   const key = `vehicle-photos/${req.userId}/${req.params.id}/${crypto.randomUUID()}`;
   try {
     const upload = await createVehiclePhotoUpload(key, contentType);
@@ -2136,10 +2497,14 @@ app.post('/api/v1/vehicles/:id/photos', requireAuth, requireRole('driver'), asyn
   try {
     await client.query('BEGIN');
     await client.query('SELECT id FROM vehicles WHERE id=$1 AND owner_id=$2 FOR UPDATE', [req.params.id, req.userId]);
-    const existing = await client.query('SELECT 1 FROM vehicle_photos WHERE vehicle_id=$1 LIMIT 1', [req.params.id]);
+    const existing = await client.query<{ count: number }>('SELECT count(*)::int AS count FROM vehicle_photos WHERE vehicle_id=$1', [req.params.id]);
+    if (existing.rows[0].count >= MAX_VEHICLE_PHOTOS) {
+      await deleteStoredVehiclePhoto(key).catch(() => undefined);
+      throw new ApiError(409, `A vehicle can have at most ${MAX_VEHICLE_PHOTOS} photos`, 'vehicle_photo_limit');
+    }
     const { rows } = await client.query(
       'INSERT INTO vehicle_photos(vehicle_id,object_key,is_primary) VALUES ($1,$2,$3) RETURNING id,vehicle_id,is_primary,created_at',
-      [req.params.id, key, existing.rowCount === 0],
+      [req.params.id, key, existing.rows[0].count === 0],
     );
     await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'vehicle.photo.added', 'vehicle', req.params.id]);
     // Level 1 is automatic: a valid plate plus a validated photo make the vehicle usable without an administrator.
@@ -2299,7 +2664,9 @@ app.get('/api/v1/bookings', requireAuth, asyncHandler(async (req, res) => {
             o.origin_name, o.destination_name, o.departure_at, u.display_name AS driver_name, p.display_name AS passenger_name,
             (o.driver_id=$1) AS current_user_is_driver,
             (SELECT count(*)::int FROM booking_completion_confirmations cc WHERE cc.booking_id=b.id) AS completion_confirmation_count,
-            EXISTS(SELECT 1 FROM booking_completion_confirmations cc WHERE cc.booking_id=b.id AND cc.user_id=$1) AS current_user_confirmed_completion
+            EXISTS(SELECT 1 FROM booking_completion_confirmations cc WHERE cc.booking_id=b.id AND cc.user_id=$1) AS current_user_confirmed_completion,
+            (SELECT json_build_object('id',a.id,'summary',a.summary,'new_unit_price_minor',a.new_unit_price_minor,'created_at',a.created_at)
+               FROM booking_change_approvals a WHERE a.booking_id=b.id AND a.status='pending' LIMIT 1) AS pending_change
        FROM bookings b JOIN offers o ON o.id = b.offer_id JOIN users u ON u.id = o.driver_id
        JOIN users p ON p.id=b.passenger_id
       WHERE b.passenger_id = $1 OR o.driver_id=$1 ORDER BY b.created_at DESC LIMIT 100`, [req.userId],

@@ -13,6 +13,9 @@ export interface MapAdapter {
   setTheme(theme: MapTheme): void;
   setMode(mode: MapMode): void;
   setLayer(layer: MapLayer): void;
+  setTransportLayers(layers: ReadonlySet<import('./transportLayers').TransportLayerId>): void;
+  focus(point: Coordinate, zoom?: number): void;
+  onTransportHint: (message: string | null) => void;
   retry(): void;
   destroy(): void;
   getStatus(): MapStatus;

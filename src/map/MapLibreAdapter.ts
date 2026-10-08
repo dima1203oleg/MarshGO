@@ -6,7 +6,8 @@ import type { Coordinate } from '../../shared/navigation/contracts';
 import type { CameraMode, MapAdapter, MapStatus, MapTheme } from './MapAdapter';
 import { mapStyleTokens } from './style/tokens';
 import { Protocol } from 'pmtiles';
-import { mapLayers, mapModes, styleForLayer, transitAttribution, transitTiles, type MapLayer, type MapMode } from './mapMode';
+import { mapLayers, mapModes, styleForLayer, type MapLayer, type MapMode } from './mapMode';
+import { TransportLayerController, type TransportLayerId } from './transportLayers';
 import { configuredMapStyleUrl } from './mapConfig';
 
 const pmtilesProtocol = new Protocol();
@@ -23,6 +24,10 @@ export class MapLibreAdapter implements MapAdapter {
   private seenTileError = false;
   private mode: MapMode = 'google';
   private layer: MapLayer = 'standard';
+  private transport: TransportLayerController | null = null;
+  private transportLayers: ReadonlySet<TransportLayerId> = new Set();
+  /** Shown when a layer needs a closer zoom or fails to load. */
+  onTransportHint: (message: string | null) => void = () => undefined;
 
   constructor(container: HTMLElement, style: string | StyleSpecification, private readonly onStatus: (status: MapStatus) => void, private readonly hasBasemap: boolean, private readonly styleUrls?: Partial<Record<MapTheme, string>>, initialTheme: MapTheme = 'MARSHGO_NAVIGATION_LIGHT') {
     this.theme = initialTheme;
@@ -48,10 +53,6 @@ export class MapLibreAdapter implements MapAdapter {
   private installLayers() {
     const colors = { ...mapStyleTokens[this.theme], route: mapModes[this.mode].route, routeCasing: mapModes[this.mode].casing };
     this.map.getContainer().dataset.marshgoMapLayer = this.layer;
-    if (this.layer === 'transit' && transitTiles.length > 0 && !this.map.getSource('marshgo-transit')) {
-      this.map.addSource('marshgo-transit', { type: 'raster', tiles: transitTiles, tileSize: 256, maxzoom: 19, attribution: transitAttribution });
-      this.map.addLayer({ id: 'marshgo-transit', type: 'raster', source: 'marshgo-transit', paint: { 'raster-opacity': 0.9 } });
-    }
     if (!this.map.getSource('marshgo-route')) this.map.addSource('marshgo-route', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
     if (!this.map.getSource('marshgo-vehicle')) this.map.addSource('marshgo-vehicle', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
     if (!this.map.getSource('marshgo-waypoints')) this.map.addSource('marshgo-waypoints', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
@@ -60,6 +61,7 @@ export class MapLibreAdapter implements MapAdapter {
     if (!this.map.getLayer('marshgo-waypoints')) this.map.addLayer({ id: 'marshgo-waypoints', type: 'circle', source: 'marshgo-waypoints', paint: { 'circle-radius': 8, 'circle-color': ['match', ['get', 'kind'], 'PICKUP', colors.pickup, 'DROPOFF', colors.dropoff, colors.route], 'circle-stroke-color': colors.routeCasing, 'circle-stroke-width': 3 } });
     if (!this.map.getLayer('marshgo-vehicle-halo')) this.map.addLayer({ id: 'marshgo-vehicle-halo', type: 'circle', source: 'marshgo-vehicle', paint: { 'circle-radius': 13, 'circle-color': colors.vehicle, 'circle-opacity': 0.2 } });
     if (!this.map.getLayer('marshgo-vehicle')) this.map.addLayer({ id: 'marshgo-vehicle', type: 'circle', source: 'marshgo-vehicle', paint: { 'circle-radius': 8, 'circle-color': colors.vehicle, 'circle-stroke-color': colors.routeCasing, 'circle-stroke-width': 3 } });
+    this.transport?.reinstall();
     this.setRoute(this.route);
     if (this.vehicle) this.setVehicle(this.vehicle);
     this.setWaypoints(this.waypoints);
@@ -117,6 +119,14 @@ export class MapLibreAdapter implements MapAdapter {
     else if (layer === 'standard') this.map.setStyle(this.map.getStyle());
     this.map.easeTo({ pitch: mapLayers[layer].pitch, duration: 700, essential: true });
   }
+  /** 2D information layers (metro, buses, bikes, ...). Passing an empty set removes them and stops their polling. */
+  setTransportLayers(layers: ReadonlySet<TransportLayerId>) {
+    this.transportLayers = layers;
+    if (layers.size === 0 && !this.transport) return;
+    this.transport ??= new TransportLayerController(this.map, (message) => this.onTransportHint(message));
+    this.transport.apply(layers);
+  }
+  focus(point: Coordinate, zoom = 13) { this.cameraMode = 'FREE'; this.map.easeTo({ center: point, zoom, duration: 600, essential: true }); }
   setCameraMode(mode: CameraMode) { this.cameraMode = mode; }
   setTheme(theme: MapTheme) {
     const changed = this.theme !== theme;
@@ -135,6 +145,6 @@ export class MapLibreAdapter implements MapAdapter {
     if (this.map.getLayer('marshgo-background')) this.map.setPaintProperty('marshgo-background', 'background-color', colors.background);
   }
   retry() { this.seenTileError = false; this.publish(this.hasBasemap ? 'loading' : 'unconfigured'); if (this.hasBasemap) this.map.setStyle(this.map.getStyle()); else this.map.triggerRepaint(); }
-  destroy() { this.map.remove(); }
+  destroy() { this.transport?.destroy(); this.map.remove(); }
   getStatus() { return this.status; }
 }
