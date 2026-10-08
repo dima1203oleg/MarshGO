@@ -1,6 +1,6 @@
 import bindings from 'gtfs-realtime-bindings';
 import { fetchBinary } from './safeFetch';
-import { bboxOf, type ConnectionReport } from './types';
+import { bboxOf, centerInUkraine, type ConnectionReport } from './types';
 
 const { transit_realtime } = bindings;
 type FeedMessage = InstanceType<typeof bindings.transit_realtime.FeedMessage>;
@@ -25,6 +25,8 @@ export async function testGtfsRealtimeConnection(url: string): Promise<Connectio
   const summary = summarizeRealtime(message);
   const points = message.entity.flatMap((entity): Array<[number, number]> => { const position = entity.vehicle?.position; return position && Number.isFinite(position.latitude) && Number.isFinite(position.longitude) && Math.abs(position.latitude) <= 90 && Math.abs(position.longitude) <= 180 ? [[position.longitude, position.latitude]] : []; });
   checks.push({ name: 'Entities', ok: summary.entities > 0, detail: `${summary.vehicles} vehicles, ${summary.tripUpdates} trip updates, ${summary.alerts} alerts` });
+  const located = bboxOf(points);
+  checks.push({ name: 'Positions are in Ukraine', ok: centerInUkraine(located), detail: located ? `${located.map((value) => value.toFixed(2)).join(', ')}` : 'no positions' });
   if (summary.ageSeconds !== null) checks.push({ name: 'Freshness', ok: summary.ageSeconds < 300, detail: `${summary.ageSeconds}s old` });
   const counts: Record<string, number> = { vehicles: summary.vehicles, tripUpdates: summary.tripUpdates, alerts: summary.alerts, ...(summary.ageSeconds !== null ? { ageSeconds: summary.ageSeconds } : {}) };
   return { health: checks.every((check) => check.ok) ? 'healthy' : 'degraded', checks, counts, responseMs: Date.now() - started, ...(bboxOf(points) ? { bbox: bboxOf(points) } : {}) };

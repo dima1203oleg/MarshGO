@@ -41,3 +41,12 @@ describe('transport layer network', () => {
     assert.equal(routeInBbox(network.routes[0], [24, 49, 24.04, 49.85]), true);
   });
 });
+
+import { centerInUkraine } from '../server/mobility/types';
+describe('feed location sanity', () => {
+  it('rejects feeds whose positions are outside Ukraine and accepts Kyiv or Lviv', () => {
+    assert.equal(centerInUkraine([-77.1, -12.1, -77.0, -12.0]), false);
+    assert.equal(centerInUkraine([30.3, 50.2, 30.8, 50.6]), true);
+    assert.equal(centerInUkraine([23.9, 49.7, 24.2, 49.9]), true);
+  });
+});

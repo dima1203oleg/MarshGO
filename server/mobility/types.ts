@@ -43,3 +43,11 @@ export function bboxContains(box: Bbox, lon: number, lat: number, marginKm = 15)
   const dLat = marginKm / 111, dLon = marginKm / (111 * Math.max(0.2, Math.cos((lat * Math.PI) / 180)));
   return lon >= box[0] - dLon && lon <= box[2] + dLon && lat >= box[1] - dLat && lat <= box[3] + dLat;
 }
+
+/** Ukraine's rough bounding box: a feed catalogued for a Ukrainian city whose positions lie elsewhere is not that city's data. */
+export const UKRAINE_BBOX: Bbox = [22, 44, 41, 53];
+export function centerInUkraine(box: Bbox | undefined): boolean {
+  if (!box) return true; // no positions to judge by
+  const lon = (box[0] + box[2]) / 2, lat = (box[1] + box[3]) / 2;
+  return lon >= UKRAINE_BBOX[0] && lon <= UKRAINE_BBOX[2] && lat >= UKRAINE_BBOX[1] && lat <= UKRAINE_BBOX[3];
+}

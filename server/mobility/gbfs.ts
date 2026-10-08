@@ -1,4 +1,4 @@
-import { bboxOf, type ConnectionReport, type MobilityAsset, type MobilityAssetType, type MobilityStation } from './types';
+import { bboxOf, centerInUkraine, type ConnectionReport, type MobilityAsset, type MobilityAssetType, type MobilityStation } from './types';
 import { fetchJson } from './safeFetch';
 
 type Json = Record<string, unknown>;
@@ -95,6 +95,8 @@ export async function testGbfsConnection(providerId: string, discoveryUrl: strin
   const updated = typeof rawUpdated === 'number' ? rawUpdated : typeof rawUpdated === 'string' && Number.isFinite(Date.parse(rawUpdated)) ? Date.parse(rawUpdated) / 1000 : null;
   const ageSeconds = updated === null ? null : Math.round(Date.now() / 1000 - (updated > 1e12 ? updated / 1000 : updated));
   if (ageSeconds !== null) { counts.ageSeconds = ageSeconds; checks.push({ name: 'Freshness', ok: ageSeconds < 600, detail: `${ageSeconds}s old` }); }
+  const located = bboxOf(points);
+  checks.push({ name: 'Positions are in Ukraine', ok: centerInUkraine(located), detail: located ? located.map((value) => value.toFixed(2)).join(', ') : 'no positions' });
   const allOk = checks.every((check) => check.ok);
   return { health: allOk && rejected === 0 ? 'healthy' : 'degraded', checks, counts, responseMs: Date.now() - started, ...(bboxOf(points) ? { bbox: bboxOf(points) } : {}) };
 }
