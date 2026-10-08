@@ -24,7 +24,7 @@ export function DriverPhotoCard({ photoUrl, isDriver, onChange }: { photoUrl: st
         {photoUrl ? <img src={photoUrl} alt="Фото водія" className="h-full w-full object-cover"/> : <UserRound size={30}/>}
       </span>
       <div className="min-w-0 flex-1"><h2 className="font-extrabold">Фото водія</h2>
-        <p className="mt-0.5 text-xs leading-5 text-slate-500">{photoUrl ? 'Пасажири бачать це фото у ваших поїздках.' : isDriver ? 'Обов’язкове для водія: чітке фото обличчя. Фото авто додаються окремо.' : 'Потрібне лише тим, хто возить пасажирів.'}</p></div>
+        <p className="mt-0.5 text-xs leading-5 text-slate-500">{photoUrl ? 'Пасажири бачать це фото у ваших поїздках.' : isDriver ? 'Бажано додати чітке фото обличчя: пасажири охочіше обирають водіїв із фото. Зараз це необов’язково.' : 'Потрібне лише тим, хто возить пасажирів.'}</p></div>
     </div>
     {error && <p role="alert" className="mt-3 rounded-xl bg-rose-50 p-2.5 text-xs text-rose-700">{error}</p>}
     <div className="mt-3 flex gap-2">

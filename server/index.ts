@@ -2364,10 +2364,10 @@ app.post('/api/v1/vehicles', requireAuth, requireRole('driver'), asyncHandler(as
     await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))', [req.userId]);
     const active = await client.query('SELECT 1 FROM vehicles WHERE owner_id=$1 AND is_active AND archived_at IS NULL', [req.userId]);
     ({ rows } = await client.query(
-      `INSERT INTO vehicles(owner_id,make,model,model_year,seat_count,is_active,plate)
-       VALUES ($1,$2,$3,$4,$5,$6,$7)
+      `INSERT INTO vehicles(owner_id,make,model,model_year,seat_count,is_active,plate,trust_level)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
        RETURNING id,make,model,model_year,seat_count,verification_status,plate,trust_level,is_active,created_at`,
-      [req.userId, make.trim(), model.trim(), modelYear, seats, active.rowCount === 0, plate],
+      [req.userId, make.trim(), model.trim(), modelYear, seats, active.rowCount === 0, plate, requireVehiclePhoto ? 0 : 1],
     ));
     await client.query('COMMIT');
   } catch (error) {
@@ -2404,10 +2404,10 @@ app.patch('/api/v1/vehicles/:id', requireAuth, requireRole('driver'), asyncHandl
     }
     const { rows } = await client.query(
       `UPDATE vehicles SET make=COALESCE($3,make),model=COALESCE($4,model),model_year=COALESCE($5,model_year),seat_count=COALESCE($6,seat_count),plate=COALESCE($7,plate),
-        trust_level=CASE WHEN COALESCE($7,plate) IS NOT NULL AND trust_level<1 AND EXISTS (SELECT 1 FROM vehicle_photos p WHERE p.vehicle_id=vehicles.id) THEN 1 ELSE trust_level END
+        trust_level=CASE WHEN COALESCE($7,plate) IS NOT NULL AND trust_level<1 AND ($8::boolean OR EXISTS (SELECT 1 FROM vehicle_photos p WHERE p.vehicle_id=vehicles.id)) THEN 1 ELSE trust_level END
         WHERE id=$1 AND owner_id=$2 AND archived_at IS NULL
         RETURNING id,make,model,model_year,seat_count,verification_status,plate,trust_level,is_active,created_at`,
-      [req.params.id, req.userId, make?.trim() ?? null, model?.trim() ?? null, modelYear ?? null, seats ?? null, plate ?? null],
+      [req.params.id, req.userId, make?.trim() ?? null, model?.trim() ?? null, modelYear ?? null, seats ?? null, plate ?? null, !requireVehiclePhoto],
     );
     await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'vehicle.updated', 'vehicle', req.params.id]);
     await client.query('COMMIT');
@@ -2473,6 +2473,9 @@ app.delete('/api/v1/vehicles/:id', requireAuth, requireRole('driver'), asyncHand
     client.release();
   }
 }));
+
+/** Temporary: a vehicle needs only a plate to be usable. Set REQUIRE_VEHICLE_PHOTO=true to require plate + photo again. */
+const requireVehiclePhoto = process.env.REQUIRE_VEHICLE_PHOTO === 'true';
 
 /** Photos per vehicle: one is required, up to this many are allowed. The limit lives in one place so it can be raised without changing the data model. */
 const MAX_VEHICLE_PHOTOS = Math.max(1, Math.min(10, Number(process.env.MAX_VEHICLE_PHOTOS) || 3));
@@ -2720,7 +2723,7 @@ app.post('/api/v1/offers', requireAuth, requireRole('driver'), asyncHandler(asyn
       [vehicleId, req.userId],
     );
     if (!vehicle.rows[0]) throw new ApiError(404, 'verified vehicle unavailable');
-    if (!vehicle.rows[0].has_photo) throw new ApiError(409, 'A verified vehicle photo is required before publishing', 'vehicle_photo_required');
+    if (requireVehiclePhoto && !vehicle.rows[0].has_photo) throw new ApiError(409, 'A verified vehicle photo is required before publishing', 'vehicle_photo_required');
     if (seats > Number(vehicle.rows[0].seat_count)) throw new ApiError(400, 'offer exceeds vehicle capacity');
     const { rows } = await client.query(
       `INSERT INTO offers(driver_id,vehicle_id,origin_name,destination_name,origin,destination,route,departure_at,arrival_at,distance_m,duration_s,route_source,price_per_seat_minor,total_seats,available_seats)

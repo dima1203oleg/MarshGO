@@ -655,7 +655,7 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     const vehicle = await vehicleResponse.json() as { data: { id: string; verification_status: string; is_active: boolean } };
     apiCreatedVehicleId = vehicle.data.id;
     assert.equal(vehicle.data.verification_status, 'pending');
-    assert.equal((vehicle.data as { trust_level?: number }).trust_level, 0, 'a new vehicle starts below level 1 until its photo is validated');
+    assert.equal((vehicle.data as { trust_level?: number }).trust_level, 1, 'plate alone makes a vehicle usable (photo is optional for now)');
     assert.equal(vehicle.data.is_active, true);
 
     const forbiddenEdit = await fetch(`${apiUrl}/api/v1/vehicles/${apiCreatedVehicleId}`, {
@@ -690,20 +690,7 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
       departureAt: new Date(Date.now() + 10 * 86400_000).toISOString(),
       pricePerSeatMinor: 15000, seats: 2,
     };
-    const pendingOffer = await fetch(`${apiUrl}/api/v1/offers`, {
-      method: 'POST', headers: { 'content-type': 'application/json', 'x-dev-user-id': ids.driver },
-      body: JSON.stringify(offerPayload),
-    });
-    assert.equal(pendingOffer.status, 404);
-
-    // Level 1 is normally reached automatically when a validated photo is attached to a vehicle with a plate.
-    await pool.query("UPDATE vehicles SET trust_level = 1 WHERE id = $1", [apiCreatedVehicleId]);
-    const missingPhoto = await fetch(`${apiUrl}/api/v1/offers`, {
-      method: 'POST', headers: { 'content-type': 'application/json', 'x-dev-user-id': ids.driver },
-      body: JSON.stringify(offerPayload),
-    });
-    assert.equal(missingPhoto.status, 409);
-    await pool.query('INSERT INTO vehicle_photos(vehicle_id,object_key,is_primary) VALUES ($1,$2,true)', [apiCreatedVehicleId, `vehicle-photos/test/${apiCreatedVehicleId}/fixture`]);
+    // Photo is optional for now (REQUIRE_VEHICLE_PHOTO=false): a vehicle with a plate publishes straight away.
     const published = await fetch(`${apiUrl}/api/v1/offers`, {
       method: 'POST', headers: { 'content-type': 'application/json', 'x-dev-user-id': ids.driver },
       body: JSON.stringify(offerPayload),

@@ -178,4 +178,27 @@ describe('editing and cancelling a published trip (opt-in local integration test
     const foreign = await fetch(`${apiUrl}/api/v1/vehicles/${vehicleTwo}/photos/file`, { method: 'POST', headers: { 'content-type': 'image/png', 'x-dev-user-id': stranger }, body: new Uint8Array([1]) });
     assert.equal(foreign.status, 404, 'a driver cannot add photos to someone else’s vehicle');
   });
+
+  it('lets a driver work with a plate only: a new vehicle is usable and can publish a trip without a photo', async () => {
+    const owner = crypto.randomUUID();
+    await pool.query(`INSERT INTO users(id,display_name,roles) VALUES($1,'No-photo driver',ARRAY['driver'])`, [owner]);
+    await pool.query(`INSERT INTO user_roles(user_id,role) VALUES($1,'driver')`, [owner]);
+    let offerId: string | null = null;
+    try {
+      const created = await call('/vehicles', owner, 'POST', { make: 'Skoda', model: 'Octavia', modelYear: 2020, seats: 4, plate: 'AA0042BB' });
+      assert.equal(created.status, 201);
+      const vehicleBody = (await created.json() as { data: { id: string; trust_level: number } }).data;
+      assert.equal(vehicleBody.trust_level, 1, 'plate alone makes the vehicle usable');
+      const published = await call('/offers', owner, 'POST', { vehicleId: vehicleBody.id, origin: [24.03, 49.84], destination: [23.85, 49.26], originName: 'Львів', destinationName: 'Стрий', departureAt: new Date(Date.now() + 2 * 86_400_000).toISOString(), pricePerSeatMinor: 10000, seats: 3 });
+      assert.notEqual((await published.clone().json() as { error?: { code?: string } }).error?.code, 'vehicle_photo_required');
+      offerId = (await published.json() as { data?: { id?: string } }).data?.id ?? null;
+    } finally {
+      if (offerId) await pool.query('DELETE FROM offers WHERE id=$1', [offerId]);
+      await pool.query('DELETE FROM offers WHERE driver_id=$1', [owner]);
+      await pool.query('DELETE FROM audit_events WHERE actor_id=$1', [owner]);
+      await pool.query('DELETE FROM vehicles WHERE owner_id=$1', [owner]);
+      await pool.query('DELETE FROM user_roles WHERE user_id=$1', [owner]);
+      await pool.query('DELETE FROM users WHERE id=$1', [owner]);
+    }
+  });
 });
