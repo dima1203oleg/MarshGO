@@ -36,7 +36,7 @@ import { GeocodingUnavailableError, reverseGeocode, suggestPlaces } from './geoc
 import { retainNavigationSessions } from './navigation/sessionRetention';
 import { expireDueProposals } from './proposals/expiry';
 import {
-  createVehiclePhotoUpload, createVerificationEvidenceUpload, deleteStoredVehiclePhoto, getVehiclePhotoUrl,
+  createVehiclePhotoUpload, createVerificationEvidenceUpload, deleteStoredVehiclePhoto, getVehiclePhotoUrl, putPhotoObject, readPhotoObject, verifyMediaRequest,
   getVerificationEvidenceUrl, isAllowedPhotoType, isAllowedVerificationEvidenceType, ObjectStorageUnavailableError, StoredEvidenceUnavailableError,
   verifyVehiclePhotoObject, verifyVerificationEvidenceObject,
 } from './objectStorage';
@@ -1521,7 +1521,7 @@ app.post('/api/v1/users/me/driver-photo/upload-url', requireAuth, asyncHandler(a
   try { res.json({ data: { key, ...(await createVehiclePhotoUpload(key, contentType)) } }); }
   catch (error) { if (storageError(error)) throw new ApiError(503, 'Photo storage is not configured', 'object_storage_unavailable'); throw error; }
 }));
-app.post('/api/v1/users/me/driver-photo', requireAuth, asyncHandler(async (req, res) => {
+const registerDriverPhotoFn = async (req: AuthenticatedRequest, res: Response) => {
   const { key, contentType } = req.body ?? {};
   const prefix = `driver-photos/${req.userId}/`;
   if (typeof key !== 'string' || !key.startsWith(prefix) || !/^[0-9a-f-]{36}$/i.test(key.slice(prefix.length)) || !isAllowedPhotoType(contentType)) throw new ApiError(400, 'invalid driver photo reference');
@@ -1539,6 +1539,23 @@ app.post('/api/v1/users/me/driver-photo', requireAuth, asyncHandler(async (req, 
   if (rows[0]?.previous && rows[0].previous !== key) await deleteStoredVehiclePhoto(rows[0].previous).catch(() => undefined);
   await pool.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'driver.photo.updated', 'user', req.userId]);
   res.status(201).json({ data: { driver_photo_url: url } });
+};
+const registerDriverPhoto = asyncHandler(registerDriverPhotoFn);
+app.post('/api/v1/users/me/driver-photo', requireAuth, registerDriverPhoto);
+const photoBody = express.raw({ type: ['image/jpeg', 'image/png', 'image/webp'], limit: '10mb' });
+const storeUploaded = async (key: string, req: AuthenticatedRequest) => {
+  const contentType = String(req.headers['content-type'] ?? '').split(';')[0];
+  if (!Buffer.isBuffer(req.body) || !isAllowedPhotoType(contentType)) throw new ApiError(400, 'Send a JPEG, PNG or WebP photo up to 10 MB', 'invalid_photo');
+  try { await putPhotoObject(key, req.body, contentType); }
+  catch (error) {
+    if (storageError(error)) throw new ApiError(503, 'Photo storage is not configured', 'object_storage_unavailable');
+    throw new ApiError(400, 'The file is not a valid photo', 'invalid_photo');
+  }
+  req.body = { key, contentType };
+};
+// Browser → API → storage: works behind tunnels/CDNs where the storage endpoint itself is not reachable from the phone.
+app.post('/api/v1/users/me/driver-photo/file', requireAuth, photoBody, asyncHandler(async (req, res) => {
+  await storeUploaded(`driver-photos/${req.userId}/${crypto.randomUUID()}`, req); await registerDriverPhotoFn(req, res);
 }));
 app.delete('/api/v1/users/me/driver-photo', requireAuth, asyncHandler(async (req, res) => {
   const { rows } = await pool.query<{ previous: string | null }>(
@@ -2479,7 +2496,7 @@ app.post('/api/v1/vehicles/:id/photos/upload-url', requireAuth, requireRole('dri
   }
 }));
 
-app.post('/api/v1/vehicles/:id/photos', requireAuth, requireRole('driver'), asyncHandler(async (req, res) => {
+const registerVehiclePhotoFn = async (req: AuthenticatedRequest, res: Response) => {
   const key = req.body?.key;
   const contentType = req.body?.contentType;
   const prefix = `vehicle-photos/${req.userId}/${req.params.id}/`;
@@ -2529,6 +2546,30 @@ app.post('/api/v1/vehicles/:id/photos', requireAuth, requireRole('driver'), asyn
     throw error;
   } finally {
     client.release();
+  }
+};
+const registerVehiclePhoto = asyncHandler(registerVehiclePhotoFn);
+app.post('/api/v1/vehicles/:id/photos', requireAuth, requireRole('driver'), registerVehiclePhoto);
+
+app.post('/api/v1/vehicles/:id/photos/file', requireAuth, requireRole('driver'), photoBody, asyncHandler(async (req, res) => {
+  const { rows } = await pool.query<{ photos: number }>('SELECT (SELECT count(*)::int FROM vehicle_photos WHERE vehicle_id=v.id) AS photos FROM vehicles v WHERE v.id=$1 AND v.owner_id=$2 AND v.archived_at IS NULL', [req.params.id, req.userId]);
+  if (!rows[0]) throw new ApiError(404, 'vehicle unavailable');
+  if (rows[0].photos >= MAX_VEHICLE_PHOTOS) throw new ApiError(409, `A vehicle can have at most ${MAX_VEHICLE_PHOTOS} photos`, 'vehicle_photo_limit');
+  await storeUploaded(`vehicle-photos/${req.userId}/${req.params.id}/${crypto.randomUUID()}`, req); await registerVehiclePhotoFn(req, res);
+}));
+
+// Signed, short-lived, same-origin photo delivery.
+app.get('/api/v1/media/photo/:key', asyncHandler(async (req, res) => {
+  const key = verifyMediaRequest(String(req.params.key), String(req.query.e ?? ''), String(req.query.s ?? ''));
+  if (!key) throw new ApiError(404, 'photo unavailable');
+  try {
+    const photo = await readPhotoObject(key);
+    res.setHeader('content-type', photo.contentType); res.setHeader('cache-control', 'private, max-age=600'); res.setHeader('x-content-type-options', 'nosniff');
+    if (photo.contentLength) res.setHeader('content-length', String(photo.contentLength));
+    (photo.body as NodeJS.ReadableStream).pipe(res);
+  } catch (error) {
+    if (storageError(error)) throw new ApiError(503, 'Photo storage is not configured', 'object_storage_unavailable');
+    throw new ApiError(404, 'photo unavailable');
   }
 }));
 

@@ -1,4 +1,5 @@
-import { DeleteObjectCommand, GetObjectCommand, HeadObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import crypto from 'node:crypto';
+import { DeleteObjectCommand, GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { createPresignedPost } from '@aws-sdk/s3-presigned-post';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { fileTypeFromBuffer } from 'file-type';
@@ -97,9 +98,42 @@ export async function verifyVehiclePhotoObject(key: string, expectedType: string
   return detected?.mime === expectedType;
 }
 
+const mediaSecret = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
+const mediaSign = (key: string, expires: number) => crypto.createHmac('sha256', mediaSecret).update(`${key}.${expires}`).digest('base64url');
+const photoPrefix = /^(vehicle-photos|driver-photos)\//;
+
+/**
+ * Photos are shown through this API (a short-lived signed same-origin path), never through a raw S3 URL: the storage endpoint
+ * is usually private/localhost and unreachable from a phone behind a tunnel or a CDN.
+ */
 export async function getVehiclePhotoUrl(key: string) {
+  s3(); // throws ObjectStorageUnavailableError when storage is not configured
+  const expires = Date.now() + 15 * 60_000;
+  return `/api/v1/media/photo/${Buffer.from(key).toString('base64url')}?e=${expires}&s=${mediaSign(key, expires)}`;
+}
+
+/** Validates a signed media path and returns the stored key, or null. */
+export function verifyMediaRequest(encodedKey: string, expires: string, signature: string): string | null {
+  const key = Buffer.from(encodedKey, 'base64url').toString();
+  const e = Number(expires);
+  if (!photoPrefix.test(key) || !Number.isFinite(e) || e < Date.now() || typeof signature !== 'string') return null;
+  const expected = Buffer.from(mediaSign(key, e)); const given = Buffer.from(signature);
+  return expected.length === given.length && crypto.timingSafeEqual(expected, given) ? key : null;
+}
+
+export async function readPhotoObject(key: string) {
   const { client: s3Client, bucket } = s3();
-  return getSignedUrl(s3Client, new GetObjectCommand({ Bucket: bucket, Key: key }), { expiresIn: 900 });
+  const object = await s3Client.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
+  return { body: object.Body!, contentType: object.ContentType ?? 'application/octet-stream', contentLength: object.ContentLength };
+}
+
+/** Server-side upload: the browser sends the file to the API, which validates it and stores it. */
+export async function putPhotoObject(key: string, body: Buffer, contentType: string) {
+  if (!isAllowedPhotoType(contentType) || body.length < 1 || body.length > maxPhotoBytes) throw new Error('Unsupported photo');
+  const detected = await fileTypeFromBuffer(body);
+  if (detected?.mime !== contentType) throw new Error('Photo content does not match its type');
+  const { client: s3Client, bucket } = s3();
+  await s3Client.send(new PutObjectCommand({ Bucket: bucket, Key: key, Body: body, ContentType: contentType }));
 }
 
 export async function deleteStoredVehiclePhoto(key: string) {

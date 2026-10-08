@@ -256,6 +256,23 @@ type ApiEnvelope<T> = { data: T };
 const apiBase = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '';
 let accessToken: string | null = null;
 
+const PHOTO_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
+async function uploadPhotoFile<T>(path: string, file: File): Promise<T> {
+  // Phones often report an empty type for camera files; infer it from the extension before validating.
+  const type = file.type || (/\.png$/i.test(file.name) ? 'image/png' : /\.webp$/i.test(file.name) ? 'image/webp' : /\.(jpe?g|heic)$/i.test(file.name) ? 'image/jpeg' : '');
+  if (!PHOTO_TYPES.has(type)) throw new Error('Додайте фото у форматі JPEG, PNG або WebP. Знімок із камери iPhone зберігайте як «Найсумісніший».');
+  if (file.size < 1 || file.size > 10 * 1024 * 1024) throw new Error('Фото має бути до 10 МБ.');
+  try { return await request<T>(path, { method: 'POST', body: file, headers: { 'content-type': type } }); }
+  catch (error) {
+    const message = error instanceof Error ? error.message : '';
+    if (/storage is not configured/i.test(message)) throw new Error('Сховище фото тимчасово недоступне. Спробуйте пізніше.', { cause: error });
+    if (/at most \d+ photos/i.test(message)) throw new Error('Можна додати не більше 3 фото. Видаліть одне, щоб додати інше.', { cause: error });
+    if (/not a valid photo|Send a JPEG/i.test(message)) throw new Error('Не вдалося прийняти файл. Оберіть фото JPEG, PNG або WebP до 10 МБ.', { cause: error });
+    if (/Failed to fetch|NetworkError|Load failed/i.test(message)) throw new Error('Немає зв’язку із сервером. Перевірте інтернет і повторіть.', { cause: error });
+    throw error;
+  }
+}
+
 async function request<T>(path: string, init: RequestInit = {}, retryAuth = true): Promise<T> {
   const headers = new Headers(init.headers);
   if (init.body && !headers.has('content-type')) headers.set('content-type', 'application/json');
@@ -494,30 +511,13 @@ export const productionApi = {
     return request<ApiVehicle>('/vehicles', { method: 'POST', body: JSON.stringify(input) });
   },
   vehiclePhotos(vehicleId: string) { return request<ApiVehiclePhoto[]>(`/vehicles/${vehicleId}/photos`); },
+  /** The file goes to the API (not straight to storage), so it works behind tunnels and on phones. */
   async uploadDriverPhoto(file: File) {
-    const allowed = new Set(['image/jpeg', 'image/png', 'image/webp']);
-    if (!allowed.has(file.type) || file.size < 1 || file.size > 10 * 1024 * 1024) throw new Error('Додайте JPEG, PNG або WebP до 10 МБ.');
-    const upload = await request<{ key: string; url: string; fields: Record<string, string> }>('/users/me/driver-photo/upload-url', { method: 'POST', body: JSON.stringify({ contentType: file.type }) });
-    const form = new FormData();
-    for (const [key, value] of Object.entries(upload.fields)) form.append(key, value);
-    form.append('file', file);
-    const uploaded = await fetch(upload.url, { method: 'POST', body: form });
-    if (!uploaded.ok) throw new Error(`Сховище не прийняло фото (${uploaded.status}).`);
-    return request<{ driver_photo_url: string }>('/users/me/driver-photo', { method: 'POST', body: JSON.stringify({ key: upload.key, contentType: file.type }) });
+    return uploadPhotoFile<{ driver_photo_url: string }>('/users/me/driver-photo/file', file);
   },
   deleteDriverPhoto() { return request<{ driver_photo_url: null }>('/users/me/driver-photo', { method: 'DELETE' }); },
   async uploadVehiclePhoto(vehicleId: string, file: File) {
-    const allowed = new Set(['image/jpeg', 'image/png', 'image/webp']);
-    if (!allowed.has(file.type) || file.size < 1 || file.size > 10 * 1024 * 1024) throw new Error('Додайте JPEG, PNG або WebP до 10 МБ.');
-    const upload = await request<{ key: string; url: string; fields: Record<string, string>; maxBytes: number }>(`/vehicles/${vehicleId}/photos/upload-url`, {
-      method: 'POST', body: JSON.stringify({ contentType: file.type }),
-    });
-    const form = new FormData();
-    for (const [key, value] of Object.entries(upload.fields)) form.append(key, value);
-    form.append('file', file);
-    const uploaded = await fetch(upload.url, { method: 'POST', body: form });
-    if (!uploaded.ok) throw new Error(`Сховище не прийняло фото (${uploaded.status}).`);
-    return request<ApiVehiclePhoto>(`/vehicles/${vehicleId}/photos`, { method: 'POST', body: JSON.stringify({ key: upload.key, contentType: file.type }) });
+    return uploadPhotoFile<ApiVehiclePhoto>(`/vehicles/${vehicleId}/photos/file`, file);
   },
   setPrimaryVehiclePhoto(vehicleId: string, photoId: string) {
     return request<ApiVehiclePhoto>(`/vehicles/${vehicleId}/photos/${photoId}/primary`, { method: 'PATCH' });

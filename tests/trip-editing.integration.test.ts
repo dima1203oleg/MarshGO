@@ -167,4 +167,15 @@ describe('editing and cancelling a published trip (opt-in local integration test
       assert.ok(after.rows[0].last_error);
     } finally { await pool.query('DELETE FROM mobility_providers WHERE id=$1', [rows[0].id]); }
   });
+
+  it('serves photos only through signed same-origin links and rejects bad uploads', async () => {
+    assert.equal((await fetch(`${apiUrl}/api/v1/media/photo/${Buffer.from(`driver-photos/${driver}/x`).toString('base64url')}?e=${Date.now() + 60000}&s=forged`)).status, 404, 'a forged signature is refused');
+    assert.equal((await fetch(`${apiUrl}/api/v1/media/photo/${Buffer.from('../../etc/passwd').toString('base64url')}?e=${Date.now() + 60000}&s=x`)).status, 404, 'only photo prefixes can be read');
+    const gif = await fetch(`${apiUrl}/api/v1/users/me/driver-photo/file`, { method: 'POST', headers: { 'content-type': 'image/gif', 'x-dev-user-id': driver }, body: new Uint8Array([71, 73, 70]) });
+    assert.equal(gif.status, 400, 'only JPEG, PNG and WebP are accepted');
+    const fake = await fetch(`${apiUrl}/api/v1/vehicles/${vehicleTwo}/photos/file`, { method: 'POST', headers: { 'content-type': 'image/png', 'x-dev-user-id': driver }, body: new Uint8Array([1, 2, 3]) });
+    assert.ok([400, 503].includes(fake.status), `a file that is not an image is refused (got ${fake.status})`);
+    const foreign = await fetch(`${apiUrl}/api/v1/vehicles/${vehicleTwo}/photos/file`, { method: 'POST', headers: { 'content-type': 'image/png', 'x-dev-user-id': stranger }, body: new Uint8Array([1]) });
+    assert.equal(foreign.status, 404, 'a driver cannot add photos to someone else’s vehicle');
+  });
 });
