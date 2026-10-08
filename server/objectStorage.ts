@@ -113,10 +113,12 @@ export async function getVehiclePhotoUrl(key: string) {
 }
 
 /** Validates a signed media path and returns the stored key, or null. */
-export function verifyMediaRequest(encodedKey: string, expires: string, signature: string): string | null {
+export function verifyMediaRequest(encodedKey: unknown, expires: unknown, signature: unknown): string | null {
+  // Query/path values can arrive as arrays or objects: accept only plain strings of a sane length.
+  if (typeof encodedKey !== 'string' || typeof expires !== 'string' || typeof signature !== 'string' || encodedKey.length > 512 || expires.length > 20 || signature.length > 128) return null;
   const key = Buffer.from(encodedKey, 'base64url').toString();
   const e = Number(expires);
-  if (!photoPrefix.test(key) || !Number.isFinite(e) || e < Date.now() || typeof signature !== 'string') return null;
+  if (!photoPrefix.test(key) || !Number.isFinite(e) || e < Date.now()) return null;
   const expected = Buffer.from(mediaSign(key, e)); const given = Buffer.from(signature);
   return expected.length === given.length && crypto.timingSafeEqual(expected, given) ? key : null;
 }

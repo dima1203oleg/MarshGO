@@ -2578,7 +2578,7 @@ app.post('/api/v1/vehicles/:id/photos/file', requireAuth, requireRole('driver'),
 
 // Signed, short-lived, same-origin photo delivery.
 app.get('/api/v1/media/photo/:key', asyncHandler(async (req, res) => {
-  const key = verifyMediaRequest(String(req.params.key), String(req.query.e ?? ''), String(req.query.s ?? ''));
+  const key = verifyMediaRequest(req.params.key, req.query.e, req.query.s);
   if (!key) throw new ApiError(404, 'photo unavailable');
   try {
     const photo = await readPhotoObject(key);
