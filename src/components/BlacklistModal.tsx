@@ -1,4 +1,3 @@
-import { safeImageSrc } from '../domain/safeUrl';
 import React, { useState, useEffect } from 'react';
 import {
   Ban,
@@ -260,12 +259,12 @@ export const BlacklistModal: React.FC<BlacklistModalProps> = ({
                     >
                       <div className="flex items-start gap-3">
                         <div className="relative">
-                          <img
-                            src={safeImageSrc(item.avatar)}
+                          {/^https:\/\//i.test(String(item.avatar)) ? <img
+                            src={item.avatar}
                             alt={item.name}
                             className="w-11 h-11 rounded-full object-cover border-2 border-red-300 dark:border-red-800"
                             referrerPolicy="no-referrer"
-                          />
+                          /> : <span className="block w-11 h-11 rounded-full bg-red-100 border-2 border-red-300" />}
                           <div className="absolute -bottom-1 -right-1 bg-red-600 text-white rounded-full p-0.5 shadow-xs">
                             <Ban className="w-3 h-3" />
                           </div>

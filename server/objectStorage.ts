@@ -132,7 +132,9 @@ export async function readPhotoObject(key: string) {
 /** Server-side upload: the browser sends the file to the API, which validates it and stores it. */
 export async function putPhotoObject(key: unknown, body: unknown, contentType: unknown) {
   // Request-derived values may be arrays or strings: accept only a string key, a real Buffer and an allowed media type.
-  if (typeof key !== 'string' || !Buffer.isBuffer(body) || !isAllowedPhotoType(contentType) || body.length < 1 || body.length > maxPhotoBytes) throw new Error('Unsupported photo');
+  if (typeof key !== 'string' || !Buffer.isBuffer(body) || !isAllowedPhotoType(contentType)) throw new Error('Unsupported photo');
+  const size = Buffer.byteLength(body);
+  if (size < 1 || size > maxPhotoBytes) throw new Error('Unsupported photo');
   const detected = await fileTypeFromBuffer(body);
   if (detected?.mime !== contentType) throw new Error('Photo content does not match its type');
   const { client: s3Client, bucket } = s3();

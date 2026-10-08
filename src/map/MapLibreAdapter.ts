@@ -87,6 +87,7 @@ export class MapLibreAdapter implements MapAdapter {
     this.map.on('zoomstart', userGesture);
     this.map.on('rotatestart', userGesture);
     this.map.on('pitchstart', userGesture);
+    this.map.on('moveend', () => { const c = this.map.getContainer(); c.dataset.marshgoMapZoom = this.map.getZoom().toFixed(2); c.dataset.marshgoMapPitch = this.map.getPitch().toFixed(0); c.dataset.marshgoMapBearing = this.map.getBearing().toFixed(1); });
     this.map.on('rotate', () => { this.map.getContainer().dataset.marshgoMapBearing = this.map.getBearing().toFixed(1); this.onOrientationChange(this.modeState.orientation, this.map.getBearing()); });
     // Manual browsing ends by itself after a quiet period (any further touch restarts the clock).
     this.autoReturnTimer = setInterval(() => {
@@ -186,6 +187,16 @@ export class MapLibreAdapter implements MapAdapter {
     if (source) source.setData({ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: point } });
     this.updateMarker(point);
     if (this.cameraMode === 'FOLLOW_HEADING' || this.cameraMode === 'FOLLOW') this.followCamera(900);
+  }
+
+  /**
+   * Opens the navigation view like any car navigator: close to the driver, tilted in 3D and rotated to look ahead along the route,
+   * before the first GPS fix even arrives.
+   */
+  startNavigationCamera(point: Coordinate, initialBearing?: number | null) {
+    if (typeof initialBearing === 'number') { this.headingFilter.seed(initialBearing); this.heading = this.headingFilter.current; }
+    this.vehicle = point;
+    this.recenter(point);
   }
 
   /** Guidance context for the camera: how far the next manoeuvre is and whether the route is urban. */

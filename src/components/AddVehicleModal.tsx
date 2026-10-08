@@ -1,4 +1,3 @@
-import { safeImageSrc } from '../domain/safeUrl';
 import React, { useState } from 'react';
 import {
   Car,
@@ -350,10 +349,10 @@ export const AddVehicleModal: React.FC<AddVehicleModalProps> = ({
           </div>
 
           {/* Photo Preview */}
-          {photoUrl && (
+          {/^https:\/\//i.test(photoUrl) && (
             <div className="relative rounded-xl overflow-hidden aspect-video max-h-36 bg-slate-100 border border-slate-200">
               <img
-                src={safeImageSrc(photoUrl)}
+                src={photoUrl}
                 alt="Попередній перегляд авто"
                 className="w-full h-full object-cover"
                 onError={() => {}}

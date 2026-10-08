@@ -6,8 +6,8 @@ import { getMapLayer, getMapMode, styleForLayer, subscribeMapLayer, subscribeMap
 import { getTransportLayers, subscribeTransportLayers } from './transportLayers';
 import { configuredMapStyleUrl } from './mapConfig';
 
-type Props = { route: Coordinate[]; vehicle?: Coordinate | null; heading?: number | null; speedMps?: number | null; theme?: MapTheme; /** 2D information layers (metro, buses, bikes, ...). Off for navigation, which keeps a clean map. */ overlays?: boolean; onTransportHint?: (message: string | null) => void; onStatus: (status: MapStatus) => void; onAdapter: (adapter: MapAdapter | null) => void };
-export function MarshGoMap({ route, vehicle, heading = null, speedMps = null, theme = 'MARSHGO_NAVIGATION_LIGHT', overlays = false, onTransportHint, onStatus, onAdapter }: Props) {
+type Props = { route: Coordinate[]; vehicle?: Coordinate | null; heading?: number | null; speedMps?: number | null; /** Navigation opens close, tilted and looking ahead along the route instead of an overview of the whole route. */ navigationCamera?: boolean; theme?: MapTheme; /** 2D information layers (metro, buses, bikes, ...). Off for navigation, which keeps a clean map. */ overlays?: boolean; onTransportHint?: (message: string | null) => void; onStatus: (status: MapStatus) => void; onAdapter: (adapter: MapAdapter | null) => void };
+export function MarshGoMap({ route, vehicle, heading = null, speedMps = null, navigationCamera = false, theme = 'MARSHGO_NAVIGATION_LIGHT', overlays = false, onTransportHint, onStatus, onAdapter }: Props) {
   const container = useRef<HTMLDivElement | null>(null);
   const adapter = useRef<MapAdapter | null>(null);
   const syncOverlays = useRef<() => void>(() => undefined);
@@ -24,7 +24,15 @@ export function MarshGoMap({ route, vehicle, heading = null, speedMps = null, th
       adapter.current = instance; onAdapter(instance);
       instance.onTransportHint = (message) => onTransportHint?.(message);
       syncOverlays.current();
-      instance.setRoute(route); if (vehicle) instance.setVehicle(vehicle); instance.fitRoute();
+      instance.setRoute(route);
+      const start = vehicle ?? route[0];
+      if (navigationCamera && start) {
+        // Heading of the first stretch of road (about 300 m) so the map already looks the way the car will go.
+        const ahead = route.length > 1 ? route[Math.min(route.length - 1, 4)] : null;
+        const bearing = ahead ? ((Math.atan2((ahead[0] - route[0][0]) * Math.cos(route[0][1] * Math.PI / 180), ahead[1] - route[0][1]) * 180) / Math.PI + 360) % 360 : null;
+        if (vehicle) instance.setVehicle(vehicle);
+        instance.startNavigationCamera(start, bearing);
+      } else { if (vehicle) instance.setVehicle(vehicle); instance.fitRoute(); }
     }).catch(() => onStatus('failed'));
     return () => { cancelled = true; adapter.current?.destroy(); adapter.current = null; onAdapter(null); };
   }, []);

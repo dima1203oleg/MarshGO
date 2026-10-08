@@ -26,7 +26,7 @@ export const cameraConfig = {
   /** Minimum time between camera updates (ms): no stutter, less battery. */
   minUpdateIntervalMs: 700,
   manualTimeoutMs: 10_000,
-  pitch: { min: 45, max: 62, speedForMaxKmh: 100 },
+  pitch: { min: 55, max: 65, speedForMaxKmh: 100 },
   /** Share of the screen height kept free above the car (look-ahead). */
   lookAhead: { base: 0.28, maxExtra: 0.1, speedForMaxKmh: 100 },
 } as const;
@@ -52,6 +52,8 @@ export class HeadingFilter {
   /** Unwrapped value for the camera (continuous across 0°/360°). */
   get unwrapped(): number | null { return this.value; }
   reset() { this.value = null; }
+  /** Start from a known direction (e.g. the first leg of the route) so the very first frame already looks ahead. */
+  seed(bearing: number) { if (this.value === null && Number.isFinite(bearing)) this.value = normalizeBearing(bearing); }
   update(input: { gpsCourse?: number | null; deviceHeading?: number | null; speedKmh: number | null }): number | null {
     const moving = (input.speedKmh ?? 0) >= cameraConfig.headingMinimumSpeedKmh;
     const raw = moving && Number.isFinite(input.gpsCourse as number) ? (input.gpsCourse as number)
