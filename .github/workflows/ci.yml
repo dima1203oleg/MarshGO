@@ -58,5 +58,11 @@ jobs:
       - run: node ops/scripts/materialize-release.mjs
       - run: docker compose --project-name marshgo-canonical-build --env-file ops/templates/production.env.example -f .release/compose.production.yml build api web
       - run: npx playwright install --with-deps chromium firefox webkit
-      - run: npm run test:e2e
-      - run: npm run test:browser-compat
+      # Browser tests exercise this commit's web app (not a pinned older Site build), served against the pinned API release.
+      - name: Build the web app under test
+        run: >-
+          VITE_MAP_STYLE_URL= VITE_MAP_TILE_URL='http://127.0.0.1:3306/tiles/{z}/{x}/{y}.png'
+          VITE_MAP_TILE_ATTRIBUTION='MARSHGO isolated E2E map fixture'
+          npx vite build --outDir "$RUNNER_TEMP/e2e-dist" --emptyOutDir
+      - run: E2E_DIST_DIR="$RUNNER_TEMP/e2e-dist" npm run test:e2e
+      - run: E2E_DIST_DIR="$RUNNER_TEMP/e2e-dist" npm run test:browser-compat
