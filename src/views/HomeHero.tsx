@@ -22,14 +22,19 @@ export function HomeHero({ onStartNavigation, onSearchTrip, onPlanTrip }: { onSt
       // The app shell reserves bottom padding for the fixed navigation (incl. the home-indicator safe area).
       const shell = element.closest('.production-app');
       const reserved = shell ? parseFloat(getComputedStyle(shell).paddingBottom) || 0 : 0;
-      const viewport = window.visualViewport?.height ?? window.innerHeight;
+      // Layout viewport height: stays correct when the browser (e.g. WebKit) updates it without a visualViewport event.
+      const viewport = document.documentElement.clientHeight || window.innerHeight;
       const height = Math.max(300, Math.floor(viewport - top - reserved - 4));
       setFit({ height, compact: height < 560 });
     };
     measure();
+    const frame = requestAnimationFrame(measure); // once more after the first layout (header height, web fonts)
     window.addEventListener('resize', measure);
+    window.addEventListener('orientationchange', measure);
     window.visualViewport?.addEventListener('resize', measure);
-    return () => { window.removeEventListener('resize', measure); window.visualViewport?.removeEventListener('resize', measure); };
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+    observer?.observe(document.documentElement);
+    return () => { cancelAnimationFrame(frame); observer?.disconnect(); window.removeEventListener('resize', measure); window.removeEventListener('orientationchange', measure); window.visualViewport?.removeEventListener('resize', measure); };
   }, []);
 
   return <div ref={root} className={`home-hero mx-auto flex w-full max-w-xl flex-col px-5 pb-2 pt-2 ${fit ? 'overflow-hidden' : ''} ${fit?.compact ? 'home-hero--compact' : ''}`} style={fit ? { height: fit.height } : undefined}>
