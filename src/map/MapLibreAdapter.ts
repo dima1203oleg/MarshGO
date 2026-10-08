@@ -131,6 +131,14 @@ export class MapLibreAdapter implements MapAdapter {
     this.map.getContainer().dataset.marshgoRoutePointCount = String(points.length);
     const source = this.map.getSource('marshgo-route') as maplibregl.GeoJSONSource | undefined;
     if (source) source.setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: points } });
+    this.reaim(true);
+  }
+
+  /** A new route or new progress changes which way the road runs: turn the arrow and the camera even if GPS is standing still. */
+  private reaim(force: boolean) {
+    if (!this.vehicle || (this.cameraMode !== 'FOLLOW_HEADING' && this.cameraMode !== 'FOLLOW')) return;
+    this.updateMarker(this.vehicle);
+    this.followCamera(900, force);
   }
   /**
    * Live meeting of driver and passenger: the pickup point plus both people, joined to the pickup by dashed lines.
@@ -178,6 +186,7 @@ export class MapLibreAdapter implements MapAdapter {
     const source = this.map.getSource('marshgo-route-done') as maplibregl.GeoJSONSource | undefined;
     source?.setData(done.length >= 2 ? { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: done } } : { type: 'FeatureCollection', features: [] });
     this.map.getContainer().dataset.marshgoRouteProgress = String(vertex);
+    this.reaim(false);
   }
   setVehicle(point: Coordinate, heading?: number | null, speedMps?: number | null) {
     this.vehicle = point;
