@@ -21,6 +21,7 @@ interface SearchResultsListProps {
   onSelectFilterMode: (mode: SearchTransportMode) => void;
   onOpenFiltersModal: () => void;
   onSelectResultItem: (item: RouteSearchResultItem) => void;
+  onOpenMapView: () => void;
   onBackToSearchForm: () => void;
   onOpenReverseMarketplace: () => void;
 }
@@ -28,7 +29,7 @@ interface SearchResultsListProps {
 export const SearchResultsList: React.FC<SearchResultsListProps> = ({
   originTitle,
   destTitle,
-  dateStr: _dateStr,
+  dateStr,
   timeStr,
   passengers,
   isLoading,
@@ -39,6 +40,7 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
   onSelectFilterMode,
   onOpenFiltersModal,
   onSelectResultItem,
+  onOpenMapView,
   onBackToSearchForm,
   onOpenReverseMarketplace,
 }) => {
@@ -74,11 +76,14 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
             {originTitle.split(',')[0]} → {destTitle.split(',')[0]}
           </h1>
           <p className="text-[11px] font-semibold text-[#63738C] dark:text-slate-400">
-            {timeStr} · {passengers} {passengers === 1 ? 'пасажир' : 'пасажири'}
+            {new Intl.DateTimeFormat('uk-UA', { day: 'numeric', month: 'long', timeZone: 'Europe/Kyiv' }).format(new Date(`${dateStr}T12:00:00Z`))}, {timeStr} · {passengers} {passengers === 1 ? 'пасажир' : 'пасажири'}
           </p>
         </div>
 
-        <span className="text-xs font-bold text-slate-500">{filteredItems.length} пропозицій</span>
+        <div className="flex items-center rounded-xl bg-slate-100 p-0.5 dark:bg-slate-800" role="group" aria-label="Вигляд результатів">
+          <button type="button" aria-pressed="true" className="rounded-lg bg-white px-2.5 py-1.5 text-[10px] font-extrabold text-[#0866F5] shadow-sm dark:bg-[#14233C]">Список</button>
+          <button type="button" onClick={onOpenMapView} disabled={filteredItems.length === 0} className="rounded-lg px-2.5 py-1.5 text-[10px] font-bold text-slate-500 disabled:opacity-40 dark:text-slate-400">Карта</button>
+        </div>
       </header>
 
       {/* Filter Chips Strip (Усі 32, Попутки 8, Автобуси 6...) */}

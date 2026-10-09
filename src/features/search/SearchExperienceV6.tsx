@@ -15,6 +15,7 @@ import { SearchResultsList } from './components/SearchResultsList';
 import { SearchMapDetails } from './components/SearchMapDetails';
 import { SearchFiltersModal } from './components/SearchFiltersModal';
 import { buildSearchRoute, parseSearchRoute, type SearchRouteState } from '../../routing/searchRouteState';
+import { formatKyivDateTimeInput, kyivDateTimeInputToDate, kyivDateTimeInputToIso, todayKyivDate } from '../../domain/kyivTime';
 
 interface SearchExperienceV6Props {
   onBookOfferId?: (offerId: string, passengerCount: number) => void;
@@ -32,7 +33,7 @@ function offersToSearchItems(
   time: string,
   timeMode: 'now' | 'depart_at' | 'arrive_by',
 ): RouteSearchResultItem[] {
-  const threshold = timeMode === 'now' ? Date.now() : new Date(`${date}T${time}:00`).getTime();
+  const threshold = timeMode === 'now' ? Date.now() : kyivDateTimeInputToDate(`${date}T${time}`)?.getTime() ?? Number.POSITIVE_INFINITY;
   return offers
     .filter((offer) => offer.other_date || new Date(offer.departure_at).getTime() >= threshold)
     .map((offer) => ({
@@ -51,9 +52,9 @@ function offersToSearchItems(
         reviewCount: offer.review_count,
         verified: false,
       },
-      departureTime: new Date(offer.departure_at).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }),
+      departureTime: formatKyivDateTimeInput(offer.departure_at).slice(11),
       arrivalTime: offer.arrival_at
-        ? new Date(offer.arrival_at).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })
+        ? formatKyivDateTimeInput(offer.arrival_at).slice(11)
         : '—',
       departureCity: offer.origin_name.split(',')[0].trim(),
       arrivalCity: offer.destination_name.split(',')[0].trim(),
@@ -110,8 +111,7 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
 
   const [dateStr, setDateStr] = useState(() => {
     if (initialSearchRoute) return initialSearchRoute.date;
-    const now = new Date();
-    return new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
+    return todayKyivDate();
   });
   const [timeStr, setTimeStr] = useState(() => initialSearchRoute?.departure.match(/T(\d{2}:\d{2})/)?.[1] ?? '18:30');
   const [timeMode, setTimeMode] = useState<'now' | 'depart_at' | 'arrive_by'>('depart_at');
@@ -146,7 +146,14 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
     (filters.modes.has('all') || filters.modes.has(item.type)) &&
     item.priceMinor <= filters.maxPrice * 100 &&
     (item.durationSeconds === 0 || item.durationSeconds <= filters.maxDurationHours * 3600) &&
-    (item.driver?.rating ?? 0) >= filters.minRating
+    (item.driver?.rating ?? 0) >= filters.minRating &&
+    (filters.maxTransfers === 'any' ||
+      (filters.maxTransfers === 'direct' && item.stopsCount === 0) ||
+      (filters.maxTransfers === 'one' && item.stopsCount <= 1) ||
+      (filters.maxTransfers === 'two_plus' && item.stopsCount >= 2)) &&
+    (!filters.onlyVerified || item.driver?.verified === true) &&
+    (!filters.airConditioning || item.features.some((feature) => /кондиціон|кондиц/i.test(feature))) &&
+    (!filters.wifi || item.features.some((feature) => /wi-?fi/i.test(feature)))
   );
 
   // Sync initial props
@@ -172,6 +179,10 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
       }
       if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) throw new Error('Оберіть коректну дату поїздки.');
       if (timeMode !== 'now' && !/^\d{2}:\d{2}$/.test(timeStr)) throw new Error('Оберіть коректний час відправлення.');
+      const checkedDate = new Date(`${dateStr}T00:00:00.000Z`);
+      if (!Number.isFinite(checkedDate.getTime()) || checkedDate.toISOString().slice(0, 10) !== dateStr) throw new Error('Оберіть коректну дату поїздки.');
+      const departureIso = timeMode === 'now' ? new Date().toISOString() : kyivDateTimeInputToIso(`${dateStr}T${timeStr}`);
+      if (!departureIso) throw new Error('Цей час не існує через перехід на літній або зимовий час. Оберіть інший час.');
       if (!origin.providerId || !destination.providerId || origin.latitude == null || origin.longitude == null
         || destination.latitude == null || destination.longitude == null) {
         throw new Error('Оберіть початковий пункт і призначення з результатів геокодера.');
@@ -197,7 +208,7 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
         destination: { label: destination.label, latitude: destination.latitude!, longitude: destination.longitude!, providerId: destination.providerId! },
         date: dateStr,
         passengers,
-        departure: `${dateStr}T${timeStr}:00`,
+        departure: departureIso,
         strategy: 'BALANCED',
         mode: 'offers',
       });
@@ -444,6 +455,7 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
           onSelectFilterMode={setResultsFilterMode}
           onOpenFiltersModal={() => setShowFiltersModal(true)}
           onSelectResultItem={handleSelectResultItem}
+          onOpenMapView={() => { const firstResult = filteredResults.find((item) => resultsFilterMode === 'all' || item.type === resultsFilterMode); if (firstResult) handleSelectResultItem(firstResult); }}
           onBackToSearchForm={() => setSubView('form')}
           onOpenReverseMarketplace={() => {
             if (onOpenReverseMarketplace) {
@@ -475,7 +487,6 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
         onClose={() => setShowFiltersModal(false)}
         onChangeFilters={(updated) => {
           setFilters(updated);
-          setShowFiltersModal(false);
         }}
       />
 

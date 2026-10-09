@@ -1,5 +1,5 @@
 import React from 'react';
-import { CarFront, Grid, X } from 'lucide-react';
+import { CarFront, Grid, ShieldCheck, Snowflake, Wifi, X } from 'lucide-react';
 import type { SearchFiltersState, SearchTransportMode } from '../model/types';
 
 interface SearchFiltersModalProps {
@@ -69,7 +69,7 @@ export const SearchFiltersModal: React.FC<SearchFiltersModalProps> = ({
               </span>
               <button
                 type="button"
-                onClick={() => onChangeFilters({ ...filters, modes: new Set(['all']) })}
+                onClick={() => onChangeFilters({ modes: new Set(['all']), maxPrice: 2000, maxDurationHours: 12, maxTransfers: 'any', minRating: 0, onlyVerified: false, airConditioning: false, wifi: false })}
                 className="text-xs font-bold text-[#0866F5] dark:text-blue-400"
               >
                 Скинути
@@ -105,7 +105,19 @@ export const SearchFiltersModal: React.FC<SearchFiltersModalProps> = ({
             </div>
           </div>
 
-          {/* Section 2: Price */}
+          {/* Section 2: Transfers */}
+          <div>
+            <div className="mb-2.5 flex items-center justify-between">
+              <span className="text-[13px] font-black text-[#081B35] dark:text-white">Пересадки</span>
+            </div>
+            <div className="grid grid-cols-4 gap-1.5">
+              {([['any', 'Будь-які'], ['direct', 'Без пересадок'], ['one', 'До 1'], ['two_plus', '2+']] as const).map(([value, label]) => (
+                <button key={value} type="button" aria-pressed={filters.maxTransfers === value} onClick={() => onChangeFilters({ ...filters, maxTransfers: value })} className={`rounded-xl px-2 py-2 text-[10px] font-bold transition ${filters.maxTransfers === value ? 'bg-[#0866F5] text-white' : 'border border-slate-100 bg-slate-50 text-slate-600 dark:border-slate-800 dark:bg-slate-800/60 dark:text-slate-300'}`}>{label}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Section 3: Price */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-[13px] font-black text-[#081B35] dark:text-white">
@@ -128,7 +140,7 @@ export const SearchFiltersModal: React.FC<SearchFiltersModalProps> = ({
             />
           </div>
 
-          {/* Section 3: Duration */}
+          {/* Section 4: Duration */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-[13px] font-black text-[#081B35] dark:text-white">
@@ -158,7 +170,16 @@ export const SearchFiltersModal: React.FC<SearchFiltersModalProps> = ({
             </div>
           </div>
 
-          <p className="rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">Фільтри працюють лише з полями, які є в оголошенні водія.</p>
+          {/* Section 5: Provider and amenity constraints */}
+          <div>
+            <div className="mb-2.5 flex items-center justify-between"><span className="text-[13px] font-black text-[#081B35] dark:text-white">Додаткові параметри</span><button type="button" onClick={() => onChangeFilters({ ...filters, minRating: 0, onlyVerified: false, airConditioning: false, wifi: false })} className="text-xs font-bold text-[#0866F5]">Скинути</button></div>
+            <label className="flex items-center gap-3 border-b border-slate-100 py-3 text-xs font-semibold text-slate-700 dark:border-slate-800 dark:text-slate-200"><ShieldCheck size={16} className="text-emerald-600"/><span className="flex-1">Тільки перевірені</span><input type="checkbox" checked={filters.onlyVerified} onChange={(event) => onChangeFilters({ ...filters, onlyVerified: event.target.checked })} className="h-4 w-4 accent-[#0866F5]"/></label>
+            <label className="flex items-center gap-3 border-b border-slate-100 py-3 text-xs font-semibold text-slate-700 dark:border-slate-800 dark:text-slate-200"><Snowflake size={16} className="text-blue-600"/><span className="flex-1">Кондиціонер</span><input type="checkbox" checked={filters.airConditioning} onChange={(event) => onChangeFilters({ ...filters, airConditioning: event.target.checked })} className="h-4 w-4 accent-[#0866F5]"/></label>
+            <label className="flex items-center gap-3 border-b border-slate-100 py-3 text-xs font-semibold text-slate-700 dark:border-slate-800 dark:text-slate-200"><Wifi size={16} className="text-blue-600"/><span className="flex-1">Wi-Fi</span><input type="checkbox" checked={filters.wifi} onChange={(event) => onChangeFilters({ ...filters, wifi: event.target.checked })} className="h-4 w-4 accent-[#0866F5]"/></label>
+            <label className="mt-3 block text-xs font-bold text-[#081B35] dark:text-white">Мінімальний рейтинг · {filters.minRating ? `${filters.minRating.toFixed(1)}+` : 'будь-який'}<input aria-label="Мінімальний рейтинг перевізника" type="range" min="0" max="5" step="0.5" value={filters.minRating} onChange={(event) => onChangeFilters({ ...filters, minRating: Number(event.target.value) })} className="mt-3 h-1.5 w-full cursor-pointer appearance-none rounded-lg bg-slate-200 accent-[#0866F5] dark:bg-slate-700"/></label>
+          </div>
+
+          <p className="rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">Фільтри застосовуються одразу до оголошень, що містять відповідні дані.</p>
         </div>
 
         {/* Footer Fixed Button */}
