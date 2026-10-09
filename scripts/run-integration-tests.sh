@@ -36,7 +36,9 @@ start_api() {
     REDIS_URL="$REDIS_URL" API_RATE_LIMIT_PREFIX="${API_TEST_RATE_LIMIT_PREFIX_OVERRIDE:-$RATE_LIMIT_TEST_PREFIX}" \
     API_RATE_LIMIT_LIMIT="${API_TEST_RATE_LIMIT_LIMIT:-1000}" \
     API_RATE_LIMIT_WINDOW_MS="${API_TEST_RATE_LIMIT_WINDOW_MS:-900000}" SESSION_SECRET="integration-test-session-secret-32chars" \
-    ROUTING_ENGINE_URL="$routing_url" ./node_modules/.bin/tsx server/index.ts &
+    ROUTING_ENGINE_URL="$routing_url" OSRM_URL="$routing_url" \
+    S3_BUCKET="" S3_REGION="" S3_ENDPOINT="" S3_ACCESS_KEY_ID="" S3_SECRET_ACCESS_KEY="" \
+    ./node_modules/.bin/tsx server/index.ts &
   API_PID=$!
   for _ in $(seq 1 60); do
     if curl --fail --silent "$API_URL/healthz" >/dev/null; then return 0; fi
@@ -63,7 +65,9 @@ start_secondary_api() {
     API_HOST=127.0.0.1 API_PORT="$SECONDARY_API_PORT" REDIS_URL="$REDIS_URL" \
     API_RATE_LIMIT_PREFIX="${API_TEST_RATE_LIMIT_PREFIX_OVERRIDE:-$RATE_LIMIT_TEST_PREFIX}" \
     API_RATE_LIMIT_LIMIT="${API_TEST_RATE_LIMIT_LIMIT:-1000}" API_RATE_LIMIT_WINDOW_MS="${API_TEST_RATE_LIMIT_WINDOW_MS:-900000}" \
-    SESSION_SECRET="integration-test-session-secret-32chars" ./node_modules/.bin/tsx server/index.ts &
+    SESSION_SECRET="integration-test-session-secret-32chars" ROUTING_ENGINE_URL="" OSRM_URL="" \
+    S3_BUCKET="" S3_REGION="" S3_ENDPOINT="" S3_ACCESS_KEY_ID="" S3_SECRET_ACCESS_KEY="" \
+    ./node_modules/.bin/tsx server/index.ts &
   SECONDARY_API_PID=$!
   for _ in $(seq 1 60); do
     if curl --fail --silent "$SECONDARY_API_URL/healthz" >/dev/null; then return 0; fi
