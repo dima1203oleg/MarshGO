@@ -240,6 +240,17 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 }
 .app-tabbar button { min-height: 2.9rem; }
 .app-tabbar button[aria-current="page"] { color: var(--mg-blue); }
+.home-v5-screen { overscroll-behavior: none; }
+.home-v5-content { overscroll-behavior: none; }
+@media (max-height: 740px) and (max-width: 700px) {
+  .home-v5-trust-badges { display: none; }
+  .home-v5-hero-art { flex: 0 0 clamp(5rem, 13svh, 7rem); min-height: 5rem; }
+}
+@media (max-height: 620px) and (max-width: 700px) {
+  .home-v5-hero-art { flex-basis: 4.5rem; min-height: 4.5rem; }
+  .home-v5-hero-copy p { display: none; }
+  .home-v5-content { gap: .25rem; }
+}
 .auth-screen { isolation: isolate; min-height: 100svh; min-height: 100dvh; }
 .auth-screen button { min-height: 44px; }
 .auth-screen input { min-height: 48px; font-size: 16px; }

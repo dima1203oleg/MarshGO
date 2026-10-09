@@ -16,7 +16,7 @@ import { PlanTripChoice } from './PlanTripChoice';
 import { OnboardingSlides } from '../components/OnboardingSlides';
 import { DriverPhotoCard } from '../components/DriverPhotoCard';
 import { OfferEditSheet } from '../components/TripManagement';
-import { activeTypesForSearch, loadSelection, saveSelection, toJourneyPreferences, type TransportSelection } from '../domain/transportPreferences';
+import { activeTypesForSearch, loadSelection, saveSelection, selectAll, toJourneyPreferences, type TransportSelection, type TransportTypeId } from '../domain/transportPreferences';
 import { TicketQr } from '../components/TicketQr';
 import type { ProfileSection } from './ProfileSections';
 import { ApiAccountDeletionRequest, ApiBlockedUser, ApiBooking, ApiDemand, ApiJourneySearchResult, ApiJourneyStrategy, ApiMessage, ApiModerationCase, ApiNotification, ApiNotificationPage, ApiOffer, ApiPassengerNavigationMatch, ApiPlace, ApiProposal, ApiProposalRevision, ApiRescueResult, ApiRendezvous, ApiStoredJourney, ApiUser, ApiVehicle, ApiVehiclePhoto, ApiVerificationQueueItem, ApiVerificationRecord, productionApi } from '../services/productionApi';
@@ -36,6 +36,7 @@ const TransportMapView = lazy(() => import('./TransportMapView').then((module) =
 const ProductionNavigation = lazy(() => import('./ProductionNavigation').then((module) => ({ default: module.ProductionNavigation })));
 import { HomeV5 } from './HomeV5';
 import { SearchExperienceV6 } from '../features/search/SearchExperienceV6';
+import type { SearchTransportMode } from '../features/search/model/types';
 
 type Tab = ProductionTab;
 const formatMoney = (minor: number, currency: string) => new Intl.NumberFormat('uk-UA', { style: 'currency', currency, maximumFractionDigits: 0 }).format(minor / 100);
@@ -80,6 +81,7 @@ export function ProductionMarketplace() {
   const [journeyDeparture, setJourneyDeparture] = useState(() => defaultKyivDateTime(1, 8));
   const [journeyStrategy, setJourneyStrategy] = useState<ApiJourneyStrategy>('BALANCED');
   const [journeyResult, setJourneyResult] = useState<ApiJourneySearchResult | null>(null);
+  const [journeyResultMode, setJourneyResultMode] = useState('all');
   const [journeyBookingLink, setJourneyBookingLink] = useState<{ journeyId: string; journeyLegId: string } | null>(null);
   const [journeys, setJourneys] = useState<ApiStoredJourney[]>([]);
   const [notificationPage, setNotificationPage] = useState<ApiNotificationPage>({ items: [], nextCursor: null, unreadCount: 0 });
@@ -556,23 +558,60 @@ export function ProductionMarketplace() {
     finally { setBusy(false); }
   };
 
-  const searchJourney = async () => {
-    if (!origin.trim() || !destination.trim()) { setStatusMessage('Вкажіть початок і кінець маршруту.'); return; }
-    if (!searchOriginPlace || !searchDestinationPlace) { setStatusMessage('Для планування оберіть обидві точки з результатів геокодера.'); return; }
-    const departure = kyivDateTimeInputToDate(journeyDeparture);
+  const searchJourney = async (criteria?: {
+    origin: ApiPlace;
+    destination: ApiPlace;
+    date: string;
+    time: string;
+    passengers: number;
+    strategy: ApiJourneyStrategy;
+    selection: TransportSelection;
+  }) => {
+    const journeyOrigin = criteria?.origin ?? searchOriginPlace;
+    const journeyDestination = criteria?.destination ?? searchDestinationPlace;
+    const journeyDate = criteria?.date ?? date;
+    const journeyTime = criteria?.time ?? journeyDeparture.slice(11, 16);
+    const journeyPassengers = criteria?.passengers ?? seats;
+    const strategy = criteria?.strategy ?? journeyStrategy;
+    const selection = criteria?.selection ?? transportSelection;
+    if (!journeyOrigin?.label.trim() || !journeyDestination?.label.trim()) { setStatusMessage('Вкажіть початок і кінець маршруту.'); return; }
+    if (!journeyOrigin || !journeyDestination || journeyOrigin.latitude == null || journeyOrigin.longitude == null || journeyDestination.latitude == null || journeyDestination.longitude == null) {
+      setStatusMessage('Оберіть початок і кінець маршруту зі списку місць.'); return;
+    }
+    const departureInput = `${journeyDate}T${journeyTime}`;
+    const departure = kyivDateTimeInputToDate(departureInput);
     if (!departure || departure.getTime() <= Date.now()) { setStatusMessage('Оберіть коректний майбутній час за київським часом.'); return; }
     setBusy(true); setStatusMessage('');
     try {
+      setOrigin(journeyOrigin.label);
+      setDestination(journeyDestination.label);
+      setSearchOriginPlace(journeyOrigin);
+      setSearchDestinationPlace(journeyDestination);
+      setDate(journeyDate);
+      setSeats(journeyPassengers);
+      setJourneyDeparture(departureInput);
+      setJourneyStrategy(strategy);
+      changeTransportSelection(selection);
+      setJourneyResult(null);
+      setSelectedOffer(null);
+      setTab('search');
+      let availableProviderGroups = providerGroups;
+      if (criteria) {
+        try {
+          availableProviderGroups = await productionApi.providersByTransport({ latitude: journeyOrigin.latitude, longitude: journeyOrigin.longitude });
+          setProviderGroups(availableProviderGroups);
+        } catch { /* use the providers already loaded for the current search area */ }
+      }
       const result = await productionApi.searchJourneys({
-        origin: { name: searchOriginPlace.label, coordinates: [searchOriginPlace.longitude, searchOriginPlace.latitude] },
-        destination: { name: searchDestinationPlace.label, coordinates: [searchDestinationPlace.longitude, searchDestinationPlace.latitude] },
-        departureAt: departure.toISOString(), passengers: seats, strategy: journeyStrategy,
-        preferences: toJourneyPreferences(transportSelection, providerGroups),
+        origin: { name: journeyOrigin.label, coordinates: [journeyOrigin.longitude, journeyOrigin.latitude] },
+        destination: { name: journeyDestination.label, coordinates: [journeyDestination.longitude, journeyDestination.latitude] },
+        departureAt: departure.toISOString(), passengers: journeyPassengers, strategy,
+        preferences: toJourneyPreferences(selection, availableProviderGroups),
       });
-      setJourneyResult(result); setShowResults(true); setRestoredSearchMode('planner');
+      setJourneyResult(result); setJourneyResultMode('all'); setShowResults(true); setRestoredSearchMode('planner');
       const searchPath = buildSearchRoute({
-        origin: searchOriginPlace, destination: searchDestinationPlace, date, passengers: seats,
-        departure: journeyDeparture, strategy: journeyStrategy, mode: 'planner',
+        origin: journeyOrigin, destination: journeyDestination, date: journeyDate, passengers: journeyPassengers,
+        departure: departureInput, strategy, mode: 'planner',
       });
       hydratedSearchLocation.current = searchPath;
       setRoutePath(searchPath);
@@ -1881,24 +1920,33 @@ export function ProductionMarketplace() {
         setTab('demand');
       }}
       onOpenJourneyPlanner={(criteria) => {
-        setOrigin(criteria.origin.label);
-        setDestination(criteria.destination.label);
-        setSearchOriginPlace({
-          label: criteria.origin.label, latitude: criteria.origin.latitude!,
-          longitude: criteria.origin.longitude!, providerId: criteria.origin.providerId!,
+        const originPoint = criteria.origin.latitude == null || criteria.origin.longitude == null
+          ? null
+          : { label: criteria.origin.label, latitude: criteria.origin.latitude, longitude: criteria.origin.longitude, providerId: criteria.origin.providerId ?? 'coordinates' };
+        const destinationPoint = criteria.destination.latitude == null || criteria.destination.longitude == null
+          ? null
+          : { label: criteria.destination.label, latitude: criteria.destination.latitude, longitude: criteria.destination.longitude, providerId: criteria.destination.providerId ?? 'coordinates' };
+        if (!originPoint || !destinationPoint) {
+          setStatusMessage('Оберіть обидва населені пункти зі списку пошуку.');
+          return;
+        }
+        const modeTypes: Record<SearchTransportMode, TransportTypeId[]> = {
+          all: [], carpool: ['carpool'], taxi: ['taxi'], bus: ['bus', 'intercity_bus'], minibus: ['marshrutka'],
+          tram: ['tram'], trolleybus: ['trolleybus'], metro: ['metro'], train: ['train'], suburban_train: ['suburban_train'],
+          bike: ['bike'], scooter: ['scooter'], carsharing: ['carsharing'], transfer: ['transfer'], water: ['ferry'], air: ['plane'], other: ['walk'],
+        };
+        const selection = criteria.modes.includes('all')
+          ? selectAll(transportSelection)
+          : { ...transportSelection, active: [...new Set(criteria.modes.flatMap((mode) => modeTypes[mode]))] };
+        return searchJourney({
+          origin: originPoint,
+          destination: destinationPoint,
+          date: criteria.date,
+          time: criteria.time,
+          passengers: criteria.passengers,
+          strategy: criteria.strategy,
+          selection,
         });
-        setSearchDestinationPlace({
-          label: criteria.destination.label, latitude: criteria.destination.latitude!,
-          longitude: criteria.destination.longitude!, providerId: criteria.destination.providerId!,
-        });
-        setDate(criteria.date);
-        setSeats(criteria.passengers);
-        setJourneyDeparture(`${criteria.date}T${criteria.time}:00`);
-        setJourneyStrategy('BALANCED');
-        setSearchScheduleMode('scheduled');
-        setJourneyResult(null);
-        setRestoredSearchMode('offers');
-        setUseLegacySearchForm(true);
       }}
     />
   );
@@ -1914,6 +1962,21 @@ export function ProductionMarketplace() {
   );  const planScreen = <PlanTripChoice onBack={() => setTab('home')}
     onAsDriver={() => { if (!authenticatedUser.roles.includes('driver')) { setStatusMessage('Щоб запланувати поїздку автомобілем, додайте та верифікуйте авто у профілі.'); setTab('profile'); return; } setTab('offer-new'); }}
     onAsPassenger={() => setTab('demand')}/>;
+
+  const journeyModeLabel = (journey: ApiJourneySearchResult['journeys'][number]) => {
+    if (journey.legs.length > 1) return 'Комбіновані';
+    const labels: Record<string, string> = {
+      COMMUNITY: 'Попутки', TAXI: 'Таксі', BUS: 'Автобуси', MINIBUS: 'Маршрутки', RAIL: 'Поїзди',
+      TRAM: 'Трамвай', TROLLEYBUS: 'Тролейбус', METRO: 'Метро', FERRY: 'Пором',
+    };
+    return labels[journey.legs[0]?.mode ?? ''] ?? 'Інше';
+  };
+  const journeyModeChoices = journeyResult
+    ? [...new Set(journeyResult.journeys.map(journeyModeLabel))]
+    : [];
+  const visibleJourneyResult = journeyResult && journeyResultMode !== 'all'
+    ? { ...journeyResult, journeys: journeyResult.journeys.filter((journey) => journeyModeLabel(journey) === journeyResultMode) }
+    : journeyResult;
 
   const resultsScreen = (
     <div className="journey-results mx-auto w-full max-w-xl px-4 pb-8">
@@ -1939,7 +2002,7 @@ export function ProductionMarketplace() {
             type="button"
             className="rounded-xl bg-white px-3 py-1.5 text-xs font-extrabold text-[#1769ED] shadow-xs dark:bg-[#101E38] dark:text-blue-400"
           >
-            Список ({offers.length})
+            Список ({journeyResult?.journeys.length ?? offers.length})
           </button>
           <button
             type="button"
@@ -1951,21 +2014,23 @@ export function ProductionMarketplace() {
         </div>
       </div>
 
-      {/* Mode Filter chips: 05_Результати.png */}
+      {/* Transport filters reflect modes returned by the active providers. */}
       <div className="no-scrollbar mb-4 flex gap-2 overflow-x-auto pb-1">
-        {['Усі', 'Попутка', 'Автобус', 'Поїзд', 'Таксі'].map((item, index) => (
-          <button
-            key={item}
-            onClick={() => index > 1 && setStatusMessage(`${item} не підключено як реальне джерело.`)}
-            className={`shrink-0 rounded-full px-4 py-2 text-xs font-extrabold transition-all ${
-              index === 0 || index === 1
-                ? 'bg-[#1769ED] text-white shadow-xs'
-                : 'border border-[#E3EBF4] bg-white text-[#6A7F98] hover:border-slate-300 dark:border-slate-800 dark:bg-[#101E38] dark:text-slate-300'
-            }`}
+        {(journeyResult
+          ? [{ id: 'all', label: 'Усі', count: journeyResult.journeys.length }, ...journeyModeChoices.map((label) => ({ id: label, label, count: journeyResult.journeys.filter((journey) => journeyModeLabel(journey) === label).length }))]
+          : [{ id: 'all', label: 'Усі', count: offers.length }, { id: 'Попутки', label: 'Попутки', count: offers.length }]
+        ).map((item) => {
+          const active = journeyResult ? journeyResultMode === item.id : item.id === 'all';
+          return <button
+            key={item.id}
+            type="button"
+            aria-pressed={active}
+            onClick={() => { if (journeyResult) setJourneyResultMode(item.id); }}
+            className={`shrink-0 rounded-full px-4 py-2 text-xs font-extrabold transition-all ${active ? 'bg-[#1769ED] text-white shadow-xs' : 'border border-[#E3EBF4] bg-white text-[#6A7F98] hover:border-slate-300 dark:border-slate-800 dark:bg-[#101E38] dark:text-slate-300'}`}
           >
-            {item}
-          </button>
-        ))}
+            {item.label} <span className="opacity-75">{item.count}</span>
+          </button>;
+        })}
       </div>
 
       {offers.length > 1 && (
@@ -1997,11 +2062,11 @@ export function ProductionMarketplace() {
 
       <div className="mb-3 flex items-center justify-between">
         <h2 className="text-sm font-extrabold text-[#142642] dark:text-white">Знайдені поїздки</h2>
-        <span className="text-xs font-semibold text-[#6A7F98]">{offers.length} варіантів</span>
+        <span className="text-xs font-semibold text-[#6A7F98]">{journeyResult?.journeys.length ?? offers.length} варіантів</span>
       </div>
 
       {journeyResult ? (
-        <JourneyResultsPanel result={journeyResult} onOpenOffer={(offerId, journeyId, journeyLegId) => void openJourneyOffer(offerId, journeyId, journeyLegId)} />
+        <JourneyResultsPanel result={visibleJourneyResult ?? journeyResult} onOpenOffer={(offerId, journeyId, journeyLegId) => void openJourneyOffer(offerId, journeyId, journeyLegId)} />
       ) : restoredSearchMode === 'planner' ? (
         <div className="rounded-3xl border border-[#E3EBF4] bg-white p-6 text-center dark:border-slate-800 dark:bg-[#101E38]">
           <Compass className="mx-auto text-[#1769ED]" />
@@ -2396,7 +2461,7 @@ export function ProductionMarketplace() {
           <Ticket className="mx-auto text-slate-300" size={36} />
           <p className="mt-3 font-extrabold text-[#142642] dark:text-white">Поки немає поїздок</p>
           <p className="mt-1 text-xs text-[#6A7F98] dark:text-slate-400">Знайдіть маршрут і забронюйте місце.</p>
-          <button onClick={() => setTab('home')} className="mt-4 rounded-2xl bg-[#1769ED] px-5 py-3 text-xs font-extrabold text-white shadow-xs">
+          <button onClick={() => setTab('search')} className="mt-4 rounded-2xl bg-[#1769ED] px-5 py-3 text-xs font-extrabold text-white shadow-xs">
             Знайти поїздку
           </button>
         </div>
@@ -2426,10 +2491,10 @@ export function ProductionMarketplace() {
             {authenticatedUser.display_name || 'Мій профіль'}
           </b>
           <p className="text-xs text-[#6A7F98] dark:text-slate-400">
-            {authenticatedUser.phone_e164 ? `${authenticatedUser.phone_e164} · ` : ''}Номер телефону підтверджено
+            {authenticatedUser.phone_e164 || 'Номер телефону не додано'}
           </p>
-          <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
-            ✓ Перевірений номер
+          <span className={`mt-1.5 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${authenticatedUser.is_verified ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400' : 'bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300'}`}>
+            {authenticatedUser.is_verified ? '✓ Профіль перевірено' : 'Профіль очікує перевірки'}
           </span>
         </div>
       </div>
@@ -2449,39 +2514,32 @@ export function ProductionMarketplace() {
       {/* Мій транспорт Section: 15_Профіль.png */}
       <div className="mt-5">
         <h2 className="mb-2 text-sm font-extrabold text-[#142642] dark:text-white">Мій транспорт</h2>
-        <div
-          role="button"
-          tabIndex={0}
+        <button
+          type="button"
           onClick={() => {
-            if (authenticatedUser.roles.includes('driver')) {
-              setShowVehicleForm(true);
-            } else {
-              void enableDriver();
-            }
+            if (authenticatedUser.roles.includes('driver')) setShowVehicleForm(true);
+            else void enableDriver();
           }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              if (authenticatedUser.roles.includes('driver')) setShowVehicleForm(true);
-              else void enableDriver();
-            }
-          }}
-          className="flex cursor-pointer items-center justify-between rounded-3xl border border-[#E3EBF4] bg-white p-4 shadow-xs transition hover:border-[#1769ED]/40 dark:border-slate-800 dark:bg-[#101E38]"
+          className="flex w-full items-center justify-between rounded-3xl border border-[#E3EBF4] bg-white p-4 text-left shadow-xs transition hover:border-[#1769ED]/40 hover:shadow-sm dark:border-slate-800 dark:bg-[#101E38]"
         >
           <div className="flex items-center gap-3">
-            <div className="grid h-11 w-11 place-items-center rounded-2xl bg-blue-50 text-[#1769ED] dark:bg-blue-950/60 dark:text-blue-400">
+            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-blue-50 to-sky-100 text-[#1769ED] dark:from-blue-950/70 dark:to-slate-800 dark:text-blue-300">
               <CarFront size={22} />
             </div>
-            <div>
-              <b className="block text-sm font-extrabold text-[#142642] dark:text-white">
-                {activeVehicle ? `${activeVehicle.make} ${activeVehicle.model}` : 'Avatr 11'}
+            <div className="min-w-0">
+              <span className="block text-[10px] font-bold uppercase tracking-[0.12em] text-[#8291A5] dark:text-slate-500">
+                {activeVehicle ? 'Активний автомобіль' : 'Профіль водія'}
+              </span>
+              <b className="mt-0.5 block truncate text-sm font-extrabold text-[#142642] dark:text-white">
+                {activeVehicle ? `${activeVehicle.make} ${activeVehicle.model}` : authenticatedUser.roles.includes('driver') ? 'Додайте автомобіль' : 'Ставайте водієм'}
               </b>
-              <p className="text-xs text-[#6A7F98] dark:text-slate-400">
-                {activeVehicle ? `Активний автомобіль · ${activeVehicle.seat_count} місця` : 'Активний автомобіль · 4 місця'}
+              <p className="mt-0.5 text-xs text-[#6A7F98] dark:text-slate-400">
+                {activeVehicle ? `${activeVehicle.model_year} · ${activeVehicle.seat_count} місць` : 'Автомобіль для спільних поїздок'}
               </p>
             </div>
           </div>
-          <ChevronRight size={18} className="text-[#6A7F98]" />
-        </div>
+          <ChevronRight size={18} className="shrink-0 text-[#6A7F98]" />
+        </button>
 
         {vehicles.length > 0 && (
           <div className="mt-3 space-y-2">

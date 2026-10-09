@@ -1,13 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   ArrowRight,
+  BusFront,
+  CarFront,
+  CarTaxiFront,
+  Coins,
+  LayoutGrid,
   Search,
   Send,
   ShieldCheck,
+  TrainFront,
   TrendingUp,
+  Zap,
 } from 'lucide-react';
 import { productionApi } from '../../services/productionApi';
-import type { RoutePlace, RouteSearchResultItem, SearchFiltersState, SearchTransportMode } from './model/types';
+import type { RoutePlace, RouteSearchResultItem, SearchFiltersState, SearchStrategyMode, SearchTransportMode } from './model/types';
 import { SearchHeader } from './components/SearchHeader';
 import { RouteInputs } from './components/RouteInputs';
 import { DateTimePassengers } from './components/DateTimePassengers';
@@ -22,7 +29,7 @@ interface SearchExperienceV6Props {
   onOpenNotifications?: () => void;
   unreadNotificationCount?: number;
   onOpenReverseMarketplace?: (origin: string, destination: string) => void;
-  onOpenJourneyPlanner?: (criteria: { origin: RoutePlace; destination: RoutePlace; date: string; time: string; passengers: number }) => void;
+  onOpenJourneyPlanner?: (criteria: { origin: RoutePlace; destination: RoutePlace; date: string; time: string; passengers: number; modes: SearchTransportMode[]; strategy: SearchStrategyMode }) => void | Promise<void>;
   initialOrigin?: string;
   initialDestination?: string;
 }
@@ -77,6 +84,18 @@ function offersToSearchItems(
     }));
 }
 
+async function resolveCityPlace(city: string): Promise<RoutePlace> {
+  const matches = await productionApi.suggestPlaces(`${city}, центр`);
+  const match = matches.find((place) => place.label.toLocaleLowerCase('uk-UA').startsWith(city.toLocaleLowerCase('uk-UA')))
+    ?? matches[0];
+  return match ? {
+    label: match.label,
+    latitude: match.latitude,
+    longitude: match.longitude,
+    providerId: match.providerId,
+  } : { label: `${city}, Центр` };
+}
+
 export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
   onBookOfferId,
   onOpenNotifications,
@@ -116,6 +135,7 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
   const [timeStr, setTimeStr] = useState(() => initialSearchRoute?.departure.match(/T(\d{2}:\d{2})/)?.[1] ?? '18:30');
   const [timeMode, setTimeMode] = useState<'now' | 'depart_at' | 'arrive_by'>('depart_at');
   const [passengers, setPassengers] = useState(initialSearchRoute?.passengers ?? 1);
+  const [searchStrategy, setSearchStrategy] = useState<SearchStrategyMode>('BALANCED');
   const restoreRouteRef = useRef<SearchRouteState | null>(initialSearchRoute);
 
   // Filters State
@@ -135,6 +155,7 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
 
   // Search results & loading state
   const [isSearching, setIsSearching] = useState(false);
+  const [isResolvingPlaces, setIsResolvingPlaces] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [results, setResults] = useState<RouteSearchResultItem[]>(() =>
     []
@@ -155,6 +176,16 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
     (!filters.airConditioning || item.features.some((feature) => /кондиціон|кондиц/i.test(feature))) &&
     (!filters.wifi || item.features.some((feature) => /wi-?fi/i.test(feature)))
   );
+  const toggleSearchMode = (mode: SearchTransportMode) => {
+    setFilters((current) => {
+      if (mode === 'all') return { ...current, modes: new Set(['all']) };
+      const modes = new Set(current.modes);
+      modes.delete('all');
+      if (modes.has(mode)) modes.delete(mode);
+      else modes.add(mode);
+      return { ...current, modes: modes.size ? modes : new Set(['all']) };
+    });
+  };
 
   // Sync initial props
   useEffect(() => {
@@ -222,6 +253,25 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
     }
   };
 
+  const handleSearchJourneys = async () => {
+    if (!onOpenJourneyPlanner) return handleExecuteSearch();
+    setIsSearching(true);
+    setSearchError(null);
+    try {
+      await onOpenJourneyPlanner({
+        origin,
+        destination,
+        date: dateStr,
+        time: timeStr,
+        passengers,
+        modes: [...filters.modes],
+        strategy: searchStrategy,
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
   useEffect(() => {
     const route = restoreRouteRef.current;
     if (!route) return;
@@ -271,13 +321,32 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
   };
 
   // Switch popular route
-  const handleSelectQuickRoute = (fromCity: string, toCity: string) => {
-    setOrigin({
-      label: `${fromCity}, Центр`,
-    });
-    setDestination({
-      label: `${toCity}, Центр`,
-    });
+  const handleSelectQuickRoute = async (fromCity: string, toCity: string) => {
+    setIsResolvingPlaces(true);
+    try {
+      const [originMatches, destinationMatches] = await Promise.all([
+        resolveCityPlace(fromCity),
+        resolveCityPlace(toCity),
+      ]);
+      setOrigin(originMatches);
+      setDestination(destinationMatches);
+    } catch {
+      setOrigin({ label: `${fromCity}, Центр` });
+      setDestination({ label: `${toCity}, Центр` });
+    } finally {
+      setIsResolvingPlaces(false);
+    }
+  };
+
+  const handleSelectCity = async (city: string) => {
+    setIsResolvingPlaces(true);
+    try {
+      setOrigin(await resolveCityPlace(city));
+    } catch {
+      setOrigin({ label: `${city}, Центр` });
+    } finally {
+      setIsResolvingPlaces(false);
+    }
   };
 
   return (
@@ -288,7 +357,7 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
           {/* Header Block A: Logo, City, Notifications, Profile, Theme Toggle */}
           <SearchHeader
             currentCity={origin.label.split(',')[0] || 'Україна'}
-            onSelectCity={(city) => setOrigin({ label: `${city}, Центр` })}
+            onSelectCity={(city) => void handleSelectCity(city)}
             onOpenNotifications={() => onOpenNotifications?.()}
             unreadCount={unreadNotificationCount}
           />
@@ -299,7 +368,7 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
               Знайди маршрут
             </h1>
             <p className="mt-1 text-sm font-semibold text-[#63738C] dark:text-slate-400">
-              Реальні пропозиції водіїв MARSHGO
+              Усі способи дістатися — в одному пошуку
             </p>
           </div>
 
@@ -323,22 +392,75 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
               onTimeChange={setTimeStr}
               onTimeModeChange={setTimeMode}
               onPassengersChange={setPassengers}
+              showTimeModeToggle={false}
             />
 
+            <section aria-label="Види транспорту">
+              <div className="mb-2 flex items-center justify-between">
+                <h2 className="text-sm font-extrabold text-[#081B35] dark:text-white">Види транспорту</h2>
+                <span className="text-[11px] font-semibold text-[#63738C] dark:text-slate-400">Оберіть кілька</span>
+              </div>
+              <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
+                {([
+                  { id: 'all', label: 'Усі', Icon: LayoutGrid },
+                  { id: 'carpool', label: 'Попутки', Icon: CarFront },
+                  { id: 'taxi', label: 'Таксі', Icon: CarTaxiFront },
+                  { id: 'bus', label: 'Автобуси', Icon: BusFront },
+                  { id: 'train', label: 'Поїзди', Icon: TrainFront },
+                ] as const).map(({ id, label, Icon }) => {
+                  const active = filters.modes.has('all') ? id === 'all' : id !== 'all' && filters.modes.has(id);
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => toggleSearchMode(id)}
+                      className={`flex min-w-[82px] shrink-0 flex-col items-center gap-1.5 rounded-2xl border px-3 py-2.5 text-[11px] font-bold transition ${active ? 'border-[#0866F5] bg-blue-50 text-[#0866F5] shadow-sm dark:border-blue-400 dark:bg-blue-950/50 dark:text-blue-300' : 'border-slate-100 bg-white text-[#63738C] hover:border-blue-200 dark:border-slate-800 dark:bg-[#0B1730] dark:text-slate-300'}`}
+                    >
+                      <Icon size={19} strokeWidth={2.3} />
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            <section aria-label="Пріоритет маршруту">
+              <h2 className="mb-2 text-sm font-extrabold text-[#081B35] dark:text-white">Пріоритет маршруту</h2>
+              <div className="grid grid-cols-3 gap-2">
+                {([
+                  { id: 'BALANCED', label: 'Оптимальний', detail: 'Час і ціна', Icon: ShieldCheck },
+                  { id: 'FASTEST', label: 'Найшвидший', detail: 'Мінімум часу', Icon: Zap },
+                  { id: 'CHEAPEST', label: 'Найдешевший', detail: 'Мінімум ціни', Icon: Coins },
+                ] as const).map(({ id, label, detail, Icon }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    aria-pressed={searchStrategy === id}
+                    onClick={() => setSearchStrategy(id)}
+                    className={`flex min-h-[68px] flex-col items-start justify-center rounded-2xl border px-2.5 py-2 text-left transition ${searchStrategy === id ? 'border-[#0866F5] bg-blue-50 text-[#0866F5] shadow-sm dark:border-blue-400 dark:bg-blue-950/50 dark:text-blue-300' : 'border-slate-100 bg-white text-[#63738C] dark:border-slate-800 dark:bg-[#0B1730] dark:text-slate-300'}`}
+                  >
+                    <span className="flex items-center gap-1.5 text-[11px] font-extrabold"><Icon size={15} />{label}</span>
+                    <span className="mt-1 text-[9px] font-medium opacity-75">{detail}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+
             <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-xs leading-5 text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200">
-              Тут показані оголошення спільних поїздок. Розклади автобусів і поїздів поки не входять до цієї видачі.
+              Порівнюємо оголошення MARSHGO Community та доступні розклади перевізників.
             </div>
 
             {/* Block F: Primary CTA Button (Placed immediately after modes & strategy as required) */}
             <div className="pt-2">
               <button
                 type="button"
-                onClick={handleExecuteSearch}
-                disabled={isSearching}
+                onClick={() => void handleSearchJourneys()}
+                disabled={isSearching || isResolvingPlaces}
                 className="group relative flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[#0866F5] py-4 text-base font-black text-white shadow-xl shadow-[#0866F5]/25 hover:bg-[#0755CA] active:scale-[0.98] transition-all disabled:opacity-50"
               >
                 <Search size={19} strokeWidth={2.5} />
-                <span>{isSearching ? 'Шукаємо маршрути…' : 'Знайти маршрут'}</span>
+                <span>{isSearching ? 'Шукаємо маршрути…' : isResolvingPlaces ? 'Підбираємо точки…' : 'Знайти маршрут'}</span>
                 <ArrowRight
                   size={19}
                   strokeWidth={2.5}
@@ -350,10 +472,11 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
             {onOpenJourneyPlanner && (
               <button
                 type="button"
-                onClick={() => onOpenJourneyPlanner({ origin, destination, date: dateStr, time: timeStr, passengers })}
-                className="w-full rounded-2xl border border-blue-200 bg-white px-4 py-3 text-sm font-bold text-blue-700 transition hover:border-blue-400 hover:bg-blue-50 dark:border-blue-900 dark:bg-[#0B1730] dark:text-blue-300 dark:hover:bg-blue-950/40"
+                onClick={handleExecuteSearch}
+                disabled={isSearching || isResolvingPlaces}
+                className="w-full rounded-2xl py-1 text-xs font-bold text-[#63738C] underline decoration-dotted underline-offset-4 transition hover:text-[#0866F5] disabled:opacity-50 dark:text-slate-400 dark:hover:text-blue-300"
               >
-                Планувати маршрут
+                Показати лише оголошення попуток
               </button>
             )}
 
@@ -407,9 +530,7 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
                 <h3 className="text-xs font-black text-[#63738C] dark:text-slate-400 uppercase tracking-wider">
                   Популярні маршрути
                 </h3>
-                <span className="text-[11px] font-bold text-[#0866F5]">
-                  Усі
-                </span>
+                <span className="text-[11px] font-semibold text-[#8291A5] dark:text-slate-500">Швидкий старт</span>
               </div>
 
               <div className="space-y-1.5">
@@ -421,7 +542,7 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
                   <button
                     key={i}
                     type="button"
-                    onClick={() => handleSelectQuickRoute(r.from, r.to)}
+                    onClick={() => void handleSelectQuickRoute(r.from, r.to)}
                     className="flex w-full items-center justify-between rounded-xl bg-white dark:bg-[#0B1730] px-3.5 py-2.5 border border-slate-100 dark:border-slate-800 text-left transition hover:border-blue-200 active:scale-[0.99]"
                   >
                     <div className="flex items-center gap-2">

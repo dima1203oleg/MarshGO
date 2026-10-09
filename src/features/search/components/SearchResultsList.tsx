@@ -52,6 +52,16 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
     train: items.filter((i) => i.type === 'train').length,
     taxi: items.filter((i) => i.type === 'taxi').length,
   };
+  const modeOptions: Array<{ mode: SearchTransportMode; label: string; count: number }> = [
+    { mode: 'all', label: 'Усі', count: modeCounts.all },
+    ...(['carpool', 'bus', 'train', 'taxi'] as const)
+      .filter((mode) => modeCounts[mode] > 0)
+      .map((mode) => ({
+        mode,
+        label: mode === 'carpool' ? 'Попутки' : mode === 'bus' ? 'Автобуси' : mode === 'train' ? 'Поїзди' : 'Таксі',
+        count: modeCounts[mode],
+      })),
+  ];
 
   const filteredItems =
     selectedFilterMode === 'all'
@@ -59,7 +69,7 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
       : items.filter((i) => i.type === selectedFilterMode);
 
   return (
-    <div className="mx-auto flex flex-col min-h-[100svh] w-full max-w-md overflow-x-hidden bg-[#F4F8FF] dark:bg-[#070E1B] text-[#081B35] dark:text-white pb-20">
+    <div className="mx-auto flex min-h-[100svh] w-full max-w-md flex-col overflow-x-hidden bg-[#F4F8FD] pb-20 text-[#142642] dark:bg-[#070E1B] dark:text-white">
       {/* Top Header */}
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-100/80 dark:border-slate-800/80 bg-white/95 dark:bg-[#0B1730]/95 backdrop-blur-md px-4 py-3 pt-[max(0.6rem,env(safe-area-inset-top))]">
         <button
@@ -88,22 +98,14 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
 
       {/* Filter Chips Strip (Усі 32, Попутки 8, Автобуси 6...) */}
       <div className="flex items-center gap-2 overflow-x-auto px-4 py-2.5 bg-white dark:bg-[#0B1730] border-b border-slate-100/80 dark:border-slate-800/80 scrollbar-none">
-        {(
-          [
-            ['all', 'Усі', modeCounts.all ?? 0],
-            ['carpool', 'Попутки', modeCounts.carpool ?? 0],
-            ['bus', 'Автобуси', modeCounts.bus ?? 0],
-            ['train', 'Поїзди', modeCounts.train ?? 0],
-            ['taxi', 'Таксі', modeCounts.taxi ?? 0],
-          ] as const
-        ).map(([modeId, label, count]) => {
-          const active = selectedFilterMode === modeId;
+        {modeOptions.map(({ mode, label, count }) => {
+          const active = selectedFilterMode === mode;
 
           return (
             <button
-              key={modeId}
+              key={mode}
               type="button"
-              onClick={() => onSelectFilterMode(modeId as SearchTransportMode)}
+              onClick={() => onSelectFilterMode(mode)}
               className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-black transition shrink-0 ${
                 active
                   ? 'bg-[#0866F5] text-white shadow-sm'
