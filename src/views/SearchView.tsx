@@ -27,6 +27,7 @@ import { calculateEstimatedTravelTime } from '../services/travelTime';
 import { WeeklyPriceComparisonChart } from '../components/WeeklyPriceComparisonChart';
 import { BlacklistModal } from '../components/BlacklistModal';
 import { isUserInBlacklist, subscribeToBlacklistChanges } from '../services/blacklist';
+import { passengersLabel } from '../domain/plural';
 
 interface SearchViewProps {
   offers: TransportOffer[];
@@ -126,7 +127,7 @@ export const SearchView: React.FC<SearchViewProps> = ({
       try {
         localStorage.setItem('mg_favorites', JSON.stringify(updated));
       } catch { /* Keep the in-memory change when browser storage is unavailable. */ }
-      setFavoriteToast(isFav ? 'Маршрут видалено з вибраного' : 'Маршрут додано до вибраного ⭐');
+      setFavoriteToast(isFav ? 'Маршрут видалено з вибраного' : 'Маршрут збережено у вибране');
       setTimeout(() => setFavoriteToast(null), 2500);
       return updated;
     });
@@ -278,7 +279,7 @@ export const SearchView: React.FC<SearchViewProps> = ({
                 <div className="text-xs text-[#62718A] flex items-center gap-3 mt-0.5">
                   <span>{searchParams.date || 'Сьогодні'}</span>
                   <span>·</span>
-                  <span>{searchParams.passengers} {searchParams.passengers === 1 ? 'пасажир' : 'пасажири'}</span>
+                  <span>{passengersLabel(searchParams.passengers)}</span>
                 </div>
               </div>
             </div>

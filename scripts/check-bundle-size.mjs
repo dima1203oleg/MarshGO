@@ -6,7 +6,7 @@ const assetDirectory = path.resolve('dist/assets');
 const javascript = (await readdir(assetDirectory)).filter((name) => name.endsWith('.js'));
 if (javascript.length === 0) throw new Error('Production JavaScript bundle was not emitted');
 
-const forbiddenProductionMarkers = ['conv_dmd_01', 'cand_duliby_01', 'dmd_stryi_lviv_01'];
+const forbiddenProductionMarkers = ['conv_dmd_01', 'cand_duliby_01', 'dmd_stryi_lviv_01', 'usr_demo_preview'];
 for (const name of javascript) {
   const contents = await readFile(path.join(assetDirectory, name), 'utf8');
   const leakedMarker = forbiddenProductionMarkers.find((marker) => contents.includes(marker));

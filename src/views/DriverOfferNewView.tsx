@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Vehicle } from '../types';
 import { AddVehicleModal } from '../components/AddVehicleModal';
+import { todayKyivDate } from '../domain/kyivTime';
 
 interface DriverOfferNewViewProps {
   vehicle?: Vehicle;
@@ -45,7 +46,7 @@ export const DriverOfferNewView: React.FC<DriverOfferNewViewProps> = ({
   const [originAddress, setOriginAddress] = useState('Центральний автовокзал (вул. Колонтаївська)');
   const [destination, setDestination] = useState('Київ');
   const [destinationAddress, setDestinationAddress] = useState('Метро Житомирська');
-  const [departureDate, setDepartureDate] = useState('2026-09-30');
+  const [departureDate, setDepartureDate] = useState(todayKyivDate);
   const [departureTime, setDepartureTime] = useState('08:00');
   const [availableSeats, setAvailableSeats] = useState(() =>
     currentVehicle ? Math.max(1, currentVehicle.seats - 1) : 3

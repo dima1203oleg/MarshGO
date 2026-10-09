@@ -56,7 +56,7 @@ export const NavigationView: React.FC<NavigationViewProps> = ({
 
   const handleAccept = (candidate: MatchCandidate) => {
     onAcceptCandidate(candidate.id);
-    setAcceptedNotice(`🎉 Додано зупинку: ${candidate.origin}. Маршрут перебудовано! (+${candidate.detourMinutes} хв, +${candidate.offeredBudget} грн)`);
+    setAcceptedNotice(`Додано зупинку: ${candidate.origin}. Маршрут оптимізовано (+${candidate.detourMinutes} хв, +${candidate.offeredBudget} грн)`);
     setTimeout(() => setAcceptedNotice(null), 5000);
   };
 

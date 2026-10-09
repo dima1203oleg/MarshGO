@@ -511,7 +511,7 @@ export class MarshgoRepository {
       senderId: 'system',
       senderName: 'MARSHGO',
       isSystemEvent: true,
-      text: `🎉 Домовленість досягнута! Вартість ${booking.finalPriceAmount} грн погоджена. Поїздку підтверджено.`,
+      text: `Домовленість досягнута. Вартість ${booking.finalPriceAmount} грн погоджена. Поїздку підтверджено.`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     });
 

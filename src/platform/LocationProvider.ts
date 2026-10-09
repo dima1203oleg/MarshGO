@@ -1,4 +1,5 @@
 import { locationFixSchema, type LocationFix } from '../../shared/navigation/contracts';
+import { distanceMeters } from '../../shared/navigation/geometry';
 
 export type LocationOptions = { enableHighAccuracy?: boolean; maximumAgeMs?: number; timeoutMs?: number };
 export type LocationProviderStatus = 'IDLE' | 'ACTIVE' | 'UNAVAILABLE' | 'PERMISSION_DENIED';
@@ -57,9 +58,7 @@ export function validateLocationFix(fix: LocationFix, nowMs: number, previous?: 
   if (previous) {
     const elapsed = (Date.parse(fix.capturedAtClient) - Date.parse(previous.capturedAtClient)) / 1000;
     if (elapsed <= 0) return { accepted: false, code: 'GPS_STALE' };
-    const rad = Math.PI / 180; const dLat = (fix.latitude - previous.latitude) * rad; const dLon = (fix.longitude - previous.longitude) * rad;
-    const h = Math.sin(dLat / 2) ** 2 + Math.cos(previous.latitude * rad) * Math.cos(fix.latitude * rad) * Math.sin(dLon / 2) ** 2;
-    const distance = 6371000 * 2 * Math.asin(Math.sqrt(Math.min(1, h)));
+    const distance = distanceMeters([previous.longitude, previous.latitude], [fix.longitude, fix.latitude]);
     const maxSpeed = Math.max(fix.speedMps ?? 0, previous.speedMps ?? 0, 55);
     if (distance > maxSpeed * elapsed + fix.accuracyMeters + previous.accuracyMeters) return { accepted: false, code: 'GPS_TELEPORT_DETECTED' };
   }

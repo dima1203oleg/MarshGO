@@ -1,17 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import {
-
   PieChart,
   Calendar,
   Wallet,
-
-
-
-
   TrendingDown,
-
-
-  Info
+  Info,
+  Car,
+  Bus,
+  Train,
+  Key
 } from 'lucide-react';
 import { Booking, TransportCategory } from '../types';
 
@@ -26,7 +23,7 @@ interface CategoryExpense {
   count: number;
   color: string;
   bgLight: string;
-  icon: string;
+  icon: React.ReactNode;
 }
 
 interface MonthlyExpense {
@@ -61,17 +58,17 @@ function getBookingCategory(b: Booking): TransportCategory {
 
 const CATEGORY_CONFIG: Record<
   TransportCategory,
-  { label: string; color: string; bgLight: string; icon: string }
+  { label: string; color: string; bgLight: string; icon: React.ReactNode }
 > = {
-  all: { label: 'Всі поїздки', color: '#1769F4', bgLight: 'bg-blue-50', icon: '🚗' },
-  community: { label: 'Попутка (0% комісія)', color: '#16845C', bgLight: 'bg-emerald-50 text-emerald-700', icon: '🌱' },
-  taxi_pro: { label: 'Таксі & PRO', color: '#1769F4', bgLight: 'bg-blue-50 text-blue-700', icon: '🚕' },
-  bus: { label: 'Автобуси & Рейси', color: '#8B5CF6', bgLight: 'bg-purple-50 text-purple-700', icon: '🚌' },
-  minibus: { label: 'Маршрутки', color: '#F59E0B', bgLight: 'bg-amber-50 text-amber-700', icon: '🚐' },
-  transfer: { label: 'Мінівен & Трансфер', color: '#EC4899', bgLight: 'bg-pink-50 text-pink-700', icon: '🚐' },
-  carsharing: { label: 'Каршеринг', color: '#06B6D4', bgLight: 'bg-cyan-50 text-cyan-700', icon: '🔑' },
-  transit: { label: 'Міський транспорт', color: '#64748B', bgLight: 'bg-slate-50 text-slate-700', icon: '🚊' },
-  rail: { label: 'Укрзалізниця', color: '#0284C7', bgLight: 'bg-sky-50 text-sky-700', icon: '🚆' }
+  all: { label: 'Всі поїздки', color: '#1264E8', bgLight: 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300', icon: <Car size={16} /> },
+  community: { label: 'Попутка (0% комісія)', color: '#2563EB', bgLight: 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300', icon: <Car size={16} /> },
+  taxi_pro: { label: 'Таксі & PRO', color: '#1D4ED8', bgLight: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300', icon: <Car size={16} /> },
+  bus: { label: 'Автобуси & Рейси', color: '#475569', bgLight: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300', icon: <Bus size={16} /> },
+  minibus: { label: 'Маршрутки', color: '#64748B', bgLight: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300', icon: <Bus size={16} /> },
+  transfer: { label: 'Мінівен & Трансфер', color: '#334155', bgLight: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300', icon: <Car size={16} /> },
+  carsharing: { label: 'Каршеринг', color: '#0284C7', bgLight: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300', icon: <Key size={16} /> },
+  transit: { label: 'Міський транспорт', color: '#64748B', bgLight: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300', icon: <Train size={16} /> },
+  rail: { label: 'Укрзалізниця', color: '#0F172A', bgLight: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300', icon: <Train size={16} /> }
 };
 
 // Seed historical bookings if user has only 1 demo booking, so analytics are rich and beautiful
@@ -458,7 +455,7 @@ export const ExpenseStatistics: React.FC<ExpenseStatisticsProps> = ({ bookings }
                     {m.busAmount > 0 && (
                       <div
                         style={{ height: `${(m.busAmount / m.totalAmount) * 100}%` }}
-                        className="bg-purple-500 w-full"
+                        className="bg-slate-500 w-full"
                         title={`Автобуси: ${m.busAmount} ₴`}
                       />
                     )}
@@ -466,7 +463,7 @@ export const ExpenseStatistics: React.FC<ExpenseStatisticsProps> = ({ bookings }
                     {m.proAmount > 0 && (
                       <div
                         style={{ height: `${(m.proAmount / m.totalAmount) * 100}%` }}
-                        className="bg-[#1769F4] w-full"
+                        className="bg-blue-600 w-full"
                         title={`Таксі & PRO: ${m.proAmount} ₴`}
                       />
                     )}
@@ -474,7 +471,7 @@ export const ExpenseStatistics: React.FC<ExpenseStatisticsProps> = ({ bookings }
                     {m.communityAmount > 0 && (
                       <div
                         style={{ height: `${(m.communityAmount / m.totalAmount) * 100}%` }}
-                        className="bg-[#16845C] w-full"
+                        className="bg-blue-800 dark:bg-blue-700 w-full"
                         title={`Попутка: ${m.communityAmount} ₴`}
                       />
                     )}
@@ -482,7 +479,7 @@ export const ExpenseStatistics: React.FC<ExpenseStatisticsProps> = ({ bookings }
 
                   {/* Month Label */}
                   <div className="text-center">
-                    <span className={`text-xs font-bold block ${isCurrent ? 'text-[#1769F4] dark:text-sky-400 font-extrabold' : 'text-slate-600 dark:text-slate-400'}`}>
+                    <span className={`text-xs font-bold block ${isCurrent ? 'text-blue-600 dark:text-blue-400 font-extrabold' : 'text-slate-600 dark:text-slate-400'}`}>
                       {m.monthName}
                     </span>
                     <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold tabular-nums">
@@ -497,15 +494,15 @@ export const ExpenseStatistics: React.FC<ExpenseStatisticsProps> = ({ bookings }
           {/* Bar Chart Legend */}
           <div className="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700 flex items-center justify-center gap-4 flex-wrap text-xs font-semibold">
             <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-[#16845C]" />
-              <span className="text-slate-700 dark:text-slate-300">Попутка Community (0%)</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-blue-800 dark:bg-blue-700" />
+              <span className="text-slate-700 dark:text-slate-300">Попутка Community</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-[#1769F4]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />
               <span className="text-slate-700 dark:text-slate-300">Таксі & PRO</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="w-3 h-3 rounded bg-purple-500" />
+              <span className="w-2.5 h-2.5 rounded-full bg-slate-500" />
               <span className="text-slate-700 dark:text-slate-300">Автобуси</span>
             </div>
           </div>
@@ -516,7 +513,7 @@ export const ExpenseStatistics: React.FC<ExpenseStatisticsProps> = ({ bookings }
       <div className="space-y-3 pt-2">
         <div className="flex items-center justify-between">
           <h3 className="font-extrabold text-sm text-[#14243B] dark:text-white flex items-center gap-2">
-            <Wallet className="w-4 h-4 text-[#16845C]" />
+            <Wallet className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             <span>Розподіл витрат за типами транспорту</span>
           </h3>
           <span className="text-xs text-slate-400">Частка у бюджеті</span>
@@ -555,7 +552,7 @@ export const ExpenseStatistics: React.FC<ExpenseStatisticsProps> = ({ bookings }
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <div className="text-lg">{cat.icon}</div>
+                  <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700/60 flex items-center justify-center text-slate-700 dark:text-slate-300">{cat.icon}</div>
                   <div>
                     <div className="font-bold text-xs text-[#14243B] dark:text-white">
                       {cat.label}

@@ -266,6 +266,7 @@ export type ApiProposalRevision = {
 type ApiEnvelope<T> = { data: T };
 const apiBase = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '';
 let accessToken: string | null = null;
+let refreshInFlight: Promise<{ user: ApiUser; accessToken: string }> | null = null;
 
 const PHOTO_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 async function uploadPhotoFile<T>(path: string, file: File): Promise<T> {
@@ -286,13 +287,18 @@ async function uploadPhotoFile<T>(path: string, file: File): Promise<T> {
 
 async function request<T>(path: string, init: RequestInit = {}, retryAuth = true): Promise<T> {
   const headers = new Headers(init.headers);
+  const tokenUsed = accessToken;
   if (init.body && !headers.has('content-type')) headers.set('content-type', 'application/json');
-  if (accessToken) headers.set('authorization', `Bearer ${accessToken}`);
+  if (tokenUsed) headers.set('authorization', `Bearer ${tokenUsed}`);
   const response = await fetch(`${apiBase}/api/v1${path}`, { ...init, headers, credentials: 'include' });
   const body = await response.json().catch(() => null) as { data?: T; error?: { code?: string; message?: string } } | null;
   if (response.status === 401 && retryAuth && accessToken && !path.startsWith('/auth/')) {
+    if (tokenUsed !== accessToken) return request<T>(path, init, false);
     try {
-      const session = await request<{ user: ApiUser; accessToken: string }>('/auth/refresh', { method: 'POST' }, false);
+      refreshInFlight ??= request<{ user: ApiUser; accessToken: string }>('/auth/refresh', { method: 'POST' }, false)
+        .then((session) => { accessToken = session.accessToken; return session; })
+        .finally(() => { refreshInFlight = null; });
+      const session = await refreshInFlight;
       accessToken = session.accessToken;
       return request<T>(path, init, false);
     } catch {
@@ -639,7 +645,7 @@ export const productionApi = {
         next.onmessage = (message) => {
           try {
             const event = JSON.parse(String(message.data)) as ApiRealtimeEvent | { type: string };
-            if (event.type === 'conversation.message.created' || event.type === 'journey.updated' || event.type.startsWith('booking.') || event.type.startsWith('trip.') || event.type.startsWith('proposal.') || event.type.startsWith('navigation.match.') || event.type.startsWith('rendezvous.')) onEvent(event as ApiRealtimeEvent);
+            if (event.type === 'conversation.message.created' || event.type === 'journey.updated' || event.type === 'navigation.route-updated' || event.type.startsWith('booking.') || event.type.startsWith('trip.') || event.type.startsWith('proposal.') || event.type.startsWith('navigation.match.') || event.type.startsWith('rendezvous.')) onEvent(event as ApiRealtimeEvent);
           } catch { /* Ignore malformed realtime frames; persisted REST history remains authoritative. */ }
         };
         next.onerror = () => next.close();
@@ -658,10 +664,19 @@ export const productionApi = {
     };
   },
   book(offerId: string, seats: number, journey?: { journeyId: string; journeyLegId: string }) {
+    const context = [offerId, seats, journey?.journeyId ?? '', journey?.journeyLegId ?? ''].join(':');
+    const storageKey = `marshgo:booking-attempt:${context}`;
+    let idempotencyKey: string | null = null;
+    try { idempotencyKey = sessionStorage.getItem(storageKey); } catch { /* Private browsing may disable storage. */ }
+    idempotencyKey ??= crypto.randomUUID();
+    try { sessionStorage.setItem(storageKey, idempotencyKey); } catch { /* The request remains protected for this invocation. */ }
     return request<ApiBooking>('/bookings', {
       method: 'POST',
-      headers: { 'Idempotency-Key': crypto.randomUUID() },
+      headers: { 'Idempotency-Key': idempotencyKey },
       body: JSON.stringify({ offerId, seats, ...(journey ?? {}) }),
+    }).then((booking) => {
+      try { sessionStorage.removeItem(storageKey); } catch { /* Storage may be disabled. */ }
+      return booking;
     });
   },
 };

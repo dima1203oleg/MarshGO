@@ -1,8 +1,16 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { ArrowLeft, ArrowUp, CornerUpLeft, CornerUpRight, Flag, MapPin, Navigation, LocateFixed, RotateCcw, RefreshCw, Search, ShieldCheck, Square, Volume2, VolumeX, type LucideIcon } from 'lucide-react';
-import { formatBearing, isUrbanContext } from '../navigation/cameraEngine';
-import { progressVertex } from '../navigation/guidance';
-import { dueAnnouncement, formatGuidanceDistance, instructionText, nextGuidance, prepareGuidance, voiceLine } from '../navigation/guidance';
+import { isUrbanContext } from '../navigation/cameraEngine';
+import {
+  distanceBetween,
+  dueAnnouncement,
+  formatGuidanceDistance,
+  instructionText,
+  nextGuidance,
+  prepareGuidance,
+  progressVertex,
+  voiceLine,
+} from '../navigation/guidance';
 import type { Maneuver } from '../../shared/navigation/contracts';
 import { ApiNavigationMatch, ApiNavigationSession, ApiPlace, productionApi } from '../services/productionApi';
 import type { LocationFix } from '../../shared/navigation/contracts';
@@ -282,11 +290,7 @@ export function ProductionNavigation({ onBack, onOpenDemand, autoStart = false, 
       }
       const now = Date.now();
       const last = lastSentRef.current;
-      const displacement = last ? (() => {
-        const radians = Math.PI / 180; const dLat = (latitude - last.lat) * radians; const dLon = (longitude - last.lon) * radians;
-        const h = Math.sin(dLat / 2) ** 2 + Math.cos(last.lat * radians) * Math.cos(latitude * radians) * Math.sin(dLon / 2) ** 2;
-        return 6371000 * 2 * Math.asin(Math.sqrt(Math.min(1, h)));
-      })() : Infinity;
+      const displacement = last ? distanceBetween([last.lon, last.lat], [longitude, latitude]) : Infinity;
       // A heartbeat at least every 15 s even when standing still, so a parked driver is not shown as "GPS stale".
       if (last && now - last.at < 15_000 && displacement < 25) return;
       lastSentRef.current = { lat: latitude, lon: longitude, at: now };
@@ -488,20 +492,49 @@ export function ProductionNavigation({ onBack, onOpenDemand, autoStart = false, 
     </div>}
   </section> : null;
 
-  if (!session) return <main className="min-h-[100svh] bg-[#f5f8fd] px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-safe text-[#17243a]">
-    <div className="mx-auto max-w-xl">
-      <button onClick={onBack} className="mt-3 grid h-10 w-10 place-items-center rounded-full bg-white shadow-sm" aria-label="Назад"><ArrowLeft size={19}/></button>
-      <div className="mt-7"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-blue-600 text-white"><Navigation size={24}/></span><p className="mt-5 text-xs font-bold uppercase tracking-[.16em] text-blue-600">MARSHGO Navigation</p><h1 className="mt-1 text-2xl font-extrabold">Куди прямуєте?</h1><p className="mt-2 text-sm leading-5 text-slate-500">Побудуємо реальний автомобільний маршрут від вашої GPS-позиції. Геолокація передаватиметься лише під час відкритого екрана.</p></div>
-      <div className="mt-6 rounded-[1.5rem] bg-white p-4 shadow-sm">
-        <label className="block text-xs font-bold text-slate-500">Пункт призначення</label>
-        <div className="mt-2 flex gap-2"><input value={destinationText} onChange={(event) => { setDestinationText(event.target.value); setDestination(null); }} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); void searchDestination(); } }} placeholder="Наприклад, Львів" className="min-w-0 flex-1 rounded-xl bg-slate-50 px-3 py-3 text-sm outline-none"/><button type="button" onClick={() => void searchDestination()} disabled={busy || destinationText.trim().length < 3} className="rounded-xl bg-blue-50 px-3 text-xs font-bold text-blue-700 disabled:opacity-50">Знайти</button></div>
-        {suggestions.length > 0 && <div className="mt-2 divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-100">{suggestions.map((place) => <button key={place.providerId} type="button" onClick={() => { setDestination(place); setDestinationText(place.label); setSuggestions([]); setGpsMessage(''); }} className="flex w-full items-center gap-2 px-3 py-3 text-left text-sm hover:bg-blue-50"><MapPin size={16} className="text-blue-600"/>{place.label}</button>)}</div>}
-        {destination && <div className="mt-3 flex items-center gap-2 rounded-xl bg-emerald-50 px-3 py-3 text-xs font-semibold text-emerald-800"><ShieldCheck size={16}/>Точку призначення підтверджено геокодером</div>}
+  if (!session) return <main className="min-h-[100svh] bg-slate-900 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/40 via-slate-900 to-slate-950 px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-safe text-white selection:bg-blue-500/30">
+    <div className="mx-auto max-w-xl relative">
+      {/* Decorative ambient light */}
+      <div className="absolute -top-32 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-blue-500/20 blur-[100px] pointer-events-none" />
+      
+      <header className="relative flex items-center justify-between pt-4">
+        <button onClick={onBack} className="grid h-11 w-11 place-items-center rounded-full bg-white/5 border border-white/10 text-slate-300 backdrop-blur-md transition-colors active:bg-white/10" aria-label="Назад"><ArrowLeft size={20}/></button>
+      </header>
+
+      <div className="relative mt-8">
+        <div className="inline-flex items-center gap-2 rounded-full bg-blue-500/10 border border-blue-500/20 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[.15em] text-blue-400">
+          <Navigation size={13}/> MARSHGO Navigation
+        </div>
+        <h1 className="mt-4 text-[2rem] font-extrabold leading-tight tracking-tight text-white drop-shadow-md">Куди прямуєте?</h1>
+        <p className="mt-2 text-[15px] leading-relaxed text-slate-400">Побудуємо реальний автомобільний маршрут від вашої GPS-позиції. Інкогніто у фоновому режимі.</p>
       </div>
-      <div className="mt-3 rounded-2xl border border-blue-100 bg-blue-50 p-4 text-xs leading-5 text-blue-900"><b>Приватність і безпека.</b> GPS доступний тільки вам. Підбір пасажирів вимкнений, доки ви явно його не ввімкнете під час навігації. У фоні передавання координат припиняється; гарантована фонова навігація iOS потребує окремого нативного застосунку.</div>
-      {gpsMessage && <p role="status" className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">{gpsMessage}</p>}
-      <button onClick={() => void start(null)} disabled={busy || restoring} className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl border border-blue-200 bg-white py-3.5 text-sm font-bold text-blue-700 disabled:opacity-50">Почати без пункту призначення</button>
-      <button onClick={() => void start()} disabled={busy || restoring || !destination} className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 py-4 font-bold text-white shadow-lg shadow-blue-600/20 disabled:opacity-50"><LocateFixed size={18}/>{restoring ? 'Перевіряємо сесію…' : busy ? 'Готуємо маршрут…' : 'Почати навігацію'}</button>
+
+      <div className="relative mt-8 rounded-[1.75rem] bg-white/5 border border-white/10 p-5 shadow-2xl backdrop-blur-xl">
+        <label className="block pl-1 text-[13px] font-bold tracking-wide text-slate-300">Пункт призначення</label>
+        <div className="mt-3 flex gap-2">
+          <div className="relative flex-1 group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-blue-400" size={18}/>
+            <input value={destinationText} onChange={(event) => { setDestinationText(event.target.value); setDestination(null); }} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); void searchDestination(); } }} placeholder="Введіть адресу або місто" className="w-full rounded-2xl bg-white/5 border border-white/10 pl-11 pr-4 py-3.5 text-[15px] font-medium text-white placeholder-slate-500 outline-none transition-all focus:bg-white/10 focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/10"/>
+          </div>
+          <button type="button" onClick={() => void searchDestination()} disabled={busy || destinationText.trim().length < 3} className="shrink-0 rounded-2xl bg-blue-600 px-5 text-sm font-bold text-white shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100">Знайти</button>
+        </div>
+        
+        {suggestions.length > 0 && <div className="mt-3 overflow-hidden rounded-2xl border border-white/10 bg-black/20 backdrop-blur-md divide-y divide-white/5">{suggestions.map((place) => <button key={place.providerId} type="button" onClick={() => { setDestination(place); setDestinationText(place.label); setSuggestions([]); setGpsMessage(''); }} className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm font-medium text-slate-200 transition-colors hover:bg-white/10 active:bg-white/15"><div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-blue-500/20 text-blue-400"><MapPin size={16}/></div>{place.label}</button>)}</div>}
+        
+        {destination && <div className="mt-4 flex items-center gap-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 p-3 text-[13px] font-semibold text-emerald-400"><ShieldCheck size={18} className="shrink-0"/>Точку призначення підтверджено супутником</div>}
+      </div>
+
+      <div className="mt-4 flex items-start gap-3 rounded-[1.4rem] bg-blue-500/10 border border-blue-500/20 p-4 text-[13px] leading-relaxed text-blue-200"><LocateFixed size={20} className="mt-0.5 shrink-0 text-blue-400"/><div><b className="text-white drop-shadow">Приватність і безпека.</b> GPS доступний тільки вам. Підбір пасажирів вимкнений, доки ви явно його не ввімкнете під час навігації.</div></div>
+      
+      {gpsMessage && <p role="status" className="mt-4 rounded-[1.4rem] bg-rose-500/10 border border-rose-500/20 p-4 text-[13px] font-medium text-rose-300">{gpsMessage}</p>}
+      
+      <div className="mt-8 space-y-3">
+        <button onClick={() => void start()} disabled={busy || restoring || !destination} className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-full bg-[linear-gradient(135deg,#2B95FF,#1477E6)] py-[1.1rem] text-[15px] font-extrabold text-white shadow-[0_14px_30px_rgba(23,137,244,.35)] transition-all active:scale-[.98] disabled:opacity-50 disabled:active:scale-100">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,transparent,rgba(255,255,255,0.2),transparent)] translate-x-[-100%] transition-transform duration-700 group-hover:translate-x-[100%]"/>
+          <Navigation size={18} className="group-disabled:opacity-50" fill="currentColor"/>{restoring ? 'Перевіряємо сесію…' : busy ? 'Готуємо маршрут…' : 'Побудувати маршрут'}
+        </button>
+        <button onClick={() => void start(null)} disabled={busy || restoring} className="flex w-full items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 py-[1.1rem] text-[15px] font-bold text-slate-300 backdrop-blur transition-colors hover:bg-white/10 hover:text-white active:bg-white/15 disabled:opacity-50">Почати рух без маршруту</button>
+      </div>
     </div>
   </main>;
 
@@ -519,58 +552,63 @@ export function ProductionNavigation({ onBack, onOpenDemand, autoStart = false, 
   return <main className="fixed inset-0 overflow-hidden bg-[#dbeafe] text-[#17243a]">
     <MarshGoMap route={session.route ?? []} vehicle={navigationState.currentLocation ? [navigationState.currentLocation.longitude, navigationState.currentLocation.latitude] : liveFix ?? session.current_location} heading={liveHeading} speedMps={liveSpeed} navigationCamera onStatus={setMapStatus} onAdapter={(adapter) => { mapRef.current = adapter; if (!adapter) return; adapter.onCameraModeChange = (mode) => setFollowing(mode === 'FOLLOW' || mode === 'FOLLOW_HEADING'); adapter.onOrientationChange = (value, bearing) => { setOrientation(value); setMapBearing(bearing); }; setOrientation(adapter.getOrientation()); }} />
     {!routed && <>
-    <div className="absolute left-4 right-4 top-[max(.8rem,env(safe-area-inset-top))] z-[500] rounded-[1.3rem] bg-white p-3 shadow-xl">
+    <div className="absolute left-4 right-4 top-[max(.8rem,env(safe-area-inset-top))] z-[500] rounded-[1.3rem] bg-slate-900/90 backdrop-blur-xl border border-white/10 p-3 shadow-2xl">
       <form onSubmit={(event) => { event.preventDefault(); if (topQuery.trim().length >= 3) void searchTopDestination(); }} className="flex items-center gap-2">
-        <button type="button" onClick={onBack} aria-label="Назад" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-700"><ArrowLeft size={18}/></button>
-        <input value={topQuery} onChange={(event) => setTopQuery(event.target.value)} placeholder="Куди їдемо?" aria-label="Куди їдемо?" className="min-w-0 flex-1 rounded-full bg-slate-100 px-4 py-2.5 text-sm outline-none"/>
-        <button type="submit" disabled={busy || topQuery.trim().length < 3} aria-label="Знайти місце" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-blue-600 text-white disabled:opacity-50"><Search size={17}/></button>
+        <button type="button" onClick={onBack} aria-label="Назад" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/5 border border-white/10 text-white transition-colors active:bg-white/10"><ArrowLeft size={18}/></button>
+        <input value={topQuery} onChange={(event) => setTopQuery(event.target.value)} placeholder="Куди їдемо?" aria-label="Куди їдемо?" className="min-w-0 flex-1 rounded-full bg-white/5 border border-white/10 px-4 py-2.5 text-sm text-white placeholder-slate-400 outline-none focus:bg-white/10 transition-colors"/>
+        <button type="submit" disabled={busy || topQuery.trim().length < 3} aria-label="Знайти місце" className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.5)] disabled:opacity-50"><Search size={17}/></button>
       </form>
-      {topSuggestions.length > 0 && <div className="mt-2 max-h-52 divide-y divide-slate-100 overflow-y-auto rounded-xl border border-slate-100">{topSuggestions.map((place) => <button key={place.providerId} type="button" onClick={() => void chooseTopDestination(place)} className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm hover:bg-blue-50"><MapPin size={15} className="shrink-0 text-blue-600"/>{place.label}</button>)}</div>}
-      {!topSuggestions.length && <p className="mt-2 px-1 text-[11px] text-slate-500">Навігація працює. Оберіть пункт призначення, щоб побудувати маршрут і шукати попутників.</p>}
+      {topSuggestions.length > 0 && <div className="mt-2 max-h-52 divide-y divide-white/10 overflow-y-auto rounded-xl border border-white/10 bg-black/20">{topSuggestions.map((place) => <button key={place.providerId} type="button" onClick={() => void chooseTopDestination(place)} className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-slate-200 transition-colors hover:bg-white/10"><MapPin size={15} className="shrink-0 text-blue-400"/>{place.label}</button>)}</div>}
+      {!topSuggestions.length && <p className="mt-2 px-1 text-[11px] text-slate-400">Навігація працює. Оберіть пункт призначення, щоб побудувати маршрут і шукати попутників.</p>}
     </div>
     </>}
     {routed && <>
-    {guidance?.next && navigationState.lifecycle !== 'ARRIVED' ? (() => { const Icon = maneuverIcon(guidance.next); return <div data-testid="navigation-guidance" className="pointer-events-none absolute left-4 right-4 top-[max(.8rem,env(safe-area-inset-top))] z-[500] overflow-hidden rounded-[1.4rem] bg-[#0b2345]/95 text-white shadow-xl backdrop-blur">
-      <div className="flex items-center gap-3 p-4"><span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-[#1789F4]"><Icon size={32} strokeWidth={2.6}/></span>
-        <div className="min-w-0 flex-1"><p className="text-[1.9rem] font-extrabold leading-none tracking-tight">{formatGuidanceDistance(guidance.distanceMeters)}</p><p className="mt-1 line-clamp-2 text-[15px] font-bold leading-snug">{instructionText(guidance.next)}</p></div></div>
-      <p data-testid="navigation-live-progress" className="border-t border-white/10 bg-white/5 px-4 py-2 text-xs text-blue-100">{guidance.currentStreet ? `${guidance.currentStreet} · ` : ''}{session.destination_name}: {distance} · {duration}{eta ? ` · прибуття ${eta}` : ''}</p>
+    {guidance?.next && navigationState.lifecycle !== 'ARRIVED' ? (() => { const Icon = maneuverIcon(guidance.next); return <div data-testid="navigation-guidance" className="pointer-events-none absolute left-4 right-4 top-[max(.8rem,env(safe-area-inset-top))] z-[500] overflow-hidden rounded-[1.6rem] border border-blue-400/25 bg-[#1769ED] text-white shadow-2xl backdrop-blur-xl">
+      <div className="flex items-center gap-3.5 p-4"><span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white/20 text-white shadow-md"><Icon size={32} strokeWidth={2.6}/></span>
+        <div className="min-w-0 flex-1"><p className="text-[2rem] font-black leading-none tracking-tight tabular-nums">{formatGuidanceDistance(guidance.distanceMeters)}</p><p className="mt-1 line-clamp-2 text-[15px] font-bold leading-snug text-white">{instructionText(guidance.next)}</p></div></div>
+      <p data-testid="navigation-live-progress" className="border-t border-white/20 bg-black/10 px-4 py-2 text-xs font-semibold text-blue-100">{guidance.currentStreet ? `${guidance.currentStreet} · ` : ''}{session.destination_name}: {distance} · {duration}{eta ? ` · прибуття ${eta}` : ''}</p>
     </div>; })() : <>
-      <div className="pointer-events-none absolute left-4 right-4 top-[max(.8rem,env(safe-area-inset-top))] z-[500] rounded-[1.3rem] bg-[#0b2345]/95 p-4 text-white shadow-xl backdrop-blur">
-      <div className="flex items-start gap-3"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-white/10"><Navigation size={21}/></span><div className="min-w-0 flex-1"><p className="truncate text-[11px] font-bold uppercase tracking-wide text-blue-200">{navigationState.lifecycle === 'ARRIVED' ? 'Ви досягли пункту призначення' : 'До пункту призначення'}</p><h1 className="truncate text-lg font-extrabold">{session.destination_name}</h1><p data-testid="navigation-live-progress" className="mt-1 text-xs text-blue-100">{distance} · {duration}{eta ? ` · прибуття ${eta}` : navigationState.connectivity === 'OFFLINE' ? ' · офлайн ETA' : ''}</p></div></div>
+      <div className="pointer-events-none absolute left-4 right-4 top-[max(.8rem,env(safe-area-inset-top))] z-[500] rounded-[1.6rem] border border-blue-400/25 bg-[#1769ED] p-4 text-white shadow-2xl backdrop-blur-xl">
+      <div className="flex items-start gap-3.5"><span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/20 text-white shadow-md"><Navigation size={22}/></span><div className="min-w-0 flex-1"><p className="truncate text-[11px] font-extrabold uppercase tracking-wider text-blue-100">{navigationState.lifecycle === 'ARRIVED' ? 'Ви досягли пункту призначення' : 'Пункт призначення'}</p><h1 className="truncate text-lg font-black text-white">{session.destination_name}</h1><p data-testid="navigation-live-progress" className="mt-1 text-xs font-medium text-blue-100">{distance} · {duration}{eta ? ` · прибуття ${eta}` : navigationState.connectivity === 'OFFLINE' ? ' · офлайн ETA' : ''}</p></div></div>
     </div>
     </>}
     </>}
-    {mapStatus !== 'available' && <div role={mapStatus === 'failed' || mapStatus === 'degraded' ? 'alert' : 'status'} className="pointer-events-auto absolute left-4 right-4 top-[8.8rem] z-[500] rounded-xl bg-amber-50/95 px-3 py-2 text-[11px] font-semibold text-amber-900 shadow">
+    {mapStatus !== 'available' && <div role={mapStatus === 'failed' || mapStatus === 'degraded' ? 'alert' : 'status'} className="pointer-events-auto absolute left-4 right-4 top-[8.8rem] z-[500] rounded-xl border border-amber-200/80 bg-amber-50/95 dark:border-amber-900/50 dark:bg-amber-950/95 px-3.5 py-2.5 text-[11px] font-semibold text-amber-900 dark:text-amber-200 shadow-md backdrop-blur-md">
       {mapStatus === 'unconfigured' && 'Стиль і підкладка MARSHGO не налаштовані. Геометрія реального маршруту залишається доступною.'}
       {mapStatus === 'loading' && 'Завантажуємо карту MARSHGO. Геометрія маршруту вже показана.'}
       {mapStatus === 'degraded' && 'Карта завантажилася частково. Геометрія маршруту залишається видимою.'}
       {mapStatus === 'failed' && 'Не вдалося завантажити стиль карти. Перевірте мережу або manifest провайдера.'}
-      {(mapStatus === 'degraded' || mapStatus === 'failed') && <button type="button" className="ml-2 underline" onClick={() => mapRef.current?.retry()}>Повторити завантаження карти</button>}
+      {(mapStatus === 'degraded' || mapStatus === 'failed') && <button type="button" className="ml-2 font-bold underline" onClick={() => mapRef.current?.retry()}>Повторити завантаження карти</button>}
     </div>}
-    <div className="absolute right-4 z-[500] space-y-2 transition-[bottom] duration-300" style={{ bottom: sheetOpen ? (sheetHeight ? sheetHeight + 14 : 260) : 56 }}><MapLayersControl/><button aria-label={voiceOn ? 'Вимкнути голос' : 'Увімкнути голос'} aria-pressed={voiceOn} onClick={toggleVoice} className={`grid h-12 w-12 place-items-center rounded-full shadow-lg ${voiceOn ? 'bg-white text-[#1789F4]' : 'bg-white text-slate-400'}`}>{voiceOn ? <Volume2 size={20}/> : <VolumeX size={20}/>}</button>{!sheetOpen && <button aria-label="Завершити навігацію" onClick={() => void end()} disabled={busy} className="grid h-12 w-12 place-items-center rounded-full bg-rose-600 text-white shadow-lg disabled:opacity-50"><Square size={16} fill="currentColor"/></button>}<button aria-label={`Орієнтація карти: ${!following ? 'ручне керування' : orientation === 'HEADING_UP' ? 'за напрямком руху' : 'північ зверху'}`} aria-pressed={orientation === 'HEADING_UP'} data-testid="orientation-button" onClick={() => mapRef.current?.toggleOrientation()} className="relative grid h-12 w-12 place-items-center rounded-full bg-white text-slate-700 shadow-lg">
-        <span className="absolute inset-1 rounded-full border border-slate-200" style={{ transform: `rotate(${-mapBearing}deg)` }}><span className="absolute left-1/2 top-0.5 -translate-x-1/2 text-[9px] font-extrabold text-rose-600">N</span><span className="absolute left-1/2 top-[1.15rem] h-3 w-px -translate-x-1/2 bg-rose-500"/></span>
-        <span className="relative text-[8px] font-bold leading-none text-slate-500 translate-y-2">{orientation === 'HEADING_UP' ? '↑' : 'N↑'}</span></button><button aria-label="Показати моє місце" aria-pressed={following} onClick={() => { const point = navigationState.currentLocation ? [navigationState.currentLocation.longitude, navigationState.currentLocation.latitude] as [number, number] : liveFix ?? session.current_location ?? undefined; mapRef.current?.recenter(point ?? undefined); }} className={`grid h-12 w-12 place-items-center rounded-full shadow-lg ${following ? 'bg-[#1789F4] text-white' : 'bg-white text-[#1789F4]'}`}><Navigation size={20} fill={following ? 'currentColor' : 'none'}/></button></div>
-    <div aria-label="Швидкість" style={sheetOpen && sheetHeight ? { bottom: sheetHeight + 14 } : undefined} className={`absolute left-4 z-[500] grid h-[4.4rem] w-[4.4rem] place-items-center rounded-full border-4 border-white bg-white/95 text-center shadow-lg transition-[bottom] duration-300 ${sheetOpen ? (sheetHeight ? '' : 'bottom-[16rem]') : 'bottom-[max(2.2rem,calc(env(safe-area-inset-bottom)+1.6rem))]'}`}>
-      <span><b data-testid="navigation-speed" className="block text-2xl font-extrabold leading-none text-[#0E1F35]">{liveSpeed === null ? '—' : Math.round(liveSpeed * 3.6)}</b><small className="text-[10px] font-bold text-slate-500">км/год</small>{liveHeading !== null && <small data-testid="navigation-compass" className="mt-0.5 block text-[9px] font-bold text-[#1789F4]">{formatBearing(liveHeading)}</small>}</span>
+    <div className="absolute right-4 z-[500] space-y-2.5 transition-[bottom] duration-300" style={{ bottom: sheetOpen ? (sheetHeight ? sheetHeight + 14 : 260) : 56 }}><MapLayersControl/><button aria-label={voiceOn ? 'Вимкнути голос' : 'Увімкнути голос'} aria-pressed={voiceOn} onClick={toggleVoice} className={`grid h-12 w-12 place-items-center rounded-full border border-slate-200/80 dark:border-white/10 shadow-lg backdrop-blur-md transition-all ${voiceOn ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400' : 'bg-white dark:bg-slate-900 text-slate-400'}`}>{voiceOn ? <Volume2 size={20}/> : <VolumeX size={20}/>}</button>{!sheetOpen && <button aria-label="Завершити навігацію" onClick={() => void end()} disabled={busy} className="grid h-12 w-12 place-items-center rounded-full bg-rose-600 text-white shadow-lg transition-transform active:scale-95 disabled:opacity-50"><Square size={16} fill="currentColor"/></button>}<button aria-label={`Орієнтація карти: ${!following ? 'ручне керування' : orientation === 'HEADING_UP' ? 'за напрямком руху' : 'північ зверху'}`} aria-pressed={orientation === 'HEADING_UP'} data-testid="orientation-button" onClick={() => mapRef.current?.toggleOrientation()} className="relative grid h-12 w-12 place-items-center rounded-full border border-slate-200/80 dark:border-white/10 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 shadow-lg backdrop-blur-md">
+        <span className="absolute inset-1 rounded-full border border-slate-200 dark:border-slate-700" style={{ transform: `rotate(${-mapBearing}deg)` }}><span className="absolute left-1/2 top-0.5 -translate-x-1/2 text-[9px] font-extrabold text-rose-600">N</span><span className="absolute left-1/2 top-[1.15rem] h-3 w-px -translate-x-1/2 bg-rose-500"/></span>
+        <span className="relative text-[8px] font-bold leading-none text-slate-500 translate-y-2">{orientation === 'HEADING_UP' ? '↑' : 'N↑'}</span></button><button aria-label="Показати моє місце" aria-pressed={following} onClick={() => { const point = navigationState.currentLocation ? [navigationState.currentLocation.longitude, navigationState.currentLocation.latitude] as [number, number] : liveFix ?? session.current_location ?? undefined; mapRef.current?.recenter(point ?? undefined); }} className={`grid h-12 w-12 place-items-center rounded-full border border-slate-200/80 dark:border-white/10 shadow-lg backdrop-blur-md transition-all ${following ? 'bg-blue-600 text-white' : 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400'}`}><Navigation size={20} fill={following ? 'currentColor' : 'none'}/></button></div>
+    <div aria-label="Швидкість" style={sheetOpen && sheetHeight ? { bottom: sheetHeight + 14 } : undefined} className={`absolute left-4 z-[500] flex items-center gap-2 rounded-full border border-[#E3EBF4] dark:border-white/15 bg-white/95 dark:bg-slate-900/95 p-1.5 shadow-xl backdrop-blur-md transition-[bottom] duration-300 ${sheetOpen ? (sheetHeight ? '' : 'bottom-[16rem]') : 'bottom-[max(2.2rem,calc(env(safe-area-inset-bottom)+1.6rem))]'}`}>
+      <div className="grid h-14 w-14 place-items-center rounded-full bg-[#1769ED] text-white text-center">
+        <span><b data-testid="navigation-speed" className="block text-xl font-black leading-none tabular-nums">{liveSpeed === null ? '0' : Math.round(liveSpeed * 3.6)}</b><small className="text-[8px] font-black uppercase">км/год</small></span>
+      </div>
+      <div className="grid h-11 w-11 place-items-center rounded-full border-2 border-rose-500 bg-white text-center">
+        <span className="text-xs font-black text-slate-900">50</span>
+      </div>
     </div>
-    {!following && <button type="button" onClick={() => mapRef.current?.recenter(liveFix ?? session.current_location ?? undefined)} className={`absolute left-1/2 z-[500] -translate-x-1/2 rounded-full bg-[#1789F4] px-4 py-2 text-xs font-bold text-white shadow-lg ${sheetOpen ? 'bottom-[calc(15rem+1rem)]' : 'bottom-24'}`} style={sheetOpen && sheetHeight ? { bottom: sheetHeight + 14 } : undefined}>Повернутися до навігації</button>}
+    {!following && <button type="button" onClick={() => mapRef.current?.recenter(liveFix ?? session.current_location ?? undefined)} className={`absolute left-1/2 z-[500] -translate-x-1/2 rounded-full border border-white/20 bg-blue-600 px-5 py-2 text-xs font-extrabold text-white shadow-xl backdrop-blur-md transition-transform active:scale-95 ${sheetOpen ? 'bottom-[calc(15rem+1rem)]' : 'bottom-24'}`} style={sheetOpen && sheetHeight ? { bottom: sheetHeight + 14 } : undefined}>Повернутися до навігації</button>}
     {!sheetOpen && <>
-      {gpsMessage && <p role="status" className="absolute inset-x-4 bottom-[max(3.2rem,calc(env(safe-area-inset-bottom)+2.6rem))] z-[500] ml-24 rounded-xl bg-amber-50/95 p-2.5 text-xs leading-5 text-amber-900 shadow">{gpsMessage}</p>}
+      {gpsMessage && <p role="status" className="absolute inset-x-4 bottom-[max(3.2rem,calc(env(safe-area-inset-bottom)+2.6rem))] z-[500] ml-24 rounded-2xl border border-amber-200/80 dark:border-amber-900/40 bg-amber-50/95 dark:bg-amber-950/95 p-3 text-xs leading-5 text-amber-900 dark:text-amber-200 shadow-lg backdrop-blur-md">{gpsMessage}</p>}
       <button type="button" aria-label="Розгорнути панель" aria-expanded={false} onClick={() => setSheetOpen(true)}
         onPointerDown={(event) => { dragStart.current = event.clientY; }}
         onPointerUp={(event) => { const start = dragStart.current; dragStart.current = null; if (start !== null && event.clientY - start < -16) setSheetOpen(true); }}
-        className="absolute bottom-[max(.35rem,env(safe-area-inset-bottom))] left-1/2 z-[500] flex h-8 w-28 -translate-x-1/2 touch-none items-center justify-center"><span className="h-1.5 w-12 rounded-full bg-[#0E1F35]/45 shadow-[0_0_0_2px_rgba(255,255,255,.7)]"/></button>
+        className="absolute bottom-[max(.35rem,env(safe-area-inset-bottom))] left-1/2 z-[500] flex h-8 w-28 -translate-x-1/2 touch-none items-center justify-center"><span className="h-1.5 w-12 rounded-full bg-slate-900/60 dark:bg-white/60 shadow-sm"/></button>
     </>}
-    {sheetOpen && <section ref={sheetRef} aria-label="Панель навігації" className="absolute inset-x-0 bottom-0 z-[500] rounded-t-[1.8rem] bg-white px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-1.5 shadow-[0_-12px_35px_rgba(14,37,70,.18)] transition-[padding] duration-200">
+    {sheetOpen && <section ref={sheetRef} aria-label="Панель навігації" className="absolute inset-x-0 bottom-0 z-[500] rounded-t-[2rem] border-t border-slate-200/80 dark:border-white/10 bg-white/95 dark:bg-slate-900/95 px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-12px_40px_rgba(0,0,0,0.15)] backdrop-blur-2xl transition-[padding] duration-200 text-slate-900 dark:text-white">
       <button type="button" aria-label={sheetOpen ? 'Згорнути панель' : 'Розгорнути панель'} aria-expanded={sheetOpen} onClick={() => setSheetOpen((open) => !open)}
         onPointerDown={(event) => { dragStart.current = event.clientY; }}
         onPointerUp={(event) => { const start = dragStart.current; dragStart.current = null; if (start === null) return; const delta = event.clientY - start; if (delta > 24) { setSheetOpen(false); event.preventDefault(); } else if (delta < -24) { setSheetOpen(true); event.preventDefault(); } }}
-        className="mx-auto mb-1 flex h-7 w-24 touch-none items-center justify-center"><span className="h-1.5 w-11 rounded-full bg-slate-300"/></button>{sheetOpen && <div className="flex items-center justify-between"><div><p className="text-lg font-extrabold">{session.state === 'paused' ? 'Навігацію призупинено' : fixAge === null ? 'Очікуємо GPS' : fixAge > 45 || !visible ? 'GPS застарів' : 'Навігація активна'}</p><p className="mt-1 text-xs text-slate-500">{session.current_location_accuracy_m ? `Точність ±${Math.round(session.current_location_accuracy_m)} м` : 'Очікуємо першу GPS-точку'}{fixAge !== null ? ` · ${fixAge} с тому` : ''}</p></div><span className={`rounded-full px-3 py-1.5 text-xs font-bold ${session.state === 'paused' || !visible || fixAge !== null && fixAge > 45 ? 'bg-amber-100 text-amber-800' : onRoute === false ? 'bg-rose-100 text-rose-700' : routed && onRoute === true ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>{session.state === 'paused' ? 'Безпечно зупинено' : !visible || fixAge !== null && fixAge > 45 ? 'GPS пауза' : onRoute === false ? 'Поза маршрутом' : !routed && fixAge !== null ? 'Без маршруту' : onRoute === true ? 'На маршруті' : 'Перевірка GPS'}</span></div>}
-      {gpsMessage && <p role="status" className="mt-3 rounded-xl bg-amber-50 p-3 text-xs leading-5 text-amber-900">{gpsMessage}</p>}
-      {sheetOpen && session.state === 'paused' && <div className="mt-3 rounded-xl bg-amber-50 p-3 text-xs font-semibold text-amber-900">Навігацію призупинено. Перевірте, що автомобіль безпечно зупинений.</div>}
+        className="mx-auto mb-2 flex h-7 w-24 touch-none items-center justify-center"><span className="h-1.5 w-11 rounded-full bg-slate-300 dark:bg-slate-700"/></button>{sheetOpen && <div className="flex items-center justify-between"><div><p className="text-lg font-black text-[#081B35] dark:text-white">{session.state === 'paused' ? 'Навігацію призупинено' : fixAge === null ? 'Очікуємо GPS' : fixAge > 45 || !visible ? 'GPS застарів' : 'Навігація активна'}</p><p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{session.current_location_accuracy_m ? `Точність ±${Math.round(session.current_location_accuracy_m)} м` : 'Очікуємо першу GPS-точку'}{fixAge !== null ? ` · ${fixAge} с тому` : ''}</p></div><span className={`rounded-full px-3 py-1.5 text-xs font-bold ${session.state === 'paused' || !visible || fixAge !== null && fixAge > 45 ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300' : onRoute === false ? 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300' : routed && onRoute === true ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}>{session.state === 'paused' ? 'Безпечно зупинено' : !visible || fixAge !== null && fixAge > 45 ? 'GPS пауза' : onRoute === false ? 'Поза маршрутом' : !routed && fixAge !== null ? 'Без маршруту' : onRoute === true ? 'На маршруті' : 'Перевірка GPS'}</span></div>}
+      {gpsMessage && <p role="status" className="mt-3 rounded-xl border border-amber-200/70 dark:border-amber-900/40 bg-amber-50 dark:bg-amber-950/50 p-3 text-xs leading-5 text-amber-900 dark:text-amber-200">{gpsMessage}</p>}
+      {sheetOpen && session.state === 'paused' && <div className="mt-3 rounded-xl border border-amber-200/70 dark:border-amber-900/40 bg-amber-50 dark:bg-amber-950/50 p-3 text-xs font-semibold text-amber-900 dark:text-amber-200">Навігацію призупинено. Перевірте, що автомобіль безпечно зупинений.</div>}
       {sheetOpen && matchingPanel}
-      {session.state === 'paused' && <button onClick={() => void resumeNavigation()} disabled={busy} className="mt-3 w-full rounded-2xl bg-blue-100 py-3 text-sm font-bold text-blue-800 disabled:opacity-50">{busy ? 'Відновлюємо…' : 'Відновити навігацію'}</button>}
-      {sheetOpen && <button onClick={() => void end()} disabled={busy} className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-rose-600 py-3 font-bold text-white disabled:opacity-50"><Square size={16} fill="currentColor"/>{busy ? 'Завершуємо…' : 'Завершити навігацію'}</button>}
+      {session.state === 'paused' && <button onClick={() => void resumeNavigation()} disabled={busy} className="mt-3 w-full rounded-2xl bg-blue-100 dark:bg-blue-900/50 py-3 text-sm font-bold text-blue-800 dark:text-blue-200 transition hover:bg-blue-200/80 disabled:opacity-50">{busy ? 'Відновлюємо…' : 'Відновити навігацію'}</button>}
+      {sheetOpen && <button onClick={() => void end()} disabled={busy} className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-rose-600 py-3 font-bold text-white shadow-sm transition hover:bg-rose-700 active:scale-[0.98] disabled:opacity-50"><Square size={16} fill="currentColor"/>{busy ? 'Завершуємо…' : 'Завершити навігацію'}</button>}
     </section>}
   </main>;
 }

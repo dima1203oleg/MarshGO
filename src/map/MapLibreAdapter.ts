@@ -21,9 +21,9 @@ let pmtilesProtocolRegistered = false;
 
 export interface MeetingPoints { pickup?: Coordinate | null; driver?: Coordinate | null; passenger?: Coordinate | null }
 const meetingLook = {
-  pickup: { color: '#E11D48', glyph: '⚑' },
-  driver: { color: '#1789F4', glyph: '🚗' },
-  passenger: { color: '#16A34A', glyph: '🚶' },
+  pickup: { color: '#0F172A', glyph: '●' },
+  driver: { color: '#1264E8', glyph: '▲' },
+  passenger: { color: '#475569', glyph: '●' },
 } as const;
 
 export class MapLibreAdapter implements MapAdapter {
@@ -154,7 +154,7 @@ export class MapLibreAdapter implements MapAdapter {
       if (existing) { existing.setLngLat(point); continue; }
       const element = document.createElement('div');
       element.setAttribute('data-testid', `meeting-${key}`);
-      element.style.cssText = `width:38px;height:38px;border-radius:9999px;background:${meetingLook[key].color};border:3px solid #fff;box-shadow:0 4px 12px rgba(9,35,69,.35);display:grid;place-items:center;font-size:18px;line-height:1`;
+      element.style.cssText = `width:28px;height:28px;border-radius:9999px;background:${meetingLook[key].color};border:2px solid #ffffff;box-shadow:0 2px 6px rgba(15,23,42,.25);display:grid;place-items:center;font-size:11px;font-weight:700;color:#ffffff;line-height:1`;
       element.textContent = meetingLook[key].glyph;
       this.meetingMarkers[key] = new maplibregl.Marker({ element }).setLngLat(point).addTo(map);
     }

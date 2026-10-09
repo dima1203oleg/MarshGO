@@ -25,6 +25,7 @@ const AdminView = React.lazy(() => import('./views/AdminView').then((module) => 
 import { TransportCategory, Booking } from './types';
 import { WifiOff } from 'lucide-react';
 import { themeService } from './services/theme';
+import { todayKyivDate } from './domain/kyivTime';
 import { ProductionMarketplace } from './views/ProductionMarketplace';
 
 export function App() {
@@ -59,7 +60,7 @@ function DemoApp() {
   const [searchParams, setSearchParams] = useState({
     origin: 'Одеса',
     destination: 'Київ',
-    date: new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Kyiv' }).format(new Date()),
+    date: todayKyivDate(),
     passengers: 2
   });
 
@@ -164,18 +165,20 @@ function DemoApp() {
       )}
 
       {/* Top Header */}
-      <AppHeader
-        user={user}
-        onRoleSwitch={(role) => storage.switchRole(role)}
-        currentView={currentView}
-        onNavigate={(view) => setCurrentView(view)}
-        onOpenInstall={() => setIsPWAModalOpen(true)}
-        isInstallable={isInstallable}
-        isInstalled={isInstalled}
-        demoMode={demoMode}
-        onToggleDemo={() => storage.setDemoMode(!demoMode)}
-        onStartTour={handleStartTour}
-      />
+      {currentView !== 'home' && (
+        <AppHeader
+          user={user}
+          onRoleSwitch={(role) => storage.switchRole(role)}
+          currentView={currentView}
+          onNavigate={(view) => setCurrentView(view)}
+          onOpenInstall={() => setIsPWAModalOpen(true)}
+          isInstallable={isInstallable}
+          isInstalled={isInstalled}
+          demoMode={demoMode}
+          onToggleDemo={() => storage.setDemoMode(!demoMode)}
+          onStartTour={handleStartTour}
+        />
+      )}
 
       {/* View Router */}
       <div className="flex-1">

@@ -37,6 +37,11 @@ import { assertPublicHttpsUrl, UnsafeUrlError } from './mobility/safeFetch';
 import { GeocodingUnavailableError, reverseGeocode, suggestPlaces } from './geocoding';
 import { retainNavigationSessions } from './navigation/sessionRetention';
 import { expireDueProposals } from './proposals/expiry';
+import { mobilityRegistry } from './mobility/registryService';
+import { fetchKyivParkingFacilities, fetchKyivRoadClosures } from './mobility/kyivPublicData';
+import { vehiclePositionCache } from './mobility/vehiclePositionCache';
+import { createRealtimePoller, setRealtimeSseEmitter } from './mobility/realtimePoller';
+import { calculateStopArrival, sortArrivals } from './journey/arrivalEngine';
 import {
   createVehiclePhotoUpload, createVerificationEvidenceUpload, deleteStoredVehiclePhoto, getVehiclePhotoUrl, putPhotoObject, readPhotoObject, verifyMediaRequest,
   getVerificationEvidenceUrl, isAllowedPhotoType, isAllowedVerificationEvidenceType, ObjectStorageUnavailableError, StoredEvidenceUnavailableError,
@@ -219,7 +224,7 @@ app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'no-referrer');
   if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,Idempotency-Key');
     return res.sendStatus(204);
   }
@@ -383,14 +388,14 @@ app.get('/api/v1/mobility/availability', requireAuth, asyncHandler(async (_req, 
 /** Transport tiles. `service` narrows public-transit providers by what their feeds actually contain; `nationwide` tiles use sources with city "Україна". */
 const transportTiles: Array<{ id: string; providerTypes: string[]; service?: string; nationwide?: boolean }> = [
   { id: 'carpool', providerTypes: ['carpool'] }, { id: 'taxi', providerTypes: ['taxi'] }, { id: 'carsharing', providerTypes: ['carsharing'] },
-  { id: 'car_rental', providerTypes: [] }, { id: 'transfer', providerTypes: [] },
+  { id: 'car_rental', providerTypes: ['car_rental'] }, { id: 'transfer', providerTypes: ['transfer'] },
   { id: 'bus', providerTypes: ['public_transit'], service: 'bus', nationwide: false }, { id: 'marshrutka', providerTypes: ['public_transit'], service: 'marshrutka', nationwide: false },
   { id: 'trolleybus', providerTypes: ['public_transit'], service: 'trolleybus', nationwide: false }, { id: 'tram', providerTypes: ['public_transit'], service: 'tram', nationwide: false }, { id: 'metro', providerTypes: ['public_transit'], service: 'metro', nationwide: false },
   { id: 'train', providerTypes: ['public_transit'], service: 'train', nationwide: true }, { id: 'suburban_train', providerTypes: ['public_transit'], service: 'suburban', nationwide: true },
   { id: 'city_train', providerTypes: ['public_transit'], service: 'city_train', nationwide: false }, { id: 'funicular', providerTypes: ['public_transit'], service: 'funicular', nationwide: false },
   { id: 'intercity_bus', providerTypes: ['public_transit'], service: 'bus', nationwide: true },
   { id: 'bike', providerTypes: ['bike', 'ebike'] }, { id: 'scooter', providerTypes: ['scooter'] }, { id: 'moped', providerTypes: ['moped'] },
-  { id: 'plane', providerTypes: [] }, { id: 'ferry', providerTypes: [] }, { id: 'walk', providerTypes: [] },
+  { id: 'plane', providerTypes: ['plane'] }, { id: 'ferry', providerTypes: ['ferry'] }, { id: 'walk', providerTypes: ['walk'] },
 ];
 
 /**
@@ -404,7 +409,7 @@ app.get('/api/v1/mobility/providers', requireAuth, asyncHandler(async (req, res)
     `SELECT name,city,provider_type,source_type,last_report FROM mobility_providers WHERE status='enabled' AND health IN ('healthy','degraded') ORDER BY priority,name`);
   const servicesOf = (report: { counts?: Record<string, number> }) => new Set(Object.entries(report?.counts ?? {}).filter(([key, count]) => count > 0 && /^(routes|vehicles)_(bus|marshrutka|tram|trolleybus|metro|suburban|train|city_train|funicular)$/.test(key)).map(([key]) => key.slice(key.indexOf('_') + 1)));
   const data = transportTiles.map((tile) => {
-    if (tile.id === 'carpool') return { transportType: tile.id, providers: [{ id: 'carpool:MARSHGO', name: 'MARSHGO Community', available: true, cities: [], sources: ['marshgo'], services: [] }] };
+    if (tile.id === 'carpool') return { transportType: tile.id, providers: [{ id: 'carpool:MARSHGO', name: 'MARSHGO Community', available: true, cities: ['Україна'], sources: ['marshgo'], services: ['carpool'] }] };
     const entries = new Map<string, { id: string; name: string; available: true; cities: Set<string>; sources: Set<string>; services: Set<string> }>();
     for (const row of rows) {
       if (!tile.providerTypes.includes(row.provider_type)) continue;
@@ -422,6 +427,34 @@ app.get('/api/v1/mobility/providers', requireAuth, asyncHandler(async (req, res)
     return { transportType: tile.id, providers: [...entries.values()].map((entry) => ({ id: entry.id, name: entry.name, available: entry.available, cities: [...entry.cities], sources: [...entry.sources], services: [...entry.services] })) };
   });
   res.json({ data });
+}));
+
+app.get('/api/v1/mobility/registry', requireAuth, asyncHandler(async (_req, res) => {
+  res.json({ data: mobilityRegistry.getAll() });
+}));
+
+app.get('/api/v1/parking', requireAuth, asyncHandler(async (_req, res) => {
+  const facilities = await fetchKyivParkingFacilities();
+  res.json({ data: facilities });
+}));
+
+app.get('/api/v1/road-closures', requireAuth, asyncHandler(async (_req, res) => {
+  const closures = await fetchKyivRoadClosures();
+  res.json({ data: closures });
+}));
+
+app.get('/api/v1/providers/health', requireAuth, asyncHandler(async (_req, res) => {
+  const providers = mobilityRegistry.getAll();
+  const healthData = providers.map((p) => ({
+    id: p.id,
+    name: p.name,
+    category: p.category,
+    status: p.runtimeStatus,
+    accessStatus: p.accessStatus,
+    enabled: p.enabled,
+    health: mobilityRegistry.getHealth(p.id),
+  }));
+  res.json({ data: healthData });
 }));
 
 app.get('/api/v1/mobility/nearby', requireAuth, placeSearchLimiter, asyncHandler(async (req, res) => {
@@ -1488,6 +1521,7 @@ app.post('/api/v1/auth/refresh', asyncHandler(async (req, res) => {
   const client = await pool.connect();
   let rotated: Awaited<ReturnType<typeof insertSession>> | undefined;
   let userId: string | undefined;
+  let revokedSessionId: string | undefined;
   try {
     await client.query('BEGIN');
     const { rows } = await client.query<{
@@ -1509,6 +1543,7 @@ app.post('/api/v1/auth/refresh', asyncHandler(async (req, res) => {
     await client.query('UPDATE sessions SET revoked_at=now() WHERE id=$1', [current.id]);
     rotated = await insertSession(client, current.user_id, current.family_id);
     userId = current.user_id;
+    revokedSessionId = current.id;
     await client.query('COMMIT');
   } catch (error) {
     await client.query('ROLLBACK').catch(() => undefined);
@@ -1517,6 +1552,7 @@ app.post('/api/v1/auth/refresh', asyncHandler(async (req, res) => {
     client.release();
   }
   if (!rotated || !userId) throw new ApiError(401, 'Refresh session is invalid', 'refresh_invalid');
+  if (revokedSessionId) closeRealtimeConnections(userId, revokedSessionId);
   const { rows: users } = await pool.query('SELECT id,display_name,phone_e164,roles FROM users WHERE id=$1', [userId]);
   setRefreshCookie(res, rotated.refreshToken, refreshLifetimeMs);
   res.json({ data: { user: users[0], accessToken: rotated.accessToken, accessExpiresAt: rotated.accessExpiresAt.toISOString() } });
@@ -1824,12 +1860,16 @@ app.patch('/api/v1/offers/:id', requireAuth, requireRole('driver'), asyncHandler
         'SELECT id,seat_count,make,model FROM vehicles WHERE id=$1 AND owner_id=$2 AND archived_at IS NULL AND trust_level>=1', [body.vehicleId, req.userId]);
       const vehicle = vehicles[0];
       if (!vehicle) throw new ApiError(409, 'Choose one of your vehicles with a plate and a photo', 'vehicle_not_usable');
-      if (vehicle.seat_count < total) throw new ApiError(409, 'This vehicle has fewer seats than the trip offers', 'vehicle_too_small');
       const { rows: old } = await client.query<{ make: string; model: string }>('SELECT make,model FROM vehicles WHERE id=$1', [offer.vehicle_id]);
       vehicleId = vehicle.id;
       changes.push({ field: 'vehicle', old: offer.vehicle_id, next: vehicle.id, significant: true });
       summary.vehicle = { old: old[0] ? `${old[0].make} ${old[0].model}` : '—', new: `${vehicle.make} ${vehicle.model}` };
     }
+    const { rows: finalVehicles } = await client.query<{ seat_count: number }>(
+      'SELECT seat_count FROM vehicles WHERE id=$1 AND owner_id=$2 AND archived_at IS NULL AND trust_level>=1', [vehicleId, req.userId],
+    );
+    if (!finalVehicles[0]) throw new ApiError(409, 'The selected vehicle is no longer usable', 'vehicle_not_usable');
+    if (finalVehicles[0].seat_count < total) throw new ApiError(409, 'The selected vehicle has fewer seats than the trip offers', 'vehicle_too_small');
     if (changes.length === 0) { await client.query('COMMIT'); res.json({ data: { id: offer.id, changed: false, approvalsRequested: 0, bookingsNotified: 0 } }); return; }
 
     const { rows: updated } = await client.query(
@@ -1842,7 +1882,8 @@ app.patch('/api/v1/offers/:id', requireAuth, requireRole('driver'), asyncHandler
     }
     await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'offer.updated', 'offer', offer.id]);
 
-    // Each confirmed booking: a cheaper price applies at once; significant changes wait for the passenger's decision.
+    // Each confirmed booking: cheaper prices apply immediately. Pending approvals
+    // are reconciled against the booking's original terms on every offer edit.
     const significant = changes.some((change) => change.significant);
     const { rows: bookings } = await client.query<{ id: string; passenger_id: string; seat_count: number; unit_price_minor: number }>(
       "SELECT id,passenger_id,seat_count,unit_price_minor FROM bookings WHERE offer_id=$1 AND status='confirmed' FOR UPDATE", [offer.id]);
@@ -1851,17 +1892,25 @@ app.patch('/api/v1/offers/:id', requireAuth, requireRole('driver'), asyncHandler
       if (summary.price && price < booking.unit_price_minor) {
         await client.query('UPDATE bookings SET unit_price_minor=$2,total_price_minor=$2*seat_count WHERE id=$1', [booking.id, price]);
       }
-      if (significant) {
-        const { rows: previous } = await client.query<{ summary: ChangeSummary; new_unit_price_minor: number | null }>(
+      const { rows: previous } = await client.query<{ summary: ChangeSummary; new_unit_price_minor: number | null }>(
           "UPDATE booking_change_approvals SET status='superseded',decided_at=now() WHERE booking_id=$1 AND status='pending' RETURNING summary,new_unit_price_minor", [booking.id]);
+      const previousSummary = previous[0]?.summary;
+      const merged: ChangeSummary = { ...(previousSummary ?? {}), ...summary };
+      if (previousSummary?.price && price > booking.unit_price_minor) {
+        merged.price = { old: previousSummary.price.old, new: price };
+      } else if (price <= booking.unit_price_minor) {
+        delete merged.price;
+      }
+      if (previousSummary?.departure) merged.departure = { old: previousSummary.departure.old, new: departure.toISOString() };
+      if (previousSummary?.vehicle) merged.vehicle = { old: previousSummary.vehicle.old, new: merged.vehicle?.new ?? previousSummary.vehicle.new };
+      if (merged.departure?.old === merged.departure?.new) delete merged.departure;
+      if (merged.vehicle?.old === merged.vehicle?.new) delete merged.vehicle;
+
+      const priceNeedsApproval = price > booking.unit_price_minor;
+      const approvalNeeded = significant || priceNeedsApproval || previous.length > 0;
+      if (approvalNeeded && Object.keys(merged).length > 0) {
         // A newer edit keeps the original "before" values the passenger agreed to, so they always compare with their booking.
-        const merged: ChangeSummary = { ...summary };
-        const earlier = previous[0]?.summary;
-        if (earlier?.price && merged.price) merged.price = { old: earlier.price.old, new: merged.price.new };
-        else if (earlier?.price && !merged.price) merged.price = { old: earlier.price.old, new: price };
-        if (earlier?.departure) merged.departure = { old: earlier.departure.old, new: departure.toISOString() };
-        if (earlier?.vehicle) merged.vehicle = { old: earlier.vehicle.old, new: merged.vehicle?.new ?? earlier.vehicle.new };
-        const newUnit = price > booking.unit_price_minor ? price : null;
+        const newUnit = priceNeedsApproval ? price : null;
         const { rows: approval } = await client.query<{ id: string }>(
           'INSERT INTO booking_change_approvals(booking_id,summary,new_unit_price_minor) VALUES($1,$2::jsonb,$3) RETURNING id', [booking.id, JSON.stringify(merged), newUnit]);
         await insertRealtimeOutbox(client, 'booking.change-requested', `booking.change-requested:${approval[0].id}`, [booking.passenger_id], { booking_id: booking.id, offer_id: offer.id, status: 'pending' });
@@ -1937,7 +1986,7 @@ const decideBookingChange = (accept: boolean) => asyncHandler(async (req, res) =
       await client.query("UPDATE bookings SET status='cancelled',cancelled_at=now() WHERE id=$1", [approval.booking_id]);
       await client.query("INSERT INTO booking_events(booking_id,from_status,to_status,actor_id,reason) VALUES ($1,'confirmed','cancelled',$2,'passenger_declined_change')", [approval.booking_id, req.userId]);
       await client.query("UPDATE offers SET available_seats=LEAST(total_seats,available_seats+$2) WHERE id=$1 AND status='published'", [approval.offer_id, approval.seat_count]);
-      await insertRealtimeOutbox(client, 'booking.cancelled', `booking.change-rejected:${approval.id}`, [approval.driver_id], { booking_id: approval.booking_id, offer_id: approval.offer_id, status: 'cancelled' });
+      await insertRealtimeOutbox(client, 'booking.cancelled', `booking.change-rejected:${approval.id}`, [approval.passenger_id, approval.driver_id], { booking_id: approval.booking_id, offer_id: approval.offer_id, status: 'cancelled' });
     }
     await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, accept ? 'booking.change.accepted' : 'booking.change.rejected', 'booking', approval.booking_id]);
     await client.query('COMMIT');
@@ -2140,11 +2189,18 @@ app.post('/api/v1/journeys/search', requireAuth, asyncHandler(async (req, res) =
     if (mode === 'FERRY') return selected('ferry') ?? true;
     return false;
   };
+  // A provider is eligible if its bbox covers EITHER the origin OR the destination.
+  // Using AND was too strict: Kyivpastrans covers Kyiv (origin) but not Sofiyivska
+  // Borshchahivka (destination), so nationwide/city feeds must only need one end.
+  // Nationwide providers (city='Україна') are always eligible.
   const eligibleGtfsProviders = gtfsProviders.filter((provider) => {
-      const box = provider.last_report?.bbox;
-      return Boolean(box && bboxContains(box, search.origin.coordinates[0], search.origin.coordinates[1])
-        && bboxContains(box, search.destination.coordinates[0], search.destination.coordinates[1]));
+      const box = provider.last_report?.bbox as [number,number,number,number] | undefined;
+      if (!box) return false;
+      const coversOrigin = bboxContains(box, search.origin.coordinates[0], search.origin.coordinates[1], 20);
+      const covDestination = bboxContains(box, search.destination.coordinates[0], search.destination.coordinates[1], 20);
+      return coversOrigin || covDestination;
     });
+  console.log('ELIGIBLE GTFS PROVIDERS:', eligibleGtfsProviders.map(p => p.name));
   const scheduledCandidates = (await Promise.allSettled(eligibleGtfsProviders.map(async (provider) => {
       const feed = await cachedGtfsTimetable(provider.id, provider.feed_url);
       return findDirectGtfsJourneys(feed, {
@@ -2241,24 +2297,59 @@ app.post('/api/v1/journeys/search', requireAuth, asyncHandler(async (req, res) =
           preferenceValues.minimumTransferBufferSeconds ?? 600, preferenceValues.maxCommunityDetourSeconds ?? 900,
           preferenceValues.maxCommunityDetourMeters ?? 10000, preferenceValues.allowedTransportTypes ?? [], preferenceValues.allowedTransitProviders ?? []],
       );
-      const leg = await client.query<{ id: string }>(
+      const transitDuration = durationSeconds;
+      const walkToStopDuration = Math.round(candidate.distanceToOriginStopMeters / 1.4); // 1.4 m/s walking speed
+      const walkFromStopDuration = Math.round(candidate.distanceFromDestinationStopMeters / 1.4);
+
+      // Leg 0: Walk to origin stop
+      let nextOrdinal = 0;
+      if (candidate.distanceToOriginStopMeters > 50) {
+        await client.query(
+          `INSERT INTO journey_legs(journey_id,ordinal,mode,origin,origin_name,destination,destination_name,scheduled_departure_at,scheduled_arrival_at,duration_s,distance_m,price_minor,price_min_minor,price_max_minor,currency,price_status,availability_status,provider_id,provider_type,state,data_source,data_freshness_seconds,last_updated_at,metadata)
+           VALUES($1,$2,'WALK',ST_SetSRID(ST_MakePoint($3,$4),4326)::geography,$5,ST_SetSRID(ST_MakePoint($6,$7),4326)::geography,$8,$9,$10,$11,$12,NULL,NULL,NULL,'UAH','UNKNOWN','AVAILABLE',NULL,'walking','SUGGESTED','osrm',NULL,$13,$14::jsonb)`,
+          [journeyId, nextOrdinal++,
+            search.origin.coordinates[0], search.origin.coordinates[1], search.origin.name,
+            candidate.originStop.coordinates[0], candidate.originStop.coordinates[1], candidate.originStop.name,
+            new Date(candidate.departureAt.getTime() - walkToStopDuration * 1000), candidate.departureAt,
+            walkToStopDuration, candidate.distanceToOriginStopMeters,
+            candidate.sourceFreshAt, JSON.stringify({ distanceToOriginStopMeters: candidate.distanceToOriginStopMeters })],
+        );
+      }
+
+      // Leg 1: The transit leg
+      const transitLeg = await client.query<{ id: string }>(
         `INSERT INTO journey_legs(journey_id,ordinal,mode,origin,origin_name,destination,destination_name,scheduled_departure_at,scheduled_arrival_at,duration_s,distance_m,price_minor,price_min_minor,price_max_minor,currency,price_status,availability_status,provider_id,provider_type,state,data_source,data_freshness_seconds,last_updated_at,metadata)
-         VALUES($1,0,$2,ST_SetSRID(ST_MakePoint($3,$4),4326)::geography,$5,ST_SetSRID(ST_MakePoint($6,$7),4326)::geography,$8,$9,$10,$11,NULL,NULL,NULL,'UAH','UNKNOWN','UNKNOWN',$12,'public_transit','SUGGESTED','gtfs-static',NULL,$13,$14::jsonb) RETURNING id`,
-        [journeyId, candidate.mode, candidate.originStop.coordinates[0], candidate.originStop.coordinates[1], candidate.originStop.name,
+         VALUES($1,$2,$3,ST_SetSRID(ST_MakePoint($4,$5),4326)::geography,$6,ST_SetSRID(ST_MakePoint($7,$8),4326)::geography,$9,$10,$11,$12,NULL,NULL,NULL,NULL,'UAH','UNKNOWN','UNKNOWN',$13,'public_transit','SUGGESTED','gtfs-static',NULL,$14,$15::jsonb) RETURNING id`,
+        [journeyId, nextOrdinal++, candidate.mode,
+          candidate.originStop.coordinates[0], candidate.originStop.coordinates[1], candidate.originStop.name,
           candidate.destinationStop.coordinates[0], candidate.destinationStop.coordinates[1], candidate.destinationStop.name,
-          candidate.departureAt, candidate.arrivalAt, durationSeconds, candidate.providerId,
+          candidate.departureAt, candidate.arrivalAt, transitDuration, candidate.providerId,
           eligibleGtfsProviders.find((provider) => provider.id === candidate.providerId)?.last_sync_at ?? candidate.sourceFreshAt,
           JSON.stringify({ providerName: candidate.providerName, routeId: candidate.routeId, routeName: candidate.routeName,
-            headsign: candidate.headsign, tripId: candidate.tripId, distanceToOriginStopMeters: candidate.distanceToOriginStopMeters,
-            distanceFromDestinationStopMeters: candidate.distanceFromDestinationStopMeters })],
+            headsign: candidate.headsign, tripId: candidate.tripId })],
       );
-      await client.query('UPDATE journeys SET current_leg_id=$2 WHERE id=$1', [journeyId, leg.rows[0].id]);
+
+      // Leg 2: Walk from destination stop
+      if (candidate.distanceFromDestinationStopMeters > 50) {
+        await client.query(
+          `INSERT INTO journey_legs(journey_id,ordinal,mode,origin,origin_name,destination,destination_name,scheduled_departure_at,scheduled_arrival_at,duration_s,distance_m,price_minor,price_min_minor,price_max_minor,currency,price_status,availability_status,provider_id,provider_type,state,data_source,data_freshness_seconds,last_updated_at,metadata)
+           VALUES($1,$2,'WALK',ST_SetSRID(ST_MakePoint($3,$4),4326)::geography,$5,ST_SetSRID(ST_MakePoint($6,$7),4326)::geography,$8,$9,$10,$11,$12,NULL,NULL,NULL,'UAH','UNKNOWN','AVAILABLE',NULL,'walking','SUGGESTED','osrm',NULL,$13,$14::jsonb)`,
+          [journeyId, nextOrdinal++,
+            candidate.destinationStop.coordinates[0], candidate.destinationStop.coordinates[1], candidate.destinationStop.name,
+            search.destination.coordinates[0], search.destination.coordinates[1], search.destination.name,
+            candidate.arrivalAt, new Date(candidate.arrivalAt.getTime() + walkFromStopDuration * 1000),
+            walkFromStopDuration, candidate.distanceFromDestinationStopMeters,
+            candidate.sourceFreshAt, JSON.stringify({ distanceFromDestinationStopMeters: candidate.distanceFromDestinationStopMeters })],
+        );
+      }
+
+      await client.query('UPDATE journeys SET current_leg_id=$2 WHERE id=$1', [journeyId, transitLeg.rows[0].id]);
       journeys.push({ id: journeyId, offerId: null, source: 'gtfs-static', providerName: candidate.providerName,
         routeName: candidate.routeName, headsign: candidate.headsign, mode: candidate.mode, strategy: search.strategy, state: 'PLANNED',
         totalDurationSeconds: durationSeconds, totalPriceMinor: null, confirmedPriceMinor: null,
         estimatedPriceMinMinor: null, estimatedPriceMaxMinor: null, walkingMeters: candidate.distanceToOriginStopMeters + candidate.distanceFromDestinationStopMeters,
         transfers: 0, reliabilityScore: null,
-        legs: [{ id: leg.rows[0].id, mode: candidate.mode, offerId: null,
+        legs: [{ id: transitLeg.rows[0].id, mode: candidate.mode, offerId: null,
           origin: { name: candidate.originStop.name, coordinates: candidate.originStop.coordinates },
           destination: { name: candidate.destinationStop.name, coordinates: candidate.destinationStop.coordinates },
           departureAt: candidate.departureAt, arrivalAt: candidate.arrivalAt, durationSeconds,
@@ -2276,8 +2367,8 @@ app.post('/api/v1/journeys/search', requireAuth, asyncHandler(async (req, res) =
   }
   res.json({ data: {
     journeys,
-    partial: true,
-    blockedProviders: ['taxi','carsharing','transfer','walking','bike','scooter','moped','air','public-transit-transfers'],
+    partial: journeys.length === 0 || providerErrors.length > 0,
+    blockedProviders: ['taxi','carsharing','bike','scooter','moped','air'],
     unsupportedPreferences: [
       ...(search.preferences.preferredVehicleClass ? ['preferredVehicleClass'] : []),
       ...(search.preferences.maxPriceMinor !== undefined ? ['maxPriceMinor:public-transit-fare-unavailable'] : []),
@@ -2961,6 +3052,9 @@ app.post('/api/v1/bookings', requireAuth, asyncHandler(async (req, res) => {
       throw new ApiError(409, 'offer departure has passed', 'offer_expired');
     }
     if (currentOffer.driver_id === userId) throw new ApiError(400, 'drivers cannot book their own offer');
+    if (await usersBlockEachOther(userId, currentOffer.driver_id, client)) {
+      throw new ApiError(403, 'This booking is unavailable because one participant blocked the other', 'booking_contact_blocked');
+    }
     if (Number(currentOffer.available_seats) < seats) throw new ApiError(409, 'not enough available seats');
 
     if (hasJourneyReference) {
@@ -3040,7 +3134,7 @@ app.post('/api/v1/bookings/:id/cancel', requireAuth, asyncHandler(async (req, re
     const inventory = await client.query<{ available_seats: number }>("UPDATE offers SET available_seats=LEAST(total_seats,available_seats+$2) WHERE id=$1 AND status <> 'cancelled' RETURNING available_seats", [booking.offer_id, booking.seat_count]);
     await client.query('INSERT INTO audit_events(actor_id,action,entity_type,entity_id) VALUES ($1,$2,$3,$4)', [req.userId, 'booking.cancelled', 'booking', booking.id]);
     await insertRealtimeOutbox(client, 'booking.cancelled', `booking.cancelled:${booking.id}`,
-      [req.userId!, booking.driver_id], {
+      [booking.passenger_id, booking.driver_id], {
         booking_id: booking.id, offer_id: booking.offer_id, status: 'cancelled', seat_count: booking.seat_count,
         available_seats: inventory.rows[0]?.available_seats ?? null,
       });
@@ -4511,6 +4605,154 @@ const navigationExpiryTimer = setInterval(() => {
 }, 15_000);
 navigationExpiryTimer.unref();
 void expireStaleProposals().catch((error: unknown) => console.error(JSON.stringify({ level: 'error', event: 'proposal.expiry_failed', message: error instanceof Error ? error.message : 'unknown_error' })));
+// ─── Realtime Vehicle Position Poller ────────────────────────────────────────
+// Fetches GTFS-RT and JSON vehicle position feeds from all enabled providers
+// every TRANSIT_REALTIME_INTERVAL_MS (default 20s). Results stored in the
+// in-process VehiclePositionCache; clients query via /api/v1/transit/vehicles.
+const realtimePoller = createRealtimePoller(
+  pool,
+  Math.max(10_000, Number(process.env.TRANSIT_REALTIME_INTERVAL_MS) || 20_000),
+);
+
+// ─── SSE clients for live vehicle streaming ───────────────────────────────────
+type SseClient = { res: Response; routeIds: Set<string>; city?: string };
+const transitSseClients = new Set<SseClient>();
+setRealtimeSseEmitter((event, data) => {
+  const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+  for (const client of transitSseClients) {
+    try { client.res.write(payload); } catch { transitSseClients.delete(client); }
+  }
+});
+
+// ─── GET /api/v1/transit/vehicles ─────────────────────────────────────────────
+// Returns live vehicle positions for the given bbox or routeId filter.
+// No auth required — these are public transport positions.
+app.get('/api/v1/transit/vehicles', asyncHandler(async (req, res) => {
+  const bbox = typeof req.query.bbox === 'string' ? req.query.bbox.split(',').map(Number) : null;
+  const routeId = typeof req.query.routeId === 'string' ? req.query.routeId : null;
+  const providerId = typeof req.query.providerId === 'string' ? req.query.providerId : null;
+  const limitRaw = parseInt(String(req.query.limit ?? '200'), 10);
+  const limit = Number.isInteger(limitRaw) && limitRaw > 0 && limitRaw <= 500 ? limitRaw : 200;
+
+  let positions = vehiclePositionCache.getAll();
+
+  if (routeId) {
+    positions = positions.filter((p) => p.routeId === routeId);
+  }
+  if (providerId) {
+    positions = positions.filter((p) => p.providerId === providerId);
+  }
+  if (bbox && bbox.length === 4 && bbox.every(Number.isFinite)) {
+    const [minLon, minLat, maxLon, maxLat] = bbox as [number, number, number, number];
+    positions = positions.filter(
+      (p) => p.lon >= minLon && p.lon <= maxLon && p.lat >= minLat && p.lat <= maxLat,
+    );
+  }
+
+  res.json({
+    data: positions.slice(0, limit).map((p) => ({
+      key: p.key,
+      vehicleId: p.vehicleId,
+      providerId: p.providerId,
+      routeId: p.routeId,
+      tripId: p.tripId,
+      directionId: p.directionId,
+      lat: p.lat,
+      lon: p.lon,
+      bearing: p.bearing,
+      speedMs: p.speedMs,
+      mode: p.mode,
+      observedAt: p.observedAt.toISOString(),
+      isStale: p.isStale,
+    })),
+    total: positions.length,
+    cachedTotal: vehiclePositionCache.size(),
+    pollerStats: realtimePoller.stats(),
+  });
+}));
+
+// ─── GET /api/v1/transit/stops/:stopId/arrivals ───────────────────────────────
+// Returns predicted arrival times for a given stop.
+app.get('/api/v1/transit/stops/:stopId/arrivals', asyncHandler(async (req, res) => {
+  const { stopId } = req.params;
+  if (!stopId || stopId.length > 120) throw new ApiError(400, 'invalid stop ID');
+
+  const latRaw = parseFloat(String(req.query.lat ?? ''));
+  const lonRaw = parseFloat(String(req.query.lon ?? ''));
+  if (!Number.isFinite(latRaw) || !Number.isFinite(lonRaw)
+    || Math.abs(latRaw) > 90 || Math.abs(lonRaw) > 180) {
+    throw new ApiError(400, 'lat and lon are required');
+  }
+
+  // Find vehicles near the stop (within 5 km) grouped by routeId
+  const nearby = vehiclePositionCache.getNearby([lonRaw, latRaw], 5000, 50);
+  const byRoute = new Map<string, typeof nearby[0]>();
+  for (const vp of nearby) {
+    if (!vp.routeId) continue;
+    const existing = byRoute.get(vp.routeId);
+    // Pick the nearest vehicle per route
+    if (!existing || (vp.distanceToStopM ?? Infinity) < (existing.distanceToStopM ?? Infinity)) {
+      byRoute.set(vp.routeId, vp);
+    }
+  }
+
+  const arrivals = [...byRoute.entries()].map(([routeId, vp]) =>
+    calculateStopArrival({
+      stopId,
+      stopLat: latRaw,
+      stopLon: lonRaw,
+      routeIds: [routeId],
+      vehiclePosition: vp,
+      now: new Date(),
+    }),
+  );
+
+  res.json({ data: { stopId, lat: latRaw, lon: lonRaw, arrivals: sortArrivals(arrivals) } });
+}));
+
+// ─── GET /api/v1/transit/live-stream (SSE) ────────────────────────────────────
+// Server-Sent Events stream for vehicle positions.
+// Clients subscribe with ?routeIds=22,14,5А&city=Київ
+app.get('/api/v1/transit/live-stream', (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders();
+
+  const routeIdsRaw = typeof req.query.routeIds === 'string' ? req.query.routeIds : '';
+  const routeIds = new Set(routeIdsRaw.split(',').map((s) => s.trim()).filter(Boolean));
+  const city = typeof req.query.city === 'string' ? req.query.city : undefined;
+
+  const client = { res, routeIds, city };
+  transitSseClients.add(client);
+
+  // Send current snapshot immediately
+  const snapshot = routeIds.size > 0
+    ? [...routeIds].flatMap((r) => vehiclePositionCache.getByRoute(r))
+    : vehiclePositionCache.getAll().slice(0, 200);
+  res.write(`event: snapshot\ndata: ${JSON.stringify({ positions: snapshot.map((p) => ({
+    vehicleId: p.vehicleId, routeId: p.routeId, lat: p.lat, lon: p.lon,
+    bearing: p.bearing, speedMs: p.speedMs, mode: p.mode,
+    observedAt: p.observedAt.toISOString(), isStale: p.isStale,
+  })) })}\n\n`);
+
+  // Heartbeat every 30s to keep connection alive through proxies
+  const heartbeat = setInterval(() => {
+    try { res.write(': heartbeat\n\n'); } catch { clearInterval(heartbeat); transitSseClients.delete(client); }
+  }, 30_000);
+
+  req.on('close', () => {
+    clearInterval(heartbeat);
+    transitSseClients.delete(client);
+  });
+});
+
+// ─── GET /api/v1/transit/poller/stats (admin) ─────────────────────────────────
+app.get('/api/v1/transit/poller/stats', requireAuth, asyncHandler(async (_req, res) => {
+  res.json({ data: { ...realtimePoller.stats(), sseClients: transitSseClients.size } });
+}));
+
 // Keep connected transport sources honest: re-check their health in the background (status stays an admin decision).
 const mobilityHealthIntervalMs = Math.max(5 * 60_000, Number(process.env.MOBILITY_HEALTH_INTERVAL_MS) || 30 * 60_000);
 const runMobilityHealth = () => { if (process.env.MOBILITY_HEALTH_DISABLED === 'true') return; void refreshProviderHealth(pool, (entry) => console.log(JSON.stringify(entry))).catch(() => undefined); };
@@ -4546,7 +4788,13 @@ async function startServer() {
       }
     });
   }
-  server = app.listen(port, host, () => console.log(JSON.stringify({ level: 'info', event: 'api.started', host, port, realtime: realtimeRedis ? 'redis' : 'single_process_dev' })));
+  server = app.listen(port, host, () => {
+    console.log(JSON.stringify({ level: 'info', event: 'api.started', host, port, realtime: realtimeRedis ? 'redis' : 'single_process_dev' }));
+    // Start realtime vehicle position polling after server is listening
+    if (process.env.TRANSIT_REALTIME_DISABLED !== 'true') {
+      realtimePoller.start();
+    }
+  });
   attachRealtimeUpgradeHandler();
   const dispatch = () => {
     if (realtimeOutboxDispatch) return;
@@ -4570,6 +4818,7 @@ async function closeResources() {
   await Promise.allSettled(tasks);
 }
 async function shutdown() {
+  realtimePoller.stop();
   clearInterval(navigationExpiryTimer);
   clearInterval(proposalExpiryTimer);
   clearInterval(realtimeHeartbeat);

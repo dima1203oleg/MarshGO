@@ -73,3 +73,9 @@ export function defaultKyivDateTime(daysFromToday: number, hour: number, now: Da
   const date = new Date(Date.UTC(today.year, today.month - 1, today.day + daysFromToday));
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}T${String(hour).padStart(2, '0')}:00`;
 }
+
+/** Format today's calendar date in YYYY-MM-DD using authoritative Europe/Kyiv timezone. */
+export function todayKyivDate(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Kyiv' }).format(now);
+}
+

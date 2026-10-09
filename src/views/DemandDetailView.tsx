@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { PassengerDemand, Proposal } from '../types';
 import { NegotiationModal } from '../components/NegotiationModal';
+import { passengersLabel } from '../domain/plural';
 
 interface DemandDetailViewProps {
   demand: PassengerDemand;
@@ -71,7 +72,7 @@ export const DemandDetailView: React.FC<DemandDetailViewProps> = ({
                 <span>{demand.departureDate} ({demand.timeWindowStart} – {demand.timeWindowEnd})</span>
                 <span>·</span>
                 <Users className="w-3.5 h-3.5" />
-                <span>{demand.passengerCount} пасажири</span>
+                <span>{passengersLabel(demand.passengerCount)}</span>
               </p>
             </div>
 

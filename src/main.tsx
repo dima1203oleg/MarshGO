@@ -2,6 +2,9 @@ import {createRoot} from 'react-dom/client';
 import { ProductionMarketplace } from './views/ProductionMarketplace';
 import './index.css';
 import './services/theme';
+import { initializePlatform } from './platform';
+
+initializePlatform();
 
 const rootElement = document.getElementById('root')!;
 rootElement.replaceChildren();

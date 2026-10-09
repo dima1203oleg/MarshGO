@@ -1,73 +1,190 @@
 /**
- * Static, resolution-independent MARSHGO illustration: a car on the road, a glowing route and the fellow traveller waiting at the pickup.
- * Pure SVG (sharp on every screen density), sized by its container.
+ * Multimodal MARSHGO City Illustration
+ * Apple Maps / Linear style vector composition:
+ * - City skyline with Kyiv architecture silhouettes
+ * - Train viaduct & high-speed transit
+ * - Electric bus on transit lane
+ * - Sleek modern car on road with luminous blue route
+ * - Scooter rider on mobility lane
  */
 export function HeroIllustration({ className = '' }: { className?: string }) {
-  return <svg viewBox="0 0 420 320" role="img" aria-label="Автомобіль їде світним маршрутом до попутника, який чекає на посадку" className={className} preserveAspectRatio="xMidYMid meet">
-    <defs>
-      <radialGradient id="hi-sky" cx="50%" cy="38%" r="65%"><stop offset="0" stopColor="#E9F4FF"/><stop offset="1" stopColor="#E9F4FF" stopOpacity="0"/></radialGradient>
-      <linearGradient id="hi-road" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#DCE7F5"/><stop offset="1" stopColor="#C9D8EC"/></linearGradient>
-      <linearGradient id="hi-body" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#5AB2FF"/><stop offset=".55" stopColor="#1E7BEA"/><stop offset="1" stopColor="#0F57C2"/></linearGradient>
-      <linearGradient id="hi-side" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#1467D6"/><stop offset="1" stopColor="#0B4AA8"/></linearGradient>
-      <linearGradient id="hi-glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#F2F9FF"/><stop offset=".55" stopColor="#A9D3FA"/><stop offset="1" stopColor="#6FA9E6"/></linearGradient>
-      <linearGradient id="hi-route" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stopColor="#22D3EE"/><stop offset="1" stopColor="#3B82F6"/></linearGradient>
-      <radialGradient id="hi-rim" cx="40%" cy="35%" r="70%"><stop offset="0" stopColor="#F1F5F9"/><stop offset="1" stopColor="#94A3B8"/></radialGradient>
-      <filter id="hi-glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-      <filter id="hi-blur" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="7"/></filter>
-    </defs>
+  return (
+    <svg
+      viewBox="0 0 460 260"
+      role="img"
+      aria-label="Мультимодальне місто MARSHGO: авто, автобус, потяг та самокат"
+      className={className}
+      preserveAspectRatio="xMidYMid meet"
+    >
+      <defs>
+        <radialGradient id="sky-glow" cx="50%" cy="30%" r="70%">
+          <stop offset="0%" stopColor="#EBF4FF" stopOpacity="0.9" />
+          <stop offset="60%" stopColor="#F5F9FF" stopOpacity="0.5" />
+          <stop offset="100%" stopColor="#F7F9FC" stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id="road-grad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#CBDDF2" />
+          <stop offset="100%" stopColor="#B3CBEC" />
+        </linearGradient>
+        <linearGradient id="route-pulse" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0%" stopColor="#175CD3" />
+          <stop offset="50%" stopColor="#38BDF8" />
+          <stop offset="100%" stopColor="#60A5FA" />
+        </linearGradient>
+        <linearGradient id="car-body" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#FFFFFF" />
+          <stop offset="100%" stopColor="#E2E8F0" />
+        </linearGradient>
+        <linearGradient id="bus-body" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#3B82F6" />
+          <stop offset="100%" stopColor="#1D4ED8" />
+        </linearGradient>
+        <linearGradient id="train-body" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#475569" />
+          <stop offset="50%" stopColor="#64748B" />
+          <stop offset="100%" stopColor="#334155" />
+        </linearGradient>
+        <filter id="soft-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="4" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
 
-    <ellipse cx="210" cy="150" rx="210" ry="150" fill="url(#hi-sky)"/>
-    {/* faint city skyline */}
-    <g fill="#D6E4F5" opacity=".8"><rect x="36" y="118" width="22" height="64" rx="3"/><rect x="62" y="98" width="18" height="84" rx="3"/><rect x="84" y="128" width="26" height="54" rx="3"/><rect x="330" y="108" width="20" height="74" rx="3"/><rect x="354" y="126" width="28" height="56" rx="3"/></g>
-    <g fill="#C3D8EF"><circle cx="122" cy="168" r="14"/><rect x="120" y="170" width="4" height="16" rx="2"/><circle cx="318" cy="166" r="12"/><rect x="316" y="168" width="4" height="16" rx="2"/></g>
+      {/* Sky backdrop glow */}
+      <rect x="0" y="0" width="460" height="260" fill="url(#sky-glow)" />
 
-    {/* road */}
-    <path d="M-10 318 L176 196 Q210 178 244 196 L430 318 Z" fill="url(#hi-road)"/>
-    <path d="M-10 318 L176 196 Q210 178 244 196 L430 318" fill="none" stroke="#FFFFFF" strokeWidth="3" opacity=".9"/>
-    <path d="M210 196 L210 318" stroke="#FFFFFF" strokeWidth="5" strokeDasharray="16 16" opacity=".85"/>
+      {/* Distant Kyiv Landmark & Skyline Silhouettes */}
+      <g fill="#CBDCF0" opacity="0.55">
+        {/* Monastery bell tower silhouette */}
+        <path d="M 408 120 L 413 98 L 418 90 L 420 72 L 422 72 L 424 90 L 429 98 L 434 120 Z" />
+        <circle cx="421" cy="70" r="3" fill="#FBBF24" opacity="0.8" />
+        <path d="M 419 66 L 423 66 M 421 63 L 421 69" stroke="#FBBF24" strokeWidth="1.2" strokeLinecap="round" opacity="0.8" />
+        {/* Domes */}
+        <ellipse cx="396" cy="115" rx="7" ry="10" />
+        <circle cx="396" cy="103" r="2" fill="#FBBF24" opacity="0.75" />
+        <ellipse cx="442" cy="118" rx="6" ry="8" />
+        {/* Distant highrises */}
+        <rect x="18" y="78" width="22" height="70" rx="3" />
+        <rect x="44" y="92" width="28" height="56" rx="3" />
+        <rect x="76" y="68" width="18" height="80" rx="3" />
+        <rect x="98" y="85" width="24" height="63" rx="3" />
+        <rect x="136" y="96" width="30" height="52" rx="3" />
+        <rect x="330" y="88" width="20" height="60" rx="3" />
+        <rect x="354" y="74" width="26" height="74" rx="3" />
+      </g>
 
-    {/* glowing route from the car to the pickup */}
-    <path d="M250 246 C300 244 318 222 300 202 C286 186 322 178 338 160 C350 146 330 128 304 122" fill="none" stroke="#38BDF8" strokeOpacity=".35" strokeWidth="18" strokeLinecap="round" filter="url(#hi-blur)"/>
-    <path d="M250 246 C300 244 318 222 300 202 C286 186 322 178 338 160 C350 146 330 128 304 122" fill="none" stroke="url(#hi-route)" strokeWidth="7" strokeLinecap="round" filter="url(#hi-glow)"/>
-    <path d="M250 246 C300 244 318 222 300 202 C286 186 322 178 338 160 C350 146 330 128 304 122" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeDasharray="2 10" opacity=".95"/>
+      {/* Hills / Green banks of Dnipro river */}
+      <path d="M 0 148 Q 120 128 240 142 T 460 134 L 460 180 L 0 180 Z" fill="#D9E8F8" opacity="0.7" />
+      <path d="M 160 140 Q 280 126 460 142 L 460 180 L 160 180 Z" fill="#E2EEFA" opacity="0.6" />
 
-    {/* destination pin */}
-    <g transform="translate(148 74)"><ellipse cx="0" cy="40" rx="10" ry="3" fill="#0E1F35" opacity=".15"/><path d="M0 -24 C-12 -24 -20 -15 -20 -5 C-20 9 0 30 0 30 S20 9 20 -5 C20 -15 12 -24 0 -24Z" fill="#22C1EE"/><circle cx="0" cy="-6" r="7" fill="#FFFFFF"/></g>
+      {/* Train Viaduct Bridge on the right */}
+      <g opacity="0.9">
+        <rect x="290" y="128" width="170" height="7" rx="2" fill="#94A3B8" />
+        {/* Viaduct pillars */}
+        <rect x="320" y="135" width="8" height="34" rx="2" fill="#CBD5E1" />
+        <rect x="370" y="135" width="8" height="34" rx="2" fill="#CBD5E1" />
+        <rect x="420" y="135" width="8" height="34" rx="2" fill="#CBD5E1" />
+        {/* Modern high-speed train / tram */}
+        <path d="M 334 126 L 396 126 Q 408 126 414 121 L 418 116 L 334 116 Z" fill="url(#train-body)" />
+        <rect x="334" y="117" width="70" height="4" fill="#38BDF8" opacity="0.9" />
+        {/* Train windows */}
+        <g fill="#F8FAFC" opacity="0.9">
+          <rect x="340" y="119" width="8" height="4" rx="1" />
+          <rect x="352" y="119" width="8" height="4" rx="1" />
+          <rect x="364" y="119" width="8" height="4" rx="1" />
+          <rect x="376" y="119" width="8" height="4" rx="1" />
+          <rect x="388" y="119" width="8" height="4" rx="1" />
+        </g>
+      </g>
 
-    {/* "fellow traveller found" avatar bubble */}
-    <g transform="translate(262 52)">
-      <rect x="-30" y="-30" width="60" height="60" rx="18" fill="#2F8CF5"/><rect x="-30" y="-30" width="60" height="30" rx="18" fill="#FFFFFF" opacity=".12"/>
-      <circle cx="0" cy="-6" r="11" fill="#FFFFFF"/><path d="M-17 22 C-14 7 14 7 17 22Z" fill="#FFFFFF"/><path d="M-11 -9 C-9 -21 9 -21 11 -9 C6 -14 -6 -14 -11 -9Z" fill="#23324A"/>
-      <path d="M-7 30 L0 40 L7 30Z" fill="#2F8CF5"/>
-      <g transform="translate(24 -24)"><circle r="10" fill="#22C55E" stroke="#FFFFFF" strokeWidth="3"/><path d="M-4 0 L-1 3 L5 -3" stroke="#FFFFFF" strokeWidth="2.4" fill="none" strokeLinecap="round" strokeLinejoin="round"/></g>
-    </g>
+      {/* Main road sweeping across bottom */}
+      <path d="M -20 260 L 160 162 Q 220 152 280 162 L 480 260 Z" fill="url(#road-grad)" />
+      {/* Road border markings */}
+      <path d="M -20 260 L 160 162 Q 220 152 280 162 L 480 260" fill="none" stroke="#FFFFFF" strokeWidth="2.5" opacity="0.75" />
+      {/* Center divider dashes */}
+      <path d="M 226 156 L 226 260" stroke="#FFFFFF" strokeWidth="3" strokeDasharray="14 12" opacity="0.7" />
 
-    {/* fellow traveller */}
-    <g transform="translate(336 188)">
-      <ellipse cx="2" cy="66" rx="30" ry="7" fill="#0E1F35" opacity=".14"/>
-      <rect x="-13" y="18" width="11" height="46" rx="5" fill="#2B4E86"/><rect x="2" y="18" width="11" height="46" rx="5" fill="#23457A"/>
-      <path d="M-13 62 h12 v4 h-14z M2 62 h12 v4 h-12z" fill="#0E1F35"/>
-      <path d="M-17 -20 Q0 -28 17 -20 L19 22 Q0 28 -19 22 Z" fill="#8EC5FA"/><path d="M0 -24 L0 24" stroke="#6FAAE6" strokeWidth="2"/>
-      <path d="M17 -12 Q32 -10 42 -2" stroke="#8EC5FA" strokeWidth="9" strokeLinecap="round" fill="none"/><circle cx="44" cy="-1" r="5" fill="#F2C9A5"/>
-      <rect x="-27" y="-14" width="13" height="30" rx="4" fill="#2C4C8C"/>
-      <circle cx="0" cy="-36" r="12.5" fill="#F2C9A5"/><path d="M-12.5 -38 C-11 -53 11 -53 12.5 -38 C7 -45 -7 -45 -12.5 -38Z" fill="#2A211C"/>
-      <rect x="22" y="40" width="17" height="24" rx="4" fill="#C49A62"/><rect x="25.5" y="34" width="10" height="8" rx="3" fill="none" stroke="#8A6A3E" strokeWidth="2"/>
-    </g>
+      {/* Electric City Bus on left lane */}
+      <g transform="translate(14, 158)">
+        <ellipse cx="36" cy="38" rx="34" ry="5" fill="#0E1F35" opacity="0.18" />
+        {/* Bus chassis */}
+        <rect x="4" y="4" width="62" height="30" rx="7" fill="url(#bus-body)" />
+        {/* Roof line */}
+        <rect x="8" y="1" width="54" height="4" rx="2" fill="#1E40AF" />
+        {/* Windshield & Windows */}
+        <rect x="8" y="8" width="16" height="13" rx="2" fill="#E0F2FE" />
+        <rect x="27" y="8" width="16" height="13" rx="2" fill="#E0F2FE" />
+        <rect x="46" y="8" width="16" height="13" rx="2" fill="#E0F2FE" />
+        {/* Bus headlights & wheels */}
+        <rect x="62" y="24" width="4" height="4" rx="1" fill="#FEF08A" />
+        <circle cx="18" cy="34" r="6" fill="#1E293B" />
+        <circle cx="18" cy="34" r="2.5" fill="#94A3B8" />
+        <circle cx="52" cy="34" r="6" fill="#1E293B" />
+        <circle cx="52" cy="34" r="2.5" fill="#94A3B8" />
+      </g>
 
-    {/* car */}
-    <g transform="translate(150 246)">
-      <ellipse cx="6" cy="40" rx="118" ry="16" fill="#0E1F35" opacity=".18" filter="url(#hi-blur)"/>
-      <path d="M-100 22 L-78 -10 L-36 -50 Q-20 -62 4 -60 L58 -50 Q92 -38 108 -6 L116 20 Q120 38 98 42 L-74 48 Q-106 44 -100 22Z" fill="url(#hi-body)"/>
-      <path d="M-100 22 L-78 -10 L-58 -8 L-66 26Z" fill="url(#hi-side)"/>
-      <path d="M-56 -8 L-24 -44 Q-12 -52 6 -51 L52 -42 Q74 -34 86 -10Z" fill="url(#hi-glass)"/>
-      <path d="M-10 -50 L10 -9" stroke="#1563D0" strokeWidth="5"/>
-      <path d="M-40 -34 L-8 -46" stroke="#FFFFFF" strokeWidth="4" strokeLinecap="round" opacity=".7"/>
-      <path d="M-66 24 L100 42" stroke="#0B4AA8" strokeWidth="2" opacity=".5"/>
-      <path d="M-90 4 Q10 -2 110 6" stroke="#FFFFFF" strokeWidth="2" opacity=".25" fill="none"/>
-      <ellipse cx="108" cy="22" rx="8" ry="5.5" fill="#FFF7C2"/><ellipse cx="108" cy="22" rx="16" ry="10" fill="#FFF3A3" opacity=".25" filter="url(#hi-blur)"/>
-      <rect x="18" y="-2" width="14" height="4" rx="2" fill="#0B4AA8" opacity=".6"/>
-      <g><ellipse cx="-46" cy="44" rx="19" ry="21" fill="#0E1F35" transform="rotate(-12 -46 44)"/><ellipse cx="-46" cy="44" rx="10" ry="11" fill="url(#hi-rim)" transform="rotate(-12 -46 44)"/><circle cx="-46" cy="44" r="3" fill="#475569"/></g>
-      <g><ellipse cx="70" cy="54" rx="19" ry="22" fill="#0E1F35" transform="rotate(-12 70 54)"/><ellipse cx="70" cy="54" rx="10" ry="11.5" fill="url(#hi-rim)" transform="rotate(-12 70 54)"/><circle cx="70" cy="54" r="3" fill="#475569"/></g>
-    </g>
-  </svg>;
+      {/* Scooter rider on the side */}
+      <g transform="translate(92, 178)">
+        {/* Rider */}
+        <circle cx="12" cy="6" r="4.5" fill="#334155" />
+        <path d="M 12 11 L 11 26 L 15 36" stroke="#334155" strokeWidth="3" strokeLinecap="round" />
+        <path d="M 12 16 L 18 20" stroke="#334155" strokeWidth="2.5" strokeLinecap="round" />
+        {/* Scooter frame */}
+        <path d="M 18 20 L 16 38 L 4 38" fill="none" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" />
+        <circle cx="4" cy="38" r="3" fill="#0F172A" />
+        <circle cx="17" cy="38" r="3" fill="#0F172A" />
+      </g>
+
+      {/* Luminous dynamic navigation route curve */}
+      <path
+        d="M 234 162 C 234 195, 230 205, 246 220"
+        fill="none"
+        stroke="#38BDF8"
+        strokeWidth="10"
+        strokeLinecap="round"
+        opacity="0.35"
+        filter="url(#soft-glow)"
+      />
+      <path
+        d="M 234 162 C 234 195, 230 205, 246 220"
+        fill="none"
+        stroke="url(#route-pulse)"
+        strokeWidth="4"
+        strokeLinecap="round"
+      />
+
+      {/* Modern White Passenger Car driving forward */}
+      <g transform="translate(202, 184)">
+        {/* Shadow */}
+        <ellipse cx="44" cy="46" rx="54" ry="9" fill="#0B1730" opacity="0.22" />
+        {/* Car body */}
+        <path
+          d="M 2 34 L 14 18 L 32 8 Q 44 4 58 8 L 74 18 L 86 32 Q 90 40 78 42 L 8 42 Q -2 40 2 34 Z"
+          fill="url(#car-body)"
+        />
+        {/* Roof / Windshield / Glass */}
+        <path
+          d="M 20 18 L 34 10 Q 44 8 54 10 L 68 18 Q 70 24 64 25 L 24 25 Q 18 24 20 18 Z"
+          fill="#0F172A"
+          opacity="0.85"
+        />
+        <path
+          d="M 36 12 L 52 12 L 64 18 L 24 18 Z"
+          fill="#38BDF8"
+          opacity="0.4"
+        />
+        {/* Headlights */}
+        <ellipse cx="84" cy="32" rx="4" ry="2.5" fill="#FEF08A" />
+        <ellipse cx="84" cy="32" rx="9" ry="5" fill="#FEF08A" opacity="0.25" filter="url(#soft-glow)" />
+        {/* Wheels */}
+        <circle cx="18" cy="42" r="8" fill="#1E293B" />
+        <circle cx="18" cy="42" r="4" fill="#94A3B8" />
+        <circle cx="70" cy="42" r="8" fill="#1E293B" />
+        <circle cx="70" cy="42" r="4" fill="#94A3B8" />
+      </g>
+    </svg>
+  );
 }
