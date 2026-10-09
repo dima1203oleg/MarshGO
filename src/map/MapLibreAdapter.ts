@@ -35,6 +35,8 @@ export class MapLibreAdapter implements MapAdapter {
   private cameraMode: CameraMode = 'OVERVIEW';
   private theme: MapTheme = 'MARSHGO_NAVIGATION_LIGHT';
   private seenTileError = false;
+  private readonly observedBasemapSources = new WeakSet<object>();
+  private readonly observedBasemapManagers = new WeakSet<object>();
   private mode: MapMode = 'google';
   private layer: MapLayer = 'standard';
   private transport: TransportLayerController | null = null;
@@ -71,12 +73,28 @@ export class MapLibreAdapter implements MapAdapter {
     this.map.on('load', () => { this.installLayers(); container.dataset.marshgoMapReady = 'true'; this.publish(this.hasBasemap ? 'available' : 'unconfigured'); });
     this.map.on('style.load', () => { this.installLayers(); container.dataset.marshgoMapReady = 'true'; if (this.hasBasemap && !this.map.getSource('marshgo-basemap') && this.status !== 'failed') this.publish('available'); });
     this.map.on('error', (event) => {
-      const mapError = event as typeof event & { sourceId?: string };
+      const mapError = event as typeof event & {
+        sourceId?: string;
+        error?: typeof event.error & { sourceId?: string; status?: number; statusCode?: number; url?: string };
+      };
       container.dataset.marshgoMapError = event.error?.message ?? 'MapLibre resource error';
-      if (mapError.sourceId === 'marshgo-basemap') { this.seenTileError = true; this.publish('degraded'); }
+      const failedMapResource = (this.hasBasemap && this.status === 'available')
+        || mapError.sourceId === 'marshgo-basemap'
+        || mapError.error?.sourceId === 'marshgo-basemap'
+        || (this.hasBasemap && (
+          (mapError.error?.status ?? mapError.error?.statusCode ?? 0) >= 400
+          || /(?:tile|raster|\.png\b)/i.test(`${mapError.error?.url ?? ''} ${event.error?.message ?? ''}`)
+        ));
+      if (failedMapResource) {
+        this.seenTileError = true;
+        this.publish(this.status === 'available' || this.status === 'degraded' ? 'degraded' : 'failed');
+      }
       else if (this.status === 'loading') this.publish('failed');
     });
-    this.map.on('sourcedata', (event) => { if (event.sourceId === 'marshgo-basemap' && event.isSourceLoaded && !this.seenTileError) this.publish('available'); });
+    this.map.on('sourcedata', (event) => {
+      if (event.sourceId !== 'marshgo-basemap' || !event.isSourceLoaded) return;
+      this.publish(this.seenTileError ? 'degraded' : 'available');
+    });
     // Only the user's own gestures leave follow mode; our camera animations (zoom, bearing) must not.
     const userGesture = (event: { originalEvent?: unknown }) => {
       if (event.originalEvent && this.meeting) this.meetingBrowsed = true;
@@ -100,6 +118,7 @@ export class MapLibreAdapter implements MapAdapter {
 
   private publish(status: MapStatus) { this.status = this.seenTileError && status === 'available' ? 'degraded' : status; this.onStatus(this.status); }
   private installLayers() {
+    this.map.getContainer().dataset.marshgoSourceIds = Object.keys(this.map.getStyle()?.sources ?? {}).join(',');
     const colors = { ...mapStyleTokens[this.theme], route: mapModes[this.mode].route, routeCasing: mapModes[this.mode].casing };
     this.map.getContainer().dataset.marshgoMapLayer = this.layer;
     if (!this.map.getSource('marshgo-route')) this.map.addSource('marshgo-route', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
@@ -111,6 +130,25 @@ export class MapLibreAdapter implements MapAdapter {
     if (!this.map.getSource('marshgo-route-done')) this.map.addSource('marshgo-route-done', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
     if (!this.map.getLayer('marshgo-route-done')) this.map.addLayer({ id: 'marshgo-route-done', type: 'line', source: 'marshgo-route-done', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#94A3B8', 'line-opacity': 0.95, 'line-width': ['interpolate', ['linear'], ['zoom'], 5, 3, 15, 8] } });
     if (!this.map.getLayer('marshgo-waypoints')) this.map.addLayer({ id: 'marshgo-waypoints', type: 'circle', source: 'marshgo-waypoints', paint: { 'circle-radius': 8, 'circle-color': ['match', ['get', 'kind'], 'PICKUP', colors.pickup, 'DROPOFF', colors.dropoff, colors.route], 'circle-stroke-color': colors.routeCasing, 'circle-stroke-width': 3 } });
+    const basemapSource = this.map.getSource('marshgo-basemap');
+    if (basemapSource && !this.observedBasemapSources.has(basemapSource)) {
+      this.observedBasemapSources.add(basemapSource);
+      (basemapSource as unknown as maplibregl.Evented).on('error', () => {
+        this.map.getContainer().dataset.marshgoBasemapSourceError = 'true';
+        this.seenTileError = true;
+        this.publish(this.status === 'loading' ? 'failed' : 'degraded');
+      });
+    }
+    const styleInternals = (this.map as unknown as { style?: { tileManagers?: Record<string, object> } }).style;
+    const basemapManager = styleInternals?.tileManagers?.['marshgo-basemap'] as (object & maplibregl.Evented) | undefined;
+    if (basemapManager && !this.observedBasemapManagers.has(basemapManager)) {
+      this.observedBasemapManagers.add(basemapManager);
+      basemapManager.on('error', () => {
+        this.map.getContainer().dataset.marshgoBasemapManagerError = 'true';
+        this.seenTileError = true;
+        this.publish(this.status === 'loading' ? 'failed' : 'degraded');
+      });
+    }
     if (!this.map.getLayer('marshgo-vehicle-halo')) this.map.addLayer({ id: 'marshgo-vehicle-halo', type: 'circle', source: 'marshgo-vehicle', paint: { 'circle-radius': 13, 'circle-color': colors.vehicle, 'circle-opacity': 0.2 } });
     if (!this.map.getLayer('marshgo-vehicle')) this.map.addLayer({ id: 'marshgo-vehicle', type: 'circle', source: 'marshgo-vehicle', paint: { 'circle-radius': 8, 'circle-color': colors.vehicle, 'circle-stroke-color': colors.routeCasing, 'circle-stroke-width': 3 } });
     // The DOM puck (rotating arrow) replaces the old circle dot; the source stays for consumers of its data.
@@ -350,7 +388,7 @@ export class MapLibreAdapter implements MapAdapter {
     this.map.setPaintProperty('marshgo-vehicle', 'circle-stroke-color', colors.routeCasing);
     if (this.map.getLayer('marshgo-background')) this.map.setPaintProperty('marshgo-background', 'background-color', colors.background);
   }
-  retry() { this.seenTileError = false; this.publish(this.hasBasemap ? 'loading' : 'unconfigured'); if (this.hasBasemap) this.map.setStyle(this.map.getStyle()); else this.map.triggerRepaint(); }
+  retry() { this.seenTileError = false; this.publish(this.hasBasemap ? 'loading' : 'unconfigured'); if (this.hasBasemap) this.map.setStyle(this.map.getStyle(), { diff: false }); else this.map.triggerRepaint(); }
   destroy() { for (const marker of Object.values(this.meetingMarkers)) marker?.remove(); if (this.autoReturnTimer) clearInterval(this.autoReturnTimer); this.marker?.remove(); this.transport?.destroy(); this.map.remove(); }
   getStatus() { return this.status; }
 }

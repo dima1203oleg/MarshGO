@@ -8,6 +8,10 @@ import { fileURLToPath } from 'node:url';
 const env = { ...process.env };
 delete env.CAPACITOR_BUILD;
 delete env.VITE_API_BASE_URL;
+// A developer's .env may configure a hosted style or manifest. Those sources
+// take precedence over VITE_MAP_TILE_URL, so remove them to keep E2E isolated.
+env.VITE_MAP_STYLE_URL = '';
+env.VITE_MAP_STYLE_MANIFEST_URL = '';
 // The tile provider used by Playwright is an isolated local fixture. Keep it in
 // the test build only; production/site/native release builds use provider config.
 env.VITE_MAP_TILE_URL = 'http://127.0.0.1:3306/tiles/{z}/{x}/{y}.png';

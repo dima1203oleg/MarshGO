@@ -1,18 +1,6 @@
 import React, { useState } from 'react';
-import {
-  ArrowLeft,
-  Bookmark,
-  Car,
-  Heart,
-  Layers,
-  MoreVertical,
-  Navigation,
-  Share2,
-  ShieldCheck,
-  Star,
-} from 'lucide-react';
+import { ArrowLeft, Car, MapPin, Share2, ShieldCheck, Star } from 'lucide-react';
 import type { RouteSearchResultItem } from '../model/types';
-import { MOCK_ASSETS } from '../assets/mockAssets';
 import { MarshGoMap } from '../../../map/MarshGoMap';
 import type { Coordinate } from '../../../../shared/navigation/contracts';
 
@@ -24,7 +12,6 @@ interface SearchMapDetailsProps {
   timeStr: string;
   passengers: number;
   onBackToResults: () => void;
-  onSwitchToList: () => void;
   onBook: (item: RouteSearchResultItem) => void;
 }
 
@@ -36,26 +23,11 @@ export const SearchMapDetails: React.FC<SearchMapDetailsProps> = ({
   timeStr,
   passengers,
   onBackToResults,
-  onSwitchToList,
   onBook,
 }) => {
-  const [activeTab, setActiveTab] = useState<'map' | 'list' | 'timeline'>('map');
-  const [isBookmarked, setIsBookmarked] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
-  // Construct coordinates for the route
-  // Default to Lviv (49.8397, 24.0297) -> Kyiv (50.4501, 30.5234) if not supplied
-  const defaultRoute: Coordinate[] = [
-    [49.8397, 24.0297], // Lviv
-    [50.6199, 26.2516], // Rivne
-    [50.2547, 28.6587], // Zhytomyr
-    [50.4501, 30.5234], // Kyiv
-  ];
-
-  const routeCoordinates: Coordinate[] =
-    item.routeGeometry && item.routeGeometry.length > 0
-      ? (item.routeGeometry as Coordinate[])
-      : defaultRoute;
+  const routeCoordinates: Coordinate[] = item.routeGeometry?.length ? item.routeGeometry : [];
 
   const handleShare = () => {
     if (navigator.share) {
@@ -95,190 +67,25 @@ export const SearchMapDetails: React.FC<SearchMapDetailsProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => setIsBookmarked(!isBookmarked)}
-            className={`grid h-9 w-9 place-items-center rounded-full transition ${
-              isBookmarked
-                ? 'bg-red-50 text-red-500 dark:bg-red-950/40'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200'
-            }`}
-            aria-label="В обране"
-          >
-            <Heart size={16} fill={isBookmarked ? 'currentColor' : 'none'} />
-          </button>
-          <button
-            type="button"
-            className="grid h-9 w-9 place-items-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200"
-            aria-label="Меню"
-          >
-            <MoreVertical size={16} />
-          </button>
-        </div>
       </header>
 
-      {/* Segmented View Switcher: Карта | Список | Таймлайн */}
-      <div className="relative z-30 px-4 py-2 bg-white/80 dark:bg-[#0B1730]/80 backdrop-blur-md border-b border-slate-100/60 dark:border-slate-800/60">
-        <div className="grid grid-cols-3 p-1 rounded-2xl bg-[#EAF3FF] dark:bg-slate-800/70 border border-[#D3E5FD] dark:border-slate-700">
-          <button
-            type="button"
-            onClick={() => setActiveTab('map')}
-            className={`py-1.5 text-xs font-black rounded-xl transition-all ${
-              activeTab === 'map'
-                ? 'bg-[#0866F5] text-white shadow-md shadow-[#0866F5]/25'
-                : 'text-[#081B35] dark:text-slate-300 hover:text-[#0866F5]'
-            }`}
-          >
-            Карта
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab('list');
-              onSwitchToList();
-            }}
-            className={`py-1.5 text-xs font-black rounded-xl transition-all ${
-              activeTab === 'list'
-                ? 'bg-[#0866F5] text-white shadow-md shadow-[#0866F5]/25'
-                : 'text-[#081B35] dark:text-slate-300 hover:text-[#0866F5]'
-            }`}
-          >
-            Список
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('timeline')}
-            className={`py-1.5 text-xs font-black rounded-xl transition-all ${
-              activeTab === 'timeline'
-                ? 'bg-[#0866F5] text-white shadow-md shadow-[#0866F5]/25'
-                : 'text-[#081B35] dark:text-slate-300 hover:text-[#0866F5]'
-            }`}
-          >
-            Таймлайн
-          </button>
-        </div>
+      <div className="border-b border-slate-100 bg-white/80 px-4 py-2 text-xs font-bold text-slate-600 dark:border-slate-800 dark:bg-[#0B1730]/80 dark:text-slate-300">
+        Маршрут і дані з оголошення водія
       </div>
 
-      {/* Map Canvas with Route */}
+      {/* Use only route geometry returned by the API; never imply a road was calculated when it was not. */}
       <div className="relative flex-1 w-full overflow-hidden bg-[#E7F0FD] dark:bg-[#0A162B]">
-        {/* MapLibre / Native Map Container */}
-        <div className="absolute inset-0 z-0">
-          <MarshGoMap
-            route={routeCoordinates}
-            onStatus={() => {}}
-            onAdapter={() => {}}
-          />
-        </div>
-
-        {/* Vector Route Overlay matching Screen 3 Mockup exactly */}
-        <div className="pointer-events-none absolute inset-0 z-10">
-          <svg className="w-full h-full" viewBox="0 0 400 300" preserveAspectRatio="none" fill="none">
-            {/* Soft map road grid / terrain lines */}
-            <path d="M 0 160 Q 200 130 400 110" stroke="#CBD5E1" strokeWidth="1.5" strokeDasharray="3 3" opacity="0.4" />
-            <path d="M 80 0 Q 150 180 200 300" stroke="#CBD5E1" strokeWidth="1.5" strokeDasharray="3 3" opacity="0.4" />
-            
-            {/* Main curved route polyline from Lviv (x:55, y:190) to Kyiv (x:340, y:100) */}
-            <path
-              d="M 55 190 Q 120 160 170 145 T 270 140 T 340 100"
-              stroke="#0866F5"
-              strokeWidth="6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M 55 190 Q 120 160 170 145 T 270 140 T 340 100"
-              stroke="#60A5FA"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              opacity="0.8"
-            />
-
-            {/* Stop points along the route */}
-            {/* Lviv Start Node */}
-            <circle cx="55" cy="190" r="10" fill="#0866F5" />
-            <circle cx="55" cy="190" r="5" fill="#FFFFFF" />
-
-            {/* Rivne Stop Node */}
-            <circle cx="170" cy="145" r="7" fill="#10B981" />
-            <circle cx="170" cy="145" r="3.5" fill="#FFFFFF" />
-
-            {/* Zhytomyr Stop Node */}
-            <circle cx="270" cy="140" r="7" fill="#F59E0B" />
-            <circle cx="270" cy="140" r="3.5" fill="#FFFFFF" />
-
-            {/* Kyiv Destination Node */}
-            <circle cx="340" cy="100" r="10" fill="#EF4444" />
-            <circle cx="340" cy="100" r="5" fill="#FFFFFF" />
-          </svg>
-
-          {/* City & Route Labels */}
-          <div className="absolute left-[35px] top-[195px] text-[13px] font-black text-[#081B35] dark:text-white drop-shadow-sm">
-            Львів
-          </div>
-          <div className="absolute left-[155px] top-[118px] text-[10.5px] font-bold text-slate-600 dark:text-slate-300">
-            Рівне
-          </div>
-          <div className="absolute left-[245px] top-[148px] text-[10.5px] font-bold text-slate-600 dark:text-slate-300">
-            Житомир
-          </div>
-          <div className="absolute right-[25px] top-[105px] text-[13px] font-black text-[#081B35] dark:text-white drop-shadow-sm">
-            Київ
-          </div>
-          <div className="absolute left-[255px] top-[210px] text-[10px] font-semibold text-slate-400">
-            Біла Церква
-          </div>
-          <div className="absolute left-[270px] top-[230px] text-[13px] font-black text-slate-700/80 dark:text-slate-400/80 tracking-wide">
-            Україна
-          </div>
-
-          {/* Lviv Origin Pin Chip */}
-          <div className="absolute left-4 top-4">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/95 dark:bg-[#0B1730]/95 shadow-md border border-slate-200/80 dark:border-slate-700">
-              <span className="text-xs font-black text-[#081B35] dark:text-white">
-                {item.departureTime}
-              </span>
-              <span className="text-[11px] font-bold text-[#63738C] dark:text-slate-400">
-                {originTitle.split(',')[0]}
-              </span>
+        {routeCoordinates.length >= 2 ? (
+          <MarshGoMap route={routeCoordinates} onStatus={() => {}} onAdapter={() => {}} />
+        ) : (
+          <div className="grid h-full min-h-56 place-items-center px-8 text-center">
+            <div className="rounded-3xl border border-blue-100 bg-white/90 p-6 shadow-sm dark:border-slate-700 dark:bg-[#0B1730]/90">
+              <MapPin className="mx-auto mb-3 text-blue-600" size={28} />
+              <p className="font-bold text-slate-800 dark:text-white">Маршрут на карті поки недоступний</p>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Водій ще не надав дорожню геометрію для цієї пропозиції.</p>
             </div>
           </div>
-
-          {/* Floating Map Control Buttons */}
-          <div className="absolute right-4 top-4 flex flex-col gap-2 pointer-events-auto">
-            <button
-              type="button"
-              className="grid h-10 w-10 place-items-center rounded-2xl bg-white/95 dark:bg-[#0B1730]/95 shadow-lg border border-slate-200/80 dark:border-slate-700 text-slate-700 dark:text-slate-200 transition active:scale-95"
-              aria-label="Шари карти"
-            >
-              <Layers size={18} />
-            </button>
-          </div>
-
-          <div className="absolute right-4 bottom-8 pointer-events-auto">
-            <button
-              type="button"
-              className="grid h-10 w-10 place-items-center rounded-2xl bg-white/95 dark:bg-[#0B1730]/95 shadow-lg border border-slate-200/80 dark:border-slate-700 text-[#0866F5] transition active:scale-95"
-              aria-label="Моє місцезнаходження"
-            >
-              <Navigation size={18} />
-            </button>
-          </div>
-
-          {/* Kyiv Destination Pin Chip */}
-          <div className="absolute right-12 top-14">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/95 dark:bg-[#0B1730]/95 shadow-md border border-slate-200/80 dark:border-slate-700">
-              <div className="w-2.5 h-2.5 rounded-full bg-[#E73C59]" />
-              <span className="text-xs font-black text-[#081B35] dark:text-white">
-                {item.arrivalTime}
-              </span>
-              <span className="text-[11px] font-bold text-[#63738C] dark:text-slate-400">
-                {destTitle.split(',')[0]}
-              </span>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Slide-Up Bottom Sheet Card (Screen 3 Bottom Panel) */}
@@ -329,11 +136,9 @@ export const SearchMapDetails: React.FC<SearchMapDetailsProps> = ({
             <div className="flex items-center gap-3">
               <div className="relative">
                 <div className="grid h-11 w-11 place-items-center overflow-hidden rounded-full bg-[#0866F5]/10 text-sm font-black text-[#0866F5]">
-                  <img
-                    src={item.driver.avatar || MOCK_ASSETS.avatarAndriy}
-                    alt={item.driver.name}
-                    className="h-full w-full object-cover"
-                  />
+                  {item.driver.avatar ? (
+                    <img src={item.driver.avatar} alt={item.driver.name} className="h-full w-full object-cover" />
+                  ) : item.driver.name.slice(0, 1).toUpperCase()}
                 </div>
                 {item.driver.verified && (
                   <div className="absolute -bottom-0.5 -right-0.5 rounded-full bg-white dark:bg-slate-900 p-0.5 text-blue-600">
@@ -347,46 +152,23 @@ export const SearchMapDetails: React.FC<SearchMapDetailsProps> = ({
                   <span className="text-sm font-black text-[#081B35] dark:text-white">
                     {item.driver.name}
                   </span>
-                  <div className="flex items-center gap-0.5 text-amber-500">
-                    <Star size={12} fill="currentColor" />
-                    <span className="text-xs font-black">
-                      {item.driver.rating.toFixed(1)}
-                    </span>
-                    <span className="text-[10px] text-[#63738C] dark:text-slate-400">
-                      ({item.driver.reviewCount})
-                    </span>
-                  </div>
+                  {item.driver.rating == null ? (
+                    <span className="text-[10px] text-[#63738C] dark:text-slate-400">Ще немає відгуків</span>
+                  ) : (
+                    <div className="flex items-center gap-0.5 text-amber-500">
+                      <Star size={12} fill="currentColor" />
+                      <span className="text-xs font-black">{item.driver.rating.toFixed(1)}</span>
+                      <span className="text-[10px] text-[#63738C] dark:text-slate-400">({item.driver.reviewCount})</span>
+                    </div>
+                  )}
                 </div>
                 <p className="text-xs font-semibold text-[#63738C] dark:text-slate-400">
-                  {item.vehicleModel || 'Toyota Camry · Чорний'}
+                  {item.vehicleModel || 'Автомобіль'}
                 </p>
               </div>
             </div>
 
-            {/* Car Interior Preview Photos (3 thumbnails matching Screen 3) */}
-            <div className="flex items-center gap-1.5">
-              <div className="h-10 w-11 rounded-xl bg-slate-200 dark:bg-slate-700 overflow-hidden border border-white dark:border-slate-800 shadow-xs">
-                <img
-                  src={MOCK_ASSETS.interiorWheel}
-                  alt="Салон кермо"
-                  className="h-full w-full object-cover"
-                />
-              </div>
-              <div className="h-10 w-11 rounded-xl bg-slate-200 dark:bg-slate-700 overflow-hidden border border-white dark:border-slate-800 shadow-xs">
-                <img
-                  src={MOCK_ASSETS.interiorSeats}
-                  alt="Салон сидіння"
-                  className="h-full w-full object-cover"
-                />
-              </div>
-              <div className="h-10 w-11 rounded-xl bg-slate-200 dark:bg-slate-700 overflow-hidden border border-white dark:border-slate-800 shadow-xs">
-                <img
-                  src={MOCK_ASSETS.carSedan}
-                  alt="Авто зовні"
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            </div>
+            {item.vehiclePhoto && <img src={item.vehiclePhoto} alt="Фото автомобіля" className="h-16 w-20 rounded-xl border border-slate-100 object-cover dark:border-slate-700" />}
           </div>
         )}
 
@@ -449,21 +231,8 @@ export const SearchMapDetails: React.FC<SearchMapDetailsProps> = ({
           </div>
         </div>
 
-        {/* Bottom Actions Row: Bookmark | Share | Primary CTA Button */}
+        {/* Share and booking actions */}
         <div className="mt-4 flex items-center gap-2.5">
-          <button
-            type="button"
-            onClick={() => setIsBookmarked(!isBookmarked)}
-            className={`grid h-12 w-12 place-items-center rounded-2xl border transition active:scale-95 ${
-              isBookmarked
-                ? 'border-[#0866F5] bg-blue-50 text-[#0866F5] dark:bg-blue-950/40'
-                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200'
-            }`}
-            aria-label="Зберегти"
-          >
-            <Bookmark size={18} fill={isBookmarked ? 'currentColor' : 'none'} />
-          </button>
-
           <button
             type="button"
             onClick={handleShare}

@@ -1,10 +1,7 @@
 import React from 'react';
 import {
   ArrowLeft,
-  ChevronDown,
-  Heart,
   MapPin,
-  MoreVertical,
   SlidersHorizontal,
   Star,
 } from 'lucide-react';
@@ -16,6 +13,9 @@ interface SearchResultsListProps {
   dateStr: string;
   timeStr: string;
   passengers: number;
+  isLoading: boolean;
+  error: string | null;
+  onRetry: () => void;
   items: RouteSearchResultItem[];
   selectedFilterMode: SearchTransportMode;
   onSelectFilterMode: (mode: SearchTransportMode) => void;
@@ -31,6 +31,9 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
   dateStr: _dateStr,
   timeStr,
   passengers,
+  isLoading,
+  error,
+  onRetry,
   items,
   selectedFilterMode,
   onSelectFilterMode,
@@ -75,22 +78,7 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            className="grid h-9 w-9 place-items-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200"
-            aria-label="Зберегти"
-          >
-            <Heart size={16} />
-          </button>
-          <button
-            type="button"
-            className="grid h-9 w-9 place-items-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200"
-            aria-label="Більше"
-          >
-            <MoreVertical size={16} />
-          </button>
-        </div>
+        <span className="text-xs font-bold text-slate-500">{filteredItems.length} пропозицій</span>
       </header>
 
       {/* Filter Chips Strip (Усі 32, Попутки 8, Автобуси 6...) */}
@@ -134,16 +122,7 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
 
       {/* Sorting & Filters Bar */}
       <div className="flex items-center justify-between px-4 py-2.5">
-        <button
-          type="button"
-          className="flex items-center gap-1 text-xs font-bold text-[#63738C] dark:text-slate-400"
-        >
-          <span>Сортування:</span>
-          <span className="font-extrabold text-[#081B35] dark:text-white">
-            Оптимальні спочатку
-          </span>
-          <ChevronDown size={14} />
-        </button>
+        <span className="text-xs font-bold text-[#63738C] dark:text-slate-400">За часом відправлення</span>
 
         <button
           type="button"
@@ -152,15 +131,23 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
         >
           <SlidersHorizontal size={13} className="text-[#0866F5]" />
           <span>Фільтри</span>
-          <span className="grid h-4 w-4 place-items-center rounded-full bg-[#0866F5] text-[10px] text-white">
-            2
-          </span>
         </button>
       </div>
 
       {/* Results Cards List */}
       <div className="px-4 space-y-3 mt-1">
-        {filteredItems.length === 0 ? (
+        {isLoading ? (
+          <div role="status" className="rounded-[24px] bg-white p-8 text-center shadow-sm dark:bg-[#111e36]">
+            <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-blue-100 border-t-blue-600" />
+            <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Шукаємо доступні оголошення…</p>
+          </div>
+        ) : error ? (
+          <div role="alert" className="rounded-[24px] border border-rose-200 bg-white p-6 text-center shadow-sm dark:border-rose-900 dark:bg-[#111e36]">
+            <h3 className="text-base font-black text-rose-800 dark:text-rose-300">Не вдалося виконати пошук</h3>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{error}</p>
+            <button type="button" onClick={onRetry} className="mt-4 rounded-xl bg-[#0866F5] px-4 py-2.5 text-xs font-bold text-white">Спробувати ще раз</button>
+          </div>
+        ) : filteredItems.length === 0 ? (
           <div className="rounded-[24px] bg-white dark:bg-[#111e36] p-8 text-center shadow-sm">
             <MapPin className="mx-auto text-slate-300 dark:text-slate-600 mb-2" size={32} />
             <h3 className="text-base font-black text-[#081B35] dark:text-white">
@@ -179,10 +166,11 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
           </div>
         ) : (
           filteredItems.map((item) => (
-            <article
+            <button
+              type="button"
               key={item.id}
               onClick={() => onSelectResultItem(item)}
-              className="group cursor-pointer rounded-[24px] bg-white dark:bg-[#111e36] p-4 shadow-sm border border-slate-100/90 dark:border-slate-800 transition hover:shadow-md hover:border-blue-200 dark:hover:border-blue-900 active:scale-[0.99]"
+              className="group block w-full cursor-pointer rounded-[24px] bg-white p-4 text-left shadow-sm border border-slate-100/90 transition hover:shadow-md hover:border-blue-200 active:scale-[0.99] dark:border-slate-800 dark:bg-[#111e36] dark:hover:border-blue-900"
             >
               {/* Badges row */}
               <div className="flex items-center justify-between gap-2 mb-3">
@@ -209,9 +197,15 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
 
                 {item.driver && (
                   <div className="flex items-center gap-1 text-[11px] font-bold text-slate-500 dark:text-slate-400">
-                    <Star size={12} className="fill-amber-400 text-amber-400" />
-                    <span>{item.driver.rating.toFixed(1)}</span>
-                    <span className="text-slate-400">({item.driver.reviewCount})</span>
+                    {item.driver.rating == null ? (
+                      <span>Ще немає відгуків</span>
+                    ) : (
+                      <>
+                        <Star size={12} className="fill-amber-400 text-amber-400" />
+                        <span>{item.driver.rating.toFixed(1)}</span>
+                        <span className="text-slate-400">({item.driver.reviewCount})</span>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
@@ -279,6 +273,20 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
                 </div>
               </div>
 
+              {item.driver && (
+                <div className="mt-3 flex items-center gap-2 border-t border-slate-100 pt-2.5 dark:border-slate-800/80">
+                  <span
+                    aria-hidden="true"
+                    className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-blue-50 text-[11px] font-black text-blue-700 dark:bg-blue-950/60 dark:text-blue-300"
+                  >
+                    {item.driver.name.trim().charAt(0).toLocaleUpperCase('uk-UA') || 'В'}
+                  </span>
+                  <span className="min-w-0 truncate text-xs font-bold text-[#14243B] dark:text-slate-100">
+                    Водій · {item.driver.name}
+                  </span>
+                </div>
+              )}
+
               {/* Features Tags */}
               <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-slate-100 dark:border-slate-800/80 pt-2.5">
                 {item.features.map((feature, fIdx) => (
@@ -290,7 +298,7 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
                   </span>
                 ))}
               </div>
-            </article>
+            </button>
           ))
         )}
 

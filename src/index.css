@@ -179,6 +179,7 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 
 .production-app {
   min-height: 100svh;
+  overflow-x: clip;
   background: var(--mg-canvas-ambient), var(--mg-canvas);
   color: var(--mg-ink-primary);
   padding-bottom: calc(5.25rem + env(safe-area-inset-bottom));

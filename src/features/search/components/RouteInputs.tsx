@@ -101,7 +101,7 @@ export const RouteInputs: React.FC<RouteInputsProps> = ({
             }}
             onChange={(e) => {
               setOriginText(e.target.value);
-              onOriginChange({ ...origin, label: e.target.value });
+              onOriginChange({ label: e.target.value });
               fetchSuggestions(e.target.value);
             }}
             className="w-full bg-transparent pt-1 text-[15px] font-bold text-[#081B35] dark:text-white placeholder:text-slate-400 placeholder:font-medium outline-none"
@@ -155,7 +155,7 @@ export const RouteInputs: React.FC<RouteInputsProps> = ({
             }}
             onChange={(e) => {
               setDestText(e.target.value);
-              onDestinationChange({ ...destination, label: e.target.value });
+              onDestinationChange({ label: e.target.value });
               fetchSuggestions(e.target.value);
             }}
             className="w-full bg-transparent pt-1 text-[15px] font-bold text-[#081B35] dark:text-white placeholder:text-slate-400 placeholder:font-medium outline-none"

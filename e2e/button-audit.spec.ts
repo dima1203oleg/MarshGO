@@ -11,10 +11,7 @@ const skip = /Вийти|Видалити|Скасувати|Завершити|
 
 async function signIn(page: Page, name: string) {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Почати', exact: true }).first().click();
-  await page.getByRole('button', { name: 'Далі', exact: true }).click();
-  await page.getByRole('button', { name: 'Далі', exact: true }).click();
-  await page.getByRole('button', { name: 'Пропустити', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Вхід за номером телефону' })).toBeVisible();
   await page.getByPlaceholder('Ваше ім’я').fill(name);
   await page.getByPlaceholder('+380 номер телефону').fill(`+38092${String(Date.now()).slice(-7)}`);
   await page.getByRole('button', { name: 'Почати', exact: true }).click();

@@ -1,20 +1,5 @@
 import React from 'react';
-import {
-  Bike,
-  Bus,
-  CarFront,
-  CarTaxiFront,
-  Grid,
-  Plane,
-  Repeat,
-  Ship,
-  TrainFront,
-  TrainFrontTunnel,
-  TramFront,
-  Users,
-  X,
-  Zap,
-} from 'lucide-react';
+import { CarFront, Grid, X } from 'lucide-react';
 import type { SearchFiltersState, SearchTransportMode } from '../model/types';
 
 interface SearchFiltersModalProps {
@@ -32,20 +17,6 @@ const ALL_MODES_GRID: Array<{
 }> = [
   { id: 'all', label: 'Усі', icon: Grid },
   { id: 'carpool', label: 'Попутки', icon: CarFront },
-  { id: 'taxi', label: 'Таксі', icon: CarTaxiFront },
-  { id: 'carsharing', label: 'Каршеринг', icon: Users },
-  { id: 'transfer', label: 'Трансфер', icon: Repeat },
-  { id: 'bus', label: 'Автобуси', icon: Bus },
-  { id: 'minibus', label: 'Маршрутки', icon: Users },
-  { id: 'train', label: 'Поїзди', icon: TrainFront },
-  { id: 'suburban_train', label: 'Електрички', icon: TrainFrontTunnel },
-  { id: 'metro', label: 'Метро', icon: TrainFront },
-  { id: 'tram', label: 'Трамвай', icon: TramFront },
-  { id: 'trolleybus', label: 'Тролейбуси', icon: Bus },
-  { id: 'bike', label: 'Велосипеди', icon: Bike },
-  { id: 'scooter', label: 'Самокати', icon: Zap },
-  { id: 'water', label: 'Водний', icon: Ship },
-  { id: 'air', label: 'Літаки', icon: Plane },
 ];
 
 export const SearchFiltersModal: React.FC<SearchFiltersModalProps> = ({
@@ -141,7 +112,7 @@ export const SearchFiltersModal: React.FC<SearchFiltersModalProps> = ({
                 Ціна
               </span>
               <span className="text-xs font-extrabold text-[#0866F5] dark:text-blue-400">
-                Від 0 ₴ до {filters.maxPrice.toLocaleString('uk-UA')} ₴ ⚙️
+                До {filters.maxPrice.toLocaleString('uk-UA')} ₴ за місце
               </span>
             </div>
             <input
@@ -164,7 +135,7 @@ export const SearchFiltersModal: React.FC<SearchFiltersModalProps> = ({
                 Час у дорозі
               </span>
               <span className="text-xs font-extrabold text-[#0866F5] dark:text-blue-400">
-                Будь-який
+                До {filters.maxDurationHours} год
               </span>
             </div>
             <input
@@ -187,142 +158,7 @@ export const SearchFiltersModal: React.FC<SearchFiltersModalProps> = ({
             </div>
           </div>
 
-          {/* Section 4: Transfers */}
-          <div>
-            <span className="block text-[13px] font-black text-[#081B35] dark:text-white mb-2">
-              Пересадки
-            </span>
-            <div className="grid grid-cols-4 gap-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 p-1">
-              {(
-                [
-                  ['any', 'Будь-яка'],
-                  ['direct', 'Без пересадок'],
-                  ['one', 'До 1'],
-                  ['two_plus', 'До 2+'],
-                ] as const
-              ).map(([val, label]) => (
-                <button
-                  key={val}
-                  type="button"
-                  onClick={() => onChangeFilters({ ...filters, maxTransfers: val })}
-                  className={`rounded-xl py-2 text-[10.5px] font-extrabold transition ${
-                    filters.maxTransfers === val
-                      ? 'bg-white dark:bg-[#0B1730] text-[#0866F5] dark:text-blue-400 shadow-sm font-black'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Section 5: Additional Parameters */}
-          <div className="space-y-3 pt-1">
-            <div className="flex items-center justify-between">
-              <span className="block text-[13px] font-black text-[#081B35] dark:text-white">
-                Додаткові параметри
-              </span>
-              <button
-                type="button"
-                onClick={() =>
-                  onChangeFilters({
-                    ...filters,
-                    minRating: 4.0,
-                    onlyVerified: false,
-                    airConditioning: false,
-                    wifi: false,
-                  })
-                }
-                className="text-xs font-bold text-[#0866F5] dark:text-blue-400"
-              >
-                Скинути
-              </button>
-            </div>
-
-            {/* Rating row */}
-            <div className="flex items-center justify-between py-1">
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
-                <span className="text-amber-500">⭐</span>
-                <span>Рейтинг перевізника</span>
-              </div>
-              <span className="text-xs font-extrabold text-[#0866F5] dark:text-blue-400">
-                Від 4.0++ ⌵
-              </span>
-            </div>
-
-            {/* Verified Only Toggle */}
-            <div className="flex items-center justify-between py-1">
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
-                <span className="text-[#0866F5]">🛡️</span>
-                <span>Тільки перевірені</span>
-              </div>
-              <button
-                type="button"
-                onClick={() =>
-                  onChangeFilters({ ...filters, onlyVerified: !filters.onlyVerified })
-                }
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                  filters.onlyVerified ? 'bg-[#0866F5]' : 'bg-slate-200 dark:bg-slate-700'
-                }`}
-              >
-                <span
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    filters.onlyVerified ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-            </div>
-
-            {/* A/C Toggle */}
-            <div className="flex items-center justify-between py-1">
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
-                <span>❄️</span>
-                <span>Кондиціонер</span>
-              </div>
-              <button
-                type="button"
-                onClick={() =>
-                  onChangeFilters({
-                    ...filters,
-                    airConditioning: !filters.airConditioning,
-                  })
-                }
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                  filters.airConditioning ? 'bg-[#0866F5]' : 'bg-slate-200 dark:bg-slate-700'
-                }`}
-              >
-                <span
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    filters.airConditioning ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-            </div>
-
-            {/* Wi-Fi Toggle */}
-            <div className="flex items-center justify-between py-1">
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
-                <span className="text-[#0866F5]">📶</span>
-                <span>Wi-Fi</span>
-              </div>
-              <button
-                type="button"
-                onClick={() =>
-                  onChangeFilters({ ...filters, wifi: !filters.wifi })
-                }
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                  filters.wifi ? 'bg-[#0866F5]' : 'bg-slate-200 dark:bg-slate-700'
-                }`}
-              >
-                <span
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    filters.wifi ? 'translate-x-5' : 'translate-x-0'
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
+          <p className="rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-500 dark:bg-slate-800/60 dark:text-slate-400">Фільтри працюють лише з полями, які є в оголошенні водія.</p>
         </div>
 
         {/* Footer Fixed Button */}

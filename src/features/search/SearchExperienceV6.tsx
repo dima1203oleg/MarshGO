@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   ArrowRight,
   Search,
@@ -6,52 +6,91 @@ import {
   ShieldCheck,
   TrendingUp,
 } from 'lucide-react';
-import { productionApi, type ApiOffer } from '../../services/productionApi';
-import type {
-  RoutePlace,
-  RouteSearchResultItem,
-  SearchFiltersState,
-  SearchStrategyMode,
-  SearchTransportMode,
-} from './model/types';
+import { productionApi } from '../../services/productionApi';
+import type { RoutePlace, RouteSearchResultItem, SearchFiltersState, SearchTransportMode } from './model/types';
 import { SearchHeader } from './components/SearchHeader';
 import { RouteInputs } from './components/RouteInputs';
 import { DateTimePassengers } from './components/DateTimePassengers';
-import { TransportModeStrip } from './components/TransportModeStrip';
-import { StrategySelector } from './components/StrategySelector';
 import { SearchResultsList } from './components/SearchResultsList';
 import { SearchMapDetails } from './components/SearchMapDetails';
 import { SearchFiltersModal } from './components/SearchFiltersModal';
-import { TripLifecycleCoordinator } from '../lifecycle/TripLifecycleCoordinator';
-import { NotificationsCenterModal } from '../lifecycle/components/NotificationsCenterModal';
-import type { ActiveTripData } from '../lifecycle/model/lifecycleTypes';
+import { buildSearchRoute, parseSearchRoute, type SearchRouteState } from '../../routing/searchRouteState';
 
 interface SearchExperienceV6Props {
-  onSelectOffer?: (offer: ApiOffer) => void;
-  onBookOfferId?: (offerId: string) => void;
+  onBookOfferId?: (offerId: string, passengerCount: number) => void;
+  onOpenNotifications?: () => void;
+  unreadNotificationCount?: number;
   onOpenReverseMarketplace?: (origin: string, destination: string) => void;
-  onStartDriverNavigation?: () => void;
+  onOpenJourneyPlanner?: (criteria: { origin: RoutePlace; destination: RoutePlace; date: string; time: string; passengers: number }) => void;
   initialOrigin?: string;
   initialDestination?: string;
-  isDarkMode?: boolean;
-  onToggleTheme?: () => void;
+}
+
+function offersToSearchItems(
+  offers: Awaited<ReturnType<typeof productionApi.offers>>,
+  date: string,
+  time: string,
+  timeMode: 'now' | 'depart_at' | 'arrive_by',
+): RouteSearchResultItem[] {
+  const threshold = timeMode === 'now' ? Date.now() : new Date(`${date}T${time}:00`).getTime();
+  return offers
+    .filter((offer) => offer.other_date || new Date(offer.departure_at).getTime() >= threshold)
+    .map((offer) => ({
+      id: `offer-${offer.id}`,
+      type: 'carpool',
+      modeLabel: 'Попутка',
+      badge: offer.other_date ? 'Інша дата' : undefined,
+      source: 'community',
+      carrierName: offer.driver_name,
+      vehicleModel: 'Автомобіль',
+      vehiclePhoto: offer.vehicle_photo_url ?? undefined,
+      driver: {
+        name: offer.driver_name,
+        avatar: offer.driver_photo_url ?? undefined,
+        rating: offer.average_rating == null ? null : Number(offer.average_rating),
+        reviewCount: offer.review_count,
+        verified: false,
+      },
+      departureTime: new Date(offer.departure_at).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }),
+      arrivalTime: offer.arrival_at
+        ? new Date(offer.arrival_at).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })
+        : '—',
+      departureCity: offer.origin_name.split(',')[0].trim(),
+      arrivalCity: offer.destination_name.split(',')[0].trim(),
+      departureAddress: offer.origin_name,
+      arrivalAddress: offer.destination_name,
+      durationLabel: offer.duration_s != null
+        ? `${Math.floor(offer.duration_s / 3600)} год ${Math.round((offer.duration_s % 3600) / 60)} хв`
+        : 'Тривалість не вказана',
+      distanceLabel: offer.distance_m != null ? `${(offer.distance_m / 1000).toFixed(0)} км` : 'Відстань не вказана',
+      distanceMeters: offer.distance_m ?? 0,
+      durationSeconds: offer.duration_s ?? 0,
+      priceMinor: offer.price_per_seat_minor,
+      priceLabel: `${Math.round(offer.price_per_seat_minor / 100)} ₴`,
+      priceUnit: 'за місце',
+      isPriceFixed: true,
+      availableSeats: offer.available_seats,
+      features: [`${offer.available_seats} вільних місць`],
+      stopsCount: 0,
+      offerId: offer.id,
+    }));
 }
 
 export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
-  onSelectOffer: _onSelectOffer,
   onBookOfferId,
+  onOpenNotifications,
+  unreadNotificationCount = 0,
   onOpenReverseMarketplace,
-  onStartDriverNavigation: _onStartDriverNavigation,
-  initialOrigin = 'Львів, Моє місцезнаходження',
-  initialDestination = 'Київ, Центральний вокзал',
-  isDarkMode: _isDarkMode = false,
-  onToggleTheme: _onToggleTheme,
+  onOpenJourneyPlanner,
+  initialOrigin = '',
+  initialDestination = '',
 }) => {
-  // Screen views: 'form' | 'results' | 'map_details' | 'active_trip'
-  const [subView, setSubView] = useState<'form' | 'results' | 'map_details' | 'active_trip'>(() => {
+  const initialSearchRoute = parseSearchRoute(window.location.search);
+  // Booking and trip lifecycle are owned by ProductionMarketplace/API.
+  const [subView, setSubView] = useState<'form' | 'results' | 'map_details'>(() => {
+    if (initialSearchRoute) return 'results';
     const params = new URLSearchParams(window.location.search);
     const v = params.get('view');
-    if (v === 'active_trip' || v === 'trip' || v === 'hub') return 'active_trip';
     if (v === 'results') return 'results';
     if (v === 'map' || v === 'map_details') return 'map_details';
     return 'form';
@@ -60,30 +99,24 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
     const params = new URLSearchParams(window.location.search);
     return params.get('view') === 'filters';
   });
-  const [showNotificationsModal, setShowNotificationsModal] = useState(false);
-  const [bookedTripState] = useState<Partial<ActiveTripData> | undefined>(undefined);
 
   // Search form fields
   const [origin, setOrigin] = useState<RoutePlace>({
-    label: initialOrigin,
-    latitude: 49.8397,
-    longitude: 24.0297,
+    ...(initialSearchRoute?.origin ?? { label: initialOrigin }),
   });
   const [destination, setDestination] = useState<RoutePlace>({
-    label: initialDestination,
-    latitude: 50.4501,
-    longitude: 30.5234,
+    ...(initialSearchRoute?.destination ?? { label: initialDestination }),
   });
 
-  const [dateStr, setDateStr] = useState('Сьогодні, 14 травня');
-  const [timeStr, setTimeStr] = useState('18:30');
+  const [dateStr, setDateStr] = useState(() => {
+    if (initialSearchRoute) return initialSearchRoute.date;
+    const now = new Date();
+    return new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
+  });
+  const [timeStr, setTimeStr] = useState(() => initialSearchRoute?.departure.match(/T(\d{2}:\d{2})/)?.[1] ?? '18:30');
   const [timeMode, setTimeMode] = useState<'now' | 'depart_at' | 'arrive_by'>('depart_at');
-  const [passengers, setPassengers] = useState(1);
-
-  const [selectedModes, setSelectedModes] = useState<Set<SearchTransportMode>>(
-    new Set<SearchTransportMode>(['all'])
-  );
-  const [strategy, setStrategy] = useState<SearchStrategyMode>('BALANCED');
+  const [passengers, setPassengers] = useState(initialSearchRoute?.passengers ?? 1);
+  const restoreRouteRef = useRef<SearchRouteState | null>(initialSearchRoute);
 
   // Filters State
   const [filters, setFilters] = useState<SearchFiltersState>({
@@ -91,7 +124,7 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
     maxPrice: 2000,
     maxDurationHours: 12,
     maxTransfers: 'any',
-    minRating: 4.0,
+    minRating: 0,
     onlyVerified: false,
     airConditioning: false,
     wifi: false,
@@ -102,146 +135,137 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
 
   // Search results & loading state
   const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [results, setResults] = useState<RouteSearchResultItem[]>(() =>
     []
   );
   const [selectedItem, setSelectedItem] = useState<RouteSearchResultItem | null>(() =>
     null
   );
+  const filteredResults = results.filter((item) =>
+    (filters.modes.has('all') || filters.modes.has(item.type)) &&
+    item.priceMinor <= filters.maxPrice * 100 &&
+    (item.durationSeconds === 0 || item.durationSeconds <= filters.maxDurationHours * 3600) &&
+    (item.driver?.rating ?? 0) >= filters.minRating
+  );
 
   // Sync initial props
   useEffect(() => {
     if (initialOrigin) {
-      setOrigin((prev) => ({ ...prev, label: initialOrigin }));
+      setOrigin((current) => current.label === initialOrigin ? current : { label: initialOrigin });
     }
     if (initialDestination) {
-      setDestination((prev) => ({ ...prev, label: initialDestination }));
+      setDestination((current) => current.label === initialDestination ? current : { label: initialDestination });
     }
   }, [initialOrigin, initialDestination]);
 
   // Execute unified search
   const handleExecuteSearch = async () => {
     setIsSearching(true);
+    setSearchError(null);
     setSubView('results');
 
     try {
-      // 1. Query real server journeys
-      const journeyPromise = productionApi
-        .searchJourneys({
-          origin: { name: origin.label, coordinates: [origin.longitude, origin.latitude] },
-          destination: { name: destination.label, coordinates: [destination.longitude, destination.latitude] },
-          departureAt: new Date(`${dateStr}T${timeStr}`).toISOString(),
-          passengers,
-          strategy: strategy as any,
-        })
-        .catch(() => null);
-
-      // 2. Query real server offers
-      const offersPromise = productionApi
-        .offers({
+      if (!origin.label.trim() || !destination.label.trim()) throw new Error('Вкажіть початковий пункт і пункт призначення.');
+      if (origin.label.trim().toLocaleLowerCase('uk-UA') === destination.label.trim().toLocaleLowerCase('uk-UA')) {
+        throw new Error('Початковий пункт і пункт призначення мають відрізнятися.');
+      }
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) throw new Error('Оберіть коректну дату поїздки.');
+      if (timeMode !== 'now' && !/^\d{2}:\d{2}$/.test(timeStr)) throw new Error('Оберіть коректний час відправлення.');
+      if (!origin.providerId || !destination.providerId || origin.latitude == null || origin.longitude == null
+        || destination.latitude == null || destination.longitude == null) {
+        throw new Error('Оберіть початковий пункт і призначення з результатів геокодера.');
+      }
+      const offersRes = await productionApi.offers({
           origin: origin.label.split(',')[0].trim(),
           destination: destination.label.split(',')[0].trim(),
           date: dateStr,
           seats: passengers,
-        })
-        .catch((): ApiOffer[] => []);
-
-      const [, offersRes] = await Promise.all([journeyPromise, offersPromise]);
-
-      const items: RouteSearchResultItem[] = [];
-
-      // Convert backend community offers into Carpool items
-      const backendOffers = offersRes;
-      if (backendOffers.length > 0) {
-        backendOffers.forEach((off, idx) => {
-          items.push({
-            id: `offer-${off.id}`,
-            type: 'carpool',
-            modeLabel: 'Попутка',
-            badge: idx === 0 ? 'Найкращий варіант' : undefined,
-            badgeType: idx === 0 ? 'best' : undefined,
-            source: 'community',
-            carrierName: off.driver_name,
-            vehicleModel: 'Автомобіль',
-            driver: {
-              name: off.driver_name,
-              avatar: off.driver_photo_url ?? undefined,
-              rating: Number(off.average_rating || 4.9),
-              reviewCount: off.review_count || 124,
-              verified: true,
-            },
-            departureTime: new Date(off.departure_at).toLocaleTimeString('uk-UA', {
-              hour: '2-digit',
-              minute: '2-digit',
-            }),
-            arrivalTime: off.arrival_at
-              ? new Date(off.arrival_at).toLocaleTimeString('uk-UA', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })
-              : '23:50',
-            departureCity: off.origin_name.split(',')[0].trim(),
-            arrivalCity: off.destination_name.split(',')[0].trim(),
-            departureAddress: off.origin_name,
-            arrivalAddress: off.destination_name,
-            durationLabel: off.duration_s
-              ? `${Math.floor(off.duration_s / 3600)} год ${Math.round((off.duration_s % 3600) / 60)} хв`
-              : '5 год 20 хв',
-            distanceLabel: off.distance_m
-              ? `${(off.distance_m / 1000).toFixed(0)} км`
-              : '520 км',
-            distanceMeters: off.distance_m || 520000,
-            durationSeconds: off.duration_s || 19200,
-            priceMinor: off.price_per_seat_minor,
-            priceLabel: `${Math.round(off.price_per_seat_minor / 100)} ₴`,
-            priceUnit: 'за місце',
-            isPriceFixed: true,
-            availableSeats: off.available_seats,
-            features: ['Комфорт', `До ${off.available_seats} пасажирів`, 'Миттєве підтвердження'],
-            stopsCount: 2,
-            stops: [
-              { name: off.origin_name, time: '18:30', type: 'pickup' },
-              { name: 'Рівне, АЗС WOG', time: '20:45', type: 'stop' },
-              { name: off.destination_name, time: '23:50', type: 'dropoff' },
-            ],
-            offerId: off.id,
-          });
+          ...(origin.longitude != null && origin.latitude != null
+            ? { originCoordinates: [origin.longitude, origin.latitude] as [number, number] }
+            : {}),
+          ...(destination.longitude != null && destination.latitude != null
+            ? { destinationCoordinates: [destination.longitude, destination.latitude] as [number, number] }
+            : {}),
         });
-      }
 
+      const items = offersToSearchItems(offersRes, dateStr, timeStr, timeMode);
       setResults(items);
-      setSelectedItem(items[0]);
-    } catch {
-      // Fallback
+      setSelectedItem(items[0] ?? null);
+      const route = buildSearchRoute({
+        origin: { label: origin.label, latitude: origin.latitude!, longitude: origin.longitude!, providerId: origin.providerId! },
+        destination: { label: destination.label, latitude: destination.latitude!, longitude: destination.longitude!, providerId: destination.providerId! },
+        date: dateStr,
+        passengers,
+        departure: `${dateStr}T${timeStr}:00`,
+        strategy: 'BALANCED',
+        mode: 'offers',
+      });
+      window.history.pushState({ marshgoRoute: true }, '', route);
+    } catch (error) {
+      setResults([]);
+      setSelectedItem(null);
+      setSearchError(error instanceof Error ? error.message : 'Не вдалося виконати пошук. Перевірте з’єднання та спробуйте ще раз.');
     } finally {
       setIsSearching(false);
     }
   };
 
+  useEffect(() => {
+    const route = restoreRouteRef.current;
+    if (!route) return;
+    restoreRouteRef.current = null;
+    let active = true;
+    setIsSearching(true);
+    void productionApi.offers({
+      origin: route.origin.label,
+      destination: route.destination.label,
+      date: route.date,
+      seats: route.passengers,
+      originCoordinates: [route.origin.longitude, route.origin.latitude],
+      destinationCoordinates: [route.destination.longitude, route.destination.latitude],
+    }).then((offers) => {
+      if (!active) return;
+      const restoredTime = route.departure.match(/T(\d{2}:\d{2})/)?.[1] ?? '18:30';
+      const items = offersToSearchItems(offers, route.date, restoredTime, 'depart_at');
+      setResults(items);
+      setSelectedItem(items[0] ?? null);
+      setSubView('results');
+    }).catch((error: unknown) => {
+      if (active) setSearchError(error instanceof Error ? error.message : 'Не вдалося відновити результати пошуку.');
+    }).finally(() => { if (active) setIsSearching(false); });
+    return () => { active = false; };
+  }, []);
+
   // Card clicked -> open Screen 3 (Map details)
   const handleSelectResultItem = (item: RouteSearchResultItem) => {
     setSelectedItem(item);
     setSubView('map_details');
+    if (item.offerId && !item.routeGeometry) {
+      void productionApi.offer(item.offerId).then((offer) => {
+        if (offer.route_geometry?.length) {
+          setSelectedItem((current) => current?.offerId === offer.id
+            ? { ...current, routeGeometry: offer.route_geometry ?? undefined }
+            : current);
+        }
+      }).catch(() => undefined);
+    }
   };
 
   // Booking from the preview opens the real offer flow in the parent app.
   // Never mark a trip confirmed in the UI before the API confirms a booking.
   const handleBookItem = (item: RouteSearchResultItem) => {
     if (!item.offerId || !onBookOfferId) return;
-    onBookOfferId(item.offerId);
+    onBookOfferId(item.offerId, passengers);
   };
 
   // Switch popular route
   const handleSelectQuickRoute = (fromCity: string, toCity: string) => {
     setOrigin({
       label: `${fromCity}, Центр`,
-      latitude: fromCity === 'Львів' ? 49.8397 : 50.4501,
-      longitude: fromCity === 'Львів' ? 24.0297 : 30.5234,
     });
     setDestination({
       label: `${toCity}, Центр`,
-      latitude: toCity === 'Київ' ? 50.4501 : 49.8397,
-      longitude: toCity === 'Київ' ? 30.5234 : 24.0297,
     });
   };
 
@@ -252,9 +276,10 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
         <div className="mx-auto flex flex-col min-h-screen max-w-md pb-24">
           {/* Header Block A: Logo, City, Notifications, Profile, Theme Toggle */}
           <SearchHeader
-            currentCity="Львів"
-            onSelectCity={() => {}}
-            onOpenNotifications={() => setShowNotificationsModal(true)}
+            currentCity={origin.label.split(',')[0] || 'Україна'}
+            onSelectCity={(city) => setOrigin({ label: `${city}, Центр` })}
+            onOpenNotifications={() => onOpenNotifications?.()}
+            unreadCount={unreadNotificationCount}
           />
 
           {/* Header Block B: Title & Subtitle */}
@@ -263,7 +288,7 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
               Знайди маршрут
             </h1>
             <p className="mt-1 text-sm font-semibold text-[#63738C] dark:text-slate-400">
-              Усі види транспорту в одному пошуку
+              Реальні пропозиції водіїв MARSHGO
             </p>
           </div>
 
@@ -289,36 +314,8 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
               onPassengersChange={setPassengers}
             />
 
-            {/* Block E: Transport Categories Horizontal Strip */}
-            <div className="pt-1">
-              <TransportModeStrip
-                selectedModes={selectedModes}
-                onSelectAll={() => setSelectedModes(new Set(['all']))}
-                onToggleMode={(mode) => {
-                  const next = new Set(selectedModes);
-                  if (mode === 'all') {
-                    next.clear();
-                    next.add('all');
-                  } else {
-                    next.delete('all');
-                    if (next.has(mode)) {
-                      next.delete(mode);
-                      if (next.size === 0) next.add('all');
-                    } else {
-                      next.add(mode);
-                    }
-                  }
-                  setSelectedModes(next);
-                }}
-              />
-            </div>
-
-            {/* 3 Quick Strategy Modes: Оптимальний, Найшвидший, Найдешевший */}
-            <div className="pt-1">
-              <StrategySelector
-                selectedStrategy={strategy}
-                onSelectStrategy={setStrategy}
-              />
+            <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-xs leading-5 text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200">
+              Тут показані оголошення спільних поїздок. Розклади автобусів і поїздів поки не входять до цієї видачі.
             </div>
 
             {/* Block F: Primary CTA Button (Placed immediately after modes & strategy as required) */}
@@ -338,6 +335,16 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
                 />
               </button>
             </div>
+
+            {onOpenJourneyPlanner && (
+              <button
+                type="button"
+                onClick={() => onOpenJourneyPlanner({ origin, destination, date: dateStr, time: timeStr, passengers })}
+                className="w-full rounded-2xl border border-blue-200 bg-white px-4 py-3 text-sm font-bold text-blue-700 transition hover:border-blue-400 hover:bg-blue-50 dark:border-blue-900 dark:bg-[#0B1730] dark:text-blue-300 dark:hover:bg-blue-950/40"
+              >
+                Планувати маршрут
+              </button>
+            )}
 
             {/* City Skyline Illustration Banner (matching Screen 1 bottom) */}
             <div className="relative mt-4 w-full overflow-hidden rounded-2xl border border-blue-100/80 dark:border-slate-800/80 bg-linear-to-b from-sky-50/50 to-white dark:from-slate-900/40 dark:to-slate-900">
@@ -366,12 +373,8 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
                 <div className="grid h-7 w-7 place-items-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 text-xs">
                   <ShieldCheck size={14} />
                 </div>
-                <span className="mt-1 text-[10px] font-bold text-[#081B35] dark:text-slate-200 leading-tight">
-                  Перевірені
-                </span>
-                <span className="text-[9px] text-[#63738C] dark:text-slate-400">
-                  транспортні засоби
-                </span>
+                <span className="mt-1 text-[10px] font-bold text-[#081B35] dark:text-slate-200 leading-tight">Оголошення водіїв</span>
+                <span className="text-[9px] text-[#63738C] dark:text-slate-400">із даними профілю</span>
               </div>
 
               <div className="flex flex-col items-center justify-center rounded-xl bg-white dark:bg-[#0B1730] p-2 text-center border border-slate-100 dark:border-slate-800 shadow-xs">
@@ -400,9 +403,9 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
 
               <div className="space-y-1.5">
                 {[
-                  { from: 'Львів', to: 'Київ', duration: '5 год 20 хв', price: 'від 420 ₴' },
-                  { from: 'Львів', to: 'Івано-Франківськ', duration: '2 год 15 хв', price: 'від 180 ₴' },
-                  { from: 'Київ', to: 'Одеса', duration: '5 год 40 хв', price: 'від 480 ₴' },
+                  { from: 'Львів', to: 'Київ' },
+                  { from: 'Львів', to: 'Івано-Франківськ' },
+                  { from: 'Київ', to: 'Одеса' },
                 ].map((r, i) => (
                   <button
                     key={i}
@@ -416,14 +419,7 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
                         {r.from} → {r.to}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-right">
-                      <span className="text-[11px] text-[#63738C] dark:text-slate-400">
-                        {r.duration}
-                      </span>
-                      <span className="text-xs font-bold text-[#0866F5]">
-                        {r.price}
-                      </span>
-                    </div>
+                    <span className="text-[11px] font-semibold text-[#63738C] dark:text-slate-400">Заповнити маршрут</span>
                   </button>
                 ))}
               </div>
@@ -440,7 +436,10 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
           dateStr={dateStr}
           timeStr={timeStr}
           passengers={passengers}
-          items={results}
+          isLoading={isSearching}
+          error={searchError}
+          onRetry={() => void handleExecuteSearch()}
+          items={filteredResults}
           selectedFilterMode={resultsFilterMode}
           onSelectFilterMode={setResultsFilterMode}
           onOpenFiltersModal={() => setShowFiltersModal(true)}
@@ -464,19 +463,7 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
           timeStr={timeStr}
           passengers={passengers}
           onBackToResults={() => setSubView('results')}
-          onSwitchToList={() => setSubView('results')}
           onBook={handleBookItem}
-        />
-      )}
-
-      {/* MARSHGO V7: ACTIVE TRIP LIFECYCLE (Screen A..G) */}
-      {subView === 'active_trip' && (
-        <TripLifecycleCoordinator
-          initialTrip={bookedTripState}
-          onCloseLifecycle={() => setSubView('results')}
-          onBookAlternative={(_altId) => {
-            setSubView('results');
-          }}
         />
       )}
 
@@ -484,7 +471,7 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
       <SearchFiltersModal
         isOpen={showFiltersModal}
         filters={filters}
-        totalResultsCount={results.length}
+        totalResultsCount={filteredResults.length}
         onClose={() => setShowFiltersModal(false)}
         onChangeFilters={(updated) => {
           setFilters(updated);
@@ -492,18 +479,6 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
         }}
       />
 
-      {/* NOTIFICATIONS CENTER MODAL */}
-      {showNotificationsModal && (
-        <NotificationsCenterModal
-          onClose={() => setShowNotificationsModal(false)}
-          onNavigateToScreen={(screen) => {
-            setShowNotificationsModal(false);
-            if (screen === 'active_trip' || screen === 'chat' || screen === 'rendezvous' || screen === 'review') {
-              setSubView('active_trip');
-            }
-          }}
-        />
-      )}
     </div>
   );
 };

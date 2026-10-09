@@ -21,8 +21,8 @@ export type SearchStrategyMode = 'BALANCED' | 'FASTEST' | 'CHEAPEST' | 'RELIABLE
 
 export interface RoutePlace {
   label: string;
-  latitude: number;
-  longitude: number;
+  latitude?: number;
+  longitude?: number;
   providerId?: string;
 }
 
@@ -51,7 +51,7 @@ export interface RouteSearchResultItem {
   driver?: {
     name: string;
     avatar?: string;
-    rating: number;
+    rating: number | null;
     reviewCount: number;
     verified: boolean;
   };

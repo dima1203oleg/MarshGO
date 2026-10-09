@@ -6,6 +6,7 @@ interface SearchHeaderProps {
   currentCity: string;
   onSelectCity: (city: string) => void;
   onOpenNotifications: () => void;
+  unreadCount?: number;
 }
 
 const CITIES = ['Львів', 'Київ', 'Одеса', 'Дніпро', 'Харків', 'Стрий', 'Івано-Франківськ', 'Тернопіль', 'Ужгород'];
@@ -14,6 +15,7 @@ export const SearchHeader: React.FC<SearchHeaderProps> = ({
   currentCity,
   onSelectCity,
   onOpenNotifications,
+  unreadCount = 0,
 }) => {
   const [isDark, setIsDark] = useState(() => themeService.isDark());
   const [showCityMenu, setShowCityMenu] = useState(false);
@@ -110,7 +112,7 @@ export const SearchHeader: React.FC<SearchHeaderProps> = ({
           aria-label="Сповіщення"
         >
           <Bell size={17} />
-          <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-[#E73C59] ring-2 ring-white dark:ring-[#111e36]" />
+          {unreadCount > 0 && <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-[#E73C59] ring-2 ring-white dark:ring-[#111e36]" />}
         </button>
       </div>
     </header>

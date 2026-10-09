@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Calendar, ChevronDown, Clock, Minus, Plus, User } from 'lucide-react';
 
 interface DateTimePassengersProps {
@@ -25,11 +25,20 @@ export const DateTimePassengers: React.FC<DateTimePassengersProps> = ({
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showPassengerPicker, setShowPassengerPicker] = useState(false);
+  const dateOptions = useMemo(() => Array.from({ length: 7 }, (_, index) => {
+    const date = new Date();
+    date.setHours(12, 0, 0, 0);
+    date.setDate(date.getDate() + index);
+    const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
+    const label = new Intl.DateTimeFormat('uk-UA', { weekday: 'short', day: 'numeric', month: 'long' }).format(date);
+    return { value: localDate, label: index === 0 ? `Сьогодні, ${label}` : index === 1 ? `Завтра, ${label}` : label };
+  }), []);
+  const selectedDate = dateOptions.find((option) => option.value === dateStr);
 
   return (
     <div className="relative mt-2">
       <div className="grid grid-cols-3 gap-2">
-        {/* Date Selector: Сьогодні \n 14 травня */}
+        {/* Date Selector */}
         <div className="relative">
           <button
             type="button"
@@ -44,11 +53,8 @@ export const DateTimePassengers: React.FC<DateTimePassengersProps> = ({
               <Calendar size={16} strokeWidth={2.4} />
             </div>
             <div className="min-w-0 flex-1 leading-tight">
-              <span className="block text-[10px] font-bold text-[#63738C] dark:text-slate-400">
-                Сьогодні
-              </span>
               <span className="block text-[12px] font-black text-[#081B35] dark:text-white truncate">
-                14 травня
+                {selectedDate?.label ?? new Intl.DateTimeFormat('uk-UA', { day: 'numeric', month: 'short' }).format(new Date(`${dateStr}T12:00:00`))}
               </span>
             </div>
           </button>
@@ -57,21 +63,21 @@ export const DateTimePassengers: React.FC<DateTimePassengersProps> = ({
           {showDatePicker && (
             <div className="absolute left-0 top-full z-40 mt-1.5 w-44 rounded-2xl bg-white dark:bg-[#0B1730] p-2 shadow-xl border border-slate-100 dark:border-slate-800 animate-in fade-in-50 zoom-in-95">
               <div className="space-y-1">
-                {['Сьогодні, 14 травня', 'Завтра, 15 травня', 'Пт, 16 травня', 'Сб, 17 травня'].map((d) => (
+                {dateOptions.map((option) => (
                   <button
-                    key={d}
+                    key={option.value}
                     type="button"
                     onClick={() => {
-                      onDateChange(d);
+                      onDateChange(option.value);
                       setShowDatePicker(false);
                     }}
                     className={`flex w-full items-center rounded-xl px-2.5 py-1.5 text-xs font-bold text-left transition ${
-                      dateStr === d
+                      dateStr === option.value
                         ? 'bg-[#0866F5] text-white'
                         : 'text-[#081B35] dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800'
                     }`}
                   >
-                    {d}
+                    {option.label}
                   </button>
                 ))}
               </div>
@@ -105,7 +111,7 @@ export const DateTimePassengers: React.FC<DateTimePassengersProps> = ({
           {showTimePicker && (
             <div className="absolute left-0 top-full z-40 mt-1.5 w-40 rounded-2xl bg-white dark:bg-[#0B1730] p-2 shadow-xl border border-slate-100 dark:border-slate-800 animate-in fade-in-50 zoom-in-95">
               <div className="space-y-1">
-                {['Зараз', '18:30', '19:00', '20:00', '21:30', 'Вранці 08:00'].map((t) => (
+                {['Зараз', '08:00', '18:30', '19:00', '20:00', '21:30'].map((t) => (
                   <button
                     key={t}
                     type="button"
@@ -166,6 +172,7 @@ export const DateTimePassengers: React.FC<DateTimePassengersProps> = ({
                   <button
                     type="button"
                     disabled={passengers <= 1}
+                    aria-label="Менше пасажирів"
                     onClick={() => onPassengersChange(Math.max(1, passengers - 1))}
                     className="grid h-7 w-7 place-items-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 disabled:opacity-40"
                   >
@@ -177,6 +184,7 @@ export const DateTimePassengers: React.FC<DateTimePassengersProps> = ({
                   <button
                     type="button"
                     disabled={passengers >= 8}
+                    aria-label="Більше пасажирів"
                     onClick={() => onPassengersChange(Math.min(8, passengers + 1))}
                     className="grid h-7 w-7 place-items-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 disabled:opacity-40"
                   >

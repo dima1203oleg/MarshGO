@@ -18,6 +18,7 @@ interface HomeV5Props {
   onSearchTrip: () => void;
   onPlanTrip: () => void;
   onOpenNotifications: () => void;
+  unreadNotificationCount?: number;
 }
 
 export const HomeV5: React.FC<HomeV5Props> = ({
@@ -25,6 +26,7 @@ export const HomeV5: React.FC<HomeV5Props> = ({
   onSearchTrip,
   onPlanTrip,
   onOpenNotifications,
+  unreadNotificationCount = 0,
 }) => {
   const [isDark, setIsDark] = useState(() => themeService.isDark());
 
@@ -84,7 +86,7 @@ export const HomeV5: React.FC<HomeV5Props> = ({
             aria-label="Сповіщення"
           >
             <Bell size={19} />
-            <span className="absolute top-2.5 right-2.5 h-2 w-2 rounded-full bg-[#EF4444] ring-2 ring-white dark:ring-[#111e36]" />
+            {unreadNotificationCount > 0 && <span className="absolute -right-1 -top-1 grid min-h-5 min-w-5 place-items-center rounded-full bg-rose-600 px-1 text-[9px] font-bold text-white ring-2 ring-white dark:ring-[#111e36]">{unreadNotificationCount > 99 ? '99+' : unreadNotificationCount}</span>}
           </button>
         </div>
       </header>
@@ -143,7 +145,7 @@ export const HomeV5: React.FC<HomeV5Props> = ({
                 <span className="text-[17px] sm:text-[18px] font-bold tracking-tight text-white">
                   Почати навігацію
                 </span>
-                <span className="inline-flex items-center gap-1 rounded-full bg-[#08488E]/85 px-2 py-0.5 text-[11px] font-semibold text-white">
+                <span className="hidden min-[430px]:inline-flex items-center gap-1 rounded-full bg-[#08488E]/85 px-2 py-0.5 text-[11px] font-semibold text-white">
                   <span className="h-1.5 w-1.5 rounded-full bg-[#22C55E]"></span>
                   Автопідбір
                 </span>
