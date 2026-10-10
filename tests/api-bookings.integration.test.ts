@@ -21,6 +21,8 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     vehicle: crypto.randomUUID(),
     offer: crypto.randomUUID(),
     journeyOffer: crypto.randomUUID(),
+    rescueOriginalOffer: crypto.randomUUID(),
+    rescueReplacementOffer: crypto.randomUUID(),
     rendezvousOffer: crypto.randomUUID(),
     expiredOffer: crypto.randomUUID(),
   };
@@ -61,6 +63,18 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
         ST_SetSRID(ST_GeomFromGeoJSON('{"type":"LineString","coordinates":[[23.8561,49.2567],[24.0297,49.8397]]}'),4326),
         now()+interval '10 days',now()+interval '10 days 1 hour',78000,3600,'osrm',15000,1,1)`, [ids.journeyOffer, ids.driver, ids.vehicle]);
     await pool.query(`INSERT INTO offers(id,driver_id,vehicle_id,origin_name,destination_name,origin,destination,route,departure_at,arrival_at,distance_m,duration_s,route_source,price_per_seat_minor,total_seats,available_seats)
+      VALUES ($1,$2,$3,'Rescue Original Origin','Rescue Original Destination',
+        ST_SetSRID(ST_MakePoint(23.8561,49.2567),4326)::geography,
+        ST_SetSRID(ST_MakePoint(24.0297,49.8397),4326)::geography,
+        ST_SetSRID(ST_GeomFromGeoJSON('{"type":"LineString","coordinates":[[23.8561,49.2567],[24.0297,49.8397]]}'),4326),
+        now()+interval '12 days',now()+interval '12 days 1 hour',78000,3600,'osrm',15000,1,1)`, [ids.rescueOriginalOffer, ids.driver, ids.vehicle]);
+    await pool.query(`INSERT INTO offers(id,driver_id,vehicle_id,origin_name,destination_name,origin,destination,route,departure_at,arrival_at,distance_m,duration_s,route_source,price_per_seat_minor,total_seats,available_seats)
+      VALUES ($1,$2,$3,'Rescue Replacement Origin','Rescue Replacement Destination',
+        ST_SetSRID(ST_MakePoint(23.8561,49.2567),4326)::geography,
+        ST_SetSRID(ST_MakePoint(24.0297,49.8397),4326)::geography,
+        ST_SetSRID(ST_GeomFromGeoJSON('{"type":"LineString","coordinates":[[23.8561,49.2567],[24.0297,49.8397]]}'),4326),
+        now()+interval '12 days 30 minutes',now()+interval '12 days 1 hour 30 minutes',78000,3600,'osrm',24000,4,4)`, [ids.rescueReplacementOffer, ids.driver, ids.vehicle]);
+    await pool.query(`INSERT INTO offers(id,driver_id,vehicle_id,origin_name,destination_name,origin,destination,route,departure_at,arrival_at,distance_m,duration_s,route_source,price_per_seat_minor,total_seats,available_seats)
       VALUES ($1,$2,$3,'Pickup point','Rendezvous destination',
         ST_SetSRID(ST_MakePoint(24.0,49.0),4326)::geography,
         ST_SetSRID(ST_MakePoint(25.0,50.0),4326)::geography,
@@ -81,7 +95,7 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     await pool.query('DELETE FROM journeys WHERE user_id = ANY($1::uuid[])', [[ids.driver, ...ids.passengers]]);
     await pool.query('DELETE FROM verification_records WHERE user_id = ANY($1::uuid[]) OR id=ANY($2::uuid[])', [[ids.driver, ...ids.passengers, ids.admin], verificationIds]);
     await pool.query('DELETE FROM otp_challenges WHERE phone_e164 LIKE $1', [`+38099${process.pid}%`]);
-    await pool.query("DELETE FROM audit_events WHERE actor_id = ANY($1::uuid[]) AND action IN ('vehicle.created','offer.created','demand.created','demand.cancelled','proposal.created','proposal.countered','proposal.agreed','proposal.accepted','user.blocked','user.unblocked','journey.leg.booked','journey.replanning')", [[ids.driver, ...ids.passengers]]);
+    await pool.query("DELETE FROM audit_events WHERE actor_id = ANY($1::uuid[]) AND action IN ('vehicle.created','offer.created','demand.created','demand.cancelled','proposal.created','proposal.countered','proposal.agreed','proposal.accepted','user.blocked','user.unblocked','journey.leg.booked','journey.replanning','journey.leg.rescued')", [[ids.driver, ...ids.passengers]]);
     await pool.query("DELETE FROM audit_events WHERE entity_id=ANY($1::uuid[]) OR (actor_id=ANY($2::uuid[]) AND action LIKE 'moderation.%')", [moderationCaseIds, [passengerA, ids.admin]]);
     await pool.query('DELETE FROM moderation_cases WHERE id=ANY($1::uuid[])', [moderationCaseIds]);
     await pool.query('DELETE FROM realtime_outbox WHERE recipient_ids && $1::uuid[]', [[ids.driver, ...ids.passengers, ids.admin]]);
@@ -121,6 +135,7 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     otpUserId = auth.data.user.id;
     assert.deepEqual(auth.data.user.roles, ['passenger']);
     const authHeaders = { authorization: `Bearer ${auth.data.accessToken}`, 'content-type': 'application/json' };
+    const otpEmail = `otp-user-${crypto.randomUUID()}@example.test`;
     const unavailableRoute = await fetch(`${apiUrl}/api/v1/routing/route`, {
       method: 'POST', headers: authHeaders,
       body: JSON.stringify({ origin: [23.86, 49.25], destination: [24.03, 49.84] }),
@@ -139,14 +154,14 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     const me = await fetch(`${apiUrl}/api/v1/users/me`, { headers: authHeaders });
     assert.equal(me.status, 200);
     const profile = await fetch(`${apiUrl}/api/v1/users/me`, {
-      method: 'PATCH', headers: authHeaders, body: JSON.stringify({ email: 'otp-user@example.test' }),
+      method: 'PATCH', headers: authHeaders, body: JSON.stringify({ email: otpEmail }),
     });
-    assert.equal((await profile.json() as { data: { email: string } }).data.email, 'otp-user@example.test');
+    assert.equal((await profile.json() as { data: { email: string } }).data.email, otpEmail);
     const updatedName = await fetch(`${apiUrl}/api/v1/users/me`, {
       method: 'PATCH', headers: authHeaders, body: JSON.stringify({ displayName: 'Updated OTP User' }),
     });
     const updatedProfile = await updatedName.json() as { data: { email: string; display_name: string } };
-    assert.equal(updatedProfile.data.email, 'otp-user@example.test');
+    assert.equal(updatedProfile.data.email, otpEmail);
     assert.equal(updatedProfile.data.display_name, 'Updated OTP User');
 
     const enabledDriver = await fetch(`${apiUrl}/api/v1/users/me/roles`, {
@@ -156,7 +171,7 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     assert.equal(enabledDriver.status, 200, roleBody.error?.message);
     assert.deepEqual(roleBody.data?.roles, ['driver', 'passenger']);
     const ownCar = await fetch(`${apiUrl}/api/v1/vehicles`, {
-      method: 'POST', headers: authHeaders, body: JSON.stringify({ make: 'Test', model: 'OTP Car', modelYear: 2022, seats: 4, plate: 'AA7441OT' }),
+      method: 'POST', headers: authHeaders, body: JSON.stringify({ make: 'Test', model: 'OTP Car', modelYear: 2022, seats: 4, plate: `AA${crypto.randomUUID().slice(0, 6).toUpperCase()}` }),
     });
     assert.equal(ownCar.status, 201);
     const createdVehicle = await ownCar.json() as { data: { id: string } };
@@ -192,6 +207,70 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
       strategy: 'CHEAPEST',
       preferences: { allowCommunity: true, maxPriceMinor: 20000 },
     };
+    const modeMatrix: Array<{ type: string; journeys: number; blocked: boolean; walkingLegs: number }> = [];
+    for (const transportType of ['bus','marshrutka','trolleybus','tram','metro','carpool','taxi','train','bike','scooter','carsharing','transfer']) {
+      const modeSearch = ['bus','marshrutka','tram'].includes(transportType) ? {
+        ...body,
+        origin: { name: 'Малоголосківська, Львів', coordinates: [24.0029933, 49.8681678] },
+        destination: { name: 'Сихів, Львів', coordinates: [24.057585, 49.794117] },
+        departureAt: new Date(Date.now() + 60 * 60_000).toISOString(),
+      } : body;
+      const modeResponse = await fetch(`${apiUrl}/api/v1/journeys/search`, {
+        method: 'POST', headers: { 'content-type': 'application/json', 'x-dev-user-id': passengerA },
+        body: JSON.stringify({ ...modeSearch, strategy: 'FASTEST', preferences: { allowCommunity: true, allowedTransportTypes: [transportType] } }),
+      });
+      assert.equal(modeResponse.status, 200, `${transportType} search responds successfully`);
+      const modeData = (await modeResponse.json() as { data: {
+        blockedProviders: string[];
+        journeys: Array<{ offerId: string | null; legs: Array<{ mode: string; transportType?: string }> }>;
+      } }).data;
+      const acceptedTypes = transportType === 'bus' ? ['bus','intercity_bus']
+        : transportType === 'train' ? ['train','suburban_train','city_train'] : [transportType];
+      for (const journey of modeData.journeys) {
+        if (journey.offerId) assert.equal(transportType, 'carpool', `${transportType} must not leak a carpool offer`);
+        for (const leg of journey.legs) {
+          if (leg.mode === 'WALK') continue;
+          if (leg.mode === 'COMMUNITY') {
+            assert.equal(transportType, 'carpool', 'Community offers are the carpool category');
+            continue;
+          }
+          assert.ok(acceptedTypes.includes(leg.transportType ?? ''), `${transportType} selection leaked ${leg.transportType ?? leg.mode}`);
+        }
+      }
+      assert.equal(modeData.journeys.some((journey) => journey.offerId === ids.journeyOffer), transportType === 'carpool',
+        `${transportType} selection controls the direct carpool offer`);
+      if (transportType === 'tram') {
+        assert.ok(modeData.journeys.some((journey) => journey.legs.some((leg) => leg.transportType === 'tram')),
+          'the real Lviv GTFS feed builds the selected tram route');
+      }
+      modeMatrix.push({
+        type: transportType,
+        journeys: modeData.journeys.length,
+        blocked: modeData.blockedProviders.some((value) => value.startsWith(`transportType:${transportType}:`)),
+        walkingLegs: modeData.journeys.flatMap((journey) => journey.legs).filter((leg) => leg.mode === 'WALK').length,
+      });
+    }
+    const multiResponse = await fetch(`${apiUrl}/api/v1/journeys/search`, {
+      method: 'POST', headers: { 'content-type': 'application/json', 'x-dev-user-id': passengerA },
+      body: JSON.stringify({
+        ...body,
+        origin: { name: 'Малоголосківська, Львів', coordinates: [24.0029933, 49.8681678] },
+        destination: { name: 'Сихів, Львів', coordinates: [24.057585, 49.794117] },
+        departureAt: new Date(Date.now() + 60 * 60_000).toISOString(),
+        strategy: 'BALANCED',
+        preferences: { allowCommunity: true, allowedTransportTypes: ['bus','tram'] },
+      }),
+    });
+    assert.equal(multiResponse.status, 200);
+    const multiData = (await multiResponse.json() as { data: { journeys: Array<{ offerId: string | null; legs: Array<{ mode: string; transportType?: string }> }> } }).data;
+    for (const journey of multiData.journeys) {
+      assert.equal(journey.offerId, null, 'a bus + tram selection excludes direct carpool offers');
+      for (const leg of journey.legs) {
+        if (leg.mode !== 'WALK') assert.ok(['bus','intercity_bus','tram'].includes(leg.transportType ?? ''), `multi-select leaked ${leg.transportType ?? leg.mode}`);
+      }
+    }
+    console.info(`JOURNEY_MULTISELECT ${JSON.stringify(multiData.journeys.map((journey) => [...new Set(journey.legs.map((leg) => leg.transportType ?? leg.mode))]))}`);
+    console.info(`JOURNEY_MODE_MATRIX ${JSON.stringify(modeMatrix)}`);
     const unauthorized = await fetch(`${apiUrl}/api/v1/journeys/search`, {
       method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body),
     });
@@ -201,16 +280,22 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
       method: 'POST', headers: { 'content-type': 'application/json', 'x-dev-user-id': passengerA }, body: JSON.stringify(body),
     });
     assert.equal(response.status, 200);
-    const result = await response.json() as { data: { partial: boolean; blockedProviders: string[]; providerErrors: string[]; journeys: Array<{ id: string; offerId: string; strategy: string; confirmedPriceMinor: number | null; totalPriceMinor: number; legs: Array<{ id: string; mode: string; priceStatus: string; availabilityStatus: string }> }> } };
-    assert.equal(result.data.partial, result.data.journeys.length === 0 || result.data.providerErrors.length > 0);
-    assert.ok(result.data.blockedProviders.includes('taxi'));
-    assert.equal(result.data.journeys.length, 1);
-    const [journey] = result.data.journeys;
-    assert.equal(journey.offerId, ids.journeyOffer);
-    assert.equal(journey.strategy, 'CHEAPEST');
+    const result = await response.json() as { data: { partial: boolean; blockedProviders: string[]; providerErrors: string[]; unsupportedPreferences: string[]; journeys: Array<{ id: string; offerId: string | null; strategy: string; confirmedPriceMinor: number | null; totalPriceMinor: number | null; legs: Array<{ id: string; mode: string; priceStatus: string; availabilityStatus: string }> }> } };
+    assert.equal(result.data.partial, result.data.journeys.length === 0 || result.data.providerErrors.length > 0 || result.data.unsupportedPreferences.some((value) => value.startsWith('transportType:')));
+    assert.ok(result.data.blockedProviders.some((value) => value.startsWith('transportType:taxi:')));
+    assert.ok(result.data.journeys.length >= 1);
+    const communityJourneys = result.data.journeys.filter((item) => item.offerId === ids.journeyOffer);
+    assert.equal(communityJourneys.length, 1, 'the real Community offer appears once alongside any real scheduled alternatives');
+    const journey = communityJourneys[0];
+    assert.ok(journey);
     assert.equal(journey.confirmedPriceMinor, null);
     assert.equal(journey.totalPriceMinor, 15000);
     assert.deepEqual(journey.legs.map((leg) => [leg.mode, leg.priceStatus, leg.availabilityStatus]), [['COMMUNITY', 'ESTIMATED', 'AVAILABLE']]);
+    if (result.data.journeys.some((item) => item.legs.some((leg) => leg.mode !== 'COMMUNITY'))) {
+      assert.ok(result.data.unsupportedPreferences.includes('CHEAPEST:public-transit-fares-unavailable'));
+      assert.equal(result.data.journeys.some((item) => item.strategy === 'CHEAPEST'), false,
+        'unknown transit fares prevent the API from claiming a cheapest overall journey');
+    }
     const sourceOffer = await fetch(`${apiUrl}/api/v1/offers/${ids.journeyOffer}`);
     assert.equal(sourceOffer.status, 200);
     const offerDetails = await sourceOffer.json() as { data: { id: string; available_seats: number; driver_name: string; vehicle_photo_url: string | null } };
@@ -311,10 +396,13 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
       method: 'POST', headers: { 'content-type': 'application/json', 'x-dev-user-id': passengerA },
       body: JSON.stringify({ origin: { name: 'Journey Test Origin', coordinates: [23.8561, 49.2567] },
         destination: { name: 'Journey Test Destination', coordinates: [24.0297, 49.8397] },
-        departureAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000 - 60_000).toISOString(), passengers: 1, strategy: 'FASTEST' }),
+        departureAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000 - 60_000).toISOString(), passengers: 1, strategy: 'FASTEST',
+        preferences: { allowCommunity: true } }),
     });
     assert.equal(completionSearch.status, 200);
-    const completionJourney = (await completionSearch.json() as { data: { journeys: Array<{ id: string; legs: Array<{ id: string }> }> } }).data.journeys[0];
+    const completionJourneys = (await completionSearch.json() as { data: { journeys: Array<{ id: string; legs: Array<{ id: string }> }> } }).data.journeys;
+    assert.ok(completionJourneys.length > 0, 'the completion scenario must find a real Community offer before booking');
+    const completionJourney = completionJourneys[0];
     const completionBookingResponse = await fetch(`${apiUrl}/api/v1/bookings`, {
       method: 'POST', headers: { 'content-type': 'application/json', 'x-dev-user-id': passengerA, 'idempotency-key': `journey-complete-${crypto.randomUUID()}` },
       body: JSON.stringify({ offerId: ids.journeyOffer, seats: 1, journeyId: completionJourney.id, journeyLegId: completionJourney.legs[0].id }),
@@ -357,7 +445,79 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
       method: 'POST', headers: { 'content-type': 'application/json', 'x-dev-user-id': passengerA },
       body: JSON.stringify({ ...body, preferences: { allowCommunity: false } }),
     });
-    assert.equal((await disabledCommunity.json() as { data: { journeys: unknown[] } }).data.journeys.length, 0);
+    const communityDisabled = (await disabledCommunity.json() as { data: { journeys: Array<{ offerId: string | null }> } }).data.journeys;
+    assert.equal(communityDisabled.some((journey) => journey.offerId === ids.journeyOffer), false,
+      'disabling Community suppresses the offer while still allowing real scheduled routes');
+  });
+
+  it('replaces a cancelled Journey leg with a rescue booking atomically and replays idempotently', async () => {
+    const saved = await pool.query<{ id: string }>(
+      `INSERT INTO journeys(user_id,origin,origin_name,destination,destination_name,requested_departure_at,strategy,state,
+             passenger_count,total_price_minor,estimated_price_min_minor,estimated_price_max_minor,total_duration_s)
+       SELECT $1,origin,origin_name,destination,destination_name,departure_at,'BALANCED','PLANNED',1,
+              price_per_seat_minor,price_per_seat_minor,price_per_seat_minor,duration_s
+         FROM offers WHERE id=$2 RETURNING id`, [passengerB, ids.rescueOriginalOffer],
+    );
+    const journeyId = saved.rows[0].id;
+    const selected = await pool.query<{ id: string }>(
+      `INSERT INTO journey_legs(journey_id,ordinal,mode,origin,origin_name,destination,destination_name,
+             scheduled_departure_at,scheduled_arrival_at,duration_s,distance_m,price_minor,price_min_minor,price_max_minor,
+             price_status,availability_status,provider_type,offer_id,state,data_source,last_updated_at,metadata)
+       SELECT $1,0,'COMMUNITY',origin,origin_name,destination,destination_name,departure_at,arrival_at,duration_s,distance_m,
+              price_per_seat_minor,price_per_seat_minor,price_per_seat_minor,'ESTIMATED','AVAILABLE','community',id,
+              'SELECTED','community-offer',now(),'{}'::jsonb
+         FROM offers WHERE id=$2 RETURNING id`, [journeyId, ids.rescueOriginalOffer],
+    );
+    const originalLegId = selected.rows[0].id;
+    await pool.query('UPDATE journeys SET current_leg_id=$2 WHERE id=$1', [journeyId, originalLegId]);
+
+    const originalKey = `rescue-original-${crypto.randomUUID()}`;
+    const booked = await fetch(`${apiUrl}/api/v1/bookings`, {
+      method: 'POST', headers: { 'content-type': 'application/json', 'x-dev-user-id': passengerB, 'idempotency-key': originalKey },
+      body: JSON.stringify({ offerId: ids.rescueOriginalOffer, seats: 1, journeyId, journeyLegId: originalLegId }),
+    });
+    assert.equal(booked.status, 201);
+    const originalBookingId = (await booked.json() as { data: { id: string } }).data.id;
+    const cancelled = await fetch(`${apiUrl}/api/v1/bookings/${originalBookingId}/cancel`, {
+      method: 'POST', headers: { 'x-dev-user-id': passengerB },
+    });
+    assert.equal(cancelled.status, 200);
+
+    const rescueKey = `rescue-replacement-${crypto.randomUUID()}`;
+    const replacementBody = JSON.stringify({ offerId: ids.rescueReplacementOffer, seats: 1, journeyId, journeyLegId: originalLegId });
+    const replacement = await fetch(`${apiUrl}/api/v1/bookings`, {
+      method: 'POST', headers: { 'content-type': 'application/json', 'x-dev-user-id': passengerB, 'idempotency-key': rescueKey },
+      body: replacementBody,
+    });
+    assert.equal(replacement.status, 201, await replacement.clone().text());
+    const replacementBooking = (await replacement.json()) as { data: { id: string; offer_id: string; status: string; total_price_minor: number } };
+    assert.equal(replacementBooking.data.offer_id, ids.rescueReplacementOffer);
+    assert.equal(replacementBooking.data.status, 'confirmed');
+    assert.equal(replacementBooking.data.total_price_minor, 24000);
+
+    const replay = await fetch(`${apiUrl}/api/v1/bookings`, {
+      method: 'POST', headers: { 'content-type': 'application/json', 'x-dev-user-id': passengerB, 'idempotency-key': rescueKey },
+      body: replacementBody,
+    });
+    assert.equal(replay.status, 200);
+    assert.equal((await replay.json() as { data: { id: string }; replayed: boolean }).data.id, replacementBooking.data.id);
+
+    const state = await pool.query<{ journey_state: string; confirmed_price_minor: number; current_leg_id: string; legs: Array<{ ordinal: number; id: string; state: string; booking_id: string | null; metadata: Record<string, unknown> }> }>(
+      `SELECT j.state AS journey_state,j.confirmed_price_minor,j.current_leg_id,
+              jsonb_agg(jsonb_build_object('id',l.id,'ordinal',l.ordinal,'state',l.state,'booking_id',l.booking_id,'metadata',l.metadata) ORDER BY l.ordinal) AS legs
+         FROM journeys j JOIN journey_legs l ON l.journey_id=j.id WHERE j.id=$1 GROUP BY j.id`, [journeyId],
+    );
+    assert.equal(state.rows[0].journey_state, 'READY');
+    assert.equal(state.rows[0].confirmed_price_minor, 24000);
+    assert.equal(state.rows[0].legs.length, 2);
+    assert.equal(state.rows[0].legs[0].id, originalLegId);
+    assert.equal(state.rows[0].legs[0].state, 'REPLACED');
+    assert.equal(state.rows[0].legs[1].state, 'CONFIRMED');
+    assert.equal(state.rows[0].legs[1].booking_id, replacementBooking.data.id);
+    assert.equal(state.rows[0].legs[1].metadata.rescue_from_leg_id, originalLegId);
+    assert.equal(state.rows[0].current_leg_id, state.rows[0].legs[1].id);
+    const inventory = await pool.query<{ available_seats: number }>('SELECT available_seats FROM offers WHERE id=$1', [ids.rescueReplacementOffer]);
+    assert.equal(inventory.rows[0].available_seats, 3);
   });
 
   it('shares confirmed rendezvous locations ephemerally and requires both users to confirm arrival', async () => {
@@ -1146,14 +1306,15 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     assert.equal(expiredProposalUiData.data.find((item) => item.id === expiryProposalId)?.status, 'expired');
   });
 
-  it('serves map layers only to signed-in users and rejects oversized or malformed viewports', async () => {
+  it('serves the public transport map and rejects malformed viewports', async () => {
     const devUser = crypto.randomUUID();
     await pool.query(`INSERT INTO users(id,display_name,roles) VALUES($1,'Layer reader',ARRAY['passenger'])`, [devUser]);
-    await pool.query(`INSERT INTO user_roles(user_id,role) VALUES($1,'passenger')`, [devUser]);
-    try {
-      const headers = { 'x-dev-user-id': devUser };
-      for (const path of ['layers', 'routes?bbox=24,49,24.1,49.1&types=bus', 'stops?bbox=24,49,24.1,49.1&types=bus', 'vehicles?bbox=24,49,24.1,49.1&types=bus', 'micromobility?bbox=24,49,24.1,49.1&types=scooter']) {
-        assert.equal((await fetch(`${apiUrl}/api/v1/transport/${path}`)).status, 401, `${path} requires sign-in`);
+      await pool.query(`INSERT INTO user_roles(user_id,role) VALUES($1,'passenger')`, [devUser]);
+      try {
+        const headers = { 'x-dev-user-id': devUser };
+      assert.equal((await fetch(`${apiUrl}/api/v1/transport/layers`)).status, 200, 'the layer catalogue is public');
+      for (const path of ['routes?bbox=24,49,24.1,49.1&types=bus', 'stops?bbox=24,49,24.1,49.1&types=bus', 'vehicles?bbox=24,49,24.1,49.1&types=bus', 'micromobility?bbox=24,49,24.1,49.1&types=scooter']) {
+        assert.equal((await fetch(`${apiUrl}/api/v1/transport/${path}`)).status, 200, `${path} is public map data`);
       }
       const layers = await fetch(`${apiUrl}/api/v1/transport/layers`, { headers });
       assert.equal(layers.status, 200);

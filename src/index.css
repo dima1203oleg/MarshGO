@@ -838,3 +838,50 @@ html.dark .production-app > .app-tabbar {
 /* Navigation has its own compass, speed badge and controls: keep MapLibre's corner widgets out of their way. */
 [data-marshgo-camera-mode] .maplibregl-ctrl-bottom-right { display: none; }
 [data-marshgo-camera-mode] .maplibregl-ctrl-bottom-left { left: 5.4rem; margin-bottom: max(.2rem, env(safe-area-inset-bottom)); }
+
+/* Custom Transport Map Popups */
+.marshgo-custom-popup .maplibregl-popup-content {
+  border-radius: 18px !important;
+  padding: 12px 14px !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(12px) !important;
+  box-shadow: 0 12px 28px -4px rgba(14, 31, 53, 0.18), 0 4px 12px -2px rgba(14, 31, 53, 0.08) !important;
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+}
+.marshgo-custom-popup .maplibregl-popup-close-button {
+  padding: 4px 8px !important;
+  font-size: 16px !important;
+  color: #94A3B8 !important;
+  border-radius: 50% !important;
+  outline: none !important;
+  transition: color 0.15s !important;
+}
+.marshgo-custom-popup .maplibregl-popup-close-button:hover {
+  color: #0F172A !important;
+  background: transparent !important;
+}
+.marshgo-custom-popup .maplibregl-popup-tip {
+  border-top-color: rgba(255, 255, 255, 0.95) !important;
+}
+
+/* ==========================================================================
+   MARSHGO LIVE MOBILITY — World-Class Visual Enhancements
+   ========================================================================== */
+
+@keyframes live-radar-pulse {
+  0% { transform: scale(0.95); opacity: 0.9; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+  70% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); opacity: 0.9; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.live-radar-dot {
+  animation: live-radar-pulse 2s infinite ease-in-out;
+}
+
+.flowline-container {
+  box-shadow: 0 -16px 48px -12px rgba(8, 27, 53, 0.16);
+}
+
+html.dark .flowline-container {
+  box-shadow: 0 -16px 48px -12px rgba(0, 0, 0, 0.6);
+}

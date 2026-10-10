@@ -1,11 +1,24 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ArrowLeft,
-  MapPin,
   SlidersHorizontal,
-  Star,
+  ChevronRight,
+  Footprints,
+  Bus,
+  Bike,
+  Car,
+  Grid2X2,
+  TramFront,
+  Train,
+  MapPin,
+  Calendar,
+  ChevronDown,
+  ArrowRight,
+  Loader2,
+  AlertCircle,
+  RefreshCw,
 } from 'lucide-react';
-import type { RouteSearchResultItem, SearchTransportMode } from '../model/types';
+import type { RouteSearchResultItem, SearchStrategyMode, SearchTransportMode } from '../model/types';
 
 interface SearchResultsListProps {
   originTitle: string;
@@ -15,15 +28,18 @@ interface SearchResultsListProps {
   passengers: number;
   isLoading: boolean;
   error: string | null;
+  notice?: string | null;
   onRetry: () => void;
   items: RouteSearchResultItem[];
   selectedFilterMode: SearchTransportMode;
   onSelectFilterMode: (mode: SearchTransportMode) => void;
+  selectedStrategy?: SearchStrategyMode;
+  onSelectStrategy?: (strategy: SearchStrategyMode) => void;
   onOpenFiltersModal: () => void;
   onSelectResultItem: (item: RouteSearchResultItem) => void;
   onOpenMapView: () => void;
   onBackToSearchForm: () => void;
-  onOpenReverseMarketplace: () => void;
+  onOpenReverseMarketplace?: () => void;
 }
 
 export const SearchResultsList: React.FC<SearchResultsListProps> = ({
@@ -34,305 +50,311 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
   passengers,
   isLoading,
   error,
+  notice,
   onRetry,
   items,
   selectedFilterMode,
   onSelectFilterMode,
+  selectedStrategy = 'BALANCED',
+  onSelectStrategy,
   onOpenFiltersModal,
   onSelectResultItem,
   onOpenMapView,
   onBackToSearchForm,
   onOpenReverseMarketplace,
 }) => {
-  // Counts by mode
-  const modeCounts: Record<string, number> = {
-    all: items.length,
-    carpool: items.filter((i) => i.type === 'carpool').length,
-    bus: items.filter((i) => i.type === 'bus').length,
-    train: items.filter((i) => i.type === 'train').length,
-    taxi: items.filter((i) => i.type === 'taxi').length,
-  };
-  const modeOptions: Array<{ mode: SearchTransportMode; label: string; count: number }> = [
-    { mode: 'all', label: 'Усі', count: modeCounts.all },
-    ...(['carpool', 'bus', 'train', 'taxi'] as const)
-      .filter((mode) => modeCounts[mode] > 0)
-      .map((mode) => ({
-        mode,
-        label: mode === 'carpool' ? 'Попутки' : mode === 'bus' ? 'Автобуси' : mode === 'train' ? 'Поїзди' : 'Таксі',
-        count: modeCounts[mode],
-      })),
-  ];
+  const [activeStrategy, setActiveStrategy] = useState<SearchStrategyMode>(selectedStrategy);
 
-  const filteredItems =
-    selectedFilterMode === 'all'
-      ? items
-      : items.filter((i) => i.type === selectedFilterMode);
+  const cleanOrigin = originTitle.split(',')[0].trim() || 'Малого Голоска';
+  const cleanDest = destTitle.split(',')[0].trim() || 'вул. Сихівська';
+  const modeLabels: Partial<Record<SearchTransportMode, string>> = {
+    bus: 'Автобуси', minibus: 'Маршрутки', marshrutka: 'Маршрутки', trolleybus: 'Тролейбуси',
+    tram: 'Трамваї', metro: 'Метро', carpool: 'Попутки', taxi: 'Таксі', train: 'Поїзди',
+    suburban_train: 'Електричка', bike: 'Велосипеди', scooter: 'Самокати', carsharing: 'Каршеринг',
+    transfer: 'Трансфери', water: 'Водний транспорт', air: 'Літаки', other: 'Інше',
+  };
+  const availableModes = useMemo(() => {
+    const found = new Set<SearchTransportMode>();
+    for (const item of items) {
+      if (item.type !== 'all') found.add(item.type);
+      for (const leg of item.legs ?? []) if (leg.mode !== 'all') found.add(leg.mode);
+    }
+    return [...found];
+  }, [items]);
+  const visibleItems = selectedFilterMode === 'all' ? items : items.filter((item) =>
+    item.type === selectedFilterMode || item.legs?.some((leg) => leg.mode === selectedFilterMode),
+  );
+  const dateLabel = (() => {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    if (!year || !month || !day) return dateStr;
+    return new Intl.DateTimeFormat('uk-UA', { day: 'numeric', month: 'long', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month - 1, day)));
+  })();
+
+  const handleStrategyChange = (st: SearchStrategyMode) => {
+    setActiveStrategy(st);
+    if (onSelectStrategy) {
+      onSelectStrategy(st);
+    }
+  };
 
   return (
-    <div className="mx-auto flex min-h-[100svh] w-full max-w-md flex-col overflow-x-hidden bg-[#F4F8FD] pb-20 text-[#142642] dark:bg-[#070E1B] dark:text-white">
-      {/* Top Header */}
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-100/80 dark:border-slate-800/80 bg-white/95 dark:bg-[#0B1730]/95 backdrop-blur-md px-4 py-3 pt-[max(0.6rem,env(safe-area-inset-top))]">
+    <div className="mx-auto flex min-h-[100svh] w-full max-w-md flex-col overflow-x-hidden bg-[#F4F8FD] text-[#0B1730] dark:bg-[#070E1B] dark:text-white pb-20">
+      {/* Top Header matching Reference Screen 2 */}
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 bg-white/95 dark:bg-[#0B1730]/95 backdrop-blur-md px-4 py-3 pt-[max(0.6rem,env(safe-area-inset-top))]">
         <button
           type="button"
           onClick={onBackToSearchForm}
-          className="grid h-9 w-9 place-items-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 transition active:scale-95"
           aria-label="Назад"
+          className="grid h-10 w-10 place-items-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 transition active:scale-95"
         >
-          <ArrowLeft size={18} />
+          <ArrowLeft size={20} />
         </button>
 
-        <div className="text-center">
-          <h1 className="text-sm font-black tracking-tight text-[#081B35] dark:text-white">
-            {originTitle.split(',')[0]} → {destTitle.split(',')[0]}
-          </h1>
-          <p className="text-[11px] font-semibold text-[#63738C] dark:text-slate-400">
-            {new Intl.DateTimeFormat('uk-UA', { day: 'numeric', month: 'long', timeZone: 'Europe/Kyiv' }).format(new Date(`${dateStr}T12:00:00Z`))}, {timeStr} · {passengers} {passengers === 1 ? 'пасажир' : 'пасажири'}
-          </p>
-        </div>
-
-        <div className="flex items-center rounded-xl bg-slate-100 p-0.5 dark:bg-slate-800" role="group" aria-label="Вигляд результатів">
-          <button type="button" aria-pressed="true" className="rounded-lg bg-white px-2.5 py-1.5 text-[10px] font-extrabold text-[#0866F5] shadow-sm dark:bg-[#14233C]">Список</button>
-          <button type="button" onClick={onOpenMapView} disabled={filteredItems.length === 0} className="rounded-lg px-2.5 py-1.5 text-[10px] font-bold text-slate-500 disabled:opacity-40 dark:text-slate-400">Карта</button>
-        </div>
-      </header>
-
-      {/* Filter Chips Strip (Усі 32, Попутки 8, Автобуси 6...) */}
-      <div className="flex items-center gap-2 overflow-x-auto px-4 py-2.5 bg-white dark:bg-[#0B1730] border-b border-slate-100/80 dark:border-slate-800/80 scrollbar-none">
-        {modeOptions.map(({ mode, label, count }) => {
-          const active = selectedFilterMode === mode;
-
-          return (
-            <button
-              key={mode}
-              type="button"
-              onClick={() => onSelectFilterMode(mode)}
-              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-black transition shrink-0 ${
-                active
-                  ? 'bg-[#0866F5] text-white shadow-sm'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'
-              }`}
-            >
-              <span>{label}</span>
-              <span
-                className={`rounded-full px-1.5 py-0.2 text-[10px] ${
-                  active
-                    ? 'bg-white/20 text-white'
-                    : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
-                }`}
-              >
-                {count}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Sorting & Filters Bar */}
-      <div className="flex items-center justify-between px-4 py-2.5">
-        <span className="text-xs font-bold text-[#63738C] dark:text-slate-400">За часом відправлення</span>
+        <h1 className="text-base font-extrabold text-[#0B1730] dark:text-white">
+          Результати пошуку
+        </h1>
 
         <button
           type="button"
           onClick={onOpenFiltersModal}
-          className="flex items-center gap-1.5 rounded-full bg-white dark:bg-[#111e36] px-3 py-1.5 text-xs font-bold text-[#081B35] dark:text-white shadow-sm border border-slate-200/80 dark:border-slate-800"
+          aria-label="Фільтри"
+          className="grid h-10 w-10 place-items-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 transition active:scale-95"
         >
-          <SlidersHorizontal size={13} className="text-[#0866F5]" />
-          <span>Фільтри</span>
+          <SlidersHorizontal size={18} />
         </button>
-      </div>
+      </header>
 
-      {/* Results Cards List */}
-      <div className="px-4 space-y-3 mt-1">
-        {isLoading ? (
-          <div role="status" className="rounded-[24px] bg-white p-8 text-center shadow-sm dark:bg-[#111e36]">
-            <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-2 border-blue-100 border-t-blue-600" />
-            <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Шукаємо доступні оголошення…</p>
-          </div>
-        ) : error ? (
-          <div role="alert" className="rounded-[24px] border border-rose-200 bg-white p-6 text-center shadow-sm dark:border-rose-900 dark:bg-[#111e36]">
-            <h3 className="text-base font-black text-rose-800 dark:text-rose-300">Не вдалося виконати пошук</h3>
-            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{error}</p>
-            <button type="button" onClick={onRetry} className="mt-4 rounded-xl bg-[#0866F5] px-4 py-2.5 text-xs font-bold text-white">Спробувати ще раз</button>
-          </div>
-        ) : filteredItems.length === 0 ? (
-          <div className="rounded-[24px] bg-white dark:bg-[#111e36] p-8 text-center shadow-sm">
-            <MapPin className="mx-auto text-slate-300 dark:text-slate-600 mb-2" size={32} />
-            <h3 className="text-base font-black text-[#081B35] dark:text-white">
-              За вашим запитом рейсів не знайдено
-            </h3>
-            <p className="mt-1 text-xs text-slate-500 max-w-xs mx-auto">
-              Спробуйте змінити дату або види транспорту, або створіть індивідуальну заявку.
-            </p>
-            <button
-              type="button"
-              onClick={onOpenReverseMarketplace}
-              className="mt-4 rounded-xl bg-[#0866F5] px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-blue-500/20"
-            >
-              Запропонувати свою ціну
-            </button>
-          </div>
-        ) : (
-          filteredItems.map((item) => (
-            <button
-              type="button"
-              key={item.id}
-              onClick={() => onSelectResultItem(item)}
-              className="group block w-full cursor-pointer rounded-[24px] bg-white p-4 text-left shadow-sm border border-slate-100/90 transition hover:shadow-md hover:border-blue-200 active:scale-[0.99] dark:border-slate-800 dark:bg-[#111e36] dark:hover:border-blue-900"
-            >
-              {/* Badges row */}
-              <div className="flex items-center justify-between gap-2 mb-3">
-                <div className="flex items-center gap-1.5">
-                  {item.badge && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 text-[10.5px] font-black text-[#16B87A] dark:text-emerald-400">
-                      ★ {item.badge}
-                    </span>
-                  )}
-                  <span
-                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10.5px] font-extrabold ${
-                      item.type === 'carpool'
-                        ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300'
-                        : item.type === 'bus'
-                        ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300'
-                        : item.type === 'train'
-                        ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300'
-                        : 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
-                    }`}
-                  >
-                    {item.modeLabel}
-                  </span>
-                </div>
+      {/* Main Content */}
+      <div className="flex-1 px-4 pt-3 space-y-3">
+        <section aria-label="Параметри маршруту" className="rounded-2xl border border-blue-100 bg-white px-4 py-3 shadow-[0_3px_12px_rgba(26,73,133,.06)] dark:border-slate-800 dark:bg-[#101E38]">
+          <p className="flex items-center gap-2 text-[15px] font-black tracking-tight">
+            <span className="truncate">{cleanOrigin}</span><ArrowRight size={15} className="shrink-0 text-[#0066FF]"/><span className="truncate">{cleanDest}</span>
+          </p>
+          <p className="mt-1 flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+            <Calendar size={13} className="text-[#0066FF]"/>{dateLabel} · {timeStr} · {passengers} {passengers === 1 ? 'пасажир' : 'пасажири'}
+          </p>
+        </section>
 
-                {item.driver && (
-                  <div className="flex items-center gap-1 text-[11px] font-bold text-slate-500 dark:text-slate-400">
-                    {item.driver.rating == null ? (
-                      <span>Ще немає відгуків</span>
-                    ) : (
-                      <>
-                        <Star size={12} className="fill-amber-400 text-amber-400" />
-                        <span>{item.driver.rating.toFixed(1)}</span>
-                        <span className="text-slate-400">({item.driver.reviewCount})</span>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
+        <div role="tablist" aria-label="Вигляд результатів" className="grid grid-cols-2 rounded-2xl border border-slate-200 bg-white p-1 dark:border-slate-800 dark:bg-[#101E38]">
+          <button type="button" role="tab" aria-selected="false" onClick={onOpenMapView} className="min-h-10 rounded-xl text-xs font-bold text-slate-600 transition hover:bg-blue-50 hover:text-[#0066FF] dark:text-slate-300 dark:hover:bg-slate-800">Карта</button>
+          <button type="button" role="tab" aria-selected="true" className="min-h-10 rounded-xl bg-[#0066FF] text-xs font-black text-white shadow-sm">Список</button>
+        </div>
 
-              {/* Middle: Photo + Price */}
-              <div className="flex items-center justify-between gap-3">
-                {/* Vehicle photo / carrier preview */}
-                <div className="relative h-13 w-24 shrink-0 overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800">
-                  {item.vehiclePhoto ? (
-                    <img
-                      src={item.vehiclePhoto}
-                      alt={item.carrierName}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="grid h-full w-full place-items-center font-black text-slate-400">
-                      {item.modeLabel}
-                    </div>
-                  )}
-                </div>
+        {items.length > 0 && <div role="group" aria-label="Фільтр за видом транспорту" className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 py-0.5">
+          <ModeChip mode="all" label={`Усі ${items.length}`} selected={selectedFilterMode === 'all'} onClick={() => onSelectFilterMode('all')}/>
+          {availableModes.map((mode) => {
+            const count = items.filter((item) => item.type === mode || item.legs?.some((leg) => leg.mode === mode)).length;
+            return <ModeChip key={mode} mode={mode} label={`${modeLabels[mode] ?? mode} ${count}`} selected={selectedFilterMode === mode} onClick={() => onSelectFilterMode(mode)}/>;
+          })}
+        </div>}
 
-                {/* Price block */}
-                <div className="text-right shrink-0">
-                  <div className="text-[20px] font-black tracking-tight text-[#081B35] dark:text-white leading-none">
-                    {item.priceLabel}
-                  </div>
-                  <span className="text-[10.5px] font-semibold text-[#63738C] dark:text-slate-400">
-                    {item.priceUnit}
-                  </span>
-                </div>
-              </div>
+        {/* Strategy Tabs: [ Оптимальний ] [ Найшвидший ] [ Найдешевший ] */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => handleStrategyChange('BALANCED')}
+            className={`flex-1 rounded-full py-2 text-xs font-black transition ${
+              activeStrategy === 'BALANCED'
+                ? 'bg-[#0066FF] text-white shadow-xs'
+                : 'bg-white dark:bg-[#101E38] text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800 hover:bg-slate-50'
+            }`}
+          >
+            Оптимальний
+          </button>
+          <button
+            type="button"
+            onClick={() => handleStrategyChange('FASTEST')}
+            className={`flex-1 rounded-full py-2 text-xs font-black transition ${
+              activeStrategy === 'FASTEST'
+                ? 'bg-[#0066FF] text-white shadow-xs'
+                : 'bg-white dark:bg-[#101E38] text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800 hover:bg-slate-50'
+            }`}
+          >
+            Найшвидший
+          </button>
+          <button
+            type="button"
+            onClick={() => handleStrategyChange('CHEAPEST')}
+            className={`flex-1 rounded-full py-2 text-xs font-black transition ${
+              activeStrategy === 'CHEAPEST'
+                ? 'bg-[#0066FF] text-white shadow-xs'
+                : 'bg-white dark:bg-[#101E38] text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800 hover:bg-slate-50'
+            }`}
+          >
+            Найдешевший
+          </button>
+        </div>
 
-              {/* Route Schedule row */}
-              <div className="mt-3.5 flex items-center justify-between">
-                <div className="shrink-0 min-w-[65px]">
-                  <span className="text-[16px] font-black text-[#081B35] dark:text-white leading-none">
-                    {item.departureTime}
-                  </span>
-                  <span className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                    {item.departureCity}
-                  </span>
-                </div>
-
-                <div className="flex flex-col items-center px-1 flex-1 max-w-[130px]">
-                  <span className="text-[10px] font-bold text-slate-500">
-                    {item.durationLabel}
-                  </span>
-                  <div className="relative my-1 flex w-full items-center">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#0866F5]" />
-                    <span className="h-[2px] flex-1 bg-slate-200 dark:bg-slate-700" />
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#E73C59]" />
-                  </div>
-                  <span className="text-[9.5px] font-medium text-slate-400">
-                    {item.distanceLabel}
-                  </span>
-                </div>
-
-                <div className="text-right shrink-0 min-w-[65px]">
-                  <span className="text-[16px] font-black text-[#081B35] dark:text-white leading-none">
-                    {item.arrivalTime}
-                  </span>
-                  <span className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                    {item.arrivalCity}
-                  </span>
-                </div>
-              </div>
-
-              {item.driver && (
-                <div className="mt-3 flex items-center gap-2 border-t border-slate-100 pt-2.5 dark:border-slate-800/80">
-                  <span
-                    aria-hidden="true"
-                    className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-blue-50 text-[11px] font-black text-blue-700 dark:bg-blue-950/60 dark:text-blue-300"
-                  >
-                    {item.driver.name.trim().charAt(0).toLocaleUpperCase('uk-UA') || 'В'}
-                  </span>
-                  <span className="min-w-0 truncate text-xs font-bold text-[#14243B] dark:text-slate-100">
-                    Водій · {item.driver.name}
-                  </span>
-                </div>
-              )}
-
-              {/* Features Tags */}
-              <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-slate-100 dark:border-slate-800/80 pt-2.5">
-                {item.features.map((feature, fIdx) => (
-                  <span
-                    key={fIdx}
-                    className="inline-flex items-center gap-1 rounded-full bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:text-slate-300"
-                  >
-                    {feature}
-                  </span>
-                ))}
-              </div>
-            </button>
-          ))
-        )}
-
-        {/* Reverse Marketplace Callout */}
-        <div className="mt-4 rounded-[24px] bg-gradient-to-r from-blue-600 to-indigo-700 p-4 text-white shadow-lg shadow-blue-500/20">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-blue-200">
-                Reverse Marketplace
-              </p>
-              <h3 className="text-base font-extrabold text-white mt-0.5">
-                Не знайшли поїздку? Запропонуйте свою ціну
-              </h3>
-              <p className="text-xs text-blue-100/90 mt-1">
-                Водії за вашим маршрутом отримають запит і запропонують авто.
-              </p>
-            </div>
+        {/* Secondary filters */}
+        <div className="flex items-center justify-between gap-2 py-0.5">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            <span className="shrink-0 rounded-md bg-slate-200/70 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-extrabold text-slate-700 dark:text-slate-300">
+              Усі види
+            </span>
+            <span className="shrink-0 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#101E38] px-2 py-0.5 text-[10px] font-extrabold text-slate-700 dark:text-slate-300">
+              GPS
+            </span>
+            <span className="shrink-0 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#101E38] px-2 py-0.5 text-[10px] font-extrabold text-slate-700 dark:text-slate-300">
+              Розклад
+            </span>
           </div>
           <button
             type="button"
-            onClick={onOpenReverseMarketplace}
-            className="mt-3 w-full rounded-xl bg-white py-2.5 text-center text-xs font-black text-[#0866F5] shadow-sm transition hover:bg-blue-50 active:scale-95"
+            onClick={onOpenFiltersModal}
+            className="flex items-center gap-1.5 rounded-full bg-white dark:bg-[#101E38] px-3.5 py-1.5 text-xs font-black text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800 transition hover:bg-slate-50"
           >
-            Створити запит з моєю ціною
+              <span>Фільтри</span>
+            <ChevronDown size={14} className="text-slate-400" />
           </button>
         </div>
+
+        {/* Loading state */}
+        {isLoading && (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <Loader2 size={36} className="animate-spin text-[#0066FF]" />
+            <p className="mt-4 text-sm font-extrabold text-[#0B1730] dark:text-white">
+              Шукаємо найкращі маршрути…
+            </p>
+            <p className="mt-1 text-xs text-slate-500">
+              Аналізуємо громадський транспорт та пересадки
+            </p>
+          </div>
+        )}
+
+        {/* Error state */}
+        {error && !isLoading && (
+          <div className="rounded-3xl bg-rose-50 dark:bg-rose-950/40 p-5 text-center border border-rose-200/80 dark:border-rose-900">
+            <AlertCircle size={32} className="mx-auto text-rose-500 mb-2" />
+            <p className="text-xs font-bold text-rose-700 dark:text-rose-300 mb-3">
+              {error}
+            </p>
+            <button
+              type="button"
+              onClick={onRetry}
+              className="inline-flex items-center gap-2 rounded-2xl bg-[#0066FF] px-4 py-2 text-xs font-black text-white shadow-sm"
+            >
+              <RefreshCw size={13} />
+              <span>Спробувати знову</span>
+            </button>
+          </div>
+        )}
+
+        {notice && !isLoading && !error && (
+          <div role="status" className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
+            {notice}
+          </div>
+        )}
+
+        {/* Itinerary Cards List matching Reference Screen 2 */}
+        {!isLoading && !error && (
+          <div className="space-y-3 pt-1">
+            {visibleItems.map((realItem) => {
+              const durationLabel = realItem.durationLabel || 'Час не вказано';
+              const distanceLabel = realItem.distanceLabel || 'Відстань не вказана';
+              const priceLabel = realItem.priceLabel || 'Ціну не вказано';
+              const transfersCount = realItem.transfers ?? 0;
+              const transfersLabel = transfersCount === 0 ? 'Без пересадок' : `${transfersCount} пересадка`;
+              const legsChain = realItem.legs?.length
+                ? realItem.legs.map((leg) => ({
+                  type: leg.mode === 'walk' ? 'walk' : leg.mode,
+                  label: leg.mode === 'walk'
+                    ? (leg.durationLabel || `${Math.round(leg.durationSeconds / 60)} хв`)
+                    : (leg.routeName || leg.modeLabel || leg.carrierName || leg.mode),
+                  badgeBg: leg.mode === 'walk' ? 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                    : leg.mode === 'tram' ? 'bg-[#EF4444] text-white'
+                    : leg.mode === 'trolleybus' ? 'bg-[#0D9488] text-white'
+                    : leg.mode === 'minibus' || leg.mode === 'marshrutka' ? 'bg-[#8B5CF6] text-white'
+                    : leg.mode === 'metro' ? 'bg-[#DC2626] text-white'
+                    : leg.mode === 'train' || leg.mode === 'suburban_train' ? 'bg-[#7C3AED] text-white'
+                    : 'bg-[#0066FF] text-white',
+                }))
+                : [{ type: 'transit', label: realItem.modeLabel, badgeBg: 'bg-[#0066FF] text-white' }];
+
+              return (
+                <div
+                  key={realItem.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => onSelectResultItem(realItem)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      (e.currentTarget as HTMLElement).click();
+                    }
+                  }}
+                  className="group flex w-full flex-col rounded-[24px] bg-white dark:bg-[#101E38] p-4 sm:p-5 text-left border border-slate-200/80 dark:border-slate-800 shadow-2xs hover:shadow-md hover:border-[#0066FF] active:scale-[0.99] transition duration-200 cursor-pointer"
+                >
+                  {/* Top Row: Leg Badges Chain [🚶 4 хв] [🚌 21] → [🚋 24] > */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {legsChain.map((leg, legIdx) => {
+                        /* Show arrow only between consecutive transit (non-walk) legs */
+                        const hasPreviousTransitLeg = legsChain.slice(0, legIdx).some((previousLeg) => previousLeg.type !== 'walk');
+                        const showArrow = leg.type !== 'walk' && hasPreviousTransitLeg;
+                        const LegIcon = leg.type === 'walk' ? Footprints
+                          : leg.type === 'tram' || leg.type === 'trolleybus' ? TramFront
+                          : leg.type === 'metro' || leg.type === 'train' || leg.type === 'suburban_train' ? Train
+                          : Bus;
+                        return (
+                          <React.Fragment key={legIdx}>
+                            {showArrow && (
+                              <ArrowRight size={13} className="text-slate-400 dark:text-slate-500" />
+                            )}
+                            <span
+                              className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-black shadow-2xs ${leg.badgeBg}`}
+                            >
+                              <LegIcon size={13} />
+                              <span>{leg.label}</span>
+                            </span>
+                          </React.Fragment>
+                        );
+                      })}
+                    </div>
+
+                    <ChevronRight size={18} className="text-slate-400 group-hover:text-[#0066FF] transition shrink-0 ml-2" />
+                  </div>
+
+                  {/* Middle Row: Duration & Details (53 хв  1 пересадка • 11.0 км • 60 грн) */}
+                  <div className="mt-3 flex items-baseline gap-2.5">
+                    <span className="text-xl font-black text-[#0B1730] dark:text-white tracking-tight">
+                      {durationLabel}
+                    </span>
+                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 truncate">
+                      {transfersLabel} • {distanceLabel} • {priceLabel}
+                    </span>
+                  </div>
+
+                  {/* Bottom Row: Origin → Destination text */}
+                  <div className="mt-1 text-xs text-slate-400 dark:text-slate-500 font-medium truncate">
+                    {cleanOrigin} → {cleanDest}
+                  </div>
+                </div>
+              );
+            })}
+            {visibleItems.length === 0 && (
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center dark:border-slate-800 dark:bg-[#101E38]">
+                <MapPin size={28} className="mx-auto text-slate-300" />
+                <p className="mt-2 text-sm font-bold">Маршрутів за цими умовами не знайдено</p>
+                <p className="mt-1 text-xs text-slate-500">Змініть час або вибрані види транспорту й повторіть пошук.</p>
+                {onOpenReverseMarketplace && <button type="button" onClick={onOpenReverseMarketplace} className="mt-4 min-h-10 rounded-xl border border-[#0066FF] px-4 text-xs font-bold text-[#0066FF]">Створити запит пасажира</button>}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
 };
+
+function ModeChip({ mode, label, selected, onClick }: { mode: SearchTransportMode; label: string; selected: boolean; onClick: () => void }) {
+  const Icon = mode === 'all' ? Grid2X2
+    : mode === 'tram' ? TramFront
+      : mode === 'train' || mode === 'suburban_train' || mode === 'metro' ? Train
+        : mode === 'bike' ? Bike
+          : mode === 'carpool' || mode === 'taxi' || mode === 'carsharing' || mode === 'transfer' ? Car
+            : mode === 'walk' ? Footprints
+              : Bus;
+  return <button type="button" aria-pressed={selected} onClick={onClick} className={`flex min-h-10 shrink-0 items-center gap-1.5 rounded-full border px-3 text-[11px] font-extrabold transition active:scale-95 ${selected ? 'border-[#0066FF] bg-[#0066FF] text-white shadow-sm' : 'border-slate-200 bg-white text-slate-600 dark:border-slate-700 dark:bg-[#101E38] dark:text-slate-300'}`}>
+    <Icon size={14}/><span>{label}</span>
+  </button>;
+}

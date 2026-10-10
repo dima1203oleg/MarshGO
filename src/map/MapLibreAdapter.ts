@@ -3,7 +3,7 @@ import mapLibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&ur
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import type { StyleSpecification } from 'maplibre-gl';
 import type { Coordinate } from '../../shared/navigation/contracts';
-import type { CameraMode, MapAdapter, MapStatus, MapTheme } from './MapAdapter';
+import type { CameraMode, CustomMapMarker, MapAdapter, MapStatus, MapTheme, RouteSegment } from './MapAdapter';
 import { mapStyleTokens } from './style/tokens';
 import { Protocol } from 'pmtiles';
 import { mapLayers, mapModes, styleForLayer, type MapLayer, type MapMode } from './mapMode';
@@ -57,11 +57,14 @@ export class MapLibreAdapter implements MapAdapter {
   private autoReturnTimer: ReturnType<typeof setInterval> | null = null;
   onOrientationChange: (orientation: Orientation, bearing: number) => void = () => undefined;
   private marker: maplibregl.Marker | null = null;
+  private labelMarker: maplibregl.Marker | null = null;
   /** Lets the UI highlight the "my location" button while the camera follows the driver. */
   onCameraModeChange: (mode: CameraMode) => void = () => undefined;
   private transportLayers: ReadonlySet<TransportLayerId> = new Set();
   /** Shown when a layer needs a closer zoom or fails to load. */
   onTransportHint: (message: string | null) => void = () => undefined;
+  private routeSegments: RouteSegment[] = [];
+  private customMarkers: maplibregl.Marker[] = [];
 
   constructor(container: HTMLElement, style: string | StyleSpecification, private readonly onStatus: (status: MapStatus) => void, private readonly hasBasemap: boolean, private readonly styleUrls?: Partial<Record<MapTheme, string>>, initialTheme: MapTheme = 'MARSHGO_NAVIGATION_LIGHT') {
     this.theme = initialTheme;
@@ -130,6 +133,11 @@ export class MapLibreAdapter implements MapAdapter {
     if (!this.map.getSource('marshgo-route-done')) this.map.addSource('marshgo-route-done', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
     if (!this.map.getLayer('marshgo-route-done')) this.map.addLayer({ id: 'marshgo-route-done', type: 'line', source: 'marshgo-route-done', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#94A3B8', 'line-opacity': 0.95, 'line-width': ['interpolate', ['linear'], ['zoom'], 5, 3, 15, 8] } });
     if (!this.map.getLayer('marshgo-waypoints')) this.map.addLayer({ id: 'marshgo-waypoints', type: 'circle', source: 'marshgo-waypoints', paint: { 'circle-radius': 8, 'circle-color': ['match', ['get', 'kind'], 'PICKUP', colors.pickup, 'DROPOFF', colors.dropoff, colors.route], 'circle-stroke-color': colors.routeCasing, 'circle-stroke-width': 3 } });
+    if (!this.map.getSource('marshgo-segments')) this.map.addSource('marshgo-segments', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+    if (!this.map.getLayer('marshgo-segments-casing')) this.map.addLayer({ id: 'marshgo-segments-casing', type: 'line', source: 'marshgo-segments', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': '#FFFFFF', 'line-width': ['interpolate', ['linear'], ['zoom'], 5, 5, 15, 11], 'line-opacity': 0.95 } });
+    if (!this.map.getLayer('marshgo-segments-solid')) this.map.addLayer({ id: 'marshgo-segments-solid', type: 'line', source: 'marshgo-segments', filter: ['!=', ['get', 'dashed'], true], layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': ['coalesce', ['get', 'color'], colors.route], 'line-width': ['interpolate', ['linear'], ['zoom'], 5, 3.5, 15, 7.5], 'line-opacity': 0.98 } });
+    if (!this.map.getLayer('marshgo-segments-dashed')) this.map.addLayer({ id: 'marshgo-segments-dashed', type: 'line', source: 'marshgo-segments', filter: ['==', ['get', 'dashed'], true], layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': ['coalesce', ['get', 'color'], '#0066FF'], 'line-width': ['interpolate', ['linear'], ['zoom'], 5, 3, 15, 5.5], 'line-dasharray': [1.5, 2], 'line-opacity': 0.95 } });
+    if (this.routeSegments.length > 0) this.setRouteSegments(this.routeSegments);
     const basemapSource = this.map.getSource('marshgo-basemap');
     if (basemapSource && !this.observedBasemapSources.has(basemapSource)) {
       this.observedBasemapSources.add(basemapSource);
@@ -226,14 +234,14 @@ export class MapLibreAdapter implements MapAdapter {
     this.map.getContainer().dataset.marshgoRouteProgress = String(vertex);
     this.reaim(false);
   }
-  setVehicle(point: Coordinate, heading?: number | null, speedMps?: number | null) {
+  setVehicle(point: Coordinate, heading?: number | null, speedMps?: number | null, label?: string | null) {
     this.vehicle = point;
     this.speedKmh = typeof speedMps === 'number' && Number.isFinite(speedMps) ? Math.max(0, speedMps * 3.6) : this.speedKmh;
     const stable = this.headingFilter.update({ gpsCourse: heading ?? null, speedKmh: this.speedKmh });
     if (stable !== null) this.heading = stable; else if (typeof heading === 'number' && Number.isFinite(heading) && this.heading === null) this.heading = heading;
     const source = this.map.getSource('marshgo-vehicle') as maplibregl.GeoJSONSource | undefined;
     if (source) source.setData({ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: point } });
-    this.updateMarker(point);
+    this.updateMarker(point, label);
     if (this.cameraMode === 'FOLLOW_HEADING' || this.cameraMode === 'FOLLOW') this.followCamera(900);
   }
 
@@ -263,7 +271,7 @@ export class MapLibreAdapter implements MapAdapter {
   getOrientation(): Orientation { return this.modeState.orientation; }
 
   /** The driver's puck: a blue arrow that points where the car is heading, lying flat on the (tilted) road like in Apple Maps. */
-  private updateMarker(point: Coordinate) {
+  private updateMarker(point: Coordinate, label?: string | null) {
     if (!this.marker) {
       const element = document.createElement('div');
       element.className = 'marshgo-puck';
@@ -278,6 +286,22 @@ export class MapLibreAdapter implements MapAdapter {
     this.marker.setRotationAlignment(headingUp ? 'viewport' : 'map');
     this.marker.setRotation(headingUp ? 0 : facing ?? 0);
     this.map.getContainer().dataset.marshgoVehicleHeading = facing === null ? '' : String(Math.round(facing));
+
+    if (label) {
+      if (!this.labelMarker) {
+        const lblEl = document.createElement('div');
+        lblEl.className = 'marshgo-puck-label-badge';
+        lblEl.style.cssText = 'background: #0E1F35; color: #fff; font-weight: 800; font-size: 11px; padding: 2.5px 8px; border-radius: 9999px; white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,0.4); border: 1.5px solid #fff; pointer-events: none; display: flex; align-items: center; gap: 4px; transform: translateY(-28px);';
+        lblEl.textContent = label;
+        this.labelMarker = new maplibregl.Marker({ element: lblEl, rotationAlignment: 'viewport' }).setLngLat(point).addTo(this.map);
+      } else {
+        this.labelMarker.setLngLat(point);
+        this.labelMarker.getElement().textContent = label;
+      }
+    } else if (this.labelMarker) {
+      this.labelMarker.remove();
+      this.labelMarker = null;
+    }
   }
 
   /** Where the car faces: along the planned road while on the route (the camera looks the same way), otherwise where it is moving. */
@@ -320,18 +344,57 @@ export class MapLibreAdapter implements MapAdapter {
     this.map.getContainer().dataset.marshgoTargetZoom = zoom.toFixed(2);
   }
 
+  setRouteSegments(segments: RouteSegment[]) {
+    this.routeSegments = segments;
+    const source = this.map.getSource('marshgo-segments') as maplibregl.GeoJSONSource | undefined;
+    if (source) {
+      const features = segments.map((seg) => ({
+        type: 'Feature' as const,
+        properties: {
+          color: seg.color,
+          dashed: seg.dashed ?? false,
+        },
+        geometry: {
+          type: 'LineString' as const,
+          coordinates: seg.coordinates,
+        },
+      }));
+      source.setData({ type: 'FeatureCollection', features });
+    }
+  }
+
+  setCustomMarkers(markers: CustomMapMarker[]) {
+    for (const m of this.customMarkers) {
+      m.remove();
+    }
+    this.customMarkers = [];
+    for (const item of markers) {
+      const el = document.createElement('div');
+      el.innerHTML = item.html;
+      const marker = new maplibregl.Marker({ element: el, anchor: item.anchor || 'center' })
+        .setLngLat(item.coordinate)
+        .addTo(this.map);
+      this.customMarkers.push(marker);
+    }
+  }
+
   setWaypoints(points: Array<{ coordinate: Coordinate; kind: string }>) {
     this.waypoints = points;
     const source = this.map.getSource('marshgo-waypoints') as maplibregl.GeoJSONSource | undefined;
     source?.setData({ type: 'FeatureCollection', features: points.map(({ coordinate, kind }) => ({ type: 'Feature' as const, properties: { kind }, geometry: { type: 'Point' as const, coordinates: coordinate } })) });
   }
-  fitRoute() {
+  fitRoute(paddingOverride: { top?: number; right?: number; bottom?: number; left?: number } = {}) {
     if (this.route.length < 2) return;
     const lngs = this.route.map((point) => point[0]); const lats = this.route.map((point) => point[1]);
     this.cameraMode = 'OVERVIEW';
     // Full-screen navigation reserves room for its overlays; small previews must scale the padding down or MapLibre rejects the fit.
     const { clientWidth, clientHeight } = this.map.getContainer();
-    const padding = { top: Math.min(110, clientHeight * 0.2), right: Math.min(32, clientWidth * 0.1), bottom: Math.min(270, clientHeight * 0.2), left: Math.min(32, clientWidth * 0.1) };
+    const padding = {
+      top: paddingOverride.top ?? Math.min(110, clientHeight * 0.2),
+      right: paddingOverride.right ?? Math.min(32, clientWidth * 0.1),
+      bottom: paddingOverride.bottom ?? Math.min(270, clientHeight * 0.2),
+      left: paddingOverride.left ?? Math.min(32, clientWidth * 0.1),
+    };
     this.map.fitBounds([[Math.min(...lngs), Math.min(...lats)], [Math.max(...lngs), Math.max(...lats)]], { padding, duration: 600, maxZoom: 15 });
   }
   recenter(point?: Coordinate) {
@@ -389,6 +452,6 @@ export class MapLibreAdapter implements MapAdapter {
     if (this.map.getLayer('marshgo-background')) this.map.setPaintProperty('marshgo-background', 'background-color', colors.background);
   }
   retry() { this.seenTileError = false; this.publish(this.hasBasemap ? 'loading' : 'unconfigured'); if (this.hasBasemap) this.map.setStyle(this.map.getStyle(), { diff: false }); else this.map.triggerRepaint(); }
-  destroy() { for (const marker of Object.values(this.meetingMarkers)) marker?.remove(); if (this.autoReturnTimer) clearInterval(this.autoReturnTimer); this.marker?.remove(); this.transport?.destroy(); this.map.remove(); }
+  destroy() { for (const marker of Object.values(this.meetingMarkers)) marker?.remove(); if (this.autoReturnTimer) clearInterval(this.autoReturnTimer); this.marker?.remove(); this.labelMarker?.remove(); this.transport?.destroy(); this.map.remove(); }
   getStatus() { return this.status; }
 }

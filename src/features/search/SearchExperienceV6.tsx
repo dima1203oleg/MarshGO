@@ -1,35 +1,27 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
-  ArrowRight,
-  BusFront,
-  CarFront,
-  CarTaxiFront,
-  Coins,
-  LayoutGrid,
-  Search,
-  Send,
-  ShieldCheck,
-  TrainFront,
-  TrendingUp,
-  Zap,
-} from 'lucide-react';
 import { productionApi } from '../../services/productionApi';
+import type { ApiJourney, ApiTransportProviders } from '../../services/productionApi';
+import { toJourneyPreferences, type TransportSelection } from '../../domain/transportPreferences';
 import type { RoutePlace, RouteSearchResultItem, SearchFiltersState, SearchStrategyMode, SearchTransportMode } from './model/types';
-import { SearchHeader } from './components/SearchHeader';
-import { RouteInputs } from './components/RouteInputs';
-import { DateTimePassengers } from './components/DateTimePassengers';
 import { SearchResultsList } from './components/SearchResultsList';
+import { SearchMapForm } from './components/SearchMapForm';
 import { SearchMapDetails } from './components/SearchMapDetails';
 import { SearchFiltersModal } from './components/SearchFiltersModal';
+import { rankSearchResults } from './model/multimodalEngine';
 import { buildSearchRoute, parseSearchRoute, type SearchRouteState } from '../../routing/searchRouteState';
 import { formatKyivDateTimeInput, kyivDateTimeInputToDate, kyivDateTimeInputToIso, todayKyivDate } from '../../domain/kyivTime';
 
+
 interface SearchExperienceV6Props {
-  onBookOfferId?: (offerId: string, passengerCount: number) => void;
+  onBookOfferId?: (offerId: string, passengerCount: number, journey?: { journeyId: string; journeyLegId: string }) => void;
   onOpenNotifications?: () => void;
   unreadNotificationCount?: number;
   onOpenReverseMarketplace?: (origin: string, destination: string) => void;
-  onOpenJourneyPlanner?: (criteria: { origin: RoutePlace; destination: RoutePlace; date: string; time: string; passengers: number; modes: SearchTransportMode[]; strategy: SearchStrategyMode }) => void | Promise<void>;
+  onOpenPointPicker?: (field: 'origin' | 'destination') => void;
+  onSubViewChange?: (view: 'form' | 'results' | 'map_details') => void;
+  transportSelection: TransportSelection;
+  onTransportSelectionChange: (selection: TransportSelection) => void;
+  initialStrategy?: SearchStrategyMode;
   initialOrigin?: string;
   initialDestination?: string;
 }
@@ -84,30 +76,144 @@ function offersToSearchItems(
     }));
 }
 
-async function resolveCityPlace(city: string): Promise<RoutePlace> {
-  const matches = await productionApi.suggestPlaces(`${city}, центр`);
-  const match = matches.find((place) => place.label.toLocaleLowerCase('uk-UA').startsWith(city.toLocaleLowerCase('uk-UA')))
-    ?? matches[0];
-  return match ? {
-    label: match.label,
-    latitude: match.latitude,
-    longitude: match.longitude,
-    providerId: match.providerId,
-  } : { label: `${city}, Центр` };
+function journeyResultsToSearchItems(journeys: ApiJourney[]): RouteSearchResultItem[] {
+  const modeMeta: Record<string, { type: SearchTransportMode; label: string }> = {
+    WALK: { type: 'walk', label: 'Пішки' },
+    COMMUNITY: { type: 'carpool', label: 'Попутка' },
+    BUS: { type: 'bus', label: 'Автобус' },
+    MINIBUS: { type: 'minibus', label: 'Маршрутка' },
+    TRAM: { type: 'tram', label: 'Трамвай' },
+    TROLLEYBUS: { type: 'trolleybus', label: 'Тролейбус' },
+    METRO: { type: 'metro', label: 'Метро' },
+    RAIL: { type: 'train', label: 'Поїзд' },
+    TAXI: { type: 'taxi', label: 'Таксі' },
+  };
+  const formatTime = (value: string) => new Intl.DateTimeFormat('uk-UA', {
+    hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Kyiv',
+  }).format(new Date(value));
+  const formatDuration = (seconds: number) => {
+    const minutes = Math.max(1, Math.round(seconds / 60));
+    const hours = Math.floor(minutes / 60);
+    return hours ? `${hours} год ${minutes % 60} хв` : `${minutes} хв`;
+  };
+  const formatPrice = (minor: number) => `${new Intl.NumberFormat('uk-UA', { maximumFractionDigits: 0 }).format(minor / 100)} грн`;
+
+  return journeys.flatMap((journey) => {
+    const first = journey.legs[0];
+    const last = journey.legs.at(-1);
+    if (!first || !last) return [];
+    const visibleLegs = journey.legs.filter((leg) => leg.mode !== 'WALK');
+    const primaryMode = modeMeta[visibleLegs[0]?.mode ?? ''] ?? { type: 'other' as const, label: 'Маршрут' };
+    const price = journey.confirmedPriceMinor ?? journey.totalPriceMinor;
+    const distanceKnown = journey.legs.every((leg) => leg.mode === 'WALK' || leg.distanceMeters !== null);
+    const distanceMeters = distanceKnown
+      ? journey.legs.reduce((sum, leg) => sum + (leg.distanceMeters ?? 0), 0)
+      : null;
+    const legs: NonNullable<RouteSearchResultItem['legs']> = journey.legs.map((leg) => {
+      const meta = modeMeta[leg.mode] ?? { type: 'other' as const, label: leg.mode };
+      return {
+        id: leg.id,
+        mode: meta.type,
+        modeLabel: meta.label,
+        carrierName: leg.providerName ?? leg.driver?.name ?? '',
+        originName: leg.origin.name,
+        destinationName: leg.destination.name,
+        departureTime: leg.departureAt,
+        arrivalTime: leg.arrivalAt,
+        durationLabel: formatDuration(leg.durationSeconds),
+        durationSeconds: leg.durationSeconds,
+        priceMinor: leg.priceMinor ?? undefined,
+        routeName: leg.routeName,
+        source: leg.source,
+        priceStatus: leg.priceStatus,
+        availabilityStatus: leg.availabilityStatus,
+        distanceMeters: leg.distanceMeters,
+      };
+    });
+    const strategy = journey.strategy === 'CUSTOM' ? 'BALANCED' : journey.strategy;
+    const badge = strategy === 'FASTEST' ? 'Найшвидший серед знайдених'
+      : strategy === 'CHEAPEST' ? 'Найдешевший серед маршрутів із відомою ціною'
+        : strategy === 'BALANCED' ? 'Оптимальний серед знайдених' : undefined;
+    return [{
+      id: journey.id,
+      type: primaryMode.type,
+      modeLabel: journey.legs.length > 1 ? 'Комбінований маршрут' : primaryMode.label,
+      badge,
+      badgeType: strategy === 'FASTEST' ? 'fastest' : strategy === 'CHEAPEST' ? 'cheapest' : 'best',
+      source: journey.source === 'gtfs-static' ? 'gtfs' : 'community',
+      carrierName: journey.providerName ?? first.providerName ?? primaryMode.label,
+      driver: first.driver ? {
+        name: first.driver.name,
+        rating: first.driver.averageRating,
+        reviewCount: first.driver.reviewCount,
+        verified: false,
+      } : undefined,
+      departureTime: formatTime(first.departureAt),
+      arrivalTime: formatTime(last.arrivalAt),
+      departureCity: first.origin.name,
+      arrivalCity: last.destination.name,
+      departureAddress: first.origin.name,
+      arrivalAddress: last.destination.name,
+      durationLabel: formatDuration(journey.totalDurationSeconds),
+      distanceLabel: distanceMeters === null ? 'Відстань маршруту не надана' : `${(distanceMeters / 1000).toFixed(1)} км`,
+      distanceMeters,
+      durationSeconds: journey.totalDurationSeconds,
+      priceMinor: price,
+      priceLabel: price === null ? 'Ціну не надано' : formatPrice(price),
+      priceStatus: journey.confirmedPriceMinor !== null ? 'LOCKED' : price === null ? 'UNKNOWN' : 'ESTIMATED',
+      availabilityStatus: visibleLegs.every((leg) => leg.availabilityStatus === 'AVAILABLE') ? 'AVAILABLE' : 'UNKNOWN',
+      priceUnit: 'за всю поїздку',
+      isPriceFixed: journey.confirmedPriceMinor !== null,
+      features: journey.source === 'gtfs-static' ? ['Розклад GTFS', 'Наявність не підтверджена'] : [],
+      stopsCount: journey.legs.length,
+      journeyId: journey.id,
+      journeyLegId: journey.legs.find((leg) => leg.offerId === journey.offerId)?.id
+        ?? journey.legs.find((leg) => leg.offerId)?.id,
+      offerId: journey.offerId ?? undefined,
+      isMultimodal: visibleLegs.length > 1 || journey.legs.some((leg) => leg.mode === 'WALK'),
+      transfers: journey.transfers,
+      strategyWinner: strategy,
+      reliabilityScore: journey.reliabilityScore === null ? undefined : journey.reliabilityScore * 100,
+      legs,
+    }];
+  });
+}
+
+async function resolveCityPlace(city: string, contextLabel?: string): Promise<RoutePlace> {
+  const query = city.trim();
+  let matches = await productionApi.suggestPlaces(query).catch(() => []);
+  if (!matches.length) {
+    matches = await productionApi.suggestPlaces(`${query}, центр`).catch(() => []);
+  }
+  let match = matches[0];
+  if (contextLabel) {
+    const cityMatch = matches.find((place) =>
+      contextLabel.split(',').some((part) => part.trim().length > 3 && place.label.includes(part.trim()))
+    );
+    if (cityMatch) match = cityMatch;
+  }
+  if (!match || match.latitude == null || match.longitude == null) {
+    throw new Error(`Не вдалося підтвердити координати точки «${city}». Оберіть адресу зі списку.`);
+  }
+  return { label: match.label, latitude: match.latitude, longitude: match.longitude, providerId: match.providerId };
 }
 
 export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
   onBookOfferId,
-  onOpenNotifications,
-  unreadNotificationCount = 0,
+  onOpenNotifications: _onOpenNotifications,
+  unreadNotificationCount: _unreadNotificationCount = 0,
   onOpenReverseMarketplace,
-  onOpenJourneyPlanner,
+  onOpenPointPicker,
+  onSubViewChange,
+  transportSelection,
+  onTransportSelectionChange,
+  initialStrategy = 'BALANCED',
   initialOrigin = '',
   initialDestination = '',
 }) => {
   const initialSearchRoute = parseSearchRoute(window.location.search);
   // Booking and trip lifecycle are owned by ProductionMarketplace/API.
-  const [subView, setSubView] = useState<'form' | 'results' | 'map_details'>(() => {
+  const [subView, setSubViewState] = useState<'form' | 'results' | 'map_details'>(() => {
     if (initialSearchRoute) return 'results';
     const params = new URLSearchParams(window.location.search);
     const v = params.get('view');
@@ -115,18 +221,30 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
     if (v === 'map' || v === 'map_details') return 'map_details';
     return 'form';
   });
+
+  const setSubView = (nextView: 'form' | 'results' | 'map_details') => {
+    setSubViewState(nextView);
+    onSubViewChange?.(nextView);
+  };
+
   const [showFiltersModal, setShowFiltersModal] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get('view') === 'filters';
   });
 
-  // Search form fields
-  const [origin, setOrigin] = useState<RoutePlace>({
-    ...(initialSearchRoute?.origin ?? { label: initialOrigin }),
-  });
-  const [destination, setDestination] = useState<RoutePlace>({
-    ...(initialSearchRoute?.destination ?? { label: initialDestination }),
-  });
+  // Empty coordinates stay unresolved until the user selects a real place result.
+  const [origin, setOrigin] = useState<RoutePlace>(() => ({
+    label: initialSearchRoute?.origin?.label || initialOrigin || '',
+    latitude: initialSearchRoute?.origin?.latitude,
+    longitude: initialSearchRoute?.origin?.longitude,
+    providerId: initialSearchRoute?.origin?.providerId,
+  }));
+  const [destination, setDestination] = useState<RoutePlace>(() => ({
+    label: initialSearchRoute?.destination?.label || initialDestination || '',
+    latitude: initialSearchRoute?.destination?.latitude,
+    longitude: initialSearchRoute?.destination?.longitude,
+    providerId: initialSearchRoute?.destination?.providerId,
+  }));
 
   const [dateStr, setDateStr] = useState(() => {
     if (initialSearchRoute) return initialSearchRoute.date;
@@ -135,8 +253,17 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
   const [timeStr, setTimeStr] = useState(() => initialSearchRoute?.departure.match(/T(\d{2}:\d{2})/)?.[1] ?? '18:30');
   const [timeMode, setTimeMode] = useState<'now' | 'depart_at' | 'arrive_by'>('depart_at');
   const [passengers, setPassengers] = useState(initialSearchRoute?.passengers ?? 1);
-  const [searchStrategy, setSearchStrategy] = useState<SearchStrategyMode>('BALANCED');
+  const [searchStrategy, setSearchStrategy] = useState<SearchStrategyMode>(() => initialSearchRoute?.strategy === 'CUSTOM' ? initialStrategy : initialSearchRoute?.strategy ?? initialStrategy);
   const restoreRouteRef = useRef<SearchRouteState | null>(initialSearchRoute);
+  const rawOfferItemsRef = useRef<RouteSearchResultItem[]>([]);
+  const [searchProviderGroups, setSearchProviderGroups] = useState<ApiTransportProviders[] | null>(null);
+
+  const handleSelectStrategy = (newStrategy: SearchStrategyMode) => {
+    setSearchStrategy(newStrategy);
+    if (results.length > 0) {
+      void handleSearchJourneys({ strategy: newStrategy });
+    }
+  };
 
   // Filters State
   const [filters, setFilters] = useState<SearchFiltersState>({
@@ -150,43 +277,34 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
     wifi: false,
   });
 
-  // Filter mode tab inside results view (Screen 2: All 32, Carpool 8, Bus 6, etc.)
+  // Filter mode tab inside results view (Screen 2: all modes and supported categories).
   const [resultsFilterMode, setResultsFilterMode] = useState<SearchTransportMode>('all');
 
   // Search results & loading state
   const [isSearching, setIsSearching] = useState(false);
-  const [isResolvingPlaces, setIsResolvingPlaces] = useState(false);
+  const [isResolvingPlaces] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [searchNotice, setSearchNotice] = useState<string | null>(null);
   const [results, setResults] = useState<RouteSearchResultItem[]>(() =>
     []
   );
   const [selectedItem, setSelectedItem] = useState<RouteSearchResultItem | null>(() =>
     null
   );
+  const [selectedItemInitialMode, setSelectedItemInitialMode] = useState<'details' | 'map'>('details');
   const filteredResults = results.filter((item) =>
     (filters.modes.has('all') || filters.modes.has(item.type)) &&
-    item.priceMinor <= filters.maxPrice * 100 &&
+    (item.priceMinor === null || item.priceMinor <= filters.maxPrice * 100) &&
     (item.durationSeconds === 0 || item.durationSeconds <= filters.maxDurationHours * 3600) &&
     (item.driver?.rating ?? 0) >= filters.minRating &&
     (filters.maxTransfers === 'any' ||
-      (filters.maxTransfers === 'direct' && item.stopsCount === 0) ||
-      (filters.maxTransfers === 'one' && item.stopsCount <= 1) ||
-      (filters.maxTransfers === 'two_plus' && item.stopsCount >= 2)) &&
+      (filters.maxTransfers === 'direct' && (item.transfers ?? 0) === 0) ||
+      (filters.maxTransfers === 'one' && (item.transfers ?? 0) <= 1) ||
+      (filters.maxTransfers === 'two_plus' && (item.transfers ?? 0) >= 2)) &&
     (!filters.onlyVerified || item.driver?.verified === true) &&
     (!filters.airConditioning || item.features.some((feature) => /кондиціон|кондиц/i.test(feature))) &&
     (!filters.wifi || item.features.some((feature) => /wi-?fi/i.test(feature)))
   );
-  const toggleSearchMode = (mode: SearchTransportMode) => {
-    setFilters((current) => {
-      if (mode === 'all') return { ...current, modes: new Set(['all']) };
-      const modes = new Set(current.modes);
-      modes.delete('all');
-      if (modes.has(mode)) modes.delete(mode);
-      else modes.add(mode);
-      return { ...current, modes: modes.size ? modes : new Set(['all']) };
-    });
-  };
-
   // Sync initial props
   useEffect(() => {
     if (initialOrigin) {
@@ -197,76 +315,111 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
     }
   }, [initialOrigin, initialDestination]);
 
-  // Execute unified search
-  const handleExecuteSearch = async () => {
+  useEffect(() => {
+    if (origin.latitude == null || origin.longitude == null) {
+      setSearchProviderGroups(null);
+      return;
+    }
+    let current = true;
+    setSearchProviderGroups(null);
+    productionApi.providersByTransport({ latitude: origin.latitude, longitude: origin.longitude }).then((groups) => {
+      if (current) {
+        setSearchProviderGroups(groups);
+      }
+    }).catch(() => {
+      if (current) {
+        setSearchProviderGroups([]);
+      }
+    });
+    return () => { current = false; };
+  }, [origin.latitude, origin.longitude, origin.label]);
+
+  const handleSearchJourneys = async (request?: {
+    origin?: RoutePlace;
+    destination?: RoutePlace;
+    date?: string;
+    time?: string;
+    passengers?: number;
+    strategy?: SearchStrategyMode;
+    timeMode?: 'now' | 'depart_at' | 'arrive_by';
+    departureAt?: string;
+  }) => {
     setIsSearching(true);
     setSearchError(null);
+    setSearchNotice(null);
     setSubView('results');
 
     try {
-      if (!origin.label.trim() || !destination.label.trim()) throw new Error('Вкажіть початковий пункт і пункт призначення.');
-      if (origin.label.trim().toLocaleLowerCase('uk-UA') === destination.label.trim().toLocaleLowerCase('uk-UA')) {
+      let effectiveOrigin = request?.origin ?? origin;
+      let effectiveDestination = request?.destination ?? destination;
+      const effectiveDate = request?.date ?? dateStr;
+      const effectiveTime = request?.time ?? timeStr;
+      const effectivePassengers = request?.passengers ?? passengers;
+      const effectiveStrategy = request?.strategy ?? searchStrategy;
+      const effectiveTimeMode = request?.timeMode ?? timeMode;
+      if (!effectiveOrigin.label.trim() || !effectiveDestination.label.trim()) {
+        throw new Error('Вкажіть початкову точку й пункт призначення.');
+      }
+      if (effectiveOrigin.latitude == null || effectiveOrigin.longitude == null) {
+        effectiveOrigin = await resolveCityPlace(effectiveOrigin.label, effectiveDestination.label);
+        setOrigin(effectiveOrigin);
+      }
+      if (effectiveDestination.latitude == null || effectiveDestination.longitude == null) {
+        effectiveDestination = await resolveCityPlace(effectiveDestination.label, effectiveOrigin.label);
+        setDestination(effectiveDestination);
+      }
+      if (effectiveOrigin.label.trim().toLocaleLowerCase('uk-UA') === effectiveDestination.label.trim().toLocaleLowerCase('uk-UA')) {
         throw new Error('Початковий пункт і пункт призначення мають відрізнятися.');
       }
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) throw new Error('Оберіть коректну дату поїздки.');
-      if (timeMode !== 'now' && !/^\d{2}:\d{2}$/.test(timeStr)) throw new Error('Оберіть коректний час відправлення.');
-      const checkedDate = new Date(`${dateStr}T00:00:00.000Z`);
-      if (!Number.isFinite(checkedDate.getTime()) || checkedDate.toISOString().slice(0, 10) !== dateStr) throw new Error('Оберіть коректну дату поїздки.');
-      const departureIso = timeMode === 'now' ? new Date().toISOString() : kyivDateTimeInputToIso(`${dateStr}T${timeStr}`);
-      if (!departureIso) throw new Error('Цей час не існує через перехід на літній або зимовий час. Оберіть інший час.');
-      if (!origin.providerId || !destination.providerId || origin.latitude == null || origin.longitude == null
-        || destination.latitude == null || destination.longitude == null) {
-        throw new Error('Оберіть початковий пункт і призначення з результатів геокодера.');
-      }
-      const offersRes = await productionApi.offers({
-          origin: origin.label.split(',')[0].trim(),
-          destination: destination.label.split(',')[0].trim(),
-          date: dateStr,
-          seats: passengers,
-          ...(origin.longitude != null && origin.latitude != null
-            ? { originCoordinates: [origin.longitude, origin.latitude] as [number, number] }
-            : {}),
-          ...(destination.longitude != null && destination.latitude != null
-            ? { destinationCoordinates: [destination.longitude, destination.latitude] as [number, number] }
-            : {}),
-        });
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(effectiveDate)) throw new Error('Оберіть коректну дату поїздки.');
+      if (effectiveTimeMode === 'arrive_by') throw new Error('Пошук із часом прибуття поки не підтримує маршрутний API. Оберіть час відправлення.');
+      if (effectiveTimeMode !== 'now' && !/^\d{2}:\d{2}$/.test(effectiveTime)) throw new Error('Оберіть коректний час відправлення.');
+      const checkedDate = new Date(`${effectiveDate}T00:00:00.000Z`);
+      if (!Number.isFinite(checkedDate.getTime()) || checkedDate.toISOString().slice(0, 10) !== effectiveDate) throw new Error('Оберіть коректну дату поїздки.');
+      const departureAt = request?.departureAt ?? (effectiveTimeMode === 'now'
+        ? new Date().toISOString()
+        : kyivDateTimeInputToIso(`${effectiveDate}T${effectiveTime}`));
+      if (!departureAt) throw new Error('Цей час не існує через перехід на літній або зимовий час. Оберіть інший час.');
 
-      const items = offersToSearchItems(offersRes, dateStr, timeStr, timeMode);
+      const result = await productionApi.searchJourneys({
+        origin: { name: effectiveOrigin.label, coordinates: [effectiveOrigin.longitude!, effectiveOrigin.latitude!] },
+        destination: { name: effectiveDestination.label, coordinates: [effectiveDestination.longitude!, effectiveDestination.latitude!] },
+        departureAt,
+        passengers: effectivePassengers,
+        strategy: effectiveStrategy,
+        preferences: toJourneyPreferences(transportSelection, searchProviderGroups),
+      });
+      const items = journeyResultsToSearchItems(result.journeys);
       setResults(items);
-      setSelectedItem(items[0] ?? null);
+      if (items[0]) handleOpenResultOnMap(items[0]);
+      else {
+        setSelectedItem(null);
+        setSubView('results');
+      }
+      const notices = [
+        ...(result.partial ? ['Результат частковий: враховано лише доступні джерела в цьому коридорі.'] : []),
+        ...(result.unsupportedPreferences.includes('CHEAPEST:public-transit-fares-unavailable')
+          ? ['Найдешевший маршрут не визначено: у розкладах немає підтверджених тарифів.'] : []),
+        ...(result.unsupportedPreferences.filter((value) => value.startsWith('transportType:')).length
+          ? [`Не входять до побудови: ${result.unsupportedPreferences.filter((value) => value.startsWith('transportType:')).map((value) => value.split(':')[1]).join(', ')}.`] : []),
+        ...(result.providerErrors.length ? [`Джерела тимчасово недоступні: ${result.providerErrors.join('; ')}.`] : []),
+      ];
+      setSearchNotice(notices.join(' '));
       const route = buildSearchRoute({
-        origin: { label: origin.label, latitude: origin.latitude!, longitude: origin.longitude!, providerId: origin.providerId! },
-        destination: { label: destination.label, latitude: destination.latitude!, longitude: destination.longitude!, providerId: destination.providerId! },
-        date: dateStr,
-        passengers,
-        departure: departureIso,
-        strategy: 'BALANCED',
-        mode: 'offers',
+        origin: { ...effectiveOrigin, latitude: effectiveOrigin.latitude!, longitude: effectiveOrigin.longitude!, providerId: effectiveOrigin.providerId ?? 'selected-point' },
+        destination: { ...effectiveDestination, latitude: effectiveDestination.latitude!, longitude: effectiveDestination.longitude!, providerId: effectiveDestination.providerId ?? 'selected-point' },
+        date: effectiveDate,
+        passengers: effectivePassengers,
+        departure: departureAt,
+        strategy: effectiveStrategy,
+        mode: 'planner',
       });
       window.history.pushState({ marshgoRoute: true }, '', route);
     } catch (error) {
       setResults([]);
       setSelectedItem(null);
+      setSearchNotice(null);
       setSearchError(error instanceof Error ? error.message : 'Не вдалося виконати пошук. Перевірте з’єднання та спробуйте ще раз.');
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  const handleSearchJourneys = async () => {
-    if (!onOpenJourneyPlanner) return handleExecuteSearch();
-    setIsSearching(true);
-    setSearchError(null);
-    try {
-      await onOpenJourneyPlanner({
-        origin,
-        destination,
-        date: dateStr,
-        time: timeStr,
-        passengers,
-        modes: [...filters.modes],
-        strategy: searchStrategy,
-      });
     } finally {
       setIsSearching(false);
     }
@@ -278,21 +431,44 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
     restoreRouteRef.current = null;
     let active = true;
     setIsSearching(true);
-    void productionApi.offers({
-      origin: route.origin.label,
-      destination: route.destination.label,
-      date: route.date,
-      seats: route.passengers,
-      originCoordinates: [route.origin.longitude, route.origin.latitude],
-      destinationCoordinates: [route.destination.longitude, route.destination.latitude],
-    }).then((offers) => {
-      if (!active) return;
-      const restoredTime = route.departure.match(/T(\d{2}:\d{2})/)?.[1] ?? '18:30';
-      const items = offersToSearchItems(offers, route.date, restoredTime, 'depart_at');
-      setResults(items);
-      setSelectedItem(items[0] ?? null);
-      setSubView('results');
-    }).catch((error: unknown) => {
+    const strategy = route.strategy === 'CUSTOM' ? 'BALANCED' : route.strategy;
+    const restore = route.mode === 'planner'
+      ? productionApi.searchJourneys({
+        origin: { name: route.origin.label, coordinates: [route.origin.longitude, route.origin.latitude] },
+        destination: { name: route.destination.label, coordinates: [route.destination.longitude, route.destination.latitude] },
+        departureAt: route.departure,
+        passengers: route.passengers,
+        strategy,
+        preferences: toJourneyPreferences(transportSelection, searchProviderGroups),
+      }).then((result) => {
+        if (!active) return;
+        const items = journeyResultsToSearchItems(result.journeys);
+        setResults(items);
+        if (items[0]) handleOpenResultOnMap(items[0]);
+        else {
+          setSelectedItem(null);
+          setSubView('results');
+        }
+        setSearchNotice(result.partial ? 'Результат частковий: враховано лише доступні джерела в цьому коридорі.' : null);
+      })
+      : productionApi.offers({
+        origin: route.origin.label,
+        destination: route.destination.label,
+        date: route.date,
+        seats: route.passengers,
+        originCoordinates: [route.origin.longitude, route.origin.latitude],
+        destinationCoordinates: [route.destination.longitude, route.destination.latitude],
+      }).then((offers) => {
+        if (!active) return;
+        const restoredTime = route.departure.match(/T(\d{2}:\d{2})/)?.[1] ?? '18:30';
+        const offerItems = offersToSearchItems(offers, route.date, restoredTime, 'depart_at');
+        rawOfferItemsRef.current = offerItems;
+        const items = rankSearchResults(offerItems, strategy);
+        setResults(items);
+        setSelectedItem(items[0] ?? null);
+        setSubView('results');
+      });
+    void restore.catch((error: unknown) => {
       if (active) setSearchError(error instanceof Error ? error.message : 'Не вдалося відновити результати пошуку.');
     }).finally(() => { if (active) setIsSearching(false); });
     return () => { active = false; };
@@ -301,6 +477,22 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
   // Card clicked -> open Screen 3 (Map details)
   const handleSelectResultItem = (item: RouteSearchResultItem) => {
     setSelectedItem(item);
+    setSelectedItemInitialMode('details');
+    setSubView('map_details');
+    if (item.offerId && !item.routeGeometry) {
+      void productionApi.offer(item.offerId).then((offer) => {
+        if (offer.route_geometry?.length) {
+          setSelectedItem((current) => current?.offerId === offer.id
+            ? { ...current, routeGeometry: offer.route_geometry ?? undefined }
+            : current);
+        }
+      }).catch(() => undefined);
+    }
+  };
+
+  const handleOpenResultOnMap = (item: RouteSearchResultItem) => {
+    setSelectedItem(item);
+    setSelectedItemInitialMode('map');
     setSubView('map_details');
     if (item.offerId && !item.routeGeometry) {
       void productionApi.offer(item.offerId).then((offer) => {
@@ -317,247 +509,39 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
   // Never mark a trip confirmed in the UI before the API confirms a booking.
   const handleBookItem = (item: RouteSearchResultItem) => {
     if (!item.offerId || !onBookOfferId) return;
-    onBookOfferId(item.offerId, passengers);
-  };
-
-  // Switch popular route
-  const handleSelectQuickRoute = async (fromCity: string, toCity: string) => {
-    setIsResolvingPlaces(true);
-    try {
-      const [originMatches, destinationMatches] = await Promise.all([
-        resolveCityPlace(fromCity),
-        resolveCityPlace(toCity),
-      ]);
-      setOrigin(originMatches);
-      setDestination(destinationMatches);
-    } catch {
-      setOrigin({ label: `${fromCity}, Центр` });
-      setDestination({ label: `${toCity}, Центр` });
-    } finally {
-      setIsResolvingPlaces(false);
-    }
-  };
-
-  const handleSelectCity = async (city: string) => {
-    setIsResolvingPlaces(true);
-    try {
-      setOrigin(await resolveCityPlace(city));
-    } catch {
-      setOrigin({ label: `${city}, Центр` });
-    } finally {
-      setIsResolvingPlaces(false);
-    }
+    onBookOfferId(item.offerId, passengers, item.journeyId && item.journeyLegId
+      ? { journeyId: item.journeyId, journeyLegId: item.journeyLegId }
+      : undefined);
   };
 
   return (
     <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#F4F8FF] dark:bg-[#070E1B] text-[#081B35] dark:text-white transition-colors duration-200">
-      {/* SCREEN 1: SEARCH FORM */}
+      {/* SCREEN 1: MAP-FIRST SEARCH */}
       {subView === 'form' && (
-        <div className="mx-auto flex flex-col min-h-screen max-w-md pb-24">
-          {/* Header Block A: Logo, City, Notifications, Profile, Theme Toggle */}
-          <SearchHeader
-            currentCity={origin.label.split(',')[0] || 'Україна'}
-            onSelectCity={(city) => void handleSelectCity(city)}
-            onOpenNotifications={() => onOpenNotifications?.()}
-            unreadCount={unreadNotificationCount}
-          />
-
-          {/* Header Block B: Title & Subtitle */}
-          <div className="px-5 pt-3 pb-4">
-            <h1 className="text-[28px] font-black tracking-tight text-[#081B35] dark:text-white leading-[1.15]">
-              Знайди маршрут
-            </h1>
-            <p className="mt-1 text-sm font-semibold text-[#63738C] dark:text-slate-400">
-              Усі способи дістатися — в одному пошуку
-            </p>
-          </div>
-
-          {/* Form Container */}
-          <div className="px-5 space-y-3.5">
-            {/* Block C: Origin / Destination Inputs */}
-            <RouteInputs
-              origin={origin}
-              destination={destination}
-              onOriginChange={setOrigin}
-              onDestinationChange={setDestination}
-            />
-
-            {/* Block D: Date, Time, Passengers Row */}
-            <DateTimePassengers
-              dateStr={dateStr}
-              timeStr={timeStr}
-              timeMode={timeMode}
-              passengers={passengers}
-              onDateChange={setDateStr}
-              onTimeChange={setTimeStr}
-              onTimeModeChange={setTimeMode}
-              onPassengersChange={setPassengers}
-              showTimeModeToggle={false}
-            />
-
-            <section aria-label="Види транспорту">
-              <div className="mb-2 flex items-center justify-between">
-                <h2 className="text-sm font-extrabold text-[#081B35] dark:text-white">Види транспорту</h2>
-                <span className="text-[11px] font-semibold text-[#63738C] dark:text-slate-400">Оберіть кілька</span>
-              </div>
-              <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
-                {([
-                  { id: 'all', label: 'Усі', Icon: LayoutGrid },
-                  { id: 'carpool', label: 'Попутки', Icon: CarFront },
-                  { id: 'taxi', label: 'Таксі', Icon: CarTaxiFront },
-                  { id: 'bus', label: 'Автобуси', Icon: BusFront },
-                  { id: 'train', label: 'Поїзди', Icon: TrainFront },
-                ] as const).map(({ id, label, Icon }) => {
-                  const active = filters.modes.has('all') ? id === 'all' : id !== 'all' && filters.modes.has(id);
-                  return (
-                    <button
-                      key={id}
-                      type="button"
-                      aria-pressed={active}
-                      onClick={() => toggleSearchMode(id)}
-                      className={`flex min-w-[82px] shrink-0 flex-col items-center gap-1.5 rounded-2xl border px-3 py-2.5 text-[11px] font-bold transition ${active ? 'border-[#0866F5] bg-blue-50 text-[#0866F5] shadow-sm dark:border-blue-400 dark:bg-blue-950/50 dark:text-blue-300' : 'border-slate-100 bg-white text-[#63738C] hover:border-blue-200 dark:border-slate-800 dark:bg-[#0B1730] dark:text-slate-300'}`}
-                    >
-                      <Icon size={19} strokeWidth={2.3} />
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
-
-            <section aria-label="Пріоритет маршруту">
-              <h2 className="mb-2 text-sm font-extrabold text-[#081B35] dark:text-white">Пріоритет маршруту</h2>
-              <div className="grid grid-cols-3 gap-2">
-                {([
-                  { id: 'BALANCED', label: 'Оптимальний', detail: 'Час і ціна', Icon: ShieldCheck },
-                  { id: 'FASTEST', label: 'Найшвидший', detail: 'Мінімум часу', Icon: Zap },
-                  { id: 'CHEAPEST', label: 'Найдешевший', detail: 'Мінімум ціни', Icon: Coins },
-                ] as const).map(({ id, label, detail, Icon }) => (
-                  <button
-                    key={id}
-                    type="button"
-                    aria-pressed={searchStrategy === id}
-                    onClick={() => setSearchStrategy(id)}
-                    className={`flex min-h-[68px] flex-col items-start justify-center rounded-2xl border px-2.5 py-2 text-left transition ${searchStrategy === id ? 'border-[#0866F5] bg-blue-50 text-[#0866F5] shadow-sm dark:border-blue-400 dark:bg-blue-950/50 dark:text-blue-300' : 'border-slate-100 bg-white text-[#63738C] dark:border-slate-800 dark:bg-[#0B1730] dark:text-slate-300'}`}
-                  >
-                    <span className="flex items-center gap-1.5 text-[11px] font-extrabold"><Icon size={15} />{label}</span>
-                    <span className="mt-1 text-[9px] font-medium opacity-75">{detail}</span>
-                  </button>
-                ))}
-              </div>
-            </section>
-
-            <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-xs leading-5 text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-200">
-              Порівнюємо оголошення MARSHGO Community та доступні розклади перевізників.
-            </div>
-
-            {/* Block F: Primary CTA Button (Placed immediately after modes & strategy as required) */}
-            <div className="pt-2">
-              <button
-                type="button"
-                onClick={() => void handleSearchJourneys()}
-                disabled={isSearching || isResolvingPlaces}
-                className="group relative flex w-full items-center justify-center gap-2.5 rounded-2xl bg-[#0866F5] py-4 text-base font-black text-white shadow-xl shadow-[#0866F5]/25 hover:bg-[#0755CA] active:scale-[0.98] transition-all disabled:opacity-50"
-              >
-                <Search size={19} strokeWidth={2.5} />
-                <span>{isSearching ? 'Шукаємо маршрути…' : isResolvingPlaces ? 'Підбираємо точки…' : 'Знайти маршрут'}</span>
-                <ArrowRight
-                  size={19}
-                  strokeWidth={2.5}
-                  className="transition-transform group-hover:translate-x-1"
-                />
-              </button>
-            </div>
-
-            {onOpenJourneyPlanner && (
-              <button
-                type="button"
-                onClick={handleExecuteSearch}
-                disabled={isSearching || isResolvingPlaces}
-                className="w-full rounded-2xl py-1 text-xs font-bold text-[#63738C] underline decoration-dotted underline-offset-4 transition hover:text-[#0866F5] disabled:opacity-50 dark:text-slate-400 dark:hover:text-blue-300"
-              >
-                Показати лише оголошення попуток
-              </button>
-            )}
-
-            {/* City Skyline Illustration Banner (matching Screen 1 bottom) */}
-            <div className="relative mt-4 w-full overflow-hidden rounded-2xl border border-blue-100/80 dark:border-slate-800/80 bg-linear-to-b from-sky-50/50 to-white dark:from-slate-900/40 dark:to-slate-900">
-              <img
-                src="/search_city_banner.png"
-                alt="Поїздки Україною"
-                className="w-full h-24 object-cover object-bottom"
-              />
-            </div>
-
-            {/* 3 Trust Badges (Screen 1 bottom) */}
-            <div className="grid grid-cols-3 gap-2 pt-1">
-              <div className="flex flex-col items-center justify-center rounded-xl bg-white dark:bg-[#0B1730] p-2 text-center border border-slate-100 dark:border-slate-800 shadow-xs">
-                <div className="grid h-7 w-7 place-items-center rounded-full bg-blue-50 text-[#0866F5] dark:bg-blue-950/60 text-xs font-black">
-                  %
-                </div>
-                <span className="mt-1 text-[10px] font-bold text-[#081B35] dark:text-slate-200 leading-tight">
-                  0% комісії
-                </span>
-                <span className="text-[9px] text-[#63738C] dark:text-slate-400">
-                  для попуток
-                </span>
-              </div>
-
-              <div className="flex flex-col items-center justify-center rounded-xl bg-white dark:bg-[#0B1730] p-2 text-center border border-slate-100 dark:border-slate-800 shadow-xs">
-                <div className="grid h-7 w-7 place-items-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 text-xs">
-                  <ShieldCheck size={14} />
-                </div>
-                <span className="mt-1 text-[10px] font-bold text-[#081B35] dark:text-slate-200 leading-tight">Оголошення водіїв</span>
-                <span className="text-[9px] text-[#63738C] dark:text-slate-400">із даними профілю</span>
-              </div>
-
-              <div className="flex flex-col items-center justify-center rounded-xl bg-white dark:bg-[#0B1730] p-2 text-center border border-slate-100 dark:border-slate-800 shadow-xs">
-                <div className="grid h-7 w-7 place-items-center rounded-full bg-sky-50 text-sky-600 dark:bg-sky-950/60 text-xs">
-                  <Send size={13} />
-                </div>
-                <span className="mt-1 text-[10px] font-bold text-[#081B35] dark:text-slate-200 leading-tight">
-                  Пошук
-                </span>
-                <span className="text-[9px] text-[#63738C] dark:text-slate-400">
-                  по маршруту
-                </span>
-              </div>
-            </div>
-
-            {/* Block H: Quick Popular Routes */}
-            <div className="pt-3">
-              <div className="flex items-center justify-between pb-2">
-                <h3 className="text-xs font-black text-[#63738C] dark:text-slate-400 uppercase tracking-wider">
-                  Популярні маршрути
-                </h3>
-                <span className="text-[11px] font-semibold text-[#8291A5] dark:text-slate-500">Швидкий старт</span>
-              </div>
-
-              <div className="space-y-1.5">
-                {[
-                  { from: 'Львів', to: 'Київ' },
-                  { from: 'Львів', to: 'Івано-Франківськ' },
-                  { from: 'Київ', to: 'Одеса' },
-                ].map((r, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => void handleSelectQuickRoute(r.from, r.to)}
-                    className="flex w-full items-center justify-between rounded-xl bg-white dark:bg-[#0B1730] px-3.5 py-2.5 border border-slate-100 dark:border-slate-800 text-left transition hover:border-blue-200 active:scale-[0.99]"
-                  >
-                    <div className="flex items-center gap-2">
-                      <TrendingUp size={14} className="text-[#0866F5]" />
-                      <span className="text-xs font-extrabold text-[#081B35] dark:text-white">
-                        {r.from} → {r.to}
-                      </span>
-                    </div>
-                    <span className="text-[11px] font-semibold text-[#63738C] dark:text-slate-400">Заповнити маршрут</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+        <SearchMapForm
+          origin={origin}
+          destination={destination}
+          onOriginChange={setOrigin}
+          onDestinationChange={setDestination}
+          onOpenMapPicker={onOpenPointPicker}
+          dateStr={dateStr}
+          timeStr={timeStr}
+          timeMode={timeMode}
+          passengers={passengers}
+          onDateChange={setDateStr}
+          onTimeChange={setTimeStr}
+          onTimeModeChange={setTimeMode}
+          onPassengersChange={setPassengers}
+          selection={transportSelection}
+          groups={searchProviderGroups}
+          onSelectionChange={onTransportSelectionChange}
+          strategy={searchStrategy}
+          onStrategyChange={handleSelectStrategy}
+          onSearch={() => void handleSearchJourneys()}
+          isSearching={isSearching}
+          isResolvingPlaces={isResolvingPlaces}
+          error={searchError}
+        />
       )}
 
       {/* SCREEN 2: SEARCH RESULTS LIST */}
@@ -570,13 +554,16 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
           passengers={passengers}
           isLoading={isSearching}
           error={searchError}
-          onRetry={() => void handleExecuteSearch()}
+          onRetry={() => void handleSearchJourneys()}
+          notice={searchNotice}
           items={filteredResults}
           selectedFilterMode={resultsFilterMode}
           onSelectFilterMode={setResultsFilterMode}
+          selectedStrategy={searchStrategy}
+          onSelectStrategy={handleSelectStrategy}
           onOpenFiltersModal={() => setShowFiltersModal(true)}
           onSelectResultItem={handleSelectResultItem}
-          onOpenMapView={() => { const firstResult = filteredResults.find((item) => resultsFilterMode === 'all' || item.type === resultsFilterMode); if (firstResult) handleSelectResultItem(firstResult); }}
+          onOpenMapView={() => { const firstResult = filteredResults.find((item) => resultsFilterMode === 'all' || item.type === resultsFilterMode); if (firstResult) handleOpenResultOnMap(firstResult); }}
           onBackToSearchForm={() => setSubView('form')}
           onOpenReverseMarketplace={() => {
             if (onOpenReverseMarketplace) {
@@ -592,12 +579,25 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
           item={selectedItem}
           originTitle={origin.label}
           destTitle={destination.label}
+          notice={searchNotice}
           dateStr={dateStr}
           timeStr={timeStr}
           passengers={passengers}
+          initialMode={selectedItemInitialMode}
           onBackToResults={() => setSubView('results')}
+          onSwapRoute={() => {
+            setOrigin(destination);
+            setDestination(origin);
+          }}
           onBook={handleBookItem}
         />
+      )}
+      {subView === 'map_details' && !selectedItem && (
+        <div className="mx-auto flex min-h-[70svh] w-full max-w-md flex-col items-center justify-center px-6 text-center">
+          <p className="text-base font-bold">Маршрут не вибрано</p>
+          <p className="mt-2 text-sm text-slate-500">Поверніться до результатів і відкрийте маршрут, отриманий від провайдера.</p>
+          <button type="button" onClick={() => setSubView('results')} className="mt-4 rounded-xl bg-[#0066FF] px-5 py-3 text-sm font-bold text-white">До результатів</button>
+        </div>
       )}
 
       {/* SCREEN 4: SEARCH FILTERS MODAL */}

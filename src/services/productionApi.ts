@@ -1,6 +1,22 @@
 import { routeResultSchema, type RouteRequest, type RouteResult } from '../../shared/navigation/contracts';
 import { NavigationProviderError } from '../../shared/navigation/errors';
 
+export interface TransitArrival {
+  stopId: string;
+  routeId: string;
+  mode?: string;
+  tripId?: string;
+  vehicleId?: string;
+  scheduledArrival?: string;
+  predictedArrival?: string;
+  arrivalSource: 'TRIP_UPDATE' | 'VEHICLE_PROJECTION' | 'SCHEDULE' | 'UNKNOWN';
+  confidence: 'HIGH' | 'MEDIUM' | 'LOW' | 'UNKNOWN';
+  observedAt?: string;
+  isRealtime: boolean;
+  etaSeconds?: number;
+  displayLabel: string;
+}
+
 export type ApiUser = {
   id: string;
   display_name: string;
@@ -264,7 +280,7 @@ export type ApiProposalRevision = {
 };
 
 type ApiEnvelope<T> = { data: T };
-const apiBase = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '';
+const apiBase = (typeof import.meta !== 'undefined' && (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_API_BASE_URL) ?? (typeof process !== 'undefined' ? process.env?.VITE_API_BASE_URL : '') ?? '';
 let accessToken: string | null = null;
 let refreshInFlight: Promise<{ user: ApiUser; accessToken: string }> | null = null;
 
@@ -383,13 +399,13 @@ export const productionApi = {
     departureAt: string;
     passengers: number;
     strategy: ApiJourneyStrategy;
-    preferences?: Record<string, boolean | string[]>;
+    preferences?: Record<string, boolean | string[] | Record<string, string[]>>;
   }) {
     const send = (body: typeof input) => request<ApiJourneySearchResult>('/journeys/search', { method: 'POST', body: JSON.stringify(body) });
     try { return await send(input); } catch (error) {
       // An older API release does not know the schedule-provider preferences and rejects the request: retry once with the legacy fields only.
-      const { allowedTransportTypes, allowedTransitProviders, ...legacy } = input.preferences ?? {};
-      if (allowedTransportTypes === undefined && allowedTransitProviders === undefined) throw error;
+      const { allowedTransportTypes, allowedTransitProviders, allowedTransitProvidersByType, ...legacy } = input.preferences ?? {};
+      if (allowedTransportTypes === undefined && allowedTransitProviders === undefined && allowedTransitProvidersByType === undefined) throw error;
       if (error instanceof Error && /Забагато запитів/.test(error.message)) throw error;
       return send({ ...input, preferences: legacy });
     }
@@ -411,10 +427,35 @@ export const productionApi = {
   },
   pauseNavigation(id: string) { return request<{ id: string; state: 'paused'; opt_in: boolean }>(`/navigation/sessions/${id}/pause`, { method: 'POST' }); },
   resumeNavigation(id: string) { return request<{ id: string; state: 'active'; opt_in: boolean }>(`/navigation/sessions/${id}/resume`, { method: 'POST' }); },
+  transportTypesCatalog(cityId?: string) {
+    const query = cityId ? `?cityId=${encodeURIComponent(cityId)}` : '';
+    return request<Array<{
+      id: string;
+      label: string;
+      enabled: boolean;
+      availability: string;
+      capabilities: string[];
+      reason: string | null;
+    }>>(`/catalog/transport-types${query}`);
+  },
+  transportRegions() {
+    return request<Array<{
+      id: string;
+      name: string;
+      capital: string;
+      majorCities: string[];
+      bbox: [number, number, number, number];
+    }>>('/catalog/regions');
+  },
   transportLayerAvailability() { return request<Array<{ id: string; available: boolean }>>('/transport/layers'); },
   transportRoutes(bbox: string, types: string[], signal?: AbortSignal) { return request<GeoJsonCollection>(`/transport/routes?bbox=${bbox}&types=${types.join(',')}`, { signal }); },
   transportStops(bbox: string, types: string[], signal?: AbortSignal) { return request<GeoJsonCollection>(`/transport/stops?bbox=${bbox}&types=${types.join(',')}`, { signal }); },
   transportVehicles(bbox: string, types: string[], signal?: AbortSignal) { return request<GeoJsonCollection>(`/transport/vehicles?bbox=${bbox}&types=${types.join(',')}`, { signal }); },
+  transitStopArrivals(stopId: string, lat: number, lon: number, signal?: AbortSignal) {
+    return request<{ stopId: string; lat: number; lon: number; arrivals: TransitArrival[] }>(
+      `/transit/stops/${encodeURIComponent(stopId)}/arrivals?lat=${lat}&lon=${lon}`, { signal },
+    );
+  },
   transportMicromobility(bbox: string, types: string[], signal?: AbortSignal) { return request<GeoJsonCollection>(`/transport/micromobility?bbox=${bbox}&types=${types.join(',')}`, { signal }); },
   setNavigationDestination(id: string, input: { destination: [number, number]; destinationName: string }) {
     return request<ApiNavigationSession>(`/navigation/sessions/${id}/destination`, { method: 'PUT', body: JSON.stringify(input) });

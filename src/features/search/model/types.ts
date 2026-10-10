@@ -2,6 +2,7 @@ export type SearchTransportMode =
   | 'all'
   | 'bus'
   | 'minibus'
+  | 'marshrutka'
   | 'tram'
   | 'trolleybus'
   | 'metro'
@@ -15,6 +16,7 @@ export type SearchTransportMode =
   | 'transfer'
   | 'water'
   | 'air'
+  | 'walk'
   | 'other';
 
 export type SearchStrategyMode = 'BALANCED' | 'FASTEST' | 'CHEAPEST' | 'RELIABLE' | 'PREMIUM';
@@ -35,6 +37,38 @@ export interface SearchFiltersState {
   onlyVerified: boolean;
   airConditioning: boolean;
   wifi: boolean;
+}
+
+export interface RouteLegItem {
+  id: string;
+  mode: SearchTransportMode;
+  modeLabel: string;
+  carrierName: string;
+  originName: string;
+  destinationName: string;
+  departureTime: string;
+  arrivalTime: string;
+  durationLabel: string;
+  durationSeconds: number;
+  priceLabel?: string;
+  priceMinor?: number;
+  vehicleModel?: string;
+  vehiclePhoto?: string;
+  driver?: {
+    name: string;
+    avatar?: string;
+    rating: number | null;
+    reviewCount: number;
+    verified?: boolean;
+  };
+  features?: string[];
+  transferWaitMinutes?: number;
+  transferHubName?: string;
+  routeName?: string;
+  source?: string;
+  priceStatus?: 'ESTIMATED' | 'LOCKED' | 'DYNAMIC' | 'UNKNOWN';
+  availabilityStatus?: string;
+  distanceMeters?: number | null;
 }
 
 export interface RouteSearchResultItem {
@@ -63,10 +97,12 @@ export interface RouteSearchResultItem {
   arrivalAddress: string;
   durationLabel: string;
   distanceLabel: string;
-  distanceMeters: number;
+  distanceMeters: number | null;
   durationSeconds: number;
-  priceMinor: number;
+  priceMinor: number | null;
   priceLabel: string;
+  priceStatus?: 'ESTIMATED' | 'LOCKED' | 'DYNAMIC' | 'UNKNOWN';
+  availabilityStatus?: string;
   priceUnit: 'за місце' | 'за квиток' | 'за авто' | 'за всю поїздку';
   isPriceFixed: boolean;
   availableSeats?: number;
@@ -79,5 +115,12 @@ export interface RouteSearchResultItem {
   }>;
   offerId?: string;
   journeyId?: string;
+  journeyLegId?: string;
   routeGeometry?: [number, number][];
+  isMultimodal?: boolean;
+  transfers?: number;
+  strategyWinner?: SearchStrategyMode;
+  legs?: RouteLegItem[];
+  reliabilityScore?: number;
+  comfortScore?: number;
 }

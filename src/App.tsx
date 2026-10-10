@@ -27,13 +27,18 @@ import { WifiOff } from 'lucide-react';
 import { themeService } from './services/theme';
 import { todayKyivDate } from './domain/kyivTime';
 import { ProductionMarketplace } from './views/ProductionMarketplace';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 export function App() {
   // A demo can only be activated by a local developer build. Vite replaces
   // DEV at build time, so the demo entry is unreachable and tree-shaken in
   // production bundles even when VITE_DEMO_MODE is accidentally set.
   if (import.meta.env.DEV && import.meta.env.VITE_DEMO_MODE === 'true') return <DemoApp />;
-  return <ProductionMarketplace />;
+  return (
+    <ErrorBoundary>
+      <ProductionMarketplace />
+    </ErrorBoundary>
+  );
 }
 
 function DemoApp() {

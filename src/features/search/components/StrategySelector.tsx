@@ -1,5 +1,5 @@
 import React from 'react';
-import { Coins, Zap } from 'lucide-react';
+import { Coins, Sparkles, Zap } from 'lucide-react';
 import type { SearchStrategyMode } from '../model/types';
 
 interface StrategySelectorProps {
@@ -7,91 +7,34 @@ interface StrategySelectorProps {
   onSelectStrategy: (strategy: SearchStrategyMode) => void;
 }
 
-export const StrategySelector: React.FC<StrategySelectorProps> = ({
-  selectedStrategy,
-  onSelectStrategy,
-}) => {
-  const strategy = selectedStrategy;
-  const onChangeStrategy = onSelectStrategy;
-  return (
-    <div className="mt-3.5">
-      <h2 className="text-[13px] font-black text-[#081B35] dark:text-white px-1 mb-2">
-        Режим пошуку
-      </h2>
+const STRATEGIES = [
+  { id: 'BALANCED', label: 'Оптимальний', sub: 'Баланс часу і ціни', icon: Sparkles },
+  { id: 'FASTEST', label: 'Найшвидший', sub: 'Мінімум часу', icon: Zap },
+  { id: 'CHEAPEST', label: 'Найдешевший', sub: 'Мінімум вартості', icon: Coins },
+] as const;
 
-      <div className="grid grid-cols-3 gap-2">
-        {/* Balanced (Оптимальний) */}
-        <button
-          type="button"
-          onClick={() => onChangeStrategy('BALANCED')}
-          className={`flex flex-col items-center justify-center rounded-[18px] p-2.5 text-center transition-all active:scale-95 ${
-            strategy === 'BALANCED'
-              ? 'bg-[#0866F5] text-white shadow-md shadow-blue-500/25'
-              : 'bg-white dark:bg-[#111e36] text-[#081B35] dark:text-white border border-slate-100/90 dark:border-slate-800 shadow-sm'
-          }`}
-        >
-          <span className="text-[12px] font-black leading-tight">
-            Оптимальний
-          </span>
-          <span
-            className={`text-[9.5px] font-medium leading-tight mt-0.5 ${
-              strategy === 'BALANCED' ? 'text-blue-100' : 'text-[#63738C] dark:text-slate-400'
+export const StrategySelector: React.FC<StrategySelectorProps> = ({ selectedStrategy, onSelectStrategy }) => (
+  <div>
+    <div role="group" aria-label="Пріоритет поїздки" className="grid grid-cols-3 gap-2">
+      {STRATEGIES.map(({ id, label, icon: Icon }) => {
+        const active = selectedStrategy === id;
+        return (
+          <button
+            key={id}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onSelectStrategy(id)}
+            className={`flex min-h-11 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-center transition-all active:scale-95 ${
+              active
+                ? 'border-2 border-[#0066FF] bg-blue-50/80 text-[#0066FF] shadow-xs dark:border-[#0066FF] dark:bg-blue-950/40 dark:text-blue-300'
+                : 'border border-slate-200/90 bg-white text-[#0B1730] hover:border-slate-300 dark:border-slate-800 dark:bg-[#101E38] dark:text-white'
             }`}
           >
-            Баланс часу і ціни
-          </span>
-        </button>
-
-        {/* Fastest (Найшвидший) */}
-        <button
-          type="button"
-          onClick={() => onChangeStrategy('FASTEST')}
-          className={`flex flex-col items-center justify-center rounded-[18px] p-2.5 text-center transition-all active:scale-95 ${
-            strategy === 'FASTEST'
-              ? 'bg-[#0866F5] text-white shadow-md shadow-blue-500/25'
-              : 'bg-white dark:bg-[#111e36] text-[#081B35] dark:text-white border border-slate-100/90 dark:border-slate-800 shadow-sm'
-          }`}
-        >
-          <div className="flex items-center gap-1">
-            <Zap size={13} className={strategy === 'FASTEST' ? 'text-white' : 'text-[#0866F5]'} />
-            <span className="text-[12px] font-black leading-tight">
-              Найшвидший
-            </span>
-          </div>
-          <span
-            className={`text-[9.5px] font-medium leading-tight mt-0.5 ${
-              strategy === 'FASTEST' ? 'text-blue-100' : 'text-[#63738C] dark:text-slate-400'
-            }`}
-          >
-            Мінімум часу
-          </span>
-        </button>
-
-        {/* Cheapest (Найдешевший) */}
-        <button
-          type="button"
-          onClick={() => onChangeStrategy('CHEAPEST')}
-          className={`flex flex-col items-center justify-center rounded-[18px] p-2.5 text-center transition-all active:scale-95 ${
-            strategy === 'CHEAPEST'
-              ? 'bg-[#0866F5] text-white shadow-md shadow-blue-500/25'
-              : 'bg-white dark:bg-[#111e36] text-[#081B35] dark:text-white border border-slate-100/90 dark:border-slate-800 shadow-sm'
-          }`}
-        >
-          <div className="flex items-center gap-1">
-            <Coins size={13} className={strategy === 'CHEAPEST' ? 'text-white' : 'text-[#0866F5]'} />
-            <span className="text-[12px] font-black leading-tight">
-              Найдешевший
-            </span>
-          </div>
-          <span
-            className={`text-[9.5px] font-medium leading-tight mt-0.5 ${
-              strategy === 'CHEAPEST' ? 'text-blue-100' : 'text-[#63738C] dark:text-slate-400'
-            }`}
-          >
-            Мінімум ціни
-          </span>
-        </button>
-      </div>
+            <Icon size={13} className={active ? 'shrink-0 text-[#0066FF] dark:text-blue-400' : 'shrink-0 text-slate-500 dark:text-slate-400'} />
+            <span className="text-[11px] font-black leading-tight">{label}</span>
+          </button>
+        );
+      })}
     </div>
-  );
-};
+  </div>
+);

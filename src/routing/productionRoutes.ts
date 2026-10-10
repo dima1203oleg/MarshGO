@@ -1,6 +1,6 @@
 export type ProductionTab =
   | 'home' | 'search' | 'trips' | 'chat' | 'profile' | 'demand'
-  | 'requests' | 'my-demands' | 'offer-new' | 'admin' | 'navigation' | 'plan' | 'map';
+  | 'requests' | 'my-demands' | 'offer-new' | 'admin' | 'navigation' | 'plan' | 'map' | 'lifecycle';
 
 export type ProductionRouteKind = 'tab' | 'offer' | 'booking' | 'demand' | 'journey' | 'conversation';
 export type ProductionRoute = { tab: ProductionTab; kind: ProductionRouteKind; entityId: string | null };
@@ -19,6 +19,7 @@ const pathByTab: Record<ProductionTab, string> = {
   navigation: '/navigate',
   plan: '/trips/plan',
   map: '/map',
+  lifecycle: '/lifecycle',
 };
 
 const tabByPath = new Map(Object.entries(pathByTab).map(([tab, path]) => [path, tab as ProductionTab]));
