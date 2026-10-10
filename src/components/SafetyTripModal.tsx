@@ -6,7 +6,7 @@ import {
   PhoneCall,
   AlertTriangle,
   Lock,
-  CheckCircle2,
+
   Copy,
   Check,
   Send,
@@ -44,14 +44,6 @@ export const SafetyTripModal: React.FC<SafetyTripModalProps> = ({
     navigator.clipboard.writeText(shareText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
-  };
-
-  const handleShareViber = () => {
-    window.open(`viber://forward?text=${encodeURIComponent(shareText)}`, '_blank');
-  };
-
-  const handleShareTelegram = () => {
-    window.open(`https://t.me/share/url?url=${encodeURIComponent(tripUrl)}&text=${encodeURIComponent(shareText)}`, '_blank');
   };
 
   return (

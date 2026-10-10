@@ -1,0 +1,13 @@
+.git
+.env
+.env.*
+!.env.example
+node_modules
+ios
+android
+playwright-report
+test-results
+coverage
+dist
+*.log
+.DS_Store

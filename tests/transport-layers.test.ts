@@ -1,0 +1,73 @@
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+import { buildGeoJsonNetwork, buildNetwork, decimate, geoJsonMode, inBbox, intersects, parseBbox, routeInBbox } from '../server/mobility/transportLayers';
+
+const files = {
+  'routes.txt': 'route_id,route_short_name,route_type\nR1,47,3\nR2,2,0\nR3,M1,1\nR4,X,1700\n',
+  'stops.txt': 'stop_id,stop_name,stop_lat,stop_lon\nA,Франка,49.84,24.03\nB,Ринок,49.841,24.032\nC,Сихів,49.80,24.07\nD,Bad,0,0\nE,Orphan,49.5,24.5\n',
+  'trips.txt': 'route_id,trip_id,direction_id,shape_id\nR1,T1,0,\nR1,T2,0,\nR2,T3,0,S1\nR3,T4,0,\n',
+  'stop_times.txt': 'trip_id,stop_id,stop_sequence\nT1,A,1\nT1,B,2\nT2,A,1\nT2,B,2\nT2,C,3\nT3,A,1\nT3,C,2\nT4,B,1\nT4,C,2\n',
+  'shapes.txt': 'shape_id,shape_pt_lat,shape_pt_lon,shape_pt_sequence\nS1,49.84,24.03,1\nS1,49.82,24.05,2\nS1,49.80,24.07,3\n',
+};
+
+describe('transport layer network', () => {
+  const network = buildNetwork(files);
+  it('draws a stop-sequence line from the longest trip when a route has no shape', () => {
+    const bus = network.routes.find((route) => route.name === '47')!;
+    assert.equal(bus.type, 'bus');
+    assert.deepEqual(bus.coordinates, [[24.03, 49.84], [24.032, 49.841], [24.07, 49.80]]);
+  });
+  it('uses shapes.txt geometry when present and types tram and metro routes', () => {
+    const tram = network.routes.find((route) => route.name === '2')!;
+    assert.equal(tram.type, 'tram'); assert.equal(tram.coordinates.length, 3);
+    assert.equal(network.routes.find((route) => route.name === 'M1')?.type, 'metro');
+  });
+  it('keeps only valid stops that a known route serves, with the transport types serving them', () => {
+    assert.deepEqual(network.stops.map((stop) => stop.id).sort(), ['A', 'B', 'C']);
+    assert.deepEqual([...network.stops.find((stop) => stop.id === 'A')!.types].sort(), ['bus', 'tram']);
+    assert.ok(network.bbox && network.bbox[0] === 24.03);
+  });
+  it('validates viewport boxes and limits their size', () => {
+    assert.deepEqual(parseBbox('24,49,25,50'), [24, 49, 25, 50]);
+    assert.equal(parseBbox('24,49,30,50'), null);
+    assert.equal(parseBbox('25,49,24,50'), null);
+    assert.equal(parseBbox('a,b,c,d'), null);
+    assert.equal(parseBbox(undefined), null);
+  });
+  it('geometry helpers behave', () => {
+    assert.equal(decimate([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 4).length, 4);
+    assert.equal(inBbox([24, 49, 25, 50], 24.5, 49.5), true);
+    assert.equal(intersects([24, 49, 25, 50], [26, 49, 27, 50]), false);
+    assert.equal(routeInBbox(network.routes[0], [24, 49, 24.04, 49.85]), true);
+  });
+});
+
+describe('official city GeoJSON normalization', () => {
+  it('joins route segments in order and keeps City Express and funicular modes separate', () => {
+    const body = { features: [
+      { geometry: { type: 'LineString', coordinates: [[30.1, 50.1], [30.2, 50.2]] }, properties: { num_route: 'E1', napryamok: 'clockwise', order_: 2, from_stop_: 'B', to_stop_: 'C' } },
+      { geometry: { type: 'LineString', coordinates: [[30, 50], [30.1, 50.1]] }, properties: { num_route: 'E1', napryamok: 'clockwise', order_: 1, from_stop_: 'A', to_stop_: 'B' } },
+      { geometry: { type: 'Point', coordinates: [30, 50] }, properties: { code1: 'a', name: 'Станція A' } },
+    ] };
+    const network = buildGeoJsonNetwork(body, 'city_train');
+    assert.deepEqual(network.routes[0].coordinates, [[30, 50], [30.1, 50.1], [30.2, 50.2]]);
+    assert.equal(network.routes[0].type, 'city_train');
+    assert.equal(network.routes[0].direction, 'A → C');
+    assert.equal(network.stops[0].types[0], 'city_train');
+    assert.equal(geoJsonMode('Київ — фунікулер (геометрія)'), 'funicular');
+  });
+  it('rejects malformed FeatureCollections and drops invalid coordinates', () => {
+    assert.throws(() => buildGeoJsonNetwork({}, 'metro'), /FeatureCollection/);
+    const network = buildGeoJsonNetwork({ features: [{ geometry: { type: 'Point', coordinates: [300, 50] }, properties: { name: 'invalid' } }] }, 'metro');
+    assert.equal(network.stops.length, 0);
+  });
+});
+
+import { centerInUkraine } from '../server/mobility/types';
+describe('feed location sanity', () => {
+  it('rejects feeds whose positions are outside Ukraine and accepts Kyiv or Lviv', () => {
+    assert.equal(centerInUkraine([-77.1, -12.1, -77.0, -12.0]), false);
+    assert.equal(centerInUkraine([30.3, 50.2, 30.8, 50.6]), true);
+    assert.equal(centerInUkraine([23.9, 49.7, 24.2, 49.9]), true);
+  });
+});

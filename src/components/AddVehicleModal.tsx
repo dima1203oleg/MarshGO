@@ -3,10 +3,10 @@ import {
   Car,
   X,
   Plus,
-  ShieldCheck,
-  Check,
-  Camera,
-  CheckCircle2,
+
+
+
+
   AlertCircle
 } from 'lucide-react';
 import { Vehicle } from '../types';
@@ -349,10 +349,10 @@ export const AddVehicleModal: React.FC<AddVehicleModalProps> = ({
           </div>
 
           {/* Photo Preview */}
-          {photoUrl && (
+          {PRESET_VEHICLES.some((preset) => preset.photoUrl === photoUrl) && (
             <div className="relative rounded-xl overflow-hidden aspect-video max-h-36 bg-slate-100 border border-slate-200">
               <img
-                src={photoUrl}
+                src={PRESET_VEHICLES.find((preset) => preset.photoUrl === photoUrl)?.photoUrl}
                 alt="Попередній перегляд авто"
                 className="w-full h-full object-cover"
                 onError={() => {}}

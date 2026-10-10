@@ -1,0 +1,1360 @@
+import { randomUUID } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import { devices, expect, test } from '@playwright/test';
+import { Pool } from 'pg';
+
+const databaseUrl = process.env.E2E_DATABASE_URL;
+if (!databaseUrl) throw new Error('E2E_DATABASE_URL must point to the isolated local PostGIS test database');
+const database = new URL(databaseUrl);
+if (!['127.0.0.1', 'localhost', '::1'].includes(database.hostname)) {
+  throw new Error('Browser E2E tests are restricted to a loopback database');
+}
+
+const pool = new Pool({ connectionString: databaseUrl });
+const driverId = randomUUID();
+const vehicleId = randomUUID();
+const offerId = randomUUID();
+const rescueAlternativeId = randomUUID();
+const rescueCorridorAlternativeId = randomUUID();
+const driverPhone = `+38050${String(Date.now()).slice(-7)}`;
+const passengerPhone = `+38067${String(Date.now() + 1).slice(-7)}`;
+const navigationPhone = `+38063${String(Date.now() + 2).slice(-7)}`;
+const navigationSecondPhone = `+38066${String(Date.now() + 3).slice(-7)}`;
+const navigationPassengerPhone = `+38068${String(Date.now() + 4).slice(-7)}`;
+const navigationFlowDriverPhone = `+38069${String(Date.now() + 5).slice(-7)}`;
+const journeyPassengerPhone = `+38070${String(Date.now() + 6).slice(-7)}`;
+const searchRestorePhone = `+38071${String(Date.now() + 7).slice(-7)}`;
+const transportCatalogPhone = `+38074${String(Date.now() + 10).slice(-7)}`;
+const gpsDeniedPhone = `+38072${String(Date.now() + 8).slice(-7)}`;
+const navigationThirdPassengerPhone = `+38073${String(Date.now() + 9).slice(-7)}`;
+const navigationFlowVehicleId = randomUUID();
+let navigationFlowDemandId = '';
+
+function tomorrowInKyiv() {
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Kyiv' }).format(new Date());
+  const [year, month, day] = today.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day + 1)).toISOString().slice(0, 10);
+}
+
+async function signIn(page: import('@playwright/test').Page, name: string, phone: string): Promise<string> {
+  await page.goto('/');
+  const loginHeading = page.getByRole('heading', { name: 'Вхід за номером телефону' });
+  const welcome = page.getByRole('button', { name: /У мене вже є акаунт/i });
+  await expect(loginHeading.or(welcome).first()).toBeVisible();
+  if (await welcome.isVisible()) await welcome.click();
+  await expect(loginHeading).toBeVisible();
+  await page.getByPlaceholder('Ваше ім’я').fill(name);
+  await page.getByPlaceholder('+380 номер телефону').fill(phone);
+  await page.getByRole('button', { name: 'Почати', exact: true }).click();
+  const otpNotice = page.getByText(/Тестовий OTP локального середовища:/);
+  await expect(otpNotice).toBeVisible();
+  const code = (await otpNotice.innerText()).match(/\b\d{6}\b/)?.[0];
+  expect(code, 'development OTP should be visible only in this isolated local E2E environment').toMatch(/^\d{6}$/);
+  await page.locator('input[autocomplete="one-time-code"]').fill(code!);
+  const [authResponse] = await Promise.all([
+    page.waitForResponse(response => response.url().endsWith('/api/v1/auth/otp/verify')),
+    page.getByRole('button', { name: 'Підтвердити номер' }).click(),
+  ]);
+  await expect(page.getByRole('heading', { name: /Розумні поїздки для міста і міжміста/ })).toBeVisible();
+  expect(Boolean((await authResponse.allHeaders())['set-cookie']), 'OTP verification should issue a refresh cookie').toBe(true);
+  return (await authResponse.json()).data.accessToken as string;
+}
+
+/** Search lives in its own tab; the home screen only shows what is around the user. */
+async function openSearchTab(page: import('@playwright/test').Page) {
+  await page.getByRole('navigation', { name: 'Основна навігація' }).getByRole('button', { name: 'Пошук', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Знайти маршрут' })).toBeVisible();
+  await expect(page.getByPlaceholder('Моє місцеперебування')).toBeVisible();
+}
+
+async function openCreateMenu(page: import('@playwright/test').Page) {
+  const navigation = page.getByRole('navigation', { name: 'Основна навігація' });
+  await navigation.getByRole('button', { name: 'Створити', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Створити', exact: true })).toBeVisible();
+}
+
+async function startNavigationFromHome(page: import('@playwright/test').Page) {
+  const createSession = page.waitForResponse(response =>
+    response.url().endsWith('/api/v1/navigation/sessions') && response.request().method() === 'POST',
+  );
+  await page.getByRole('button', { name: /^Навігація Побудувати оптимальний маршрут/ }).click();
+  return createSession;
+}
+
+async function chooseRoutePlace(page: import('@playwright/test').Page, field: 'origin' | 'destination', city: string, suggestion: RegExp) {
+  const input = page.getByPlaceholder(field === 'origin' ? 'Моє місцеперебування' : 'Введіть адресу, місто або зупинку');
+  await input.fill(city);
+  await expect(page.getByRole('button', { name: suggestion })).toBeVisible();
+  await page.getByRole('button', { name: suggestion }).click();
+}
+
+async function setTomorrowAtEightOnTimeWheel(page: import('@playwright/test').Page) {
+  await page.getByRole('button', { name: /^Дата/ }).click();
+  await page.getByRole('button', { name: 'Завтра', exact: true }).click();
+  await page.getByRole('button', { name: 'Застосувати', exact: true }).click();
+  await page.getByRole('button', { name: /^Час/ }).click();
+  await page.getByRole('listbox', { name: 'Години' }).getByRole('option', { name: '08', exact: true }).click();
+  await page.getByRole('listbox', { name: 'Хвилини' }).getByRole('option', { name: '00', exact: true }).click();
+  await page.getByRole('button', { name: 'Застосувати', exact: true }).click();
+}
+
+async function setPassengerCount(page: import('@playwright/test').Page, count: number) {
+  await page.getByRole('button', { name: /^Пасажири/ }).click();
+  await page.getByRole('listbox', { name: 'Пасажири' }).getByRole('option', { name: `${count} особи`, exact: true }).click();
+  await page.getByRole('button', { name: 'Застосувати', exact: true }).click();
+}
+
+test('time drum plays a ratchet tick and keeps arrival-time mode', async ({ browser, baseURL }) => {
+  expect(baseURL).toBeTruthy();
+  const context = await browser.newContext({ baseURL, timezoneId: 'Europe/Kyiv' });
+  const page = await context.newPage();
+  try {
+    await page.addInitScript(() => {
+      const feedback = { audioTicks: 0, audioContexts: 0, vibrationTicks: 0 };
+      Object.defineProperty(window, '__timeDrumFeedback', { configurable: true, value: feedback });
+      Object.defineProperty(navigator, 'vibrate', {
+        configurable: true,
+        value: () => { feedback.vibrationTicks += 1; return true; },
+      });
+      class MockAudioContext {
+        state = 'running';
+        currentTime = 0;
+        destination = {};
+        constructor() { feedback.audioContexts += 1; }
+        createOscillator() {
+          return {
+            type: 'triangle',
+            frequency: { setValueAtTime() {} },
+            connect() {},
+            start: () => { feedback.audioTicks += 1; },
+            stop() {},
+          };
+        }
+        createGain() {
+          return {
+            gain: { setValueAtTime() {}, exponentialRampToValueAtTime() {} },
+            connect() {},
+          };
+        }
+        resume() { return Promise.resolve(); }
+        close() { return Promise.resolve(); }
+      }
+      Object.defineProperty(window, 'AudioContext', { configurable: true, value: MockAudioContext });
+    });
+    await signIn(page, 'Time Drum Passenger', `+38075${String(Date.now()).slice(-7)}`);
+    await openSearchTab(page);
+    await page.getByRole('button', { name: /^Час/ }).click();
+    await expect(page.getByTestId('time-drum-modal')).toBeVisible();
+    const hourWheel = page.getByRole('listbox', { name: 'Години' });
+    const minuteWheel = page.getByRole('listbox', { name: 'Хвилини' });
+    const selectedTime = page.locator('[aria-live="polite"][aria-label^="Обраний час"]');
+    await expect.poll(async () => {
+      const hour = await hourWheel.locator('[role="option"][aria-selected="true"]').innerText();
+      const minute = await minuteWheel.locator('[role="option"][aria-selected="true"]').innerText();
+      return await selectedTime.getAttribute('aria-label') === `Обраний час ${hour}:${minute}`;
+    }).toBe(true);
+    await page.screenshot({ path: '/tmp/marshgo-time-drum-picker.png' });
+
+    const currentHour = Number(await hourWheel.locator('[role="option"][aria-selected="true"]').innerText());
+    const nextHour = String((currentHour + 1) % 24).padStart(2, '0');
+    await hourWheel.getByRole('option', { name: nextHour, exact: true }).evaluate((option) => (option as HTMLElement).click());
+    await expect(hourWheel.locator('[role="option"][aria-selected="true"]')).toHaveText(nextHour);
+    const feedbackSnapshot = await page.evaluate(() => (window as Window & { __timeDrumFeedback?: { audioTicks: number; audioContexts: number; vibrationTicks: number } }).__timeDrumFeedback);
+    expect(feedbackSnapshot?.audioContexts).toBeGreaterThan(0);
+    await expect.poll(() => page.evaluate(() => {
+      const feedback = (window as Window & { __timeDrumFeedback?: { audioTicks: number; vibrationTicks: number } }).__timeDrumFeedback;
+      return feedback?.audioTicks ?? 0;
+    })).toBeGreaterThan(0);
+    await expect.poll(() => page.evaluate(() => {
+      const feedback = (window as Window & { __timeDrumFeedback?: { audioTicks: number; vibrationTicks: number } }).__timeDrumFeedback;
+      return feedback?.vibrationTicks ?? 0;
+    })).toBeGreaterThan(0);
+
+    const arrivalMode = page.getByRole('button', { name: 'Прибуття', exact: true });
+    await arrivalMode.click();
+    await expect(arrivalMode).toHaveAttribute('aria-pressed', 'true');
+    await page.getByRole('button', { name: 'Застосувати', exact: true }).click();
+    await page.getByRole('button', { name: /^Час/ }).click();
+    await expect(page.getByRole('button', { name: 'Прибуття', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  } finally {
+    await context.close();
+  }
+});
+
+test('route transport catalogue exposes the twelve canonical modes in order and disables unroutable modes', async ({ browser, baseURL }) => {
+  expect(baseURL).toBeTruthy();
+  const context = await browser.newContext({ baseURL, timezoneId: 'Europe/Kyiv' });
+  const page = await context.newPage();
+  try {
+    await signIn(page, 'Transport Catalogue Passenger', transportCatalogPhone);
+    await openSearchTab(page);
+    const providerRefresh = page.waitForResponse(response => response.url().includes('/api/v1/mobility/providers?lat=') && response.ok());
+    await chooseRoutePlace(page, 'origin', 'Стрий', /Стрий, Львівська область, Україна/);
+    await providerRefresh;
+    const picker = page.getByRole('region', { name: 'Види транспорту' });
+    const allModes = [
+      'Автобуси', 'Маршрутки', 'Тролейбуси', 'Трамваї', 'Метро', 'Попутки',
+      'Таксі', 'Поїзди', 'Велосипеди', 'Самокати', 'Каршеринг', 'Трансфери',
+    ];
+    const tiles = picker.locator('button[aria-label]');
+    await expect(tiles).toHaveCount(12);
+    const visibleLabels = await tiles.evaluateAll((elements) => elements.map((element) =>
+      element.getAttribute('aria-label')?.split(' — ')[0] ?? '',
+    ));
+    expect(visibleLabels).toEqual(allModes);
+    for (const unsupported of ['Таксі', 'Велосипеди', 'Самокати', 'Каршеринг', 'Трансфери']) {
+      await expect(picker.locator(`button[aria-label^="${unsupported}"]`)).toBeDisabled();
+    }
+  } finally {
+    await context.close();
+  }
+});
+
+test('welcome and onboarding explain the real transport scope and keep location permission optional', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: /У мене вже є акаунт/i }).click();
+  await expect(page.getByRole('heading', { name: 'Вхід за номером телефону' })).toBeVisible();
+  await page.getByRole('button', { name: 'Назад' }).click();
+  await page.getByRole('button', { name: 'Почати', exact: true }).first().click();
+  await expect(page.getByRole('heading', { name: /Їдеш\? MARSHGO знайде попутника/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Назад' })).toHaveCount(1);
+  await expect(page.getByText(/Не треба створювати оголошення/)).toBeVisible();
+  await page.screenshot({ path: '/tmp/marshgo-onboarding-transport.png', fullPage: true });
+  await page.getByRole('button', { name: 'Далі', exact: true }).click();
+  await expect(page.getByRole('heading', { name: /Шукай поїздку або плануй/ })).toBeVisible();
+  await expect(page.getByText(/там, де вони вже підключені/)).toBeVisible();
+  await page.screenshot({ path: '/tmp/marshgo-onboarding-strategy.png', fullPage: true });
+  await page.getByRole('button', { name: 'Далі', exact: true }).click();
+  await expect(page.getByRole('heading', { name: /Дозвольте MARSHGO/ })).toBeVisible();
+  await page.screenshot({ path: '/tmp/marshgo-onboarding-permissions.png', fullPage: true });
+  await page.getByRole('button', { name: 'Не зараз', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Вхід за номером телефону' })).toBeVisible();
+});
+
+test.beforeAll(async () => {
+  await pool.query(`
+    INSERT INTO users(id,phone_e164,display_name,roles,is_verified)
+    VALUES($1,$2,'MARSHGO E2E Driver',ARRAY['passenger','driver'],true)
+  `, [driverId, driverPhone]);
+  await pool.query(`INSERT INTO user_roles(user_id,role) VALUES($1,'passenger'),($1,'driver')`, [driverId]);
+  await pool.query(`
+    INSERT INTO vehicles(id,owner_id,make,model,model_year,seat_count,verification_status,is_active)
+    VALUES($1,$2,'E2E','Road Car',2024,4,'verified',true)
+  `, [vehicleId, driverId]);
+  await pool.query(`
+    INSERT INTO offers(id,driver_id,vehicle_id,origin_name,destination_name,origin,destination,route,
+      departure_at,arrival_at,distance_m,duration_s,route_source,price_per_seat_minor,total_seats,available_seats)
+    VALUES($1,$2,$3,'Стрий, Львівська область, Україна','Львів, Львівська область, Україна',
+      ST_SetSRID(ST_MakePoint(23.8561,49.2567),4326)::geography,
+      ST_SetSRID(ST_MakePoint(24.0297,49.8397),4326)::geography,
+      ST_SetSRID(ST_GeomFromGeoJSON('{"type":"LineString","coordinates":[[23.8561,49.2567],[24.0297,49.8397]]}'),4326),
+      (date_trunc('day',now() AT TIME ZONE 'Europe/Kyiv') + interval '1 day' + interval '9 hours') AT TIME ZONE 'Europe/Kyiv',
+      (date_trunc('day',now() AT TIME ZONE 'Europe/Kyiv') + interval '1 day' + interval '10 hours 30 minutes') AT TIME ZONE 'Europe/Kyiv',
+      78000,5400,'e2e_fixture',15000,4,4)
+  `, [offerId, driverId, vehicleId]);
+  await pool.query(`
+    INSERT INTO offers(id,driver_id,vehicle_id,origin_name,destination_name,origin,destination,route,
+      departure_at,arrival_at,distance_m,duration_s,route_source,price_per_seat_minor,total_seats,available_seats)
+    VALUES($1,$2,$3,'Rescue E2E Origin','Rescue E2E Destination',
+      ST_SetSRID(ST_MakePoint(23.8561,49.2567),4326)::geography,
+      ST_SetSRID(ST_MakePoint(24.0297,49.8397),4326)::geography,
+      ST_SetSRID(ST_GeomFromGeoJSON('{"type":"LineString","coordinates":[[23.8561,49.2567],[24.0297,49.8397]]}'),4326),
+      (date_trunc('day',now() AT TIME ZONE 'Europe/Kyiv') + interval '1 day' + interval '10 hours') AT TIME ZONE 'Europe/Kyiv',
+      (date_trunc('day',now() AT TIME ZONE 'Europe/Kyiv') + interval '1 day' + interval '11 hours 30 minutes') AT TIME ZONE 'Europe/Kyiv',
+      78000,5400,'e2e_fixture',22000,4,4)
+  `, [rescueAlternativeId, driverId, vehicleId]);
+  await pool.query(`
+    INSERT INTO offers(id,driver_id,vehicle_id,origin_name,destination_name,origin,destination,route,
+      departure_at,arrival_at,distance_m,duration_s,route_source,price_per_seat_minor,total_seats,available_seats)
+    VALUES($1,$2,$3,'Rescue E2E Corridor Origin','Rescue E2E Corridor Destination',
+      ST_SetSRID(ST_MakePoint(23.9429,49.5482),4326)::geography,
+      ST_SetSRID(ST_MakePoint(24.0297,49.8397),4326)::geography,
+      ST_SetSRID(ST_GeomFromGeoJSON('{"type":"LineString","coordinates":[[23.9429,49.5482],[24.0297,49.8397]]}'),4326),
+      (date_trunc('day',now() AT TIME ZONE 'Europe/Kyiv') + interval '1 day' + interval '10 hours 10 minutes') AT TIME ZONE 'Europe/Kyiv',
+      (date_trunc('day',now() AT TIME ZONE 'Europe/Kyiv') + interval '1 day' + interval '11 hours 30 minutes') AT TIME ZONE 'Europe/Kyiv',
+      42000,4800,'e2e_fixture',24000,4,4)
+  `, [rescueCorridorAlternativeId, driverId, vehicleId]);
+});
+
+test.afterAll(async () => {
+  const testUsers = await pool.query<{ id: string }>('SELECT id FROM users WHERE phone_e164=ANY($1::text[])', [[passengerPhone, navigationPhone, navigationSecondPhone, navigationPassengerPhone, navigationFlowDriverPhone, journeyPassengerPhone, searchRestorePhone, transportCatalogPhone, gpsDeniedPhone, navigationThirdPassengerPhone]]);
+  const userIds = [driverId, ...testUsers.rows.map((row) => row.id)];
+  const testBookingQuery = `SELECT b.id FROM bookings b JOIN offers o ON o.id=b.offer_id WHERE b.passenger_id=ANY($1::uuid[]) OR o.driver_id=ANY($1::uuid[])`;
+  await pool.query('DELETE FROM audit_events WHERE actor_id=ANY($1::uuid[]) OR entity_id=ANY($2::uuid[])', [userIds, [offerId, vehicleId]]);
+  await pool.query(`DELETE FROM messages WHERE conversation_id IN (SELECT id FROM conversations WHERE booking_id IN (${testBookingQuery}))`, [userIds]);
+  await pool.query(`DELETE FROM conversation_members WHERE conversation_id IN (SELECT id FROM conversations WHERE booking_id IN (${testBookingQuery}))`, [userIds]);
+  await pool.query(`DELETE FROM conversations WHERE booking_id IN (${testBookingQuery})`, [userIds]);
+  await pool.query(`DELETE FROM booking_events WHERE booking_id IN (${testBookingQuery})`, [userIds]);
+  await pool.query(`DELETE FROM reviews WHERE booking_id IN (${testBookingQuery})`, [userIds]);
+  await pool.query(`DELETE FROM bookings WHERE id IN (${testBookingQuery})`, [userIds]);
+  await pool.query('DELETE FROM proposals WHERE driver_id=ANY($1::uuid[]) OR demand_id IN (SELECT id FROM passenger_demands WHERE passenger_id=ANY($2::uuid[]))', [userIds, userIds]);
+  await pool.query('DELETE FROM navigation_sessions WHERE driver_id=ANY($1::uuid[])', [userIds]);
+  await pool.query('DELETE FROM passenger_demands WHERE passenger_id=ANY($1::uuid[])', [userIds]);
+  await pool.query('DELETE FROM offers WHERE id=$1 OR driver_id=ANY($2::uuid[])', [offerId, userIds]);
+  await pool.query('DELETE FROM otp_challenges WHERE phone_e164=ANY($1::text[])', [[driverPhone, passengerPhone, navigationPhone, navigationSecondPhone, navigationPassengerPhone, navigationFlowDriverPhone, journeyPassengerPhone, searchRestorePhone, transportCatalogPhone, gpsDeniedPhone, navigationThirdPassengerPhone]]);
+  await pool.query('DELETE FROM sessions WHERE user_id=ANY($1::uuid[])', [userIds]);
+  await pool.query('DELETE FROM account_deletion_requests WHERE user_id=ANY($1::uuid[])', [userIds]);
+  await pool.query('DELETE FROM vehicles WHERE id=$1 OR owner_id=ANY($2::uuid[])', [vehicleId, userIds]);
+  await pool.query('DELETE FROM users WHERE id=ANY($1::uuid[])', [userIds]);
+  await pool.end();
+});
+
+test('two independent accounts search, book, negotiate a demand, and exchange persisted chat messages', async ({ browser, baseURL }) => {
+  test.setTimeout(300_000);
+  expect(baseURL).toBeTruthy();
+  const passengerContext = await browser.newContext();
+  const driverContext = await browser.newContext();
+  const passengerPage = await passengerContext.newPage();
+  const driverPage = await driverContext.newPage();
+
+  try {
+    let passengerAccessToken = await signIn(passengerPage, 'E2E Passenger', passengerPhone);
+    let refreshTokenResponses = Promise.resolve();
+    passengerPage.on('response', (response) => {
+      if (response.url().endsWith('/api/v1/auth/refresh') && response.ok()) {
+        refreshTokenResponses = refreshTokenResponses.then(async () => {
+          const body = await response.json() as { data: { accessToken: string } };
+          passengerAccessToken = body.data.accessToken;
+        });
+      }
+    });
+    const profileBeforeRoleSwitch = await passengerPage.evaluate(async token => fetch('/api/v1/users/me', { headers: { Authorization: `Bearer ${token}` } }).then(async response => ({ status: response.status, body: await response.json() })), passengerAccessToken);
+    expect(profileBeforeRoleSwitch.status).toBe(200);
+    const userIdBeforeRoleSwitch = profileBeforeRoleSwitch.body.data.id;
+    const enabledDriverRole = await passengerPage.evaluate(async token => fetch('/api/v1/users/me/roles', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ role: 'driver' }) }).then(response => response.status), passengerAccessToken);
+    expect(enabledDriverRole).toBe(200);
+    const profileAfterRoleSwitch = await passengerPage.evaluate(async token => fetch('/api/v1/users/me', { headers: { Authorization: `Bearer ${token}` } }).then(response => response.json()), passengerAccessToken);
+    const switchedProfile = profileAfterRoleSwitch.data;
+    expect(switchedProfile.id).toBe(userIdBeforeRoleSwitch);
+    expect(switchedProfile.roles).toEqual(expect.arrayContaining(['passenger', 'driver']));
+    const crossAccountVehicleEdit = await passengerPage.evaluate(async ({ token, targetVehicleId }) => fetch(`/api/v1/vehicles/${targetVehicleId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ make: 'Unauthorized edit' }) }).then(response => response.status), { token: passengerAccessToken, targetVehicleId: vehicleId });
+    expect(crossAccountVehicleEdit).toBe(404);
+
+    await test.info().attach('marshgo-iphone-home', {
+      body: await passengerPage.screenshot({ fullPage: true }),
+      contentType: 'image/png',
+    });
+    if (process.env.E2E_SCREENSHOT_PATH) {
+      await passengerPage.screenshot({ path: process.env.E2E_SCREENSHOT_PATH, fullPage: true });
+    }
+    await openSearchTab(passengerPage);
+    await chooseRoutePlace(passengerPage, 'origin', 'Стрий', /Стрий, Львівська область, Україна/);
+    await chooseRoutePlace(passengerPage, 'destination', 'Львів', /Львів, Львівська область, Україна/);
+    await setTomorrowAtEightOnTimeWheel(passengerPage);
+    await setPassengerCount(passengerPage, 2);
+    const journeySearch = passengerPage.waitForResponse(response => response.url().endsWith('/api/v1/journeys/search') && response.request().method() === 'POST');
+    await passengerPage.getByRole('button', { name: /^Знайти маршрут/ }).click();
+    const journeySearchResponse = await journeySearch;
+    expect(journeySearchResponse.status()).toBe(200);
+    const journeySearchPayload = (await journeySearchResponse.json()).data as { journeys: Array<{ offerId: string }> };
+    expect(journeySearchPayload.journeys.some(journey => journey.offerId === offerId)).toBe(true);
+
+    const resultCard = passengerPage.locator('article.journey-result-card').filter({ hasText: 'MARSHGO E2E Driver' }).first();
+    await expect(resultCard).toContainText(/300\s*грн/);
+    await resultCard.getByRole('button', { name: /Переглянути (пропозицію попутки|поїздку)/ }).click();
+    await expect(passengerPage.getByRole('heading', { name: /Стрий.*Львів/ })).toBeVisible();
+    const bookingResponsePromise = passengerPage.waitForResponse(response => response.url().endsWith('/api/v1/bookings') && response.request().method() === 'POST');
+    await passengerPage.getByRole('button', { name: /Забронювати місце/ }).click();
+    const createdBookingResponse = await bookingResponsePromise;
+    expect(createdBookingResponse.status()).toBe(201);
+    const createdBooking = (await createdBookingResponse.json()).data as { id: string; offer_id: string; seat_count: number; total_price_minor: number; status: string; fee_class: string; platform_fee_minor: number; fee_rule_version: string };
+    expect(createdBooking).toMatchObject({ offer_id: offerId, seat_count: 2, total_price_minor: 30000, status: 'confirmed', fee_class: 'community', platform_fee_minor: 0, fee_rule_version: 'community-0pct-v1' });
+    await expect(passengerPage.getByRole('heading', { name: 'Мої поїздки' })).toBeVisible();
+    await expect(passengerPage.getByText(/2 місця/).first()).toBeVisible();
+
+    const booking = await pool.query<{ seat_count: number; total_price_minor: number; status: string }>(
+      'SELECT b.seat_count,b.total_price_minor,b.status FROM bookings b WHERE b.id=$1 AND b.passenger_id=(SELECT id FROM users WHERE phone_e164=$2)',
+      [createdBooking.id, passengerPhone],
+    );
+    expect(booking.rows).toHaveLength(1);
+    expect(booking.rows[0]).toMatchObject({ seat_count: 2, total_price_minor: 30000, status: 'confirmed' });
+    const inventory = await pool.query<{ available_seats: number }>('SELECT available_seats FROM offers WHERE id=$1', [offerId]);
+    expect(inventory.rows[0].available_seats).toBe(2);
+
+    // A booking deep link must resolve to the server-owned entity after a cold load and reload.
+    await passengerPage.goto(`/bookings/${createdBooking.id}`);
+    await expect(passengerPage).toHaveURL(new RegExp(`/bookings/${createdBooking.id}$`));
+    const savedJourney = passengerPage.locator('article').filter({ hasText: 'Маршрут готовий' }).filter({ hasText: /Підтверджено 300\s*грн/ });
+    await expect(savedJourney).toHaveCount(1);
+    await expect(savedJourney).toContainText('Львів');
+    await passengerPage.reload();
+    await expect(passengerPage).toHaveURL(new RegExp(`/bookings/${createdBooking.id}$`));
+    await expect(passengerPage.locator('article').filter({ hasText: 'Маршрут готовий' }).filter({ hasText: /Підтверджено 300\s*грн/ })).toHaveCount(1);
+    await expect(passengerPage.getByRole('heading', { name: 'Мої поїздки' })).toBeVisible();
+
+    await passengerPage.getByRole('button', { name: /Чат|Написати/ }).click();
+    await passengerPage.getByPlaceholder('Напишіть повідомлення…').fill('Буду на місці о 08:45.');
+    await passengerPage.getByPlaceholder('Напишіть повідомлення…').press('Enter');
+    await expect(passengerPage.getByText('Буду на місці о 08:45.')).toBeVisible();
+    await pool.query(
+      `INSERT INTO messages(conversation_id,sender_id,body,created_at)
+       SELECT c.id,b.passenger_id,'Стара історія E2E ' || seq::text,now()-((1000-seq)*interval '1 second')
+         FROM conversations c JOIN bookings b ON b.id=c.booking_id
+         CROSS JOIN generate_series(1,55) AS seq WHERE b.id=$1`, [createdBooking.id],
+    );
+    expect((await passengerContext.cookies()).some((cookie) => cookie.name === 'mg_refresh')).toBe(true);
+    expect((await passengerContext.cookies('http://127.0.0.1:3300/api/v1/auth/refresh')).some((cookie) => cookie.name === 'mg_refresh')).toBe(true);
+    const refreshResponse = passengerPage.waitForResponse((response) => response.url().endsWith('/api/v1/auth/refresh'));
+    await passengerPage.reload();
+    const restoredSession = await refreshResponse;
+    expect(restoredSession.status(), 'refresh should restore the session after a page reload').toBe(200);
+    await refreshTokenResponses;
+    // Entity deep links restore the specific server-owned conversation after reload.
+    await expect(passengerPage).toHaveURL(/\/messages\/[A-Za-z0-9_-]+$/);
+    await expect(passengerPage.getByRole('heading', { name: 'MARSHGO E2E Driver' })).toBeVisible();
+    const olderMessagesButton = passengerPage.getByRole('button', { name: 'Завантажити попередні повідомлення' });
+    await expect(olderMessagesButton).toBeVisible();
+    await expect(passengerPage.getByText('Стара історія E2E 55', { exact: true })).toBeVisible();
+    await olderMessagesButton.click();
+    await expect(passengerPage.getByText('Стара історія E2E 1', { exact: true })).toBeVisible();
+    await expect(passengerPage.getByText('Стара історія E2E 55', { exact: true })).toHaveCount(1);
+    await passengerPage.getByRole('button', { name: 'Мої поїздки', exact: true }).click();
+    await expect(passengerPage.getByText(/2 місця/).first()).toBeVisible();
+    await passengerPage.getByRole('button', { name: 'Відкрити зустріч' }).click();
+    await expect(passengerPage.getByText(/Точка посадки · Стрий/)).toBeVisible();
+    await expect(passengerPage.getByRole('button', { name: /Обмін місцем доступний/ })).toBeDisabled();
+    await passengerPage.getByRole('button', { name: /Чат|Написати/ }).click();
+    await expect(passengerPage.getByText('Буду на місці о 08:45.')).toBeVisible();
+
+    await openCreateMenu(passengerPage);
+    await passengerPage.getByRole('button', { name: 'Шукаю поїздку' }).click();
+    const demandPlaceInputs = passengerPage.getByPlaceholder('Пошук адреси або міста');
+    await demandPlaceInputs.nth(0).fill('Стрий');
+    await passengerPage.getByRole('button', { name: 'Знайти', exact: true }).nth(0).click();
+    await passengerPage.getByRole('button', { name: /Стрий, Львівська область, Україна/ }).click();
+    await demandPlaceInputs.nth(1).fill('Львів');
+    await passengerPage.getByRole('button', { name: 'Знайти', exact: true }).nth(1).click();
+    await passengerPage.getByRole('button', { name: /Львів, Львівська область, Україна/ }).click();
+    const demandTimes = passengerPage.locator('input[type="datetime-local"]');
+    await demandTimes.nth(0).fill(`${tomorrowInKyiv()}T08:00`);
+    await demandTimes.nth(1).fill(`${tomorrowInKyiv()}T10:00`);
+    await passengerPage.getByLabel('Пасажири').selectOption('2');
+    await passengerPage.getByLabel('Бюджет, грн').fill('300');
+    await passengerPage.getByRole('button', { name: 'Опублікувати заявку' }).click();
+    await expect(passengerPage.getByRole('heading', { name: 'Пропозиції водіїв' })).toBeVisible();
+    const createdDemandQuery = await pool.query<{ id: string }>(
+      'SELECT id FROM passenger_demands WHERE passenger_id=(SELECT id FROM users WHERE phone_e164=$1) ORDER BY created_at DESC LIMIT 1',
+      [passengerPhone],
+    );
+    const createdDemandId = createdDemandQuery.rows[0]?.id;
+    expect(createdDemandId, 'the passenger demand must persist before the driver searches for it').toBeTruthy();
+
+    await signIn(driverPage, 'MARSHGO Driver', driverPhone);
+    await driverPage.getByRole('button', { name: 'Мої поїздки', exact: true }).click();
+    const publishedOfferCard = driverPage.locator('article').filter({ hasText: 'Стрий' }).filter({ hasText: /2\/4 місць/ });
+    await expect(publishedOfferCard).toBeVisible();
+    const driverTripCard = driverPage.locator('article').filter({ hasText: 'E2E Passenger' }).filter({ hasText: 'Стрий' });
+    await expect(driverTripCard).toBeVisible();
+    await passengerPage.getByRole('button', { name: 'Мої поїздки', exact: true }).click();
+    const passengerTripCard = passengerPage.locator('article').filter({ hasText: 'MARSHGO E2E Driver' }).filter({ hasText: 'Стрий' }).filter({ hasText: '300 грн' });
+    await expect(passengerTripCard).toHaveCount(1);
+    await expect(passengerTripCard).toContainText('2 місця');
+    const ticketResponsePromise = passengerPage.waitForResponse((response) => response.url().endsWith(`/api/v1/bookings/${createdBooking.id}/ticket`));
+    await passengerTripCard.getByRole('button', { name: /Показати квиток для посадки/ }).click();
+    const ticketResponse = await ticketResponsePromise;
+    expect(ticketResponse.status()).toBe(200);
+    const signedTicket = ((await ticketResponse.json()).data as { token: string }).token;
+    expect(signedTicket.length).toBeGreaterThan(40);
+    await driverTripCard.getByLabel('Токен квитка пасажира').fill(signedTicket);
+    await driverTripCard.getByRole('button', { name: 'Підтвердити посадку' }).click();
+    await expect(driverTripCard.getByText('Посадка')).toBeVisible();
+    await driverTripCard.getByRole('button', { name: 'Почати поїздку' }).click();
+    await expect(passengerTripCard.getByText('У дорозі')).toBeVisible();
+    await passengerTripCard.getByRole('button', { name: 'Підтвердити завершення' }).click();
+    await expect(passengerTripCard.getByText('Ваше підтвердження збережено на сервері.')).toBeVisible();
+    await driverPage.bringToFront();
+    await expect(driverTripCard.getByText('Завершення: 1/2 учасники')).toBeVisible({ timeout: 12_000 });
+    await driverTripCard.getByRole('button', { name: 'Підтвердити завершення' }).click();
+    await expect(driverPage.getByRole('status')).toContainText('Поїздку завершено за підтвердженнями обох учасників.');
+    const completedBooking = await pool.query<{ status: string; confirmation_count: number }>(
+      `SELECT b.status,(SELECT count(*)::int FROM booking_completion_confirmations cc WHERE cc.booking_id=b.id) AS confirmation_count
+         FROM bookings b WHERE b.offer_id=$1 AND b.passenger_id=(SELECT id FROM users WHERE phone_e164=$2)`, [offerId, passengerPhone],
+    );
+    expect(completedBooking.rows).toEqual([{ status: 'completed', confirmation_count: 2 }]);
+
+    await passengerPage.getByRole('tab', { name: /Минулі/ }).click();
+    await driverPage.getByRole('tab', { name: /Минулі/ }).click();
+    await passengerTripCard.getByTestId('booking-review-open').click();
+    await expect(passengerTripCard.getByTestId('booking-review-form')).toBeVisible();
+    await passengerTripCard.getByRole('button', { name: '4 з 5' }).click();
+    await passengerTripCard.getByPlaceholder('Поділіться враженням про поїздку').fill('Водій був уважний, маршрут пройшов добре.');
+    const passengerReviewResponse = passengerPage.waitForResponse(response => response.url().endsWith(`/api/v1/bookings/${createdBooking.id}/reviews`) && response.request().method() === 'POST');
+    await passengerPage.getByRole('button', { name: 'Надіслати відгук' }).click();
+    expect((await passengerReviewResponse).status()).toBe(201);
+    await expect(passengerPage.locator('p[role="status"]')).toContainText('Дякуємо! Ваш відгук збережено.');
+
+    await driverTripCard.getByTestId('booking-review-open').click();
+    await expect(driverTripCard.getByTestId('booking-review-form')).toBeVisible();
+    await driverTripCard.getByRole('button', { name: '5 з 5' }).click();
+    await driverTripCard.getByPlaceholder('Поділіться враженням про поїздку').fill('Пасажир був пунктуальний.');
+    const driverReviewResponse = driverPage.waitForResponse(response => response.url().endsWith(`/api/v1/bookings/${createdBooking.id}/reviews`) && response.request().method() === 'POST');
+    await driverPage.getByRole('button', { name: 'Надіслати відгук' }).click();
+    expect((await driverReviewResponse).status()).toBe(201);
+    await expect(driverPage.locator('p[role="status"]')).toContainText('Дякуємо! Ваш відгук збережено.');
+    const persistedReviews = await pool.query<{ author_id: string; target_id: string; rating: number; comment: string | null }>(
+      `SELECT author_id,target_id,rating,comment FROM reviews WHERE booking_id=$1 ORDER BY rating`, [createdBooking.id],
+    );
+    expect(persistedReviews.rows).toHaveLength(2);
+    expect(persistedReviews.rows).toEqual(expect.arrayContaining([
+      expect.objectContaining({ author_id: expect.any(String), target_id: driverId, rating: 4, comment: 'Водій був уважний, маршрут пройшов добре.' }),
+      expect.objectContaining({ author_id: expect.any(String), target_id: expect.any(String), rating: 5, comment: 'Пасажир був пунктуальний.' }),
+    ]));
+    const duplicateReviewResponse = await passengerPage.evaluate(async ({ bookingId, token }) => fetch(`/api/v1/bookings/${bookingId}/reviews`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ rating: 1, comment: 'Повторний відгук' }),
+    }).then(response => response.status), { bookingId: createdBooking.id, token: passengerAccessToken });
+    expect(duplicateReviewResponse).toBe(409);
+
+    await passengerPage.reload();
+    await driverPage.reload();
+    await expect(passengerPage.getByRole('heading', { name: 'Мої поїздки' })).toBeVisible();
+    await expect(driverPage.getByRole('heading', { name: 'Мої поїздки' })).toBeVisible();
+    await passengerPage.getByRole('tab', { name: /Минулі/ }).click();
+    await driverPage.getByRole('tab', { name: /Минулі/ }).click();
+    await expect(passengerPage.locator('article').filter({ hasText: 'MARSHGO E2E Driver' }).getByTestId('booking-review-open')).toHaveCount(0);
+    await expect(driverPage.locator('article').filter({ hasText: 'E2E Passenger' }).getByTestId('booking-review-open')).toHaveCount(0);
+
+    await driverPage.getByRole('button', { name: /Чат|Написати/ }).click();
+    await expect(driverPage.getByText('Буду на місці о 08:45.')).toBeVisible();
+
+    await passengerPage.getByRole('button', { name: 'Мої поїздки', exact: true }).click();
+    await passengerPage.getByRole('button', { name: /Чат|Написати/ }).click();
+    await expect(passengerPage.getByText(/онлайн/)).toBeVisible();
+    const realtimeMessage = 'Чекаю біля центрального входу.';
+    await driverPage.getByRole('button', { name: 'Повернутися до поїздок' }).click();
+    const passengerChatInput = passengerPage.getByPlaceholder('Напишіть повідомлення…');
+    await passengerChatInput.fill(realtimeMessage);
+    await passengerChatInput.press('Enter');
+    await driverPage.bringToFront();
+    const unreadChatButton = driverPage.getByRole('button', { name: /Написати · 1 непрочитаних/ });
+    await expect(unreadChatButton).toBeVisible({ timeout: 10_000 });
+    await unreadChatButton.click();
+    await expect(driverPage.getByText(realtimeMessage)).toBeVisible({ timeout: 10_000 });
+    const readCursor = await pool.query<{ last_read_message_id: string | null }>(
+      `SELECT cm.last_read_message_id FROM conversation_members cm JOIN conversations c ON c.id=cm.conversation_id
+        JOIN bookings b ON b.id=c.booking_id WHERE b.offer_id=$1 AND cm.user_id=(SELECT id FROM users WHERE phone_e164=$2)`,
+      [offerId, driverPhone],
+    );
+    expect(readCursor.rows[0]?.last_read_message_id).toBeTruthy();
+
+    await openCreateMenu(driverPage);
+    await driverPage.getByRole('button', { name: /Знайти пасажира/ }).click();
+    const openDemand = driverPage.getByTestId(`open-demand-${createdDemandId}`);
+    await openDemand.getByRole('button', { name: /Запропонувати ціну/ }).click();
+    await driverPage.getByLabel('Перевірене авто').selectOption(vehicleId);
+    await driverPage.getByLabel('Ціна, грн').fill('350');
+    await driverPage.getByRole('button', { name: 'Надіслати пропозицію' }).click();
+    await expect(driverPage.getByText('350 грн')).toBeVisible();
+
+    await openCreateMenu(passengerPage);
+    await passengerPage.getByRole('button', { name: 'Шукаю поїздку' }).click();
+    await passengerPage.getByRole('button', { name: 'Мої заявки' }).click();
+    await passengerPage.getByTestId(`owned-demand-${createdDemandId}`).click();
+    await passengerPage.getByRole('button', { name: 'Змінити ціну або час' }).click();
+    await passengerPage.getByLabel('Загальна сума, грн').fill('320');
+    await passengerPage.getByRole('button', { name: 'Надіслати зустрічну' }).click();
+    await expect(passengerPage.getByText('320 грн')).toBeVisible();
+
+    await driverPage.reload();
+    await expect(driverPage).toHaveURL(/\/demands\/[A-Za-z0-9_-]+$/);
+    await expect(driverPage.getByRole('heading', { name: 'Стрий → Львів' })).toBeVisible();
+    await openCreateMenu(driverPage);
+    await driverPage.getByRole('button', { name: /Знайти пасажира/ }).click();
+    await driverPage.getByTestId(`open-demand-${createdDemandId}`).getByRole('button').first().click();
+    await driverPage.getByRole('button', { name: 'Погодити зустрічну ціну' }).click();
+
+    await passengerPage.reload();
+    await expect(passengerPage).toHaveURL(/\/demands\/[A-Za-z0-9_-]+$/);
+    await expect(passengerPage.getByRole('heading', { name: 'Стрий → Львів' })).toBeVisible();
+    await openCreateMenu(passengerPage);
+    await passengerPage.getByRole('button', { name: 'Шукаю поїздку' }).click();
+    await passengerPage.getByRole('button', { name: 'Мої заявки' }).click();
+    await passengerPage.getByTestId(`owned-demand-${createdDemandId}`).click();
+    await passengerPage.getByRole('button', { name: 'Підтвердити домовленість і бронювання' }).click();
+    await expect(passengerPage.getByRole('heading', { name: 'Мої поїздки' })).toBeVisible();
+    const negotiatedBooking = await pool.query<{ seat_count: number; total_price_minor: number; status: string }>(
+      `SELECT seat_count,total_price_minor,status FROM bookings WHERE passenger_id=(SELECT id FROM users WHERE phone_e164=$1) AND idempotency_key LIKE 'proposal-accept:%'`,
+      [passengerPhone],
+    );
+    expect(negotiatedBooking.rows).toEqual([{ seat_count: 2, total_price_minor: 32000, status: 'confirmed' }]);
+
+    await driverPage.reload();
+    await expect(driverPage).toHaveURL(/\/demands\/[A-Za-z0-9_-]+$/);
+    await expect(driverPage.getByRole('heading', { name: 'Стрий → Львів' })).toBeVisible();
+    await driverPage.getByRole('button', { name: 'Мої поїздки', exact: true }).click();
+    // The negotiated booking is confirmed, so it lives in the "Майбутні" section of the trips screen.
+    await driverPage.getByRole('tab', { name: /Майбутні/ }).click();
+    await expect(driverPage.getByText('320 грн')).toBeVisible();
+    // The persisted chat belongs to the first (completed) booking, which is listed under "Минулі".
+    await driverPage.getByRole('tab', { name: /Минулі/ }).click();
+    await driverPage.getByRole('button', { name: /Чат|Написати/ }).first().click();
+    await expect(driverPage.getByText(realtimeMessage)).toBeVisible();
+
+    const messages = await pool.query<{ body: string }>(
+      `SELECT m.body FROM messages m JOIN conversations c ON c.id=m.conversation_id
+       JOIN bookings b ON b.id=c.booking_id WHERE b.offer_id=$1 ORDER BY m.created_at`, [offerId],
+    );
+    expect(messages.rows.filter((row) => !row.body.startsWith('Стара історія E2E ')).map((row) => row.body))
+      .toEqual(['Буду на місці о 08:45.', realtimeMessage]);
+    expect(messages.rows.filter((row) => row.body.startsWith('Стара історія E2E '))).toHaveLength(55);
+
+    await passengerPage.getByRole('button', { name: 'Мої поїздки', exact: true }).click();
+    await passengerPage.getByRole('button', { name: /Чат|Написати/ }).first().click();
+    passengerPage.once('dialog', (dialog) => dialog.accept());
+    await passengerPage.getByRole('button', { name: 'Заблокувати співрозмовника' }).click();
+    await expect(passengerPage.getByRole('status').filter({ hasText: 'заблоковано' })).toBeVisible();
+    await passengerPage.getByRole('button', { name: 'Профіль', exact: true }).click();
+    await expect(passengerPage.getByText('Заблоковані користувачі')).toBeVisible();
+    await expect(passengerPage.getByText('MARSHGO E2E Driver', { exact: true })).toBeVisible();
+    const [exportDownload] = await Promise.all([
+      passengerPage.waitForEvent('download'),
+      passengerPage.getByRole('button', { name: /Завантажити мої дані/ }).click(),
+    ]);
+    expect(exportDownload.suggestedFilename()).toMatch(/^marshgo-data-\d{4}-\d{2}-\d{2}\.json$/);
+    const exportedData = JSON.parse(await readFile(await exportDownload.path()!, 'utf8')) as { profile: { phone_e164: string }; bookings: Array<{ passenger_id?: string }> };
+    expect(exportedData.profile.phone_e164).toBe(passengerPhone);
+    expect(JSON.stringify(exportedData)).not.toContain(driverPhone);
+    await expect(passengerPage.getByRole('status').filter({ hasText: 'Ваші дані завантажено' })).toBeVisible();
+    await passengerPage.getByRole('button', { name: 'Подати запит на видалення' }).click();
+    await passengerPage.getByRole('alertdialog', { name: 'Подати запит на видалення акаунта?' }).getByRole('button', { name: 'Так, подати запит' }).click();
+    await expect(passengerPage.getByRole('status').filter({ hasText: 'Запит на видалення зареєстровано' })).toBeVisible();
+    await expect(passengerPage.getByText(/Запит очікує скасування до/)).toBeVisible();
+    await passengerPage.getByRole('button', { name: 'Скасувати запит' }).click();
+    await expect(passengerPage.getByRole('status').filter({ hasText: 'Запит на видалення скасовано' })).toBeVisible();
+    const deletionState = await pool.query<{ status: string; cancelled_at: Date | null }>(
+      'SELECT status,cancelled_at FROM account_deletion_requests WHERE user_id=(SELECT id FROM users WHERE phone_e164=$1) ORDER BY requested_at DESC LIMIT 1', [passengerPhone],
+    );
+    expect(deletionState.rows).toMatchObject([{ status: 'cancelled' }]);
+    expect(deletionState.rows[0].cancelled_at).not.toBeNull();
+    await passengerPage.reload();
+
+    const deniedMessage = `Це повідомлення має бути заблоковане. ${Date.now()}`;
+    const driverChatInput = driverPage.getByPlaceholder('Напишіть повідомлення…');
+    await driverChatInput.fill(deniedMessage);
+    await driverChatInput.press('Enter');
+    await expect(driverPage.getByRole('status').filter({ hasText: 'conversation unavailable' })).toBeVisible();
+    const deniedStored = await pool.query<{ count: number }>('SELECT count(*)::int AS count FROM messages WHERE body=$1', [deniedMessage]);
+    expect(deniedStored.rows[0].count).toBe(0);
+
+    await passengerPage.getByRole('button', { name: 'Розблокувати', exact: true }).click();
+    await expect(passengerPage.getByText('MARSHGO E2E Driver', { exact: true })).toHaveCount(0);
+    await driverChatInput.fill(deniedMessage);
+    await driverChatInput.press('Enter');
+    await expect.poll(async () => (await pool.query<{ count: number }>('SELECT count(*)::int AS count FROM messages WHERE body=$1', [deniedMessage])).rows[0].count, { message: 'unblocked message is persisted' }).toBe(1);
+    await expect(driverPage.getByText(deniedMessage)).toBeVisible();
+    await passengerPage.getByRole('button', { name: 'Мої поїздки', exact: true }).click();
+    // Bookings are split across the Trips sections; open each chat until the one holding the message.
+    chatSearch: for (const section of ['Майбутні', 'Минулі'] as const) {
+      await passengerPage.getByRole('tab', { name: new RegExp(`^${section}`) }).click();
+      const chatButtons = await passengerPage.getByRole('button', { name: /Чат|Написати/ }).count();
+      for (let index = 0; index < chatButtons; index += 1) {
+        await passengerPage.getByRole('button', { name: /Чат|Написати/ }).nth(index).click();
+        if (await passengerPage.getByText(deniedMessage).waitFor({ timeout: 4_000 }).then(() => true, () => false)) break chatSearch;
+        await passengerPage.getByRole('button', { name: 'Повернутися до поїздок' }).click();
+        await passengerPage.getByRole('tab', { name: new RegExp(`^${section}`) }).click();
+      }
+    }
+    await expect(passengerPage.getByText(deniedMessage)).toBeVisible();
+
+    await refreshTokenResponses;
+    const cancelledBooking = await passengerPage.evaluate(async ({ targetOfferId, accessToken }) => {
+      const response = await fetch('/api/v1/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}`, 'Idempotency-Key': `e2e-rescue-${crypto.randomUUID()}` },
+        body: JSON.stringify({ offerId: targetOfferId, seats: 1 }),
+      });
+      return { status: response.status, body: await response.json() };
+    }, { targetOfferId: offerId, accessToken: passengerAccessToken });
+    expect(cancelledBooking.status).toBe(201);
+    await passengerPage.reload();
+    await expect(passengerPage).toHaveURL(/\/messages\/[A-Za-z0-9_-]+$/);
+    await expect(passengerPage.getByRole('heading', { name: 'MARSHGO E2E Driver' })).toBeVisible();
+    await passengerPage.getByRole('button', { name: 'Мої поїздки', exact: true }).click();
+    const rescueTripCard = passengerPage.locator('article').filter({ hasText: 'MARSHGO E2E Driver' }).first();
+    await rescueTripCard.getByRole('button', { name: 'Скасувати' }).click();
+    const cancelBookingDialog = passengerPage.getByRole('alertdialog', { name: 'Скасувати бронювання?' });
+    await expect(cancelBookingDialog).toBeVisible();
+    await cancelBookingDialog.getByRole('button', { name: 'Так, скасувати' }).click();
+    await expect(rescueTripCard.getByText('Інші поїздки MARSHGO поруч', { exact: true })).toBeVisible();
+    const rescueAlternative = rescueTripCard.getByRole('button').filter({ hasText: 'Rescue E2E Origin' }).first();
+    await expect(rescueAlternative).toContainText(/220\s*грн/);
+    await expect(rescueAlternative).toContainText('Поруч із початковою точкою');
+    const corridorAlternative = rescueTripCard.getByRole('button').filter({ hasText: 'Rescue E2E Corridor Origin' }).first();
+    await expect(corridorAlternative).toContainText(/240\s*грн/);
+    await expect(corridorAlternative).toContainText('Початок уздовж вашого маршруту');
+    await corridorAlternative.click();
+    await expect(passengerPage.getByRole('heading', { name: /Rescue E2E Corridor Origin/ })).toBeVisible();
+    await expect(passengerPage.getByTestId('offer-book-button')).toHaveAttribute('data-offer-id', rescueCorridorAlternativeId);
+    const rescueBookingResponse = passengerPage.waitForResponse(response =>
+      response.url().endsWith('/api/v1/bookings') && response.request().method() === 'POST',
+    );
+    await passengerPage.getByRole('button', { name: /Забронювати місце/ }).click();
+    const bookingResponse = await rescueBookingResponse;
+    const rescueBookingPayload = await bookingResponse.json() as { data: { id: string; offer_id: string; status: string; total_price_minor: number } };
+    expect(bookingResponse.status()).toBe(201);
+    expect(rescueBookingPayload.data).toMatchObject({ offer_id: rescueCorridorAlternativeId, status: 'confirmed', total_price_minor: 24000 });
+    const rescueBooking = await pool.query<{ status: string; total_price_minor: number }>(
+      'SELECT status,total_price_minor FROM bookings WHERE id=$1 AND offer_id=$2 AND passenger_id=(SELECT id FROM users WHERE phone_e164=$3)',
+      [rescueBookingPayload.data.id, rescueCorridorAlternativeId, passengerPhone],
+    );
+    expect(rescueBooking.rows).toEqual([{ status: 'confirmed', total_price_minor: 24000 }]);
+    const replacementInventory = await pool.query<{ available_seats: number }>(
+      'SELECT available_seats FROM offers WHERE id=$1', [rescueCorridorAlternativeId],
+    );
+    expect(replacementInventory.rows).toEqual([{ available_seats: 3 }]);
+    const refreshedCorridorInventory = await pool.query<{ available_seats: number }>(
+      'SELECT available_seats FROM offers WHERE id=$1', [rescueCorridorAlternativeId],
+    );
+    expect(refreshedCorridorInventory.rows).toEqual([{ available_seats: 3 }]);
+  } finally {
+    await passengerContext.close();
+    await driverContext.close();
+  }
+});
+
+test('driver safely matches two independent riders, inserts ordered stops, and reroutes after browser GPS deviation', async ({ browser, baseURL }) => {
+  expect(baseURL).toBeTruthy();
+  const driverContext = await browser.newContext({
+    ...devices['iPhone 16 Pro Max'], baseURL, timezoneId: 'Europe/Kyiv',
+    geolocation: { latitude: 49.2567, longitude: 23.8561, accuracy: 8 }, permissions: ['geolocation'],
+  });
+  const passengerContext = await browser.newContext({ baseURL, timezoneId: 'Europe/Kyiv' });
+  const secondPassengerContext = await browser.newContext({ baseURL, timezoneId: 'Europe/Kyiv' });
+  const driverPage = await driverContext.newPage();
+  const passengerPage = await passengerContext.newPage();
+  const secondPassengerPage = await secondPassengerContext.newPage();
+  let navigationSessionId = '';
+  let driverAccessToken = '';
+  try {
+    driverAccessToken = await signIn(driverPage, 'Navigation Driver', navigationFlowDriverPhone);
+    let passengerToken = await signIn(passengerPage, 'Navigation Passenger', navigationPassengerPhone);
+    const secondPassengerToken = await signIn(secondPassengerPage, 'Navigation Passenger Two', navigationThirdPassengerPhone);
+    const enableDriverRole = await driverPage.evaluate(async token => fetch('/api/v1/users/me/roles', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ role: 'driver' }),
+    }).then(response => response.status), driverAccessToken);
+    expect(enableDriverRole).toBe(200);
+    const driverProfile = await driverPage.evaluate(async token => fetch('/api/v1/users/me', { headers: { Authorization: `Bearer ${token}` } }).then(response => response.json()), driverAccessToken);
+    const passengerProfile = await passengerPage.evaluate(async token => fetch('/api/v1/users/me', { headers: { Authorization: `Bearer ${token}` } }).then(response => response.json()), passengerToken);
+    const driverUserId = driverProfile.data.id as string;
+    const passengerUserId = passengerProfile.data.id as string;
+    expect(driverUserId).not.toBe(passengerUserId);
+    await pool.query(`INSERT INTO vehicles(id,owner_id,make,model,model_year,seat_count,verification_status,is_active)
+      VALUES($1,$2,'E2E','Navigation car',2024,4,'verified',true)`, [navigationFlowVehicleId, driverUserId]);
+    const driverRefresh = driverPage.waitForResponse(response => response.url().endsWith('/api/v1/auth/refresh'));
+    await driverPage.reload();
+    const refreshedDriverSession = await driverRefresh;
+    expect(refreshedDriverSession.status()).toBe(200);
+    driverAccessToken = (await refreshedDriverSession.json()).data.accessToken as string;
+
+    const sessionResponse = await startNavigationFromHome(driverPage);
+    expect(sessionResponse.status()).toBe(201);
+    navigationSessionId = (await sessionResponse.json()).data.id as string;
+    await expect(driverPage.getByPlaceholder('Куди їдемо?')).toBeVisible();
+    await driverPage.getByPlaceholder('Куди їдемо?').fill('Львів');
+    await driverPage.getByRole('button', { name: 'Знайти місце' }).click();
+    await driverPage.getByRole('button', { name: /Львів, Львівська область, Україна/ }).click();
+    await expect(driverPage.getByText('Львів').first()).toBeVisible();
+    // A driver with a verified vehicle gets passenger search along the route on by default.
+    await expect(driverPage.getByRole('switch', { name: 'Пошук попутників уздовж маршруту' })).toHaveAttribute('aria-checked', 'true');
+    // The bottom sheet folds away to give the map room, and comes back.
+    await driverPage.getByRole('button', { name: 'Згорнути панель' }).click();
+    await expect(driverPage.getByRole('switch', { name: 'Пошук попутників уздовж маршруту' })).toHaveCount(0);
+    await expect(driverPage.getByRole('button', { name: 'Завершити навігацію' })).toBeVisible();
+    await expect(driverPage.locator('section[aria-label="Панель навігації"]')).toHaveCount(0);
+    await driverPage.getByRole('button', { name: 'Розгорнути панель' }).click();
+    await expect(driverPage.getByRole('switch', { name: 'Пошук попутників уздовж маршруту' })).toBeVisible();
+    // "My location" brings back the Apple-Maps-like follow camera (close, tilted, heading-up).
+    await driverPage.getByRole('button', { name: 'Показати моє місце' }).click();
+    await expect(driverPage.locator('[data-marshgo-map-renderer="maplibre"]')).toHaveAttribute('data-marshgo-camera-mode', 'FOLLOW_HEADING');
+    await expect(driverPage.getByRole('button', { name: 'Показати моє місце' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(driverPage.getByTestId('navigation-speed')).toBeVisible();
+    // Compass button: Heading Up ⇄ North Up, the chosen orientation sticks, and following resumes.
+    const orientationButton = driverPage.getByTestId('orientation-button');
+    await expect(driverPage.locator('[data-marshgo-map-renderer="maplibre"]')).toHaveAttribute('data-marshgo-orientation', 'HEADING_UP');
+    await orientationButton.click();
+    await expect(driverPage.locator('[data-marshgo-map-renderer="maplibre"]')).toHaveAttribute('data-marshgo-orientation', 'NORTH_UP');
+    await expect(orientationButton).toHaveAccessibleName(/північ зверху/);
+    await orientationButton.click();
+    await expect(driverPage.locator('[data-marshgo-map-renderer="maplibre"]')).toHaveAttribute('data-marshgo-orientation', 'HEADING_UP');
+    await expect.poll(async () => pool.query<{ current_location_at: Date | null }>('SELECT current_location_at FROM navigation_sessions WHERE id=$1', [navigationSessionId]).then(result => result.rows[0]?.current_location_at ?? null)).not.toBeNull();
+
+    const departureStart = new Date(Date.now() + 15 * 60_000);
+    const departureEnd = new Date(Date.now() + 4 * 60 * 60_000);
+    const demandResponse = await passengerPage.evaluate(async ({ token, earliest, latest }) => fetch('/api/v1/demands', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        originName: 'Дуліб', destinationName: 'Львів', origin: [23.94, 49.53], destination: [24.0, 49.77],
+        earliestDeparture: earliest, latestDeparture: latest, passengers: 1, budgetMinor: 30000, budgetType: 'total_all', notes: 'E2E navigation demand',
+      }),
+    }).then(async response => ({ status: response.status, body: await response.json() })), {
+      token: passengerToken, earliest: departureStart.toISOString(), latest: departureEnd.toISOString(),
+    });
+    expect(demandResponse.status).toBe(201);
+    navigationFlowDemandId = demandResponse.body.data.id as string;
+
+    const candidateResult = await driverPage.evaluate(async ({ token, sessionId }) => fetch(`/api/v1/navigation/sessions/${sessionId}/matches/refresh`, {
+      method: 'POST', headers: { Authorization: `Bearer ${token}` },
+    }).then(async response => ({ status: response.status, body: await response.json() })), { token: driverAccessToken, sessionId: navigationSessionId });
+    expect(candidateResult.status).toBe(200);
+    const candidate = (candidateResult.body.data as Array<{ id: string; demand_id: string; detour_distance_m: number; detour_duration_s: number }>).find(item => item.demand_id === navigationFlowDemandId);
+    expect(candidate, 'the real demand should pass route/time/seat matching against the foreground session').toBeTruthy();
+    expect(candidate!.detour_distance_m).toBeGreaterThanOrEqual(0);
+
+    const restoredDriverRefresh = driverPage.waitForResponse(response => response.url().endsWith('/api/v1/auth/refresh'));
+    await driverPage.reload();
+    const restoredSessionResponse = await restoredDriverRefresh;
+    expect(restoredSessionResponse.status()).toBe(200);
+    driverAccessToken = (await restoredSessionResponse.json()).data.accessToken as string;
+    const routeMap = driverPage.locator('[data-marshgo-map-renderer="maplibre"]');
+    await expect(routeMap.locator('.maplibregl-canvas')).toBeVisible();
+    await expect.poll(() => routeMap.getAttribute('data-marshgo-route-point-count')).toBeTruthy();
+    const initialRoutePointCount = Number(await routeMap.getAttribute('data-marshgo-route-point-count'));
+    const liveProgress = driverPage.getByTestId('navigation-live-progress');
+    const initialLiveProgress = await liveProgress.innerText();
+    const activeNavigation = await driverPage.evaluate(async token => fetch('/api/v1/navigation/sessions/active', {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then(response => response.json()), driverAccessToken);
+    const routeGeometry = activeNavigation.data.route as Array<[number, number]>;
+    expect(routeGeometry.length).toBeGreaterThan(1);
+    const [routeStart, routeNext] = routeGeometry;
+    // Exercise Playwright's browser geolocation API; the production WebGeolocationProvider,
+    // validation, route projection, NavigationCore and live UI all receive this update.
+    await driverContext.setGeolocation({
+      longitude: routeStart[0] + (routeNext[0] - routeStart[0]) * 0.003,
+      latitude: routeStart[1] + (routeNext[1] - routeStart[1]) * 0.003,
+      accuracy: 5,
+    });
+    await expect.poll(() => liveProgress.innerText(), { timeout: 20_000 }).not.toBe(initialLiveProgress);
+    await expect(driverPage.getByText('Дуліб → Львів').first()).toBeVisible();
+    await driverPage.getByRole('button', { name: 'Зупиніться та призупиніть навігацію, щоб відповісти' }).first().click();
+    await expect.poll(async () => pool.query<{ state: string }>(
+      'SELECT state FROM navigation_sessions WHERE id=$1', [navigationSessionId],
+    ).then(result => result.rows[0]?.state)).toBe('paused');
+    await expect(driverPage.getByRole('button', { name: 'Підтвердити інтерес водія' })).toBeVisible();
+    const driverInterestResponse = driverPage.waitForResponse(response => response.url().endsWith(`/matches/${candidate!.id}/interest`));
+    await driverPage.getByRole('button', { name: 'Підтвердити інтерес водія' }).click();
+    expect((await driverInterestResponse).status()).toBe(200);
+    await expect(driverPage.getByText(/Ваш інтерес надіслано\. Чекаємо підтвердження пасажира/)).toBeVisible();
+
+    const refreshedPassengerSession = passengerPage.waitForResponse(response => response.url().endsWith('/api/v1/auth/refresh'));
+    await passengerPage.reload();
+    const passengerRefreshResponse = await refreshedPassengerSession;
+    expect(passengerRefreshResponse.status()).toBe(200);
+    passengerToken = (await passengerRefreshResponse.json()).data.accessToken as string;
+    await openCreateMenu(passengerPage);
+    await passengerPage.getByRole('button', { name: 'Шукаю поїздку' }).click();
+    await passengerPage.getByRole('button', { name: 'Мої заявки' }).click();
+    await passengerPage.getByRole('button', { name: 'Оновити', exact: true }).click();
+    await expect(passengerPage.getByRole('button', { name: 'Підтвердити взаємний інтерес' })).toBeVisible();
+    await passengerPage.getByRole('button', { name: 'Підтвердити взаємний інтерес' }).click();
+    await expect(passengerPage.getByRole('button', { name: 'Підтвердити взаємний інтерес' })).toHaveCount(0);
+    await expect(passengerPage.getByText(/Взаємний інтерес підтверджено\. Водій може надіслати ціну у пропозиції/)).toBeVisible();
+
+    const driverRefreshAfterConfirmation = driverPage.waitForResponse(response => response.url().endsWith('/api/v1/auth/refresh'));
+    await driverPage.reload();
+    const refreshedDriverAfterConfirmation = await driverRefreshAfterConfirmation;
+    expect(refreshedDriverAfterConfirmation.status()).toBe(200);
+    driverAccessToken = (await refreshedDriverAfterConfirmation.json()).data.accessToken as string;
+    const openDemandButton = driverPage.getByRole('button', { name: 'Відкрити заявку та запропонувати ціну' });
+    await expect(openDemandButton).toBeVisible();
+    await openDemandButton.click();
+    await expect(driverPage.getByLabel('Ціна, грн')).toBeVisible();
+    await expect(driverPage.getByText(/Пропозиція прив’язана до підтвердженого збігу навігації/)).toBeVisible();
+    const proposalResponse = driverPage.waitForResponse(response => response.url().endsWith(`/api/v1/demands/${navigationFlowDemandId}/proposals`) && response.request().method() === 'POST');
+    await driverPage.getByRole('button', { name: 'Надіслати пропозицію' }).click();
+    expect((await proposalResponse).status()).toBe(201);
+    await expect(driverPage.getByRole('status')).toContainText('Цінову пропозицію надіслано пасажиру');
+    const proposalRecord = await pool.query<{ id: string; price_minor: number; status: string }>(
+      'SELECT id,price_minor,status FROM proposals WHERE demand_id=$1 AND driver_id=$2 ORDER BY created_at DESC LIMIT 1',
+      [navigationFlowDemandId, driverUserId],
+    );
+    expect(proposalRecord.rows).toEqual([expect.objectContaining({ price_minor: 30000, status: 'pending' })]);
+
+    await passengerPage.getByTestId(`owned-demand-${navigationFlowDemandId}`).click();
+    await expect(passengerPage.getByText('Переговори')).toBeVisible();
+    const proposalAcceptance = passengerPage.waitForResponse(response => response.url().endsWith(`/api/v1/proposals/${proposalRecord.rows[0].id}/accept`) && response.request().method() === 'POST');
+    await passengerPage.getByRole('button', { name: 'Підтвердити домовленість і бронювання' }).click();
+    const acceptanceResponse = await proposalAcceptance;
+    const acceptance = { status: acceptanceResponse.status(), body: await acceptanceResponse.json() };
+    expect(acceptance.status).toBe(201);
+    await expect(passengerPage.getByRole('status')).toContainText('Домовленість підтверджено; бронювання створено на сервері');
+    const booking = await pool.query<{ status: string; total_price_minor: number }>('SELECT status,total_price_minor FROM bookings WHERE id=$1', [acceptance.body.data.id]);
+    expect(booking.rows).toEqual([{ status: 'confirmed', total_price_minor: 30000 }]);
+    expect(acceptance.body.data).toMatchObject({ fee_class: 'community', platform_fee_minor: 0, fee_rule_version: 'community-0pct-v1' });
+    const route = await pool.query<{ route_version: number; opt_in: boolean; waypoint_count: number }>(
+      `SELECT s.route_version,s.opt_in,(SELECT count(*)::int FROM navigation_waypoints w WHERE w.navigation_session_id=s.id) AS waypoint_count
+         FROM navigation_sessions s WHERE s.id=$1`, [navigationSessionId],
+    );
+    expect(route.rows[0]).toMatchObject({ route_version: 3, opt_in: false, waypoint_count: 2 });
+    const driverRefreshAfterBooking = driverPage.waitForResponse(response => response.url().endsWith('/api/v1/auth/refresh'));
+    await driverPage.reload();
+    const refreshedDriverAfterBooking = await driverRefreshAfterBooking;
+    expect(refreshedDriverAfterBooking.status()).toBe(200);
+    driverAccessToken = (await refreshedDriverAfterBooking.json()).data.accessToken as string;
+    await openCreateMenu(driverPage);
+    await driverPage.getByRole('button', { name: /Почати навігацію/ }).click();
+    const reroutedMap = driverPage.locator('[data-marshgo-map-renderer="maplibre"]');
+    await expect(reroutedMap.locator('.maplibregl-canvas')).toBeVisible();
+    await expect.poll(async () => Number(await reroutedMap.getAttribute('data-marshgo-route-point-count'))).not.toBe(initialRoutePointCount);
+    await expect(driverPage.getByRole('switch', { name: 'Пошук попутників уздовж маршруту' })).toHaveAttribute('aria-checked', 'false');
+    await driverPage.getByRole('button', { name: 'Відновити навігацію' }).click();
+    await expect.poll(async () => pool.query<{ state: string }>(
+      'SELECT state FROM navigation_sessions WHERE id=$1', [navigationSessionId],
+    ).then(result => result.rows[0]?.state)).toBe('active');
+    expect((await passengerPage.evaluate(async token => fetch('/api/v1/bookings', { headers: { Authorization: `Bearer ${token}` } }).then(response => response.json()), passengerToken)).data.some((item: { id: string }) => item.id === acceptance.body.data.id)).toBe(true);
+
+    const insertedRouteResponse = await driverPage.evaluate(async token => fetch('/api/v1/navigation/sessions/active', {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then(async response => ({ status: response.status, body: await response.json() })), driverAccessToken);
+    expect(insertedRouteResponse.status, JSON.stringify(insertedRouteResponse.body)).toBe(200);
+    const insertedRoute = insertedRouteResponse.body;
+    const insertedGeometry = insertedRoute.data.route as Array<[number, number]>;
+    const liveLocation = insertedRoute.data.current_location as [number, number] | null;
+    expect(insertedGeometry.length).toBeGreaterThan(1);
+    expect(liveLocation).toBeTruthy();
+    const [routeA, routeB] = insertedGeometry;
+    const latitudeRadians = routeA[1] * Math.PI / 180;
+    const eastMeters = (routeB[0] - routeA[0]) * 111_320 * Math.cos(latitudeRadians);
+    const northMeters = (routeB[1] - routeA[1]) * 111_320;
+    const segmentLengthMeters = Math.hypot(eastMeters, northMeters);
+    expect(segmentLengthMeters).toBeGreaterThan(0);
+    const perpendicularEast = -northMeters / segmentLengthMeters;
+    const perpendicularNorth = eastMeters / segmentLengthMeters;
+    const routeVersionBeforeDeviation = Number(insertedRoute.data.route_version);
+    for (let step = 1; step <= 10; step += 1) {
+      const offsetMeters = step * 80;
+      const target = {
+        longitude: liveLocation![0] + perpendicularEast * offsetMeters / (111_320 * Math.cos(latitudeRadians)),
+        latitude: liveLocation![1] + perpendicularNorth * offsetMeters / 111_320,
+      };
+      await driverContext.setGeolocation({ ...target, accuracy: 5 });
+      await expect.poll(async () => pool.query<{ longitude: number; latitude: number }>(
+        'SELECT ST_X(current_location::geometry) AS longitude,ST_Y(current_location::geometry) AS latitude FROM navigation_sessions WHERE id=$1', [navigationSessionId],
+      ).then(result => {
+        const current = result.rows[0];
+        if (!current) return Number.POSITIVE_INFINITY;
+        const dLat = (current.latitude - target.latitude) * Math.PI / 180;
+        const dLon = (current.longitude - target.longitude) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) ** 2 + Math.cos(target.latitude * Math.PI / 180) * Math.cos(current.latitude * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+        return 6_371_000 * 2 * Math.asin(Math.sqrt(a));
+      }), { timeout: 10_000 }).toBeLessThan(20);
+      if (step >= 8) {
+        await expect.poll(async () => pool.query<{ route_version: number }>(
+          'SELECT route_version FROM navigation_sessions WHERE id=$1', [navigationSessionId],
+        ).then(result => result.rows[0]?.route_version ?? 0), { timeout: 30_000 }).toBeGreaterThan(routeVersionBeforeDeviation);
+        break;
+      }
+      await driverPage.waitForTimeout(2_000);
+    }
+    await expect(driverPage.getByText('Маршрут оновлено від останньої підтвердженої GPS-позиції. Пошук попутників призупинено до повторної згоди.')).toBeVisible({ timeout: 30_000 });
+    await expect.poll(async () => pool.query<{ route_version: number }>(
+      'SELECT route_version FROM navigation_sessions WHERE id=$1', [navigationSessionId],
+    ).then(result => result.rows[0]?.route_version ?? 0)).toBeGreaterThan(routeVersionBeforeDeviation);
+    await test.info().attach('two-account-navigation-reroute-driver', { body: await driverPage.screenshot({ fullPage: true }), contentType: 'image/png' });
+
+    // A fresh demand later on the updated route must be matched only after the driver opts in again.
+    const postReroute = await driverPage.evaluate(async token => fetch('/api/v1/navigation/sessions/active', {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then(response => response.json()), driverAccessToken);
+    const postRerouteGeometry = postReroute.data.route as Array<[number, number]>;
+    const routeVersionBeforeSecondBooking = Number(postReroute.data.route_version);
+    expect(postRerouteGeometry.length).toBeGreaterThan(1);
+    const pickupIndex = Math.max(1, Math.min(postRerouteGeometry.length - 2, Math.floor(postRerouteGeometry.length * 0.68)));
+    const postRerouteStart = postRerouteGeometry[0];
+    const postRerouteEnd = postRerouteGeometry[postRerouteGeometry.length - 1];
+    const secondPickup = postRerouteGeometry.length > 2
+      ? postRerouteGeometry[pickupIndex]
+      : [postRerouteStart[0] + (postRerouteEnd[0] - postRerouteStart[0]) * 0.68, postRerouteStart[1] + (postRerouteEnd[1] - postRerouteStart[1]) * 0.68] as [number, number];
+    const secondDropoff = postRerouteEnd;
+    const secondDemand = await secondPassengerPage.evaluate(async ({ token, earliest, latest, pickup, dropoff }) => fetch('/api/v1/demands', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        originName: 'E2E Second Rider Pickup', destinationName: 'Львів', origin: pickup, destination: dropoff,
+        earliestDeparture: earliest, latestDeparture: latest, passengers: 1, budgetMinor: 24000,
+        budgetType: 'total_all', notes: 'Second rider in browser multi-passenger acceptance',
+      }),
+    }).then(async response => ({ status: response.status, body: await response.json() })), {
+      token: secondPassengerToken,
+      earliest: new Date(Date.now() + 15 * 60_000).toISOString(),
+      latest: new Date(Date.now() + 4 * 60 * 60_000).toISOString(),
+      pickup: secondPickup,
+      dropoff: secondDropoff,
+    });
+    expect(secondDemand.status).toBe(201);
+    const secondDemandId = secondDemand.body.data.id as string;
+    const matchingSwitch = driverPage.getByRole('switch', { name: 'Пошук попутників уздовж маршруту' });
+    await expect(matchingSwitch).toHaveAttribute('aria-checked', 'false');
+    await matchingSwitch.click();
+    await expect(matchingSwitch).toHaveAttribute('aria-checked', 'true');
+    const secondCandidateCard = driverPage.locator('article').filter({ hasText: 'E2E Second Rider Pickup' }).first();
+    await expect(secondCandidateCard).toBeVisible({ timeout: 20_000 });
+    await driverPage.getByRole('button', { name: 'Зупиніться та призупиніть навігацію, щоб відповісти' }).first().click();
+    await expect.poll(async () => pool.query<{ state: string }>(
+      'SELECT state FROM navigation_sessions WHERE id=$1', [navigationSessionId],
+    ).then(result => result.rows[0]?.state)).toBe('paused');
+    const secondInterestResponse = driverPage.waitForResponse(response => response.url().match(/\/matches\/[0-9a-f-]+\/interest$/)?.[0] !== undefined);
+    await secondCandidateCard.getByRole('button', { name: 'Підтвердити інтерес водія' }).click();
+    expect((await secondInterestResponse).status()).toBe(200);
+
+    await openCreateMenu(secondPassengerPage);
+    await secondPassengerPage.getByRole('button', { name: 'Шукаю поїздку' }).click();
+    await secondPassengerPage.getByRole('button', { name: 'Мої заявки' }).click();
+    await secondPassengerPage.getByRole('button', { name: 'Оновити', exact: true }).click();
+    await expect(secondPassengerPage.getByRole('button', { name: 'Підтвердити взаємний інтерес' })).toBeVisible();
+    await secondPassengerPage.getByRole('button', { name: 'Підтвердити взаємний інтерес' }).click();
+    await expect(secondPassengerPage.getByRole('status')).toContainText('Взаємний інтерес підтверджено');
+
+    const secondProposalButton = secondCandidateCard.getByRole('button', { name: 'Відкрити заявку та запропонувати ціну' });
+    await expect(secondProposalButton).toBeVisible({ timeout: 15_000 });
+    await secondProposalButton.click();
+    await expect(driverPage.getByLabel('Ціна, грн')).toBeVisible();
+    const secondProposalResponse = driverPage.waitForResponse(response => response.url().endsWith(`/api/v1/demands/${secondDemandId}/proposals`) && response.request().method() === 'POST');
+    await driverPage.getByRole('button', { name: 'Надіслати пропозицію' }).click();
+    expect((await secondProposalResponse).status()).toBe(201);
+    await secondPassengerPage.getByTestId(`owned-demand-${secondDemandId}`).click();
+    await expect(secondPassengerPage.getByText('Переговори')).toBeVisible();
+    const secondBookingResponse = secondPassengerPage.waitForResponse(response => Boolean(response.url().match(/\/api\/v1\/proposals\/[0-9a-f-]+\/accept$/)) && response.request().method() === 'POST');
+    await secondPassengerPage.getByRole('button', { name: 'Підтвердити домовленість і бронювання' }).click();
+    const secondBookingResult = await secondBookingResponse;
+    expect(secondBookingResult.status()).toBe(201);
+    const secondBooking = (await secondBookingResult.json()).data as { id: string; offer_id: string; total_price_minor: number };
+    const multiPassengerState = await pool.query<{ booking_id: string; ordinal: number; kind: string; occupancy: number }>(
+      `WITH ordered AS (
+         SELECT booking_id,ordinal,kind,
+           sum(CASE kind WHEN 'pickup' THEN 1 WHEN 'dropoff' THEN -1 ELSE 0 END) OVER(ORDER BY ordinal) AS occupancy
+         FROM navigation_waypoints WHERE navigation_session_id=$1
+       ) SELECT booking_id,ordinal,kind,occupancy FROM ordered ORDER BY ordinal`, [navigationSessionId],
+    );
+    expect(multiPassengerState.rows).toHaveLength(4);
+    expect(new Set(multiPassengerState.rows.map(row => row.booking_id))).toEqual(new Set([acceptance.body.data.id, secondBooking.id]));
+    expect(Math.min(...multiPassengerState.rows.map(row => row.occupancy))).toBeGreaterThanOrEqual(0);
+    expect(Math.max(...multiPassengerState.rows.map(row => row.occupancy))).toBeLessThanOrEqual(4);
+    for (const id of [acceptance.body.data.id, secondBooking.id]) {
+      const orderedStops = multiPassengerState.rows.filter(row => row.booking_id === id);
+      expect(orderedStops.map(row => row.kind)).toEqual(['pickup', 'dropoff']);
+      expect(orderedStops[0].ordinal).toBeLessThan(orderedStops[1].ordinal);
+    }
+    await expect.poll(async () => pool.query<{ route_version: number; opt_in: boolean }>(
+      'SELECT route_version,opt_in FROM navigation_sessions WHERE id=$1', [navigationSessionId],
+    ).then(result => result.rows[0])).toMatchObject({ opt_in: false });
+    await expect.poll(async () => pool.query<{ route_version: number }>(
+      'SELECT route_version FROM navigation_sessions WHERE id=$1', [navigationSessionId],
+    ).then(result => result.rows[0]?.route_version ?? 0)).toBeGreaterThan(routeVersionBeforeSecondBooking);
+    await driverPage.getByRole('button', { name: 'Головна', exact: true }).last().click();
+    await startNavigationFromHome(driverPage);
+    const updatedRouteMap = driverPage.locator('[data-marshgo-map-renderer="maplibre"]');
+    await expect(updatedRouteMap.locator('.maplibregl-canvas')).toBeVisible();
+    await expect.poll(() => updatedRouteMap.getAttribute('data-marshgo-route-point-count')).toBeTruthy();
+    const routeScreenshot = await driverPage.screenshot({ path: '.release/staging-multipassenger-route.png', fullPage: true });
+    await test.info().attach('three-account-multi-passenger-route', { body: routeScreenshot, contentType: 'image/png' });
+  } finally {
+    if (navigationSessionId && driverAccessToken) await driverPage.evaluate(async ({ token, id }) => fetch(`/api/v1/navigation/sessions/${id}/end`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } }), { token: driverAccessToken, id: navigationSessionId }).catch(() => undefined);
+    await driverContext.close();
+    await passengerContext.close();
+    await secondPassengerContext.close();
+  }
+});
+
+test('foreground road route renders on iPhone 15 Pro Max and 16 Pro Max viewports', async ({ browser, baseURL }) => {
+  expect(baseURL).toBeTruthy();
+  for (const model of ['iPhone 15 Pro Max', 'iPhone 16 Pro Max'] as const) {
+    const context = await browser.newContext({
+      ...devices[model],
+      baseURL,
+      timezoneId: 'Europe/Kyiv',
+      geolocation: { latitude: 49.2567, longitude: 23.8561, accuracy: 8 },
+      permissions: ['geolocation'],
+    });
+    const page = await context.newPage();
+    let sessionId: string | undefined;
+    try {
+      const phone = model === 'iPhone 15 Pro Max' ? navigationPhone : navigationSecondPhone;
+      const accessToken = await signIn(page, 'MARSHGO Driver', phone);
+      const roleResponse = await page.evaluate(async (token) => fetch('/api/v1/users/me/roles', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ role: 'driver' }),
+      }).then((response) => response.status), accessToken);
+      expect(roleResponse).toBe(200);
+      await page.reload();
+      const viewport = await page.evaluate(() => ({ width: window.innerWidth, documentWidth: document.documentElement.scrollWidth }));
+      expect(viewport.documentWidth).toBeLessThanOrEqual(viewport.width + 1);
+      const modelFileName = model.toLowerCase().replaceAll(' ', '-');
+      await page.screenshot({ path: `/tmp/marshgo-${modelFileName}-home.png`, fullPage: true });
+      for (const tab of ['Пошук', 'Мої поїздки', 'Профіль'] as const) {
+        await page.getByRole('button', { name: tab, exact: true }).click();
+        const expectedHeading = tab === 'Пошук' ? 'Знайти маршрут'
+          : tab === 'Мої поїздки' ? 'Мої поїздки' : 'MARSHGO Driver';
+        await expect(page.getByRole('heading', { name: expectedHeading, exact: true })).toBeVisible();
+        const tabViewport = await page.evaluate(() => ({ width: window.innerWidth, documentWidth: document.documentElement.scrollWidth }));
+        expect(tabViewport.documentWidth).toBeLessThanOrEqual(tabViewport.width + 1);
+        await page.screenshot({ path: `/tmp/marshgo-${modelFileName}-${tab.toLowerCase()}.png`, fullPage: true });
+      }
+      await page.getByRole('button', { name: 'Головна', exact: true }).click();
+      const tileFixture = 'http://127.0.0.1:3306';
+      // Fail real tiles during source creation, rather than hoping a later camera move evicts cached coverage.
+      await page.request.get(`${tileFixture}/__test/mode?value=mixed`);
+      const response = await startNavigationFromHome(page);
+      expect(response.status()).toBe(201);
+      sessionId = (await response.json()).data.id as string;
+      await page.getByPlaceholder('Куди їдемо?').fill('Львів');
+      await page.getByRole('button', { name: 'Знайти місце' }).click();
+      await page.getByRole('button', { name: /Львів, Львівська область, Україна/ }).click();
+
+      await expect(page.getByText(/Львів, Львівська область, Україна: .*км/).first()).toBeVisible();
+      const routeMap = page.locator('[data-marshgo-map-renderer="maplibre"]');
+      await expect(routeMap.locator('.maplibregl-canvas')).toBeVisible();
+      await expect(routeMap).toHaveAttribute('data-marshgo-map-ready', 'true');
+      await expect.poll(async () => Number(await routeMap.getAttribute('data-marshgo-route-point-count'))).toBeGreaterThan(1);
+      await expect(page.getByText('Стиль і підкладка MARSHGO не налаштовані. Геометрія реального маршруту залишається доступною.')).toHaveCount(0);
+      await expect.poll(async () => page.request.get(`${tileFixture}/__test/stats`).then(response => response.json()).then(stats => stats.failed))
+        .toBeGreaterThan(0);
+      await expect(page.getByRole('alert')).toContainText('Карта завантажилася частково.');
+
+      await page.request.get(`${tileFixture}/__test/mode?value=success`);
+      await page.getByRole('button', { name: 'Повторити завантаження карти' }).click();
+      await expect(page.getByRole('alert')).toHaveCount(0);
+
+      await expect(routeMap.locator('.maplibregl-canvas')).toBeVisible();
+      await expect.poll(async () => Number(await routeMap.getAttribute('data-marshgo-route-point-count'))).toBeGreaterThan(1);
+      await expect(page.getByText('На маршруті', { exact: true })).toBeVisible({ timeout: 10_000 });
+      await test.info().attach(`${model.replaceAll(' ', '-')}-navigation-map`, {
+        body: await page.screenshot({ fullPage: true }), contentType: 'image/png',
+      });
+      await page.screenshot({ path: `/tmp/marshgo-${modelFileName}-route.png`, fullPage: true });
+
+      await page.getByRole('button', { name: /Завершити навігацію/ }).click();
+      await expect(page.getByText('Навігацію завершено. Точну геолокацію видалено із сервера.')).toBeVisible();
+      const ended = await pool.query<{ state: string; route: unknown; current_location: unknown }>(
+        'SELECT state,route,current_location FROM navigation_sessions WHERE id=$1', [sessionId],
+      );
+      expect(ended.rows).toEqual([{ state: 'ended', route: null, current_location: null }]);
+      sessionId = undefined;
+    } finally {
+      if (sessionId) await page.request.post(`/api/v1/navigation/sessions/${sessionId}/end`).catch(() => undefined);
+      await context.close();
+    }
+  }
+});
+
+test('navigation recovers from denied GPS permission with a localized retry message', async ({ browser, baseURL }) => {
+  expect(baseURL).toBeTruthy();
+  const context = await browser.newContext({ baseURL, timezoneId: 'Europe/Kyiv' });
+  await context.grantPermissions([], { origin: baseURL! });
+  const page = await context.newPage();
+  try {
+    const accessToken = await signIn(page, 'GPS Denied Driver', gpsDeniedPhone);
+    const roleStatus = await page.evaluate(async (token) => fetch('/api/v1/users/me/roles', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ role: 'driver' }),
+    }).then((response) => response.status), accessToken);
+    expect(roleStatus).toBe(200);
+    await page.reload();
+    let navigationCreateRequests = 0;
+    page.on('request', (request) => {
+      if (request.url().endsWith('/api/v1/navigation/sessions') && request.method() === 'POST') navigationCreateRequests += 1;
+    });
+    await page.getByRole('button', { name: /^Навігація Побудувати оптимальний маршрут/ }).click();
+    await expect(page.getByRole('status')).toContainText(/Дозвольте MARSHGO доступ до геолокації/);
+    await page.getByRole('button', { name: 'Почати рух без маршруту' }).click();
+
+    await expect(page.getByText(/Дозвольте MARSHGO доступ до геолокації/)).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText('GPS_UNAVAILABLE')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Почати рух без маршруту' })).toBeEnabled();
+    expect(navigationCreateRequests).toBe(0);
+  } finally {
+    await context.close().catch(() => undefined);
+  }
+});
+
+
+
+test('route search URL restores geocoded criteria after direct reload', async ({ browser, baseURL }, testInfo) => {
+  expect(baseURL).toBeTruthy();
+  const context = await browser.newContext({ baseURL, timezoneId: 'Europe/Kyiv' });
+  const page = await context.newPage();
+  try {
+    await signIn(page, 'Search Restore Passenger', searchRestorePhone);
+    await openSearchTab(page);
+    await chooseRoutePlace(page, 'origin', 'Стрий', /Стрий, Львівська область, Україна/);
+    await chooseRoutePlace(page, 'destination', 'Львів', /Львів, Львівська область, Україна/);
+    await setTomorrowAtEightOnTimeWheel(page);
+    const searchResponse = page.waitForResponse(response => response.url().endsWith('/api/v1/journeys/search') && response.request().method() === 'POST');
+    await page.getByRole('button', { name: /^Знайти маршрут/ }).click();
+    expect((await searchResponse).status()).toBe(200);
+    await expect(page).toHaveURL(/\/journeys\/search\?mode=planner&/);
+    await expect.poll(() => page.evaluate(() => new URLSearchParams(window.location.search).get('origin')))
+      .toBe('Стрий, Львівська область, Україна');
+    await expect.poll(() => page.evaluate(() => new URLSearchParams(window.location.search).get('destination')))
+      .toBe('Львів, Львівська область, Україна');
+    await expect(page.getByRole('heading', { name: 'Результати пошуку' })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Попутка.*Стрий → Львів/ }).first()).toBeVisible();
+
+    const restoredSearch = page.waitForResponse(response => response.url().endsWith('/api/v1/journeys/search') && response.request().method() === 'POST', { timeout: 15_000 });
+    await page.reload();
+    expect((await restoredSearch).status()).toBe(200);
+    await expect(page.getByRole('heading', { name: 'Результати пошуку' })).toBeVisible();
+    await expect(page.getByText('Параметри планування відновлено')).toBeVisible();
+    await expect(page.getByRole('button', { name: /Попутка.*Стрий → Львів/ }).first()).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath('search-url-restored.png'), fullPage: true });
+    await page.getByRole('button', { name: 'Назад', exact: true }).click();
+    await expect(page.getByPlaceholder('Моє місцеперебування')).toHaveValue('Стрий, Львівська область, Україна');
+    await expect(page.getByPlaceholder('Введіть адресу, місто або зупинку')).toHaveValue('Львів, Львівська область, Україна');
+  } finally {
+    await context.close();
+  }
+});
+
+test('Journey Planner preserves a Community offer and does not claim CHEAPEST without public-transit fares', async ({ browser, baseURL }) => {
+  expect(baseURL).toBeTruthy();
+  const context = await browser.newContext({ baseURL, timezoneId: 'Europe/Kyiv' });
+  const page = await context.newPage();
+  try {
+    const accessToken = await signIn(page, 'Journey Passenger', journeyPassengerPhone);
+    await openSearchTab(page);
+    await chooseRoutePlace(page, 'origin', 'Стрий', /Стрий, Львівська область, Україна/);
+    await chooseRoutePlace(page, 'destination', 'Львів', /Львів, Львівська область, Україна/);
+    await setTomorrowAtEightOnTimeWheel(page);
+    await page.getByRole('button', { name: /^Найдешевш/ }).click();
+
+    const searchResponse = page.waitForResponse(response => response.url().endsWith('/api/v1/journeys/search') && response.request().method() === 'POST' && response.status() === 200);
+    await page.getByRole('button', { name: /^Знайти маршрут/ }).click();
+    const response = await searchResponse;
+    expect(response.status()).toBe(200);
+    const payload = (await response.json()).data as {
+      journeys: Array<{
+        id: string;
+        strategy: string;
+        offerId: string;
+        legs?: Array<{ driver?: { averageRating: unknown } }>;
+      }>;
+      partial: boolean;
+      providerErrors: string[];
+      unsupportedPreferences: string[];
+    };
+    expect(payload.partial).toBe(payload.journeys.length === 0 || payload.providerErrors.length > 0 || payload.unsupportedPreferences.length > 0);
+    const communityJourney = payload.journeys.find(item => item.offerId === offerId);
+    expect(communityJourney).toBeDefined();
+    if (!communityJourney) throw new Error('The persisted Community offer was missing from the journey results.');
+    const publicTransitFareUnavailable = payload.unsupportedPreferences.includes('CHEAPEST:public-transit-fares-unavailable');
+    expect(payload.journeys.some(item => item.strategy === 'CHEAPEST')).toBe(!publicTransitFareUnavailable);
+    if (publicTransitFareUnavailable) {
+      await expect(page.getByText(/Найдешевший маршрут не визначено/)).toBeVisible();
+    }
+    const journeyDriverRating = payload.journeys.find(item => item.offerId === offerId)?.legs?.[0]?.driver?.averageRating;
+    expect(journeyDriverRating === null || typeof journeyDriverRating === 'number').toBe(true);
+    await expect(page.getByRole('heading', { name: 'Результати пошуку' })).toBeVisible();
+    await page.waitForTimeout(1_000);
+    const map = page.locator('[aria-label="Карта маршруту MARSHGO"]');
+    await expect(map).toHaveAttribute('data-marshgo-route-point-count', '2');
+    await expect.poll(async () => Number(await map.getAttribute('data-marshgo-map-zoom'))).toBeGreaterThan(5);
+    await expect.poll(() => page.locator('.maplibregl-marker').count()).toBeGreaterThanOrEqual(2);
+    const markerBoxes = await page.locator('.maplibregl-marker').evaluateAll(markers => markers.map(marker => {
+      const box = marker.getBoundingClientRect();
+      return { top: box.top, bottom: box.bottom };
+    }));
+    const [partialNotice, resultSheet, routeInputs] = await Promise.all([
+      page.getByRole('status').filter({ hasText: 'Частково' }).boundingBox(),
+      page.getByTestId('map-result-sheet').boundingBox(),
+      page.getByTestId('map-route-inputs').boundingBox(),
+    ]);
+    if (!partialNotice || !resultSheet || !routeInputs) throw new Error('The map route inputs, results sheet, or partial-result notice were not rendered.');
+    expect(partialNotice.y).toBeGreaterThanOrEqual(resultSheet.y);
+    expect(partialNotice.y + partialNotice.height).toBeLessThanOrEqual(resultSheet.y + resultSheet.height);
+    expect(partialNotice.y).toBeGreaterThanOrEqual(routeInputs.y + routeInputs.height);
+    expect(markerBoxes.every(marker => marker.bottom <= routeInputs.y || marker.top >= routeInputs.y + routeInputs.height)).toBe(true);
+    expect(markerBoxes.every(marker => marker.bottom <= resultSheet.y || marker.top >= resultSheet.y + resultSheet.height)).toBe(true);
+    await page.screenshot({ path: '/tmp/marshgo-search-map-after-results.png' });
+    await page.getByRole('button', { name: 'Список маршрутів' }).click();
+    await page.screenshot({ path: '/tmp/marshgo-search-results-list.png' });
+    const communityResult = page.getByRole('button', { name: /Попутка.*Стрий → Львів/ }).first();
+    await expect(communityResult).toBeVisible();
+    const saved = await pool.query<{ owner_id: string; offer_id: string; journey_leg_id: string }>(
+      `SELECT j.user_id AS owner_id,l.offer_id,l.id AS journey_leg_id FROM journeys j JOIN journey_legs l ON l.journey_id=j.id WHERE j.id=$1`, [communityJourney.id],
+    );
+    const profile = await page.evaluate(async token => fetch('/api/v1/users/me', { headers: { Authorization: `Bearer ${token}` } }).then(response => response.json()), accessToken);
+    expect(saved.rows).toHaveLength(1);
+    expect(saved.rows[0]).toMatchObject({ owner_id: profile.data.id, offer_id: offerId });
+
+    await communityResult.click();
+    await expect(page.getByRole('heading', { name: 'Деталі маршруту' })).toBeVisible();
+    const offerDetail = page.waitForResponse(response => response.url().endsWith(`/api/v1/offers/${offerId}`) && response.request().method() === 'GET');
+    await page.getByRole('button', { name: 'Перейти до бронювання' }).click();
+    expect((await offerDetail).status()).toBe(200);
+    await expect(page.getByRole('heading', { name: /Стрий.*Львів/ })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Стрий → Львів' })).toBeVisible();
+    await expect(page.getByText('Фото авто не додано')).toBeVisible();
+    await page.screenshot({ path: '/tmp/marshgo-offer-detail-mobile.png', fullPage: true });
+    await expect(page.getByRole('button', { name: /Забронювати місце/ })).toBeVisible();
+    const linkedBookingResponse = page.waitForResponse(response => response.url().endsWith('/api/v1/bookings') && response.request().method() === 'POST');
+    await page.getByRole('button', { name: /Забронювати місце/ }).click();
+    const linkedBookingHttp = await linkedBookingResponse;
+    expect(linkedBookingHttp.status()).toBe(201);
+    const linkedBooking = await linkedBookingHttp.json() as { data: { id: string } };
+    // Booking confirmation navigates to Trips immediately; verify its durable
+    // UI state and database snapshot below instead of a transient toast that
+    // may disappear while the booking and Journey refreshes complete.
+    await expect(page.getByRole('heading', { name: 'Мої поїздки' })).toBeVisible();
+    await page.getByRole('button', { name: 'Збережені маршрути', exact: true }).click();
+    await expect(page.getByRole('region', { name: 'Збережені маршрути' })).toBeVisible();
+    await expect(page.getByText('Маршрут готовий')).toBeVisible();
+    const linked = await pool.query<{ state: string; confirmed_price_minor: number; leg_state: string; price_status: string; booking_id: string }>(
+      `SELECT j.state,j.confirmed_price_minor,l.state AS leg_state,l.price_status,l.booking_id
+         FROM journeys j JOIN journey_legs l ON l.journey_id=j.id WHERE j.user_id=(SELECT id FROM users WHERE phone_e164=$1)`, [journeyPassengerPhone],
+    );
+    const bookedJourney = linked.rows.filter(row => row.state === 'READY' && row.booking_id === linkedBooking.data.id);
+    expect(bookedJourney).toHaveLength(1);
+    expect(bookedJourney[0]).toMatchObject({ state: 'READY', confirmed_price_minor: 15000, leg_state: 'CONFIRMED', price_status: 'LOCKED' });
+
+    // The saved-routes subtab intentionally focuses on journey plans; return to
+    // the overview before exercising booking cancellation controls.
+    await page.getByRole('button', { name: 'Огляд', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Скасувати', exact: true })).toBeVisible();
+    const cancelResponse = page.waitForResponse(response => response.url().endsWith(`/api/v1/bookings/${linkedBooking.data.id}/cancel`));
+    await page.getByRole('button', { name: 'Скасувати', exact: true }).click();
+    const cancellationDialog = page.getByRole('alertdialog', { name: 'Скасувати бронювання?' });
+    await expect(cancellationDialog).toBeVisible();
+    await cancellationDialog.getByRole('button', { name: 'Так, скасувати' }).click();
+    expect((await cancelResponse).status()).toBe(200);
+    await expect(page.getByText('Потрібне перепланування')).toBeVisible();
+    await expect(page.getByText('Ціна не визначена')).toBeVisible();
+
+    // Cancellation exposes the provider-backed rescue alternatives on the stored route.
+    const replacement = page.locator('button[data-offer-id]').filter({ hasText: 'Rescue E2E Corridor Origin' }).first();
+    await expect(replacement).toHaveAttribute('data-offer-id', rescueCorridorAlternativeId);
+    await replacement.click();
+    await expect(page.getByRole('heading', { name: /Rescue E2E Corridor Origin/ })).toBeVisible();
+    const rescueBookingResponse = page.waitForResponse(response => response.url().endsWith('/api/v1/bookings') && response.request().method() === 'POST');
+    await page.getByRole('button', { name: /Забронювати місце/ }).click();
+    const rescueBookingHttp = await rescueBookingResponse;
+    expect(rescueBookingHttp.status()).toBe(201);
+    const replacementBooking = await rescueBookingHttp.json() as { data: { id: string; offer_id: string } };
+    expect(replacementBooking.data.offer_id).toBe(rescueCorridorAlternativeId);
+    // The toast can be replaced by a realtime update within milliseconds; the persisted journey below is the real proof.
+    const rescuedJourney = await pool.query<{ state: string; confirmed_price_minor: number; legs: Array<{ ordinal: number; state: string; booking_id: string | null; metadata: Record<string, string> }> }>(
+      `SELECT j.state,j.confirmed_price_minor,
+              jsonb_agg(jsonb_build_object('ordinal',l.ordinal,'state',l.state,'booking_id',l.booking_id,'metadata',l.metadata) ORDER BY l.ordinal) AS legs
+         FROM journeys j JOIN journey_legs l ON l.journey_id=j.id WHERE j.user_id=(SELECT id FROM users WHERE phone_e164=$1) AND j.id=$2 GROUP BY j.id`, [journeyPassengerPhone, communityJourney.id],
+    );
+    expect(rescuedJourney.rows).toHaveLength(1);
+    expect(rescuedJourney.rows[0].state).toBe('READY');
+    expect(rescuedJourney.rows[0].confirmed_price_minor).toBe(24000);
+    expect(rescuedJourney.rows[0].legs).toHaveLength(2);
+    expect(rescuedJourney.rows[0].legs.map(leg => leg.state)).toEqual(['REPLACED','CONFIRMED']);
+    expect(rescuedJourney.rows[0].legs[1].booking_id).toBe(replacementBooking.data.id);
+    expect(rescuedJourney.rows[0].legs[1].metadata.rescue_from_leg_id).toBe(saved.rows[0].journey_leg_id);
+
+    const inboxResponse = page.waitForResponse(response => response.url().includes('/api/v1/notifications?limit=30'));
+    await page.getByRole('button', { name: /Сповіщення/ }).click();
+    expect((await inboxResponse).status()).toBe(200);
+    await expect(page.getByRole('heading', { name: 'Сповіщення' })).toBeVisible();
+    await expect(page.getByText('План маршруту оновлено').first()).toBeVisible();
+    await expect(page.getByText('Бронювання підтверджено').first()).toBeVisible();
+    const unreadPlanNotice = page.locator('[data-notification-read="false"]').filter({ hasText: 'План маршруту оновлено' }).first();
+    await expect(unreadPlanNotice).toBeVisible();
+    const markReadResponse = page.waitForResponse(response => /\/api\/v1\/notifications\/[0-9a-f-]+\/read$/.test(response.url()));
+    await unreadPlanNotice.click();
+    expect((await markReadResponse).status()).toBe(200);
+  } finally {
+    await context.close();
+  }
+});

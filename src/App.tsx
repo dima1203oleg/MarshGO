@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { storage } from './services/storage';
 import { usePWA } from './services/pwa';
 import { AppHeader } from './components/AppHeader';
@@ -7,26 +7,41 @@ import { ActionDrawer } from './components/ActionDrawer';
 import { PWAInstallModal } from './components/PWAInstallModal';
 import { OnboardingTour } from './components/OnboardingTour';
 
-import { HomeView } from './views/HomeView';
-import { SearchView } from './views/SearchView';
-import { OfferDetailView } from './views/OfferDetailView';
-import { DemandNewView } from './views/DemandNewView';
-import { DemandDetailView } from './views/DemandDetailView';
-import { DriverDashboardView } from './views/DriverDashboardView';
-import { DriverRequestsView } from './views/DriverRequestsView';
-import { DriverOfferNewView } from './views/DriverOfferNewView';
-import { DriverVehicleView } from './views/DriverVehicleView';
-import { NavigationView } from './views/NavigationView';
-import { MyTripsView } from './views/MyTripsView';
-import { MessagesView } from './views/MessagesView';
-import { ProfileView } from './views/ProfileView';
-import { AdminView } from './views/AdminView';
+const HomeView = React.lazy(() => import('./views/HomeView').then((module) => ({ default: module.HomeView })));
+const SearchView = React.lazy(() => import('./views/SearchView').then((module) => ({ default: module.SearchView })));
+const OfferDetailView = React.lazy(() => import('./views/OfferDetailView').then((module) => ({ default: module.OfferDetailView })));
+const DemandNewView = React.lazy(() => import('./views/DemandNewView').then((module) => ({ default: module.DemandNewView })));
+const DemandDetailView = React.lazy(() => import('./views/DemandDetailView').then((module) => ({ default: module.DemandDetailView })));
+const DriverDashboardView = React.lazy(() => import('./views/DriverDashboardView').then((module) => ({ default: module.DriverDashboardView })));
+const DriverRequestsView = React.lazy(() => import('./views/DriverRequestsView').then((module) => ({ default: module.DriverRequestsView })));
+const DriverOfferNewView = React.lazy(() => import('./views/DriverOfferNewView').then((module) => ({ default: module.DriverOfferNewView })));
+const DriverVehicleView = React.lazy(() => import('./views/DriverVehicleView').then((module) => ({ default: module.DriverVehicleView })));
+const NavigationView = React.lazy(() => import('./views/NavigationView').then((module) => ({ default: module.NavigationView })));
+const MyTripsView = React.lazy(() => import('./views/MyTripsView').then((module) => ({ default: module.MyTripsView })));
+const MessagesView = React.lazy(() => import('./views/MessagesView').then((module) => ({ default: module.MessagesView })));
+const ProfileView = React.lazy(() => import('./views/ProfileView').then((module) => ({ default: module.ProfileView })));
+const AdminView = React.lazy(() => import('./views/AdminView').then((module) => ({ default: module.AdminView })));
 
-import { TransportCategory, Booking, PassengerDemand } from './types';
+import { TransportCategory, Booking } from './types';
 import { WifiOff } from 'lucide-react';
 import { themeService } from './services/theme';
+import { todayKyivDate } from './domain/kyivTime';
+import { ProductionMarketplace } from './views/ProductionMarketplace';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 export function App() {
+  // A demo can only be activated by a local developer build. Vite replaces
+  // DEV at build time, so the demo entry is unreachable and tree-shaken in
+  // production bundles even when VITE_DEMO_MODE is accidentally set.
+  if (import.meta.env.DEV && import.meta.env.VITE_DEMO_MODE === 'true') return <DemoApp />;
+  return (
+    <ErrorBoundary>
+      <ProductionMarketplace />
+    </ErrorBoundary>
+  );
+}
+
+function DemoApp() {
   const [, setTick] = useState(0);
 
   // Subscribe to storage and theme changes for reactive state across all components
@@ -41,15 +56,16 @@ export function App() {
 
   // Navigation State
   const [currentView, setCurrentView] = useState<string>('home');
-  const [selectedOfferId, setSelectedOfferId] = useState<string>('off_camry_odesa_kyiv');
-  const [selectedDemandId, setSelectedDemandId] = useState<string>('dmd_01');
+  const [searchCategory, setSearchCategory] = useState<TransportCategory>('all');
+  const [selectedOfferId, setSelectedOfferId] = useState<string>('');
+  const [selectedDemandId, setSelectedDemandId] = useState<string>('');
   const [lastBooking, setLastBooking] = useState<Booking | null>(null);
 
   // Search parameters
   const [searchParams, setSearchParams] = useState({
     origin: 'Одеса',
     destination: 'Київ',
-    date: '2026-09-30',
+    date: todayKyivDate(),
     passengers: 2
   });
 
@@ -85,6 +101,8 @@ export function App() {
   const bookings = storage.getBookings();
   const navSession = storage.getActiveNavSession();
   const demoMode = storage.getDemoMode();
+  const selectedOffer = storage.getOfferById(selectedOfferId);
+  const selectedDemand = storage.getDemandById(selectedDemandId);
 
   // Handlers
   const handleSearchSubmit = (params: { origin: string; destination: string; date: string; passengers: number }) => {
@@ -132,7 +150,10 @@ export function App() {
   };
 
   const handleResetData = () => {
-    localStorage.clear();
+    for (let index = localStorage.length - 1; index >= 0; index -= 1) {
+      const key = localStorage.key(index);
+      if (key?.startsWith('mg_')) localStorage.removeItem(key);
+    }
     window.location.reload();
   };
 
@@ -149,26 +170,32 @@ export function App() {
       )}
 
       {/* Top Header */}
-      <AppHeader
-        user={user}
-        onRoleSwitch={(role) => storage.switchRole(role)}
-        currentView={currentView}
-        onNavigate={(view) => setCurrentView(view)}
-        onOpenInstall={() => setIsPWAModalOpen(true)}
-        isInstallable={isInstallable}
-        isInstalled={isInstalled}
-        demoMode={demoMode}
-        onToggleDemo={() => storage.setDemoMode(!demoMode)}
-        onStartTour={handleStartTour}
-      />
+      {currentView !== 'home' && (
+        <AppHeader
+          user={user}
+          onRoleSwitch={(role) => storage.switchRole(role)}
+          currentView={currentView}
+          onNavigate={(view) => setCurrentView(view)}
+          onOpenInstall={() => setIsPWAModalOpen(true)}
+          isInstallable={isInstallable}
+          isInstalled={isInstalled}
+          demoMode={demoMode}
+          onToggleDemo={() => storage.setDemoMode(!demoMode)}
+          onStartTour={handleStartTour}
+        />
+      )}
 
       {/* View Router */}
       <div className="flex-1">
+        <Suspense fallback={<div role="status" className="mx-auto flex min-h-[40vh] max-w-7xl items-center justify-center px-4 text-sm font-semibold text-slate-500">Завантажуємо розділ…</div>}>
         {currentView === 'home' && (
           <HomeView
             onSearch={handleSearchSubmit}
             onNavigate={(view) => setCurrentView(view)}
-            onCategoryClick={() => setCurrentView('search')}
+            onCategoryClick={(category) => {
+              setSearchCategory(category);
+              setCurrentView('search');
+            }}
           />
         )}
 
@@ -176,20 +203,28 @@ export function App() {
           <SearchView
             offers={offers}
             searchParams={searchParams}
+            initialCategory={searchCategory}
             onSelectOffer={handleSelectOffer}
             onCreateDemandFromSearch={handleCreateDemandFromSearch}
             onBack={() => setCurrentView('home')}
           />
         )}
 
-        {currentView === 'offer-detail' && (
+        {currentView === 'offer-detail' && selectedOffer && (
           <OfferDetailView
-            offer={storage.getOfferById(selectedOfferId) || offers[0]}
+            offer={selectedOffer}
             onBack={() => setCurrentView('search')}
             onBook={handleBookOffer}
             bookingSuccess={lastBooking}
             onViewBooking={() => setCurrentView('trips')}
           />
+        )}
+        {currentView === 'offer-detail' && !selectedOffer && (
+          <div className="mx-auto max-w-xl rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+            <h2 className="text-lg font-bold text-slate-900">Поїздку не знайдено</h2>
+            <p className="mt-2 text-sm text-slate-500">Оголошення могло стати недоступним або посилання застаріло.</p>
+            <button onClick={() => setCurrentView('search')} className="mt-5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white">Повернутися до пошуку</button>
+          </div>
         )}
 
         {currentView === 'demand-new' && (
@@ -200,15 +235,22 @@ export function App() {
           />
         )}
 
-        {currentView === 'demand-detail' && (
+        {currentView === 'demand-detail' && selectedDemand && (
           <DemandDetailView
-            demand={storage.getDemandById(selectedDemandId) || demands[0]}
+            demand={selectedDemand}
             proposals={storage.getProposalsForDemand(selectedDemandId)}
             onBack={() => setCurrentView('home')}
             onAcceptProposal={handleAcceptProposal}
             onCounterOffer={handleCounterOffer}
             onOpenChat={() => setCurrentView('messages')}
           />
+        )}
+        {currentView === 'demand-detail' && !selectedDemand && (
+          <div className="mx-auto max-w-xl rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+            <h2 className="text-lg font-bold text-slate-900">Запит не знайдено</h2>
+            <p className="mt-2 text-sm text-slate-500">Він міг бути скасований або посилання застаріло.</p>
+            <button onClick={() => setCurrentView('home')} className="mt-5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white">На головну</button>
+          </div>
         )}
 
         {currentView === 'driver' && (
@@ -319,7 +361,7 @@ export function App() {
           />
         )}
 
-        {currentView === 'admin' && (
+        {currentView === 'admin' && user.role === 'admin' && (
           <AdminView
             user={user}
             vehicle={vehicle}
@@ -330,6 +372,7 @@ export function App() {
             onBack={() => setCurrentView('home')}
           />
         )}
+        </Suspense>
       </div>
 
       {/* Mobile 5-Tab Bottom Navigation Bar */}

@@ -1,27 +1,144 @@
 @import "tailwindcss";
-@import "leaflet/dist/leaflet.css";
+@variant dark (&:where(.dark, .dark *));
+
+/* ==========================================================================
+   MARSHGO GLOBAL MOBILITY DESIGN SYSTEM
+   World-Class Digital Product Architecture (Light + Dark Unified System)
+   ========================================================================== */
 
 :root {
-  --color-marshgo-navy: #081B35;
-  --color-marshgo-blue: #1769F4;
-  --color-marshgo-bg: #F5F8FD;
-  --color-marshgo-card: #FFFFFF;
-  --color-marshgo-text: #14243B;
-  --color-marshgo-muted: #62718A;
-  --color-marshgo-border: #DFE7F1;
-  --color-marshgo-green: #16845C;
-  --color-marshgo-amber: #AE6C00;
-  --color-marshgo-red: #BE3440;
+  /* Core Typography */
+  --font-family-base: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+  --font-family-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+
+  /* Brand Signature Accent (Signature MARSHGO V4 Blue) */
+  --mg-brand-primary: #1769ED;
+  --mg-brand-primary-hover: #1358CA;
+  --mg-brand-primary-pressed: #0F49AB;
+  --mg-brand-secondary: #3B82F6;
+  --mg-brand-light: #EAF2FF;
+  --mg-brand-glow: rgba(23, 105, 237, 0.16);
+  --mg-brand-gradient: #1769ED;
+  --mg-brand-kinetic: #1769ED;
+
+  /* Semantic Palettes (Restrained) */
+  --mg-success: #15803D;
+  --mg-success-bg: #F0FDF4;
+  --mg-warning: #D97706;
+  --mg-warning-bg: #FFFBEB;
+  --mg-danger: #B42318;
+  --mg-danger-bg: #FEF2F2;
+
+  /* Light Theme Surfaces & Depths */
+  --mg-canvas: #F5F8FC;
+  --mg-canvas-ambient: transparent;
+  --mg-surface-primary: #FFFFFF;
+  --mg-surface-secondary: #EFF4FA;
+  --mg-surface-tertiary: #E3EBF4;
+  --mg-surface-elevated: #FFFFFF;
+  --mg-surface-glass: rgba(255, 255, 255, 0.94);
+
+  /* Light Theme Lines & Borders */
+  --mg-border-subtle: #E3EBF4;
+  --mg-border-medium: rgba(148, 163, 184, 0.35);
+  --mg-border-bold: rgba(100, 116, 139, 0.5);
+  --mg-border-glass: rgba(255, 255, 255, 0.9);
+
+  /* Light Theme Typography */
+  --mg-ink-primary: #142642;
+  --mg-ink-secondary: #334155;
+  --mg-ink-muted: #6A7F98;
+  --mg-ink-tertiary: #94A3B8;
+
+  /* Shadows (Minimal & Restrained) */
+  --mg-shadow-sm: 0 1px 2px rgba(11, 23, 48, 0.04);
+  --mg-shadow-md: 0 4px 12px -2px rgba(11, 23, 48, 0.05);
+  --mg-shadow-lg: 0 10px 24px -4px rgba(11, 23, 48, 0.07);
+  --mg-shadow-brand: 0 4px 14px -2px rgba(23, 92, 211, 0.25);
+
+  /* Backwards compatibility variables */
+  --mg-blue: var(--mg-brand-primary);
+  --mg-blue-pressed: var(--mg-brand-primary-pressed);
+  --mg-navy: var(--mg-ink-primary);
+  --mg-ink: var(--mg-ink-primary);
+  --mg-muted: var(--mg-ink-muted);
+  --mg-line: var(--mg-border-subtle);
+  --mg-card-shadow: var(--mg-shadow-md);
+  --color-marshgo-navy: #0F172A;
+  --color-marshgo-blue: #1264E8;
+  --color-marshgo-bg: var(--mg-canvas);
+  --color-marshgo-card: var(--mg-surface-primary);
+  --color-marshgo-text: var(--mg-ink-primary);
+  --color-marshgo-muted: var(--mg-ink-muted);
+  --color-marshgo-border: var(--mg-border-subtle);
+  --color-marshgo-green: #059669;
+  --color-marshgo-amber: #D97706;
+  --color-marshgo-red: #DC2626;
 }
 
+/* ==========================================================================
+   DARK THEME (Deep Slate Calm Mobility System)
+   ========================================================================== */
 html.dark {
-  --color-marshgo-navy: #051020;
-  --color-marshgo-blue: #38BDF8;
-  --color-marshgo-bg: #071324;
-  --color-marshgo-card: #0D1E36;
-  --color-marshgo-text: #F1F5F9;
-  --color-marshgo-muted: #94A3B8;
-  --color-marshgo-border: #1B2F4C;
+  --mg-brand-primary: #4285E8;
+  --mg-brand-primary-hover: #5896F0;
+  --mg-brand-primary-pressed: #2D70D6;
+  --mg-brand-secondary: #175CD3;
+  --mg-brand-light: #162B54;
+  --mg-brand-glow: rgba(66, 133, 232, 0.2);
+  --mg-brand-gradient: #4285E8;
+  --mg-brand-kinetic: #4285E8;
+
+  /* Semantic Palettes in Dark Mode */
+  --mg-success: #22C55E;
+  --mg-success-bg: rgba(34, 197, 94, 0.1);
+  --mg-warning: #F59E0B;
+  --mg-warning-bg: rgba(245, 158, 11, 0.1);
+  --mg-danger: #EF4444;
+  --mg-danger-bg: rgba(239, 68, 68, 0.1);
+
+  /* Layered Dark Graphite Surfaces (#0B1730 base) */
+  --mg-canvas: #0B1730;
+  --mg-canvas-ambient: transparent;
+  --mg-surface-primary: #101E38;
+  --mg-surface-secondary: #16284A;
+  --mg-surface-tertiary: #1E345D;
+  --mg-surface-elevated: #16284A;
+  --mg-surface-glass: rgba(16, 30, 56, 0.94);
+
+  /* Dark Theme Lines & Micro-borders */
+  --mg-border-subtle: #1C3055;
+  --mg-border-medium: rgba(227, 234, 242, 0.14);
+  --mg-border-bold: rgba(227, 234, 242, 0.22);
+  --mg-border-glass: rgba(227, 234, 242, 0.1);
+
+  /* Dark Theme Typography */
+  --mg-ink-primary: #F8FAFC;
+  --mg-ink-secondary: #CBD5E1;
+  --mg-ink-muted: #94A3B8;
+  --mg-ink-tertiary: #64748B;
+
+  /* Dark Shadows */
+  --mg-shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.25);
+  --mg-shadow-md: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --mg-shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.45);
+  --mg-shadow-brand: 0 12px 34px -4px rgba(43, 130, 254, 0.4);
+
+  /* Backwards compatibility */
+  --mg-blue: var(--mg-brand-primary);
+  --mg-blue-pressed: var(--mg-brand-primary-pressed);
+  --mg-navy: var(--mg-surface-primary);
+  --mg-ink: var(--mg-ink-primary);
+  --mg-muted: var(--mg-ink-muted);
+  --mg-line: var(--mg-border-subtle);
+  --mg-card-shadow: var(--mg-shadow-md);
+  --color-marshgo-navy: #0B1524;
+  --color-marshgo-blue: var(--mg-brand-primary);
+  --color-marshgo-bg: var(--mg-canvas);
+  --color-marshgo-card: var(--mg-surface-primary);
+  --color-marshgo-text: var(--mg-ink-primary);
+  --color-marshgo-muted: var(--mg-ink-muted);
+  --color-marshgo-border: var(--mg-border-subtle);
   --color-marshgo-green: #10B981;
   --color-marshgo-amber: #F59E0B;
   --color-marshgo-red: #EF4444;
@@ -29,11 +146,624 @@ html.dark {
 }
 
 body {
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background-color: var(--color-marshgo-bg);
-  color: var(--color-marshgo-text);
+  font-family: var(--font-family-base);
+  background-color: var(--mg-canvas);
+  color: var(--mg-ink-primary);
   padding-bottom: env(safe-area-inset-bottom);
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Master Tabular Numerals for speed, price, ETA, distance */
+.tabular-nums,
+[data-testid*="speed"],
+[data-testid*="compass"],
+[data-testid*="progress"],
+time,
+.price-value {
+  font-variant-numeric: tabular-nums;
+}
+
+html, body, #root { min-height: 100%; }
+html { background: var(--mg-canvas); }
+body { overscroll-behavior-y: none; }
+button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+
+:where(button, a, input, select, textarea):focus-visible {
+  outline: 2px solid var(--mg-brand-primary);
+  outline-offset: 2px;
+}
+
+.production-app {
+  min-height: 100svh;
+  overflow-x: clip;
+  background: var(--mg-canvas-ambient), var(--mg-canvas);
+  color: var(--mg-ink-primary);
+  padding-bottom: calc(5.25rem + env(safe-area-inset-bottom));
+}
+
+/* The search map fills one viewport; its map pans inside the screen. The shared
+   tab bar keeps the same fixed positioning as Trips and Profile. */
+@media (max-width: 639px) {
+  html:has(.production-app .search-map-form),
+  body:has(.production-app .search-map-form) {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+  .production-app:has(.search-map-form) {
+    display: flex;
+    position: relative;
+    width: 100%;
+    height: 100dvh;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+  }
+  .production-app:has(.search-map-form) > .app-header { flex: 0 0 auto; }
+  .production-app:has(.search-map-form) > .pt-1 {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    padding-top: 0;
+  }
+  .production-app:has(.search-map-form) > .pt-1 > :has(.search-map-form) {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .production-app .search-map-form { width: 100%; height: auto; min-height: 0; min-width: 0; flex: 1 1 auto; }
+}
+
+/* Home is a single mobile viewport: keep the top banner, active trip and
+   action cards together above the fixed tab bar instead of letting the page
+   scroll and move the banner out of view. */
+@media (max-width: 639px) {
+  html:has(.production-app .home-v5-screen),
+  body:has(.production-app .home-v5-screen) {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+  .production-app:has(.home-v5-screen) {
+    display: flex;
+    position: relative;
+    width: 100%;
+    height: 100dvh;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+  }
+  .production-app:has(.home-v5-screen) > .app-header { flex: 0 0 auto; }
+  .production-app:has(.home-v5-screen) > .pt-1 {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    padding-top: 0;
+  }
+  .production-app:has(.home-v5-screen) > .pt-1 > .home-v5-screen {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+    padding-top: .25rem;
+    padding-bottom: .5rem;
+  }
+  .home-v5-screen > .home-v5-hero,
+  .home-v5-screen > .home-v5-active-trip { flex: 0 0 auto; }
+  .home-v5-screen > .home-v5-hero {
+    height: clamp(8.5rem, 17svh, 9.5rem);
+    margin-bottom: .75rem;
+  }
+  .home-v5-hero-slide {
+    height: 100%;
+    min-height: 0 !important;
+    padding: .75rem 1rem !important;
+  }
+  .home-v5-hero-slide h1 { font-size: 1.125rem !important; }
+  .home-v5-hero-cta { margin-top: .5rem !important; }
+  .home-v5-screen > .home-v5-active-trip { margin-bottom: .75rem; }
+  .home-v5-screen > .home-v5-actions {
+    flex: 1 1 auto;
+    min-height: 0;
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: .625rem;
+    margin-bottom: .5rem;
+  }
+  .home-v5-actions > .home-v5-action-card {
+    height: 100%;
+    min-height: 0 !important;
+  }
+}
+
+@media (max-width: 639px) and (max-height: 740px) {
+  .home-v5-screen > .home-v5-hero {
+    height: clamp(7.5rem, 18svh, 8.5rem);
+    margin-bottom: .625rem;
+  }
+  .home-v5-hero-slide { padding: .5rem .75rem !important; }
+  .home-v5-hero-slide h1 { font-size: 1rem !important; }
+  .home-v5-hero-cta { margin-top: .375rem !important; }
+  .home-v5-screen > .home-v5-active-trip { margin-bottom: .625rem; }
+  .home-v5-active-trip > button { padding: .625rem .75rem; }
+  .home-v5-active-trip > button > span:first-child > span:first-child { width: 2.5rem; height: 2.5rem; }
+  .home-v5-screen > .home-v5-actions { gap: .5rem; margin-bottom: .25rem; }
+  .home-v5-action-card { padding: .75rem !important; }
+  .home-v5-action-card > div:nth-of-type(2) > div { width: 2.5rem; height: 2.5rem; }
+  .home-v5-action-card > div:last-child { margin-top: .5rem; }
+  .home-v5-action-card h3 { font-size: 1rem; }
+  .home-v5-action-card p { font-size: .6875rem; }
+}
+
+@media (max-width: 639px) and (max-height: 620px) {
+  .production-app:has(.home-v5-screen) { padding-bottom: calc(3.5rem + env(safe-area-inset-bottom)); }
+  .home-v5-screen { padding-inline: .75rem !important; }
+  .home-v5-screen > .home-v5-hero {
+    height: 5.75rem;
+    margin-bottom: .375rem;
+  }
+  .home-v5-hero-slide { padding: .375rem .625rem !important; }
+  .home-v5-hero-slide h1 { font-size: .9375rem !important; line-height: 1.1 !important; }
+  .home-v5-hero-slide p { font-size: .625rem !important; line-height: 1.15 !important; }
+  .home-v5-hero-cta { display: none; }
+  .home-v5-screen > .home-v5-active-trip { margin-bottom: .375rem; }
+  .home-v5-active-trip > button,
+  button.home-v5-active-trip { min-height: 3.5rem; padding: .375rem .5rem; }
+  .home-v5-active-trip > button > div:first-child { gap: .5rem; }
+  .home-v5-active-trip > button > div:first-child > div:first-child { width: 2rem; height: 2rem; }
+  button.home-v5-active-trip > span:first-child { gap: .5rem; }
+  button.home-v5-active-trip > span:first-child > span:first-child { width: 2rem; height: 2rem; }
+  .home-v5-active-trip h2 { font-size: .75rem; }
+  .home-v5-active-trip p { font-size: .625rem; }
+  .home-v5-screen > .home-v5-actions { gap: .375rem; margin-bottom: 0; }
+  .home-v5-action-card { padding: .5rem !important; }
+  .home-v5-action-card > div:first-child > div { width: 2rem; height: 2rem; }
+  .home-v5-action-card > div:first-child > div svg { width: 1.125rem; height: 1.125rem; }
+  .home-v5-action-card > div:last-child { margin-top: .375rem; }
+  .home-v5-action-card h3 { font-size: .8125rem; }
+  .home-v5-action-card p { font-size: .625rem; line-height: 1.15 !important; }
+  .home-v5-action-card > div:last-child > div:last-child { width: 1.75rem; height: 1.75rem; }
+}
+
+/* Keep required map attribution visible, but make it a quiet, single-line
+   label that does not compete with the route controls. */
+.search-map-form .maplibregl-ctrl-attrib {
+  max-width: calc(100vw - 1rem);
+  padding: 0 3px !important;
+  border-radius: 4px 0 0 0;
+  background: rgb(255 255 255 / 58%) !important;
+  color: #475569;
+  font-size: 8px !important;
+  line-height: 11px !important;
+  opacity: .78;
+  white-space: nowrap;
+}
+.search-map-form .maplibregl-ctrl-attrib-inner { white-space: nowrap; }
+.search-map-form .maplibregl-ctrl-bottom-right {
+  bottom: calc(var(--search-sheet-height, 11rem) + 1rem) !important;
+  right: .5rem;
+}
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  padding-top: max(.65rem, env(safe-area-inset-top));
+  background: var(--mg-surface-glass);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid var(--mg-border-subtle);
+}
+.home-screen { padding-top: .35rem; }
+.home-screen .home-intro {
+  position: relative;
+  overflow: hidden;
+  margin: 0 -.25rem 1rem;
+  padding: 1.1rem 1rem 1.15rem;
+  border: 1px solid rgba(255,255,255,.75);
+  border-radius: 1.65rem;
+  background: linear-gradient(125deg, #e7f2ff 0%, #f8fbff 48%, #e8f4ff 100%);
+  box-shadow: inset 0 1px rgba(255,255,255,.9);
+}
+.home-screen .home-intro::after {
+  content: "";
+  position: absolute;
+  right: -1.35rem;
+  top: -.8rem;
+  width: 8.6rem;
+  height: 8.6rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, rgba(255,255,255,.9), rgba(64,151,255,.12) 65%, transparent 68%);
+  pointer-events: none;
+}
+.journey-search-card {
+  border-color: rgba(255,255,255,.94) !important;
+  box-shadow: 0 14px 34px rgba(23, 68, 126, .09), 0 2px 6px rgba(23, 68, 126, .04) !important;
+}
+.journey-search-card label { min-height: 3.65rem; }
+.journey-search-card input { font-size: 16px; } /* Prevent WKWebView input zoom. */
+.journey-search-card button,
+.journey-offer-card,
+.journey-results button { touch-action: manipulation; }
+.transport-mode-grid button { min-height: 4.6rem; }
+.journey-offer-card {
+  border-color: var(--mg-line) !important;
+  border-radius: 1.35rem !important;
+  box-shadow: var(--mg-card-shadow) !important;
+}
+.journey-results { padding-top: .15rem; }
+.app-tabbar {
+  padding-bottom: max(.45rem, env(safe-area-inset-bottom)) !important;
+  background: rgba(255,255,255,.94) !important;
+  box-shadow: 0 -8px 28px rgba(20, 49, 87, .07);
+}
+.app-tabbar button { min-height: 2.9rem; }
+.app-tabbar button[aria-current="page"] { color: var(--mg-blue); }
+@media (max-width: 639px) {
+  /* The active Home dot otherwise changes the bar's intrinsic height when
+     switching tabs, making the whole bottom navigation visibly hop. */
+  .production-app > .app-tabbar > .app-tabbar-inner { height: 3.125rem; }
+}
+.home-v5-screen { overscroll-behavior: none; }
+.home-v5-content { overscroll-behavior: none; }
+@media (max-height: 740px) and (max-width: 700px) {
+  .home-v5-trust-badges { display: none; }
+  .home-v5-hero-art { flex: 0 0 clamp(5rem, 13svh, 7rem); min-height: 5rem; }
+}
+@media (max-height: 620px) and (max-width: 700px) {
+  .home-v5-hero-art { flex-basis: 4.5rem; min-height: 4.5rem; }
+  .home-v5-hero-copy p { display: none; }
+  .home-v5-content { gap: .25rem; }
+}
+.auth-screen { isolation: isolate; min-height: 100svh; min-height: 100dvh; }
+.auth-screen button { min-height: 44px; }
+.auth-screen input { min-height: 48px; font-size: 16px; }
+.auth-screen h1 { text-wrap: balance; }
+.production-app :is(input, select, textarea) { accent-color: var(--mg-blue); }
+.production-app :is(article, [data-surface="card"]) { scroll-margin-bottom: 7rem; }
+.production-app article {
+  border: 1px solid var(--mg-line);
+  border-radius: 1.25rem;
+  background-color: #fff;
+  box-shadow: var(--mg-card-shadow);
+}
+.production-app :is(h1, h2, h3) { letter-spacing: -.025em; }
+.production-app :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  border-radius: .9rem;
+}
+.production-app :is(.journey-search-card button, .journey-offer-card, button.w-full) { min-height: 2.75rem; }
+.production-app .app-tabbar button { min-width: 0; }
+.production-app [role="status"] { line-height: 1.45; }
+
+@media (max-width: 360px) {
+  .production-app .app-tabbar button { min-width: 2.9rem; padding-inline: .35rem; }
+  .production-app .journey-search-card { padding: .65rem; }
+  .production-app .transport-mode-grid { gap: .35rem; }
+  .production-app .transport-mode-grid button { font-size: 9px; }
+}
+
+@media (min-width: 640px) {
+  .production-app { padding-bottom: 1.5rem; }
+  .app-header { position: relative; background: transparent; backdrop-filter: none; }
+  .app-tabbar { position: sticky !important; margin: 1rem auto; width: min(100% - 2rem, 36rem); border: 1px solid var(--mg-line) !important; border-radius: 1.25rem; }
+}
+
+/* Desktop is a wider presentation of the same production screens used by the
+   phone app; keep domain data and interactions shared across WebKit and web. */
+.desktop-create-label { display: none; }
+@media (min-width: 1024px) {
+  .auth-intro-screen {
+    display: grid;
+    min-height: 100vh;
+    place-items: center;
+    padding: 28px;
+  }
+  .auth-intro-screen > section {
+    display: grid;
+    grid-template-columns: minmax(0,1.15fr) minmax(310px,.85fr);
+    grid-template-rows: auto minmax(0,1fr) auto;
+    align-items: center;
+    column-gap: 56px;
+    width: min(100%, 1440px);
+    max-width: none;
+    min-height: min(860px, calc(100vh - 56px));
+    padding: 38px 54px;
+    border: 1px solid rgba(255,255,255,.22);
+    border-radius: 32px;
+    background: linear-gradient(110deg,rgba(4,17,37,.56),rgba(4,17,37,.14));
+    box-shadow: 0 28px 100px rgba(1,12,26,.32);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+  }
+  .auth-intro-screen > section > div:first-child {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    justify-self: start;
+    margin-top: 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+    text-align: left;
+  }
+  .auth-intro-screen > section > div:first-child > :first-child { margin: 0; }
+  .auth-intro-screen > section > div:first-child > strong { font-size: 2.2rem; }
+  .auth-intro-screen > section > div:first-child > p { margin: 0 0 0 10px; padding-left: 16px; border-left: 1px solid rgba(255,255,255,.4); font-size: 13px; }
+  .auth-intro-screen > section > div:nth-of-type(2) {
+    grid-column: 1;
+    grid-row: 2 / 4;
+    align-self: center;
+    max-width: 730px;
+    margin: 0;
+    padding: 32px 0;
+  }
+  .auth-intro-screen > section > div:nth-of-type(2) h1 { max-width: none; font-size: clamp(52px,6.4vw,88px); line-height: .99; }
+  .auth-intro-screen > section > div:nth-of-type(2) p:last-child { max-width: 590px; font-size: 18px; line-height: 1.55; }
+  .auth-intro-screen > section > div:nth-of-type(3) { grid-column: 2; grid-row: 3; align-self: end; }
+  .auth-intro-screen > section > div:nth-of-type(3) button { min-height: 58px; }
+  body {
+    background: #0e1f35 radial-gradient(1200px 700px at 12% -10%, rgba(23,137,244,.55), transparent 60%), radial-gradient(900px 600px at 100% 0%, rgba(125,92,255,.28), transparent 55%), linear-gradient(160deg, #0e1f35 0%, #123a73 55%, #1789f4 120%) fixed !important;
+  }
+  .production-app {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    grid-template-rows: 80px minmax(0, 1fr);
+    column-gap: 32px;
+    max-width: 1600px;
+    min-height: calc(100vh - 40px);
+    margin: 20px auto;
+    padding: 0 32px 32px;
+    /* A light, nearly opaque shell over the dark backdrop keeps text contrast high (the old 40% glass turned content mid-blue). */
+    background: linear-gradient(180deg, rgba(246,249,254,.97), rgba(236,243,252,.96));
+    -webkit-backdrop-filter: blur(40px) saturate(150%);
+    backdrop-filter: blur(40px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 32px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.07), inset 0 0 0 1px rgba(255,255,255,0.5);
+  }
+  @media (max-width: 1279px) {
+    .production-app { grid-template-columns: 224px minmax(0, 1fr); column-gap: 20px; padding: 0 20px 20px; margin: 12px auto; border-radius: 24px; }
+  }
+  .production-app > .app-header {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    padding: 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+  }
+  .desktop-top-nav { display: flex; gap: 8px; }
+  .desktop-top-nav button { padding: 8px 16px; border-radius: 16px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+  .desktop-top-nav button:hover { background: rgba(255,255,255,0.8); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+
+  .production-app > .app-tabbar {
+    position: sticky !important;
+    inset: auto;
+    grid-column: 1;
+    grid-row: 2;
+    align-self: start;
+    width: 260px;
+    height: calc(100vh - 160px);
+    margin: 24px 0 0;
+    padding: 24px 16px !important;
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    border-radius: 28px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(255,255,255,0.7)) !important;
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+  }
+  .app-tabbar-inner {
+    display: flex;
+    max-width: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 0;
+  }
+  .app-tabbar-inner > span { display: contents; }
+  .app-tabbar-inner button:not(.app-create-button) {
+    width: 100%;
+    min-height: 52px;
+    min-width: 0;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 0 16px;
+    border-radius: 16px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+  }
+  .app-tabbar-inner button:not(.app-create-button):hover {
+    background: rgba(37, 99, 235, 0.05);
+    transform: translateX(4px);
+  }
+  .app-tabbar-inner button:not(.app-create-button)[aria-current="page"] {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: white !important;
+    box-shadow: 0 8px 20px rgba(37,99,235,0.25);
+  }
+  .app-tabbar-inner button:not(.app-create-button)[aria-current="page"] svg {
+    color: white;
+  }
+  .app-tabbar-inner button:not(.app-create-button) > span { font-size: 14px; }
+  .app-tabbar-inner button:not(.app-create-button)[aria-current="page"] > span { font-weight: 700; color: white; }
+
+  .app-tabbar-inner .app-create-button {
+    order: 3;
+    width: 100%;
+    height: 56px;
+    min-height: 56px;
+    margin: 16px 0 12px;
+    display: flex;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 0 16px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    transition: all 0.3s ease;
+  }
+  .app-tabbar-inner .app-create-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(15,23,42,0.3);
+  }
+  .desktop-create-label { display: inline; font-size: 14px; font-weight: 700; }
+  .production-app > .app-tabbar::after {
+    content: "Мобільність для людей · Україна";
+    display: block;
+    margin: 20px 6px 0;
+    color: #718198;
+    font-size: 11px;
+    line-height: 1.5;
+  }
+  .production-app > .pt-1 {
+    grid-column: 2;
+    grid-row: 2;
+    min-width: 0;
+    padding-top: 24px;
+  }
+  .production-app > .pt-1 > :not(.navigation-screen) {
+    width: 100%;
+    max-width: 1280px;
+    margin-inline: auto;
+  }
+  .production-app > [role="status"] {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: start;
+    z-index: 2;
+    width: min(100%, 1280px);
+    max-width: none;
+    margin: 8px auto 0;
+  }
+  .production-app > .pt-1:has(.home-screen) > .home-screen,
+  .production-app > .pt-1 > .journey-results,
+  .production-app > .pt-1 > .max-w-xl {
+    width: 100%;
+    max-width: 1280px;
+    padding-inline: 0;
+  }
+  .home-screen {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 18px;
+    align-content: start;
+  }
+  .home-screen > .home-intro {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    min-height: 330px;
+    margin: 0;
+    padding: 40px 44px 150px;
+    border: 0;
+    border-radius: 28px;
+    color: white;
+    background: #092345 url('/images/welcome-kyiv-v1.jpg') center 53% / cover no-repeat;
+    box-shadow: 0 18px 44px rgba(10,36,70,.2);
+  }
+  .home-screen > .home-intro::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg,rgba(4,17,37,.88),rgba(4,17,37,.42) 54%,rgba(4,17,37,.06)),linear-gradient(0deg,rgba(4,17,37,.55),transparent 58%);
+    pointer-events: none;
+  }
+  .home-screen > .home-intro::after { display: none; }
+  .home-screen .home-greeting { color: #d9ecff !important; font-size: 12px; letter-spacing: .18em; text-transform: uppercase; }
+  .home-screen .home-title { position: relative; max-width: 650px; margin-top: 10px; color: white !important; font-size: clamp(34px,3.4vw,52px); line-height: 1.04; }
+  .home-screen .home-description { max-width: 540px; margin-top: 14px; color: #e2efff !important; font-size: 16px; line-height: 1.6; }
+  /* The search card overlaps the photo so it is visible without scrolling; transport choices follow below on a light surface. */
+  .home-screen > .home-search-panel { z-index: 1; grid-column: 1 / -1; grid-row: 2; margin: -128px 28px 0; }
+  .journey-search-card {
+    border-radius: 28px !important;
+    padding: 24px !important;
+    background: rgba(255,255,255,0.94) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    backdrop-filter: blur(20px) !important;
+    box-shadow: 0 20px 48px rgba(9,35,69,0.14) !important;
+    border: 1px solid rgba(255,255,255,1) !important;
+  }
+  .home-screen > .home-map-cta { grid-column: 1 / -1; grid-row: 3; width: auto; margin: 0 28px; }
+  .home-screen > .home-transport-panel { grid-column: 1 / -1; grid-row: 4; margin: 0 28px; padding: 20px; border-radius: 24px; background: white; box-shadow: 0 10px 30px rgba(9,35,69,.06); }
+  .home-screen .transport-mode-grid { grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); }
+  .home-screen > .home-demand-cta { grid-column: 1 / -1; grid-row: 2; margin: 0; min-height: 54px; }
+  .home-screen > .home-offer-heading { grid-column: 1 / -1; grid-row: 3; margin-top: 4px; }
+  .home-screen > .home-offer-list,
+  .home-screen > .home-offer-empty { grid-column: 1 / -1; grid-row: 4; }
+  .home-screen > .home-offer-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .home-screen > .home-navigation-cta { grid-column: 1 / -1; grid-row: 5; margin-top: 0; }
+  .journey-results { display: grid; grid-template-columns: minmax(320px,.6fr) minmax(0,1.4fr); column-gap: 32px; align-items: start; }
+  .journey-results > :first-child,
+  .journey-results > :nth-child(2) { grid-column: 1 / -1; }
+  .journey-results > :nth-child(3) { grid-column: 1; position: sticky; top: 24px; }
+  .journey-results > :nth-child(n+4) { grid-column: 2; }
+  .app-header > div:first-child { min-width: 240px; }
+  .app-header > button:last-child { margin-left: auto; }
+
+  /* Make lists and articles grid-based on desktop */
+  .production-app .space-y-3 {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)) !important;
+    gap: 20px !important;
+    row-gap: 20px !important;
+  }
+  .production-app .space-y-3 > * {
+    margin-top: 0 !important;
+    border-radius: 24px !important;
+    background: rgba(255,255,255,0.7) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(255,255,255,0.6) !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.03) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  .production-app .space-y-3 > *:hover {
+    transform: translateY(-4px) scale(1.01) !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.08) !important;
+    background: rgba(255,255,255,0.95) !important;
+  }
+}
+@media (min-width: 1024px) and (max-height: 760px) {
+  .production-app > .app-tabbar { height: calc(100vh - 94px); overflow-y: auto; }
+  .home-screen > .home-intro { min-height: 300px; padding-bottom: 140px; }
+}
+@media (min-width: 640px) and (max-width: 1023px) {
+  .production-app > .pt-1 > .home-screen,
+  .production-app > .pt-1 > .journey-results,
+  .production-app > .pt-1 > .max-w-xl { max-width: 760px; }
+  .home-screen > .home-intro { padding: 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  touch-action: manipulation;
+}
+
+html:has(.auth-screen),
+body:has(.auth-screen) {
+  background-color: #081b35;
 }
 
 html.dark body {
@@ -201,4 +931,134 @@ html.dark textarea::placeholder {
 /* Keep floating white badges or high-contrast chips legible */
 html.dark .bg-white\/90 {
   background-color: rgba(13, 30, 54, 0.95) !important;
+}
+
+/* Horizontal chip rows scroll by swipe/drag; the native bar only adds visual noise. */
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* ---- Dark theme: remaps the light palette used by Tailwind utilities across the production UI ---- */
+html.dark body { background-color: #0b1626; color: #e8f0fb; }
+html.dark .production-app, html.dark .journey-results, html.dark .home-screen { color: #e8f0fb; }
+html.dark :is(.bg-white, .bg-white\/95, .bg-white\/90, .bg-white\/80) { background-color: #12233a !important; }
+html.dark :is(.bg-slate-50, .bg-\[\#f6f8fc\], .bg-\[\#F1F5F9\], .bg-\[\#f5f8fd\]) { background-color: #0f1d31 !important; }
+html.dark :is(.bg-blue-50, .bg-\[\#EAF3FF\], .bg-\[\#E8F8F1\], .bg-emerald-50, .bg-amber-50, .bg-rose-50, .bg-\[\#FFF4DB\]) { background-color: #16304f !important; }
+html.dark :is(.text-\[\#0E1F35\], .text-\[\#081b35\], .text-slate-900, .text-slate-800, .text-slate-700, .text-\[\#14243B\]) { color: #eaf2fd !important; }
+html.dark :is(.text-slate-600, .text-slate-500) { color: #a9bad0 !important; }
+html.dark :is(.text-slate-400, .text-slate-300) { color: #7f93ad !important; }
+html.dark :is(.border-slate-100, .border-slate-200, .border-\[\#E5EDF7\], .border-\[\#EEF3F9\], .border-t, .border-b) { border-color: #223853 !important; }
+html.dark :is(.divide-slate-100 > :not([hidden]) ~ :not([hidden])) { border-color: #223853 !important; }
+html.dark :is(input, textarea, select) { background-color: #0f1d31 !important; color: #eaf2fd !important; border-color: #223853 !important; }
+html.dark ::placeholder { color: #7f93ad !important; }
+html.dark :is(.shadow-sm, .shadow-md) { box-shadow: 0 6px 18px rgba(0,0,0,.35) !important; }
+html.dark .app-tabbar, html.dark .app-header { background-color: rgba(11,22,38,.92) !important; }
+html.dark .journey-search-card { background: rgba(18,35,58,.88) !important; border-color: #223853 !important; }
+html.dark .maplibregl-canvas { filter: invert(1) hue-rotate(180deg) brightness(.92) contrast(.95); }
+html.dark .maplibregl-ctrl-group { background: #12233a; }
+html.dark .maplibregl-ctrl-group button .maplibregl-ctrl-icon { filter: invert(1); }
+html.dark .home-screen .home-intro { background: linear-gradient(145deg, #12233a, #0f1d31) !important; border-color: #223853 !important; box-shadow: none !important; }
+html.dark .home-screen .home-intro::after { background: rgba(23,137,244,.18) !important; }
+html.dark .home-screen .home-title { color: #eaf2fd !important; }
+html.dark .home-screen .home-greeting { color: #6db4ff !important; }
+html.dark [data-marshgo-map-layer="hybrid"] .maplibregl-canvas { filter: none; }
+
+/* ---- Home screen never scrolls: HomeHero measures the free height on the device; the illustration flexes into it. ---- */
+@media (max-height: 700px) {
+  .home-hero--fit .home-hero-title { font-size: 1.4rem; }
+  .home-hero--fit .home-hero-sub { margin-top: .35rem; font-size: 13px; line-height: 1.3rem; }
+  .home-hero--fit > button { margin-top: .45rem !important; padding-top: .78rem; padding-bottom: .78rem; }
+}
+/* Desktop: the home hero becomes one calm card — copy and actions on the left, illustration on the right. */
+@media (min-width: 1024px) {
+  .production-app > .pt-1 > .home-hero { width: 100%; max-width: 1160px; padding-inline: 48px; }
+  .home-hero {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    column-gap: 48px;
+    align-items: center;
+    align-content: center;
+    margin-top: 24px;
+    padding: 44px 48px !important;
+    border-radius: 32px;
+    background: rgba(255,255,255,.98);
+    box-shadow: 0 24px 60px rgba(9,35,69,.12);
+    border: 1px solid rgba(255,255,255,0.7);
+  }
+  .home-hero > section { grid-column: 1; text-align: left; }
+  .home-hero-title { font-size: clamp(2.1rem, 2.8vw, 2.8rem) !important; }
+  .home-hero-sub { margin-left: 0 !important; font-size: 16px !important; line-height: 1.6 !important; }
+  .home-hero-art { grid-column: 2; grid-row: 1 / span 5; height: 380px !important; }
+  .home-hero > button { grid-column: 1; max-width: 520px; margin-top: 16px !important; }
+  .home-hero > div:not(.home-hero-art) { grid-column: 1; max-width: 520px; }
+}
+
+html.dark .home-hero {
+  background: rgba(18, 35, 58, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35) !important;
+}
+
+html.dark .production-app > .app-tabbar {
+  background: linear-gradient(145deg, rgba(18, 35, 58, 0.95), rgba(15, 29, 49, 0.85)) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25) !important;
+}
+
+
+/* Driver puck on the navigation map (Apple-Maps-like arrow with a soft accuracy halo). */
+.marshgo-puck { position: relative; width: 40px; height: 40px; }
+.marshgo-puck__arrow { position: relative; width: 40px; height: 40px; filter: drop-shadow(0 3px 6px rgba(9, 35, 69, .35)); }
+.marshgo-puck__halo { position: absolute; inset: -14px; border-radius: 9999px; background: rgba(23, 137, 244, .18); animation: marshgo-puck-pulse 2.4s ease-out infinite; }
+@keyframes marshgo-puck-pulse { 0% { transform: scale(.6); opacity: .9; } 100% { transform: scale(1.25); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .marshgo-puck__halo { animation: none; } }
+
+/* Navigation has its own compass, speed badge and controls: keep MapLibre's corner widgets out of their way. */
+[data-marshgo-camera-mode] .maplibregl-ctrl-bottom-right { display: none; }
+[data-marshgo-camera-mode] .maplibregl-ctrl-bottom-left { left: 5.4rem; margin-bottom: max(.2rem, env(safe-area-inset-bottom)); }
+
+/* Custom Transport Map Popups */
+.marshgo-custom-popup .maplibregl-popup-content {
+  border-radius: 18px !important;
+  padding: 12px 14px !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(12px) !important;
+  box-shadow: 0 12px 28px -4px rgba(14, 31, 53, 0.18), 0 4px 12px -2px rgba(14, 31, 53, 0.08) !important;
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+}
+.marshgo-custom-popup .maplibregl-popup-close-button {
+  padding: 4px 8px !important;
+  font-size: 16px !important;
+  color: #94A3B8 !important;
+  border-radius: 50% !important;
+  outline: none !important;
+  transition: color 0.15s !important;
+}
+.marshgo-custom-popup .maplibregl-popup-close-button:hover {
+  color: #0F172A !important;
+  background: transparent !important;
+}
+.marshgo-custom-popup .maplibregl-popup-tip {
+  border-top-color: rgba(255, 255, 255, 0.95) !important;
+}
+
+/* ==========================================================================
+   MARSHGO LIVE MOBILITY — World-Class Visual Enhancements
+   ========================================================================== */
+
+@keyframes live-radar-pulse {
+  0% { transform: scale(0.95); opacity: 0.9; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+  70% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); opacity: 0.9; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.live-radar-dot {
+  animation: live-radar-pulse 2s infinite ease-in-out;
+}
+
+.flowline-container {
+  box-shadow: 0 -16px 48px -12px rgba(8, 27, 53, 0.16);
+}
+
+html.dark .flowline-container {
+  box-shadow: 0 -16px 48px -12px rgba(0, 0, 0, 0.6);
 }
