@@ -55,7 +55,7 @@ export const TimeDrumPickerModal: React.FC<TimeDrumPickerModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-t-[32px] sm:rounded-[32px] bg-white dark:bg-[#0B1730] border border-slate-200/80 dark:border-slate-800 shadow-2xl overflow-hidden"
+        className="w-full max-w-md rounded-t-[32px] sm:rounded-[32px] bg-white dark:bg-[#071426] border border-slate-200/80 dark:border-[#152c4c] shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Handle bar on mobile */}
@@ -105,7 +105,7 @@ export const TimeDrumPickerModal: React.FC<TimeDrumPickerModalProps> = ({
 
         {/* Drum Wheel Columns (Hours & Minutes) */}
         <div className="px-6 py-4">
-          <div className="grid grid-cols-2 gap-4 rounded-3xl bg-slate-50/80 dark:bg-slate-900/50 p-2 border border-slate-200/60 dark:border-slate-800">
+          <div className="grid grid-cols-2 gap-4 rounded-3xl bg-slate-50/80 dark:bg-[#091b31] p-2 border border-slate-200/60 dark:border-[#152c4c]">
             {/* Hours Column */}
             <div>
               <div className="mb-1 text-center text-[11px] font-black uppercase tracking-wider text-slate-400">

@@ -10,8 +10,11 @@ import {
   Route,
   Coins,
   ChevronRight,
+  ChevronDown,
   ArrowRight,
   List,
+  MapPin,
+  Bell,
 } from 'lucide-react';
 import type { RouteSearchResultItem } from '../model/types';
 import type { Coordinate } from '../../../../shared/navigation/contracts';
@@ -22,10 +25,18 @@ import { themeService } from '../../../services/theme';
 
 function resultMapPadding() {
   const height = window.visualViewport?.height ?? window.innerHeight;
+  const routeInputsBottom = document.querySelector<HTMLElement>('[data-testid="map-route-inputs"]')?.getBoundingClientRect().bottom;
+  const resultSheetTop = document.querySelector<HTMLElement>('[data-testid="map-result-sheet"]')?.getBoundingClientRect().top;
+  const topInset = routeInputsBottom == null
+    ? Math.min(220, height * 0.34)
+    : Math.min(height * 0.48, Math.max(24, routeInputsBottom + 20));
+  const bottomInset = resultSheetTop == null
+    ? Math.min(360, height * 0.52)
+    : Math.min(height * 0.62, Math.max(24, height - resultSheetTop + 20));
   return {
-    top: Math.min(200, height * 0.30),
+    top: topInset,
     right: 64,
-    bottom: Math.min(300, height * 0.455),
+    bottom: bottomInset,
     left: 24,
   };
 }
@@ -35,6 +46,8 @@ interface SearchMapDetailsProps {
   originTitle: string;
   destTitle: string;
   notice?: string | null;
+  onOpenNotifications?: () => void;
+  unreadNotificationCount?: number;
   dateStr?: string;
   timeStr?: string;
   passengers?: number;
@@ -49,6 +62,8 @@ export const SearchMapDetails: React.FC<SearchMapDetailsProps> = ({
   originTitle,
   destTitle,
   notice,
+  onOpenNotifications,
+  unreadNotificationCount = 0,
   onBackToResults,
   onSwapRoute,
   onBook,
@@ -170,11 +185,34 @@ export const SearchMapDetails: React.FC<SearchMapDetailsProps> = ({
       )}
       {(mapStatus === 'failed' || mapStatus === 'degraded') && <div role="status" className="pointer-events-none absolute left-3 right-16 top-44 z-10 mx-auto max-w-md rounded-xl border border-amber-200 bg-white/95 px-3 py-2 text-[10px] font-semibold text-amber-900 shadow-lg dark:border-amber-900 dark:bg-[#0B1730]/95 dark:text-amber-100">Підкладка карти завантажилася частково. Дані маршруту збережені.</div>}
 
-      {/* Floating Top Route Input Card matching Reference Screen 1 */}
+      {/* Brand and city row from the approved map-first search design */}
       <div className="pointer-events-none absolute inset-x-3 sm:inset-x-5 top-[max(0.8rem,env(safe-area-inset-top))] z-30">
+        <div className="pointer-events-auto mx-auto flex h-10 max-w-md items-center justify-between gap-2 px-1">
+          <div className="min-w-0">
+            <p className="text-[16px] font-black leading-4 tracking-tight text-[#0B1730] dark:text-white">MARSH<span className="text-[#0066FF]">GO</span></p>
+            <p className="mt-0.5 text-[9px] font-semibold leading-3 text-slate-500 dark:text-slate-400">Розумні поїздки · Україна</p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="inline-flex h-9 max-w-[132px] items-center gap-1.5 rounded-full border border-slate-200/80 bg-white/95 px-3 text-[11px] font-bold text-[#142642] shadow-sm dark:border-slate-800 dark:bg-[#0B1730]/95 dark:text-slate-100">
+              <MapPin size={14} className="shrink-0 text-[#0066FF]" />
+              <span className="truncate">{cleanOrigin}</span>
+              <ChevronDown size={13} className="shrink-0 text-slate-400" />
+            </span>
+            {onOpenNotifications && (
+              <button type="button" onClick={onOpenNotifications} aria-label={`Сповіщення${unreadNotificationCount ? `, непрочитаних ${unreadNotificationCount}` : ''}`} className="relative grid h-9 w-9 shrink-0 place-items-center rounded-full border border-slate-200/80 bg-white/95 text-slate-600 shadow-sm dark:border-slate-800 dark:bg-[#0B1730]/95 dark:text-slate-200">
+                <Bell size={17} />
+                {unreadNotificationCount > 0 && <span aria-hidden="true" className="absolute right-0 top-0 grid h-3.5 min-w-3.5 place-items-center rounded-full bg-rose-500 px-0.5 text-[8px] font-black text-white">{unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}</span>}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Floating Top Route Input Card matching Reference Screen 1 */}
+      <div data-testid="map-route-inputs" className="pointer-events-none absolute inset-x-3 sm:inset-x-5 top-[calc(max(0.8rem,env(safe-area-inset-top))+3rem)] z-30">
         <div className="pointer-events-auto mx-auto max-w-md rounded-[24px] bg-white/95 dark:bg-[#0B1730]/95 p-2 shadow-2xl border border-slate-200/80 dark:border-slate-800 backdrop-blur-md">
           {/* Row A: Origin */}
-          <div className="flex items-center justify-between rounded-xl bg-slate-50 dark:bg-slate-900/60 px-3 py-2">
+          <div className="flex items-center justify-between px-3 py-1.5">
             <div className="flex items-center gap-2.5 min-w-0">
               <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#0066FF] text-white text-[11px] font-black shadow-xs">
                 A
@@ -199,10 +237,10 @@ export const SearchMapDetails: React.FC<SearchMapDetailsProps> = ({
             </button>
           </div>
 
-          <div className="h-1.5" />
+          <div aria-hidden="true" className="mx-3 border-t border-slate-100 dark:border-slate-800" />
 
           {/* Row B: Destination */}
-          <div className="flex items-center justify-between rounded-xl bg-slate-50 dark:bg-slate-900/60 px-3 py-2">
+          <div className="flex items-center justify-between px-3 py-1.5">
             <div className="flex items-center gap-2.5 min-w-0">
               <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#EF4444] text-white text-[11px] font-black shadow-xs">
                 B
@@ -230,10 +268,8 @@ export const SearchMapDetails: React.FC<SearchMapDetailsProps> = ({
         </div>
       </div>
 
-      {notice && <div role="status" title={notice} className="pointer-events-none absolute left-3 right-16 top-32 z-20 mx-auto line-clamp-2 max-w-md rounded-xl border border-amber-200 bg-white/95 px-2.5 py-1.5 text-[9px] font-semibold leading-3 text-amber-900 shadow-lg dark:border-amber-900/70 dark:bg-[#0B1730]/95 dark:text-amber-100">{notice}</div>}
-
       {/* Floating Map Controls on Right (Compass, +, -, GPS) matching Reference Screen 1 */}
-      <div className="pointer-events-none absolute right-3 sm:right-5 top-36 z-20 flex flex-col gap-2.5 items-end">
+      <div className="pointer-events-none absolute right-3 sm:right-5 top-[calc(max(0.8rem,env(safe-area-inset-top))+10rem)] z-20 flex flex-col gap-2.5 items-end">
         {/* Compass */}
         <button
           type="button"
@@ -279,12 +315,15 @@ export const SearchMapDetails: React.FC<SearchMapDetailsProps> = ({
 
       {/* Floating Bottom Route Result Card matching Reference Screen 1 */}
       <div className="pointer-events-none absolute inset-x-3 sm:inset-x-5 bottom-[calc(5.6rem+env(safe-area-inset-bottom))] z-30 flex justify-center">
-        <div className="pointer-events-auto w-full max-w-md rounded-[24px] bg-white/95 p-3 shadow-[0_10px_35px_rgba(0,0,0,0.18)] backdrop-blur-md border border-slate-200/80 dark:border-slate-800 dark:bg-[#0B1730]/95">
+        <div data-testid="map-result-sheet" className="pointer-events-auto w-full max-w-md rounded-[24px] bg-white/95 p-3 shadow-[0_10px_35px_rgba(0,0,0,0.18)] backdrop-blur-md border border-slate-200/80 dark:border-slate-800 dark:bg-[#0B1730]/95">
           {/* Card Header: map/list views stay one tap apart */}
           <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800/80">
-            <h3 className="text-sm font-extrabold text-[#0B1730] dark:text-white">
-              Результати пошуку
-            </h3>
+            <div className="flex min-w-0 items-center gap-2">
+              <h3 className="whitespace-nowrap text-sm font-extrabold text-[#0B1730] dark:text-white">
+                Результати пошуку
+              </h3>
+              {notice && <span role="status" aria-label={notice} title={notice} className="inline-flex shrink-0 items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-1.5 py-1 text-[8px] font-bold leading-3 text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/40 dark:text-amber-100"><span aria-hidden="true" className="h-1 w-1 rounded-full bg-amber-500" />Частково</span>}
+            </div>
             <button
               type="button"
               onClick={onBackToResults}
@@ -335,9 +374,6 @@ export const SearchMapDetails: React.FC<SearchMapDetailsProps> = ({
 
               <p className="mt-1 text-[11px] font-bold text-[#0B1730] dark:text-white">
                 {durationText} • {item.transfers ?? 0} пересадок • {distanceText} • {priceText}
-              </p>
-              <p className="text-[9px] leading-3 text-slate-400 dark:text-slate-500">
-                {routeCoordinates.length >= 2 ? 'Геометрія надана провайдером' : 'Геометрія маршруту недоступна'}
               </p>
             </div>
 

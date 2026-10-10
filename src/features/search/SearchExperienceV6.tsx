@@ -200,8 +200,8 @@ async function resolveCityPlace(city: string, contextLabel?: string): Promise<Ro
 
 export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
   onBookOfferId,
-  onOpenNotifications: _onOpenNotifications,
-  unreadNotificationCount: _unreadNotificationCount = 0,
+  onOpenNotifications,
+  unreadNotificationCount = 0,
   onOpenReverseMarketplace,
   onOpenPointPicker,
   onSubViewChange,
@@ -583,6 +583,8 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
           dateStr={dateStr}
           timeStr={timeStr}
           passengers={passengers}
+          onOpenNotifications={onOpenNotifications}
+          unreadNotificationCount={unreadNotificationCount}
           initialMode={selectedItemInitialMode}
           onBackToResults={() => setSubView('results')}
           onSwapRoute={() => {

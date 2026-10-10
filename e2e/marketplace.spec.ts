@@ -1137,7 +1137,7 @@ test('Journey Planner preserves a Community offer and does not claim CHEAPEST wi
     await chooseRoutePlace(page, 'origin', 'Стрий', /Стрий, Львівська область, Україна/);
     await chooseRoutePlace(page, 'destination', 'Львів', /Львів, Львівська область, Україна/);
     await setTomorrowAtEightOnTimeWheel(page);
-    await page.getByRole('button', { name: /^Найдешевший/ }).click();
+    await page.getByRole('button', { name: /^Найдешевш/ }).click();
 
     const searchResponse = page.waitForResponse(response => response.url().endsWith('/api/v1/journeys/search') && response.request().method() === 'POST' && response.status() === 200);
     await page.getByRole('button', { name: /^Знайти маршрут/ }).click();
@@ -1175,13 +1175,17 @@ test('Journey Planner preserves a Community offer and does not claim CHEAPEST wi
       const box = marker.getBoundingClientRect();
       return { top: box.top, bottom: box.bottom };
     }));
-    const [partialNotice, resultCardButton] = await Promise.all([
-      page.getByRole('status').filter({ hasText: 'Результат частковий' }).boundingBox(),
-      page.getByRole('button', { name: 'Список маршрутів' }).boundingBox(),
+    const [partialNotice, resultSheet, routeInputs] = await Promise.all([
+      page.getByRole('status').filter({ hasText: 'Частково' }).boundingBox(),
+      page.getByTestId('map-result-sheet').boundingBox(),
+      page.getByTestId('map-route-inputs').boundingBox(),
     ]);
-    expect(partialNotice).not.toBeNull();
-    expect(resultCardButton).not.toBeNull();
-    expect(markerBoxes.every(marker => marker.top > partialNotice!.y + partialNotice!.height && marker.bottom < resultCardButton!.y)).toBe(true);
+    if (!partialNotice || !resultSheet || !routeInputs) throw new Error('The map route inputs, results sheet, or partial-result notice were not rendered.');
+    expect(partialNotice.y).toBeGreaterThanOrEqual(resultSheet.y);
+    expect(partialNotice.y + partialNotice.height).toBeLessThanOrEqual(resultSheet.y + resultSheet.height);
+    expect(partialNotice.y).toBeGreaterThanOrEqual(routeInputs.y + routeInputs.height);
+    expect(markerBoxes.every(marker => marker.bottom <= routeInputs.y || marker.top >= routeInputs.y + routeInputs.height)).toBe(true);
+    expect(markerBoxes.every(marker => marker.bottom <= resultSheet.y || marker.top >= resultSheet.y + resultSheet.height)).toBe(true);
     await page.screenshot({ path: '/tmp/marshgo-search-map-after-results.png' });
     await page.getByRole('button', { name: 'Список маршрутів' }).click();
     await page.screenshot({ path: '/tmp/marshgo-search-results-list.png' });

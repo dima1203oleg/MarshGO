@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
 const ITEM_HEIGHT = 44;
 const VISIBLE_COUNT = 5;
@@ -27,6 +29,55 @@ export function DrumWheelPicker<T extends string | number>({
   const startScrollTopRef = useRef(0);
 
   const selectedIndex = Math.max(0, items.indexOf(value));
+  const lastFeedbackIndexRef = useRef(selectedIndex);
+  const lastFeedbackAtRef = useRef(0);
+  const audioContextRef = useRef<AudioContext | null>(null);
+
+  const playRatchet = useCallback((index: number) => {
+    if (lastFeedbackIndexRef.current === index) return;
+    lastFeedbackIndexRef.current = index;
+
+    const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    if (now - lastFeedbackAtRef.current < 28) return;
+    lastFeedbackAtRef.current = now;
+
+    if (typeof window !== 'undefined') {
+      try {
+        type WindowWithWebkitAudio = Window & { webkitAudioContext?: typeof AudioContext };
+        const AudioContextConstructor = window.AudioContext ?? (window as WindowWithWebkitAudio).webkitAudioContext;
+        if (AudioContextConstructor) {
+          const context = audioContextRef.current ?? new AudioContextConstructor();
+          audioContextRef.current = context;
+          if (context.state === 'suspended') void context.resume().catch(() => undefined);
+
+          const oscillator = context.createOscillator();
+          const envelope = context.createGain();
+          const startAt = context.currentTime;
+          oscillator.type = 'triangle';
+          oscillator.frequency.setValueAtTime(1180, startAt);
+          envelope.gain.setValueAtTime(0.0001, startAt);
+          envelope.gain.exponentialRampToValueAtTime(0.025, startAt + 0.004);
+          envelope.gain.exponentialRampToValueAtTime(0.0001, startAt + 0.026);
+          oscillator.connect(envelope);
+          envelope.connect(context.destination);
+          oscillator.start(startAt);
+          oscillator.stop(startAt + 0.03);
+        }
+      } catch {
+        // Audio feedback is optional; keep wheel interaction working if the browser blocks it.
+      }
+    }
+
+    if (Capacitor.isNativePlatform()) {
+      void Haptics.impact({ style: ImpactStyle.Light }).catch(() => undefined);
+    } else if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+      try {
+        navigator.vibrate(7);
+      } catch {
+        // Browser vibration is optional and may be unavailable due to platform policy.
+      }
+    }
+  }, []);
 
   // Sync scroll position when value changes from outside
   useEffect(() => {
@@ -39,6 +90,12 @@ export function DrumWheelPicker<T extends string | number>({
       });
     }
   }, [selectedIndex, isDragging]);
+
+  useEffect(() => () => {
+    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+      void audioContextRef.current.close().catch(() => undefined);
+    }
+  }, []);
 
   const snapToNearest = useCallback(() => {
     if (!containerRef.current) return;
@@ -54,14 +111,10 @@ export function DrumWheelPicker<T extends string | number>({
 
     const chosen = items[clampedIndex];
     if (chosen !== undefined && chosen !== value) {
-      if (typeof window !== 'undefined' && 'vibrate' in navigator) {
-        try {
-          navigator.vibrate(8);
-        } catch {}
-      }
+      playRatchet(clampedIndex);
       onChange(chosen);
     }
-  }, [items, value, onChange]);
+  }, [items, value, onChange, playRatchet]);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     if (isDragging) return;
@@ -71,6 +124,7 @@ export function DrumWheelPicker<T extends string | number>({
     const clampedIndex = Math.max(0, Math.min(items.length - 1, nearestIndex));
     const chosen = items[clampedIndex];
     if (chosen !== undefined && chosen !== value) {
+      playRatchet(clampedIndex);
       onChange(chosen);
     }
     // Timeout to release programmatic lock
@@ -92,6 +146,13 @@ export function DrumWheelPicker<T extends string | number>({
     if (!isDragging || !containerRef.current) return;
     const deltaY = e.clientY - startYRef.current;
     containerRef.current.scrollTop = startScrollTopRef.current - deltaY;
+    const nearestIndex = Math.round(containerRef.current.scrollTop / ITEM_HEIGHT);
+    const clampedIndex = Math.max(0, Math.min(items.length - 1, nearestIndex));
+    const chosen = items[clampedIndex];
+    if (chosen !== undefined && lastFeedbackIndexRef.current !== clampedIndex) {
+      playRatchet(clampedIndex);
+      onChange(chosen);
+    }
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
@@ -115,17 +176,17 @@ export function DrumWheelPicker<T extends string | number>({
       {/* Center highlight glass lens */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-2 top-1/2 -translate-y-1/2 h-[44px] rounded-xl border border-blue-500/20 bg-blue-500/10 dark:border-blue-400/20 dark:bg-blue-400/10 z-10"
+        className="pointer-events-none absolute inset-x-2 top-1/2 -translate-y-1/2 h-[44px] rounded-xl border border-blue-500/20 bg-blue-500/10 dark:border-[#2D66A8]/50 dark:bg-[#153455]/90 z-10"
       />
 
       {/* Top and Bottom Gradient Fades (iOS barrel wheel perspective) */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-[88px] bg-gradient-to-b from-white dark:from-[#0B1730] to-transparent z-20"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[88px] bg-gradient-to-b from-white dark:from-[#071426] to-transparent z-20"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[88px] bg-gradient-to-t from-white dark:from-[#0B1730] to-transparent z-20"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[88px] bg-gradient-to-t from-white dark:from-[#071426] to-transparent z-20"
       />
 
       {/* Scrollable list */}
@@ -164,6 +225,7 @@ export function DrumWheelPicker<T extends string | number>({
               role="option"
               aria-selected={isSelected}
               onClick={() => {
+                if (item !== value) playRatchet(index);
                 onChange(item);
                 containerRef.current?.scrollTo({
                   top: index * ITEM_HEIGHT,
@@ -177,8 +239,8 @@ export function DrumWheelPicker<T extends string | number>({
               }}
               className={`flex items-center justify-center snap-center cursor-pointer transition-all duration-150 tabular-nums ${
                 isSelected
-                  ? 'font-black text-[22px] text-[#0066FF] dark:text-blue-400'
-                  : 'font-semibold text-[17px] text-slate-700 dark:text-slate-300'
+                  ? 'font-black text-[22px] text-[#0066FF] dark:text-white'
+                  : 'font-semibold text-[17px] text-slate-700 dark:text-slate-400'
               }`}
             >
               {renderItem ? renderItem(item) : String(item)}
