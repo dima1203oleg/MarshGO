@@ -1,5 +1,27 @@
 export type GeographicBbox = readonly [west: number, south: number, east: number, north: number];
 
+function cityTokens(value: string): string[] {
+  return value.normalize('NFKC').toLocaleLowerCase('uk-UA')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ').trim().split(/\s+/).filter(Boolean);
+}
+
+/**
+ * A local provider without a health-report bbox may still be tried when the
+ * user explicitly names that provider's city. Actual GTFS stops and service
+ * times are still validated by the itinerary planner before a route is shown.
+ */
+export function providerCityNamedInEndpoints(
+  providerCity: string,
+  endpointNames: readonly string[],
+): boolean {
+  const city = cityTokens(providerCity);
+  if (city.length === 0) return false;
+  return endpointNames.some((name) => {
+    const endpoint = cityTokens(name);
+    return endpoint.some((_, start) => city.every((token, offset) => endpoint[start + offset] === token));
+  });
+}
+
 function segmentIntersectsRectangle(
   start: readonly [number, number],
   end: readonly [number, number],

@@ -15,13 +15,36 @@ export function isPrivateAddress(address: string): boolean {
 
 export class UnsafeUrlError extends Error {}
 
+type PublicHostAddresses = Array<{ address: string; family: number }>;
+
+/** DNS lookups do not honor fetch's AbortSignal, so bound them independently. */
+export async function lookupPublicHostname(
+  hostname: string,
+  timeoutMs = 5_000,
+  lookup: (host: string) => Promise<PublicHostAddresses> = (host) => dns.lookup(host, { all: true }),
+): Promise<PublicHostAddresses> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => reject(new UnsafeUrlError('Host lookup timed out')), timeoutMs);
+    timer.unref?.();
+  });
+  try {
+    return await Promise.race([lookup(hostname), timeout]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 /** Admin-supplied feed URLs are fetched server-side, so they must be public HTTPS hosts (SSRF guard). */
 export async function assertPublicHttpsUrl(raw: string): Promise<URL> {
   let url: URL;
   try { url = new URL(raw); } catch { throw new UnsafeUrlError('URL is invalid'); }
   if (url.protocol !== 'https:' || url.username || url.password) throw new UnsafeUrlError('Only public https URLs without credentials are allowed');
   if (net.isIP(url.hostname)) { if (isPrivateAddress(url.hostname)) throw new UnsafeUrlError('Private addresses are not allowed'); return url; }
-  const records = await dns.lookup(url.hostname, { all: true }).catch(() => { throw new UnsafeUrlError('Host cannot be resolved'); });
+  const records = await lookupPublicHostname(url.hostname).catch((error: unknown) => {
+    if (error instanceof UnsafeUrlError) throw error;
+    throw new UnsafeUrlError('Host cannot be resolved');
+  });
   if (records.length === 0 || records.some((record) => isPrivateAddress(record.address))) throw new UnsafeUrlError('Host resolves to a private address');
   return url;
 }

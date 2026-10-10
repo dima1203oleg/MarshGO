@@ -1,12 +1,18 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { bboxIntersectsRouteCorridor } from '../server/journey/providerCoverage';
+import { bboxIntersectsRouteCorridor, providerCityNamedInEndpoints } from '../server/journey/providerCoverage';
 
 const kyiv: [number, number] = [30.5234, 50.4501];
 const lviv: [number, number] = [24.031, 49.842];
 const kyivLvivCorridor = 60_000;
 
 describe('GTFS provider corridor selection', () => {
+  it('uses a named local provider when health metadata has no coverage bbox', () => {
+    assert.equal(providerCityNamedInEndpoints('Львів', ['Малоголосківська, Львів', 'Сихів, Львів']), true);
+    assert.equal(providerCityNamedInEndpoints('Львів', ['Львівська область', 'Київ']), false);
+    assert.equal(providerCityNamedInEndpoints('   ', ['Львів']), false);
+  });
+
   it('keeps provider feeds at either endpoint', () => {
     assert.equal(bboxIntersectsRouteCorridor([23.86, 49.77, 24.17, 49.98], kyiv, lviv, kyivLvivCorridor), true);
     assert.equal(bboxIntersectsRouteCorridor([30.28, 50.22, 30.78, 50.57], kyiv, lviv, kyivLvivCorridor), true);

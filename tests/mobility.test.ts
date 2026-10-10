@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { assetTypeFor, discoverFeeds, normalizeStations, normalizeVehicles } from '../server/mobility/gbfs';
-import { assertPublicHttpsUrl, isPrivateAddress, UnsafeUrlError } from '../server/mobility/safeFetch';
+import { assertPublicHttpsUrl, isPrivateAddress, lookupPublicHostname, UnsafeUrlError } from '../server/mobility/safeFetch';
 
 describe('GBFS normalisation', () => {
   it('finds feeds in 2.x (per language) and 3.x discovery documents', () => {
@@ -56,6 +56,9 @@ describe('feed URL safety', () => {
     await assert.rejects(assertPublicHttpsUrl('https://127.0.0.1/feed'), UnsafeUrlError);
     await assert.rejects(assertPublicHttpsUrl('https://169.254.169.254/latest'), UnsafeUrlError);
     await assert.rejects(assertPublicHttpsUrl('not a url'), UnsafeUrlError);
+  });
+  it('bounds DNS lookup time when an upstream resolver stalls', async () => {
+    await assert.rejects(lookupPublicHostname('slow-feed.example', 5, () => new Promise(() => {})), /Host lookup timed out/);
   });
 });
 

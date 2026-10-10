@@ -18,7 +18,7 @@ import { calculatePlatformFee } from './fees';
 import { getTrustedProxyHops, validateRuntimeConfig } from './config';
 import { parseJourneySearchRequest, transitProviderAllowed } from './journey/search';
 import { cachedGtfsTimetable, findGtfsItineraries, mergeGtfsTimetables, type GtfsItinerary, type GtfsTimetableSource, type TransitJourneyMode } from './journey/gtfsTimetable';
-import { bboxIntersectsRouteCorridor } from './journey/providerCoverage';
+import { bboxIntersectsRouteCorridor, providerCityNamedInEndpoints } from './journey/providerCoverage';
 import { projectNotification } from './notifications';
 import { optimizeStopInsertion, type NavigationStop } from './navigation/stopOptimizer';
 import { selectRepresentativeJourneys, strategiesWithComparablePrices } from './journey/scoring';
@@ -2245,7 +2245,9 @@ app.post('/api/v1/journeys/search', requireAuth, asyncHandler(async (req, res) =
   const spatiallyEligibleGtfsProviders = gtfsProviders.filter((provider) => {
     if (routeDistanceMeters < 45_000 && provider.city === 'Україна') return false;
     const box = provider.last_report?.bbox;
-    return Boolean(box && (bboxContains(box, originLon, originLat) || bboxContains(box, destinationLon, destinationLat)
+    const endpointNames = [search.origin.name, search.destination.name];
+    const namedLocalProvider = providerCityNamedInEndpoints(provider.city, endpointNames);
+    return namedLocalProvider || Boolean(box && (bboxContains(box, originLon, originLat) || bboxContains(box, destinationLon, destinationLat)
       || bboxIntersectsRouteCorridor(box, search.origin.coordinates, search.destination.coordinates, corridorWidthMeters)));
   });
   const allTransitModes: TransitJourneyMode[] = ['BUS', 'MINIBUS', 'RAIL', 'TRAM', 'TROLLEYBUS', 'METRO', 'FERRY', 'FUNICULAR'];
