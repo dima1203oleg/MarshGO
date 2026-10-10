@@ -1,8 +1,8 @@
 import { FormEvent, lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import {
   ArrowDownUp, ArrowLeft, ArrowRight, Baby, Ban, Bell, Briefcase, CalendarDays, CarFront, ChevronRight,
-  CircleUserRound, Clock3, Compass, FileText, Flag, HelpCircle, Home, LogOut, MapPin, MessageCircle, Minus, Navigation,
-  PawPrint, Plus, Search, Settings, ShieldCheck, SlidersHorizontal, Ticket, User, Users, X,
+  CircleUserRound, Clock3, Compass, Flag, Home, MapPin, MessageCircle, Minus, Navigation,
+  PawPrint, Plus, Search, ShieldCheck, SlidersHorizontal, Ticket, Users, X,
 } from 'lucide-react';
 
 import { Capacitor } from '@capacitor/core';
@@ -14,12 +14,11 @@ import { TransportTypesPanel } from '../components/TransportTypesPanel';
 import { OtherModesPanel } from '../components/OtherModesPanel';
 import { PlanTripChoice } from './PlanTripChoice';
 import { OnboardingSlides } from '../components/OnboardingSlides';
-import { DriverPhotoCard } from '../components/DriverPhotoCard';
 import { OfferEditSheet } from '../components/TripManagement';
 import { activeTypesForSearch, loadSelection, saveSelection, toJourneyPreferences, type TransportSelection } from '../domain/transportPreferences';
 import { TicketQr } from '../components/TicketQr';
 import type { ProfileSection } from './ProfileSections';
-import { ApiAccountDeletionRequest, ApiBlockedUser, ApiBooking, ApiDemand, ApiJourney, ApiJourneySearchResult, ApiJourneyStrategy, ApiMessage, ApiModerationCase, ApiNotification, ApiNotificationPage, ApiOffer, ApiPassengerNavigationMatch, ApiPlace, ApiProposal, ApiProposalRevision, ApiRescueResult, ApiRendezvous, ApiStoredJourney, ApiUser, ApiVehicle, ApiVehiclePhoto, ApiVerificationQueueItem, ApiVerificationRecord, productionApi } from '../services/productionApi';
+import { ApiAccountDeletionRequest, ApiBooking, ApiDemand, ApiJourney, ApiJourneySearchResult, ApiJourneyStrategy, ApiMessage, ApiModerationCase, ApiNotification, ApiNotificationPage, ApiOffer, ApiPassengerNavigationMatch, ApiPlace, ApiProposal, ApiProposalRevision, ApiRescueResult, ApiRendezvous, ApiStoredJourney, ApiUser, ApiVehicle, ApiVehiclePhoto, ApiVerificationQueueItem, ApiVerificationRecord, productionApi } from '../services/productionApi';
 import { OfflineNavigationStore } from '../navigation/OfflineNavigationStore';
 import { defaultKyivDateTime, formatKyivDateTimeInput, kyivDateTimeInputToDate, kyivDateTimeInputToIso } from '../domain/kyivTime';
 import { useProductionTabRouter } from '../routing/useProductionTabRouter';
@@ -98,7 +97,6 @@ export function ProductionMarketplace() {
   const rendezvousSessionsRef = useRef<Record<string, ApiRendezvous>>({});
   const [rendezvousBusyId, setRendezvousBusy] = useState<string | null>(null);
   const [bookingRescues, setBookingRescues] = useState<Record<string, { loading: boolean; failed: boolean; result?: ApiRescueResult }>>({});
-  const [blockedUsers, setBlockedUsers] = useState<ApiBlockedUser[]>([]);
   const [vehicles, setVehicles] = useState<ApiVehicle[]>([]);
   const [vehiclePhotos, setVehiclePhotos] = useState<Record<string, ApiVehiclePhoto[]>>({});
   const [verificationRecords, setVerificationRecords] = useState<ApiVerificationRecord[]>([]);
@@ -184,7 +182,6 @@ export function ProductionMarketplace() {
   const [messageDraft, setMessageDraft] = useState('');
   const [busy, setBusy] = useState(false);
   const [bookingToCancel, setBookingToCancel] = useState<ApiBooking | null>(null);
-  const [exportingData, setExportingData] = useState(false);
   const [deletionRequest, setDeletionRequest] = useState<ApiAccountDeletionRequest | null>(null);
   const [deletionBusy, setDeletionBusy] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
@@ -228,7 +225,6 @@ export function ProductionMarketplace() {
   }, [vehicles, offerVehicleId]);
   const refreshJourneys = useCallback(async () => setJourneys(await productionApi.journeys()), []);
   const refreshNotifications = useCallback(async () => setNotificationPage(await productionApi.notifications()), []);
-  const refreshBlockedUsers = useCallback(async () => setBlockedUsers(await productionApi.blockedUsers()), []);
   const refreshMyOffers = useCallback(async () => setMyOffers(await productionApi.myOffers()), []);
   const refreshVehicles = useCallback(async () => {
     const [nextVehicles, nextVerification] = await Promise.all([productionApi.vehicles(), productionApi.verificationRecords()]);
@@ -331,7 +327,7 @@ export function ProductionMarketplace() {
     productionApi.restoreSession().then(async () => {
       const currentUser = await productionApi.me();
       setUser(currentUser);
-      const [currentDeletionRequest] = await Promise.all([productionApi.accountDeletionRequest(), refreshBookings(), refreshJourneys(), refreshNotifications(), refreshVehicles(), refreshBlockedUsers(), ...(currentUser?.roles?.includes('driver') ? [refreshMyOffers(), refreshOpenDemands()] : []), ...(currentUser?.roles?.includes('passenger') ? [refreshMyDemands(), refreshPassengerNavigationMatches()] : [])]);
+      const [currentDeletionRequest] = await Promise.all([productionApi.accountDeletionRequest(), refreshBookings(), refreshJourneys(), refreshNotifications(), refreshVehicles(), ...(currentUser?.roles?.includes('driver') ? [refreshMyOffers(), refreshOpenDemands()] : []), ...(currentUser?.roles?.includes('passenger') ? [refreshMyDemands(), refreshPassengerNavigationMatches()] : [])]);
       setDeletionRequest(currentDeletionRequest);
     }).catch((error: unknown) => {
       setUser(null);
@@ -340,7 +336,7 @@ export function ProductionMarketplace() {
         setStatusMessage('Сервер не відповідає. Перевірте з’єднання та спробуйте увійти ще раз.');
       }
     }).finally(() => setLoading(false));
-  }, [refreshBlockedUsers, refreshBookings, refreshJourneys, refreshMyOffers, refreshPassengerNavigationMatches, refreshVehicles]);
+  }, [refreshBookings, refreshJourneys, refreshMyOffers, refreshPassengerNavigationMatches, refreshVehicles]);
 
   useEffect(() => {
     const entityId = route?.entityId;
@@ -536,7 +532,7 @@ export function ProductionMarketplace() {
       const currentUser = await productionApi.verifyOtp(phone, code);
       setUser(currentUser);
       const refreshedUser = await productionApi.me(); setUser(refreshedUser);
-      await Promise.all([refreshBookings(), refreshJourneys(), refreshVehicles(), refreshBlockedUsers(), ...(refreshedUser?.roles?.includes('driver') ? [refreshMyOffers(), refreshOpenDemands()] : []), ...(refreshedUser?.roles?.includes('passenger') ? [refreshMyDemands(), refreshPassengerNavigationMatches()] : [])]);
+      await Promise.all([refreshBookings(), refreshJourneys(), refreshVehicles(), ...(refreshedUser?.roles?.includes('driver') ? [refreshMyOffers(), refreshOpenDemands()] : []), ...(refreshedUser?.roles?.includes('passenger') ? [refreshMyDemands(), refreshPassengerNavigationMatches()] : [])]);
       
     } catch (error) { setStatusMessage(error instanceof Error ? error.message : 'Код не прийнято.'); }
     finally { setBusy(false); }
@@ -1114,6 +1110,8 @@ export function ProductionMarketplace() {
       {(vehicle.trust_level ?? (vehicle.verification_status === 'verified' ? 3 : 0)) < 3&&<button disabled={reviewPending} onClick={()=>{setRegistrationEvidence(null);setDriverLicenseEvidence(null);setVerificationTarget(vehicle);}} className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg bg-white py-2 text-xs font-bold text-blue-700 disabled:text-slate-400"><ShieldCheck size={14}/>{reviewPending?'Документи на перевірці':reviewRejected?'Надіслати повторно':'Підвищити довіру: додати документи (необов’язково)'}</button>}
     </article>;
   };
+  // Retain the existing vehicle management renderer during the profile-screen migration.
+  void vehicleCard;
 
   const submitVerification = async (event: FormEvent) => {
     event.preventDefault();
@@ -1177,20 +1175,9 @@ export function ProductionMarketplace() {
     setBusy(true); setStatusMessage('');
     try {
       await productionApi.blockBookingOther(selectedBooking.id);
-      await refreshBlockedUsers();
       setMessages([]); setRealtimeConnected(false); setSelectedBooking(null); setTab((currentTab) => currentTab === 'chat' ? 'trips' : currentTab);
       setStatusMessage(`${contactName} заблоковано. Бронювання залишилось у списку поїздок.`);
     } catch (error) { setStatusMessage(error instanceof Error ? error.message : 'Не вдалося заблокувати користувача.'); }
-    finally { setBusy(false); }
-  };
-
-  const unblockContact = async (blocked: ApiBlockedUser) => {
-    setBusy(true); setStatusMessage('');
-    try {
-      await productionApi.unblockUser(blocked.user_id);
-      await refreshBlockedUsers();
-      setStatusMessage(`${blocked.display_name} розблоковано.`);
-    } catch (error) { setStatusMessage(error instanceof Error ? error.message : 'Не вдалося розблокувати користувача.'); }
     finally { setBusy(false); }
   };
 
@@ -1223,17 +1210,16 @@ export function ProductionMarketplace() {
     if (activeNavigation) await productionApi.endNavigation(activeNavigation.id).catch(() => undefined);
     await productionApi.logout().catch(() => undefined);
     new OfflineNavigationStore().clear();
-    setUser(null); setBookings([]); setJourneys([]); setNotificationPage({ items: [], nextCursor: null, unreadCount: 0 }); setShowNotifications(false); setBlockedUsers([]); setVehicles([]); setOffers([]);  setOtpRequested(false);
+    setUser(null); setBookings([]); setJourneys([]); setNotificationPage({ items: [], nextCursor: null, unreadCount: 0 }); setShowNotifications(false); setVehicles([]); setOffers([]);  setOtpRequested(false);
   };
 
   const logoutAllDevices = async () => {
     await productionApi.logoutAll();
     new OfflineNavigationStore().clear();
-    setProfileSection(null); setUser(null); setBookings([]); setJourneys([]); setNotificationPage({ items: [], nextCursor: null, unreadCount: 0 }); setShowNotifications(false); setBlockedUsers([]); setVehicles([]); setOffers([]);  setOtpRequested(false);
+    setProfileSection(null); setUser(null); setBookings([]); setJourneys([]); setNotificationPage({ items: [], nextCursor: null, unreadCount: 0 }); setShowNotifications(false); setVehicles([]); setOffers([]);  setOtpRequested(false);
   };
 
   const downloadPersonalData = async () => {
-    setExportingData(true);
     setStatusMessage('');
     try {
       const data = await productionApi.exportMyData();
@@ -1247,8 +1233,6 @@ export function ProductionMarketplace() {
       setStatusMessage('Ваші дані завантажено у форматі JSON.');
     } catch (error) {
       setStatusMessage(error instanceof Error ? `Не вдалося експортувати дані: ${error.message}` : 'Не вдалося експортувати дані. Спробуйте ще раз.');
-    } finally {
-      setExportingData(false);
     }
   };
 
@@ -2213,8 +2197,6 @@ export function ProductionMarketplace() {
     { key: 'cancelled', label: 'Скасовані' },
   ];
 
-  const activeVehicle = vehicles.find((v) => v.is_active) ?? vehicles[0];
-
   const tripsScreen = (
     <IdenticalTripsExperience
       onOpenSearch={() => setTab('search')}
@@ -2791,6 +2773,9 @@ export function ProductionMarketplace() {
       )}
     </div>
   );
+
+  // Retain the previous trip screen implementation during migration to IdenticalTripsExperience.
+  void _legacyTripsScreen;
 
   const profileScreen = (
     <IdenticalProfileExperience
