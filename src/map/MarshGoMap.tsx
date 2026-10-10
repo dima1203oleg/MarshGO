@@ -57,7 +57,10 @@ export function MarshGoMap({ route, routeSegments, customMarkers, vehicle, headi
   useEffect(() => { adapter.current?.setRoute(route); }, [route]);
   useEffect(() => { if (routeSegments && adapter.current?.setRouteSegments) adapter.current.setRouteSegments(routeSegments); }, [routeSegments]);
   useEffect(() => { if (customMarkers && adapter.current?.setCustomMarkers) adapter.current.setCustomMarkers(customMarkers); }, [customMarkers]);
-  useEffect(() => { if (vehicle) adapter.current?.setVehicle(vehicle, heading, speedMps, vehicleLabel); }, [vehicle?.[0], vehicle?.[1], heading, speedMps, vehicleLabel]);
+  useEffect(() => {
+    if (vehicle) adapter.current?.setVehicle(vehicle, heading, speedMps, vehicleLabel);
+    else adapter.current?.clearVehicle?.();
+  }, [vehicle?.[0], vehicle?.[1], heading, speedMps, vehicleLabel]);
   useEffect(() => { adapter.current?.setTheme(theme); }, [theme]);
   useEffect(() => subscribeMapMode((mode) => adapter.current?.setMode(mode)), []);
   useEffect(() => subscribeMapLayer((layer) => adapter.current?.setLayer(layer)), []);

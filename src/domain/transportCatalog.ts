@@ -1,32 +1,71 @@
-/** All transport modes shown in the catalogue, grouped as in the product design. `rental` modes are backed by GBFS providers. */
-export type TransportGroup = 'Спільні поїздки' | 'Міський транспорт' | 'Міжміський транспорт' | 'Легкий транспорт' | 'Інше';
-export interface TransportMode { id: string; label: string; group: TransportGroup; rental?: 'bike' | 'scooter' | 'moped' | 'carsharing'; native?: boolean }
+/**
+ * MARSHGO 12 Canonical Transport Modes for Ukraine
+ * Ordered by popularity and product canon, with zero extra subcategories.
+ * Walking is included automatically as an internal leg; 'all' is a filter selection state.
+ */
 
-export const transportModes: TransportMode[] = [
-  { id: 'carpool', label: 'Попутка', group: 'Спільні поїздки', native: true },
-  { id: 'taxi', label: 'Таксі', group: 'Спільні поїздки' },
-  { id: 'carsharing', label: 'Каршерінг', group: 'Спільні поїздки', rental: 'carsharing' },
-  { id: 'car_rental', label: 'Оренда авто', group: 'Спільні поїздки' },
-  { id: 'transfer', label: 'Трансфер', group: 'Спільні поїздки' },
-  { id: 'bus', label: 'Автобус', group: 'Міський транспорт' },
-  { id: 'marshrutka', label: 'Маршрутка', group: 'Міський транспорт' },
-  { id: 'trolleybus', label: 'Тролейбус', group: 'Міський транспорт' },
-  { id: 'tram', label: 'Трамвай', group: 'Міський транспорт' },
-  { id: 'metro', label: 'Метро', group: 'Міський транспорт' },
-  { id: 'city_train', label: 'Міська електричка', group: 'Міський транспорт' },
-  { id: 'funicular', label: 'Фунікулер', group: 'Міський транспорт' },
-  { id: 'train', label: 'Поїзд', group: 'Міжміський транспорт' },
-  { id: 'suburban_train', label: 'Електричка', group: 'Міжміський транспорт' },
-  { id: 'intercity_bus', label: 'Міжміський автобус', group: 'Міжміський транспорт' },
-  { id: 'bike', label: 'Велосипед', group: 'Легкий транспорт', rental: 'bike' },
-  { id: 'scooter', label: 'Самокат', group: 'Легкий транспорт', rental: 'scooter' },
-  { id: 'moped', label: 'Мотоцикл, мопед', group: 'Легкий транспорт', rental: 'moped' },
-  { id: 'plane', label: 'Літак', group: 'Інше' },
-  { id: 'ferry', label: 'Пором', group: 'Інше' },
-  { id: 'walk', label: 'Пішки', group: 'Інше' },
+export const canonicalTransportTypes = [
+  'bus',
+  'marshrutka',
+  'trolleybus',
+  'tram',
+  'metro',
+  'carpool',
+  'taxi',
+  'train',
+  'bike',
+  'scooter',
+  'carsharing',
+  'transfer',
+] as const;
+
+export type CanonicalTransportTypeId = (typeof canonicalTransportTypes)[number];
+
+export type TransportGroup =
+  | 'Громадський транспорт'
+  | 'Спільні поїздки'
+  | 'Залізничний транспорт'
+  | 'Мікромобільність'
+  | 'Оренда авто';
+
+export interface TransportMode {
+  id: CanonicalTransportTypeId;
+  label: string;
+  group: TransportGroup;
+  order: number;
+  rental?: 'bike' | 'scooter' | 'carsharing';
+  native?: boolean;
+  enabled?: boolean;
+  supportedCities?: string[];
+}
+
+export const CANONICAL_TRANSPORT_MODES: TransportMode[] = [
+  { id: 'bus', label: 'Автобуси', group: 'Громадський транспорт', order: 1 },
+  { id: 'marshrutka', label: 'Маршрутки', group: 'Громадський транспорт', order: 2 },
+  { id: 'trolleybus', label: 'Тролейбуси', group: 'Громадський транспорт', order: 3 },
+  { id: 'tram', label: 'Трамваї', group: 'Громадський транспорт', order: 4 },
+  { id: 'metro', label: 'Метро', group: 'Громадський транспорт', order: 5, supportedCities: ['Київ', 'Харків', 'Дніпро', 'Кривий Ріг'] },
+  { id: 'carpool', label: 'Попутки', group: 'Спільні поїздки', order: 6, native: true },
+  { id: 'taxi', label: 'Таксі', group: 'Спільні поїздки', order: 7 },
+  { id: 'train', label: 'Поїзди (включно з електричками)', group: 'Залізничний транспорт', order: 8 },
+  { id: 'bike', label: 'Велосипеди', group: 'Мікромобільність', order: 9, rental: 'bike' },
+  { id: 'scooter', label: 'Самокати', group: 'Мікромобільність', order: 10, rental: 'scooter' },
+  { id: 'carsharing', label: 'Каршеринг', group: 'Оренда авто', order: 11, rental: 'carsharing' },
+  { id: 'transfer', label: 'Трансфери', group: 'Спільні поїздки', order: 12 },
 ];
-export const transportGroups: TransportGroup[] = ['Спільні поїздки', 'Міський транспорт', 'Міжміський транспорт', 'Легкий транспорт', 'Інше'];
+
+export const transportModes: TransportMode[] = CANONICAL_TRANSPORT_MODES;
+
+export const transportGroups: TransportGroup[] = [
+  'Громадський транспорт',
+  'Спільні поїздки',
+  'Залізничний транспорт',
+  'Мікромобільність',
+  'Оренда авто',
+];
 
 export function formatDistance(meters: number): string {
-  return meters < 1000 ? `${Math.round(meters / 10) * 10} м` : `${(meters / 1000).toFixed(1).replace('.', ',')} км`;
+  return meters < 1000
+    ? `${Math.round(meters / 10) * 10} м`
+    : `${(meters / 1000).toFixed(1).replace('.', ',')} км`;
 }

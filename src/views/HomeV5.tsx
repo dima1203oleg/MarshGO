@@ -1,285 +1,329 @@
 import React, { useState, useEffect } from 'react';
 import {
-  MapPin,
   ArrowRight,
-  Search,
-  CarFront,
-  ShieldCheck,
-  Navigation,
-  Moon,
-  Sun,
-  Bell,
+  Bus,
   ChevronRight,
+  MapPin,
+  Navigation,
+  Plus,
+  Search,
+  Ticket,
 } from 'lucide-react';
-import { themeService } from '../services/theme';
 
-interface HomeV5Props {
+export interface HomeV5Props {
   onStartNavigation: () => void;
   onSearchTrip: () => void;
   onPlanTrip: () => void;
-  onOpenNotifications: () => void;
-  unreadNotificationCount?: number;
+  onOpenMap?: () => void;
+  activeBooking?: {
+    id: string;
+    origin: string;
+    destination: string;
+    departureAt: string;
+    driverName: string;
+    status: string;
+  } | null;
+  onOpenActiveBooking?: (id: string) => void;
 }
 
 export const HomeV5: React.FC<HomeV5Props> = ({
   onStartNavigation,
   onSearchTrip,
   onPlanTrip,
-  onOpenNotifications,
-  unreadNotificationCount = 0,
+  onOpenMap,
+  activeBooking = null,
+  onOpenActiveBooking,
 }) => {
-  const [isDark, setIsDark] = useState(() => themeService.isDark());
+  const [activeSlide, setActiveSlide] = useState<0 | 1>(0);
 
+  // Subtle auto-advance hero banner every 8 seconds
   useEffect(() => {
-    return themeService.subscribe((_theme, dark) => setIsDark(dark));
+    const timer = setInterval(() => {
+      setActiveSlide((prev) => (prev === 0 ? 1 : 0));
+    }, 8000);
+    return () => clearInterval(timer);
   }, []);
 
-  const toggleTheme = () => {
-    themeService.setTheme(isDark ? 'light' : 'dark');
-  };
 
   return (
-    <div className="home-v5-screen flex h-[calc(100svh-5.3rem-env(safe-area-inset-bottom)-0.25rem)] min-h-0 flex-col overflow-hidden bg-[#F4F8FD] text-[#0D1C34] transition-colors duration-200 dark:bg-[#070E1B] dark:text-white lg:h-full">
-      {/* Top Header */}
-      <header className="flex w-full shrink-0 items-center justify-between px-5 pt-[max(0.55rem,env(safe-area-inset-top))] pb-1">
-        {/* Logo and Brand */}
-        <div className="flex items-center gap-2.5">
-          <div className="grid h-10 w-10 place-items-center rounded-[14px] bg-gradient-to-b from-[#1B74F3] to-[#085AD4] text-white shadow-md shadow-blue-500/25">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M4.5 19V6.5L12 13.5L19.5 6.5V19"
-                stroke="white"
-                strokeWidth="3.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-1.5 leading-none">
-              <span className="text-[19px] font-black tracking-tight text-[#0D1C34] dark:text-white">
-                MARSHGO
-              </span>
-              <span className="h-2 w-2 rounded-full bg-[#10B981]"></span>
+    <div className="home-v5-screen mx-auto w-full max-w-xl px-4 pb-20 pt-2 transition-colors duration-200">
+      {/* 1. Hero Dynamic Promotional Banner (Carousel: Screen 1 & Screen 3) */}
+      <div className="relative mb-4 overflow-hidden rounded-[32px] border border-blue-500/10 shadow-lg shadow-blue-500/5 transition-all">
+        {activeSlide === 0 ? (
+          /* Slide 1: Розумні поїздки для міста і міжміста (Photo 1) */
+          <div className="relative min-h-[220px] sm:min-h-[240px] w-full overflow-hidden bg-gradient-to-br from-[#EAF2FF] via-[#F3F8FF] to-[#E3EFFF] p-5 sm:p-6 dark:from-[#0B1E40] dark:via-[#091730] dark:to-[#0B1A38]">
+            {/* Background scenic photo with gradient masking */}
+            <div
+              className="pointer-events-none absolute inset-0 bg-cover bg-right sm:bg-center opacity-85 transition-opacity"
+              style={{
+                backgroundImage: 'url(/images/hero_ukraine_mobility.jpg)',
+                maskImage: 'linear-gradient(to right, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.85) 45%, black 100%)',
+                WebkitMaskImage: 'linear-gradient(to right, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.85) 45%, black 100%)',
+              }}
+            />
+
+            {/* Gradient wash to ensure text readability */}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white/95 via-white/80 to-transparent dark:from-[#091730]/95 dark:via-[#091730]/80 dark:to-transparent" />
+
+            <div className="relative z-10 flex flex-col justify-between h-full max-w-[70%] sm:max-w-[65%]">
+              <div>
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[#142642] dark:text-white leading-[1.2]">
+                  Розумні поїздки <br />
+                  <span className="text-[#0066FF] dark:text-[#3B82F6]">для міста і міжміста</span>
+                </h1>
+                <p className="mt-1 text-xs font-semibold text-[#6A7F98] dark:text-slate-300">
+                  Люди · Транспорт · Можливості
+                </p>
+              </div>
+
+              <div className="mt-4 flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={onSearchTrip}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-bold text-[#142642] shadow-sm backdrop-blur-sm transition hover:bg-white hover:scale-105 active:scale-95 dark:bg-slate-900/90 dark:text-white"
+                >
+                  <MapPin size={13} className="text-[#0066FF]" />
+                  <span>Україна</span>
+                  <ChevronRight size={13} className="text-slate-400" />
+                </button>
+              </div>
             </div>
-            <p className="mt-1 text-[11px] font-semibold text-[#66788F] dark:text-slate-400 leading-none">
-              Розумні поїздки · Україна
-            </p>
-          </div>
-        </div>
 
-        {/* Right actions: Theme toggle & Notifications */}
-        <div className="flex items-center gap-2">
+            {/* Artistic handwritten tagline on bottom right */}
+            <div className="pointer-events-none absolute bottom-4 right-4 z-10 hidden sm:block text-right">
+              <span className="text-xs font-bold italic tracking-wide text-white drop-shadow-md bg-blue-600/60 px-2.5 py-1 rounded-full backdrop-blur-xs">
+                Країна рухається разом
+              </span>
+            </div>
+          </div>
+        ) : (
+          /* Slide 2: ВІДКРИВАЙ Нові маршрути щодня (Photo 3) */
+          <div className="relative min-h-[220px] sm:min-h-[240px] w-full overflow-hidden bg-gradient-to-br from-[#00388A] via-[#0A48A5] to-[#0D5BCE] p-5 sm:p-6 text-white">
+            <div
+              className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-70 transition-opacity"
+              style={{
+                backgroundImage: 'url(/images/hero_mountain_bus.jpg)',
+              }}
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#00388A]/95 via-[#00388A]/75 to-transparent" />
+
+            <div className="relative z-10 flex flex-col justify-between h-full max-w-[70%] sm:max-w-[65%]">
+              <div>
+                <span className="inline-block rounded-md bg-white/20 px-2 py-0.5 text-[10px] font-black uppercase tracking-widest text-white backdrop-blur-xs">
+                  ВІДКРИВАЙ
+                </span>
+                <h1 className="mt-2 text-xl sm:text-2xl font-black tracking-tight text-white leading-[1.2]">
+                  Нові маршрути <br />
+                  щодня
+                </h1>
+                <p className="mt-1.5 text-xs font-medium text-blue-100">
+                  Комфортні поїздки містом і міжмістом
+                </p>
+              </div>
+
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={onSearchTrip}
+                  className="grid h-9 w-9 place-items-center rounded-full bg-white text-[#0066FF] shadow-md transition hover:scale-110 active:scale-95"
+                  aria-label="Перейти до маршрутів"
+                >
+                  <ArrowRight size={18} strokeWidth={2.5} />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Carousel Slide Indicators */}
+        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 bg-black/20 px-2.5 py-1 rounded-full backdrop-blur-xs">
           <button
             type="button"
-            onClick={toggleTheme}
-            className="grid h-10 w-10 place-items-center rounded-full bg-white dark:bg-[#111e36] text-[#0066FF] dark:text-blue-400 shadow-sm border border-slate-100 dark:border-slate-800 transition active:scale-95"
-            aria-label="Змінити тему"
-          >
-            {isDark ? <Sun size={19} /> : <Moon size={19} />}
-          </button>
-
+            onClick={() => setActiveSlide(0)}
+            aria-label="Слайд 1"
+            className={`h-1.5 rounded-full transition-all ${
+              activeSlide === 0 ? 'w-5 bg-white' : 'w-1.5 bg-white/50'
+            }`}
+          />
           <button
             type="button"
-            onClick={onOpenNotifications}
-            className="relative grid h-10 w-10 place-items-center rounded-full bg-white dark:bg-[#111e36] text-[#0D1C34] dark:text-slate-200 shadow-sm border border-slate-100 dark:border-slate-800 transition active:scale-95"
-            aria-label="Сповіщення"
-          >
-            <Bell size={19} />
-            {unreadNotificationCount > 0 && <span className="absolute -right-1 -top-1 grid min-h-5 min-w-5 place-items-center rounded-full bg-rose-600 px-1 text-[9px] font-bold text-white ring-2 ring-white dark:ring-[#111e36]">{unreadNotificationCount > 99 ? '99+' : unreadNotificationCount}</span>}
-          </button>
-        </div>
-      </header>
-
-      {/* Main Content Area */}
-      <div className="home-v5-content flex min-h-0 flex-1 flex-col justify-between gap-1 overflow-hidden px-4 pb-1">
-        {/* Pill Badge */}
-        <div className="flex shrink-0 justify-center">
-          <div className="inline-flex items-center gap-2 rounded-full bg-[#E8F2FF] px-3.5 py-1 dark:bg-blue-950/60">
-            <MapPin size={13} className="text-[#0066FF] fill-[#0066FF]" />
-            <span className="text-[12px] font-semibold text-[#0B4DB3] dark:text-blue-300">
-              Розумні поїздки · Україна
-            </span>
-          </div>
-        </div>
-
-        {/* Hero Title */}
-        <div className="home-v5-hero-copy shrink-0 text-center">
-          <h1 className="text-[clamp(1.35rem,4.8vw,1.8rem)] font-black leading-[1.08] tracking-tight text-[#0D1C34] dark:text-white">
-            Їдеш? MARSHGO знайде
-            <span className="block text-[#0066FF] dark:text-[#2582FF]">
-              попутника по дорозі.
-            </span>
-          </h1>
-
-          <p className="mx-auto mt-1 max-w-[320px] text-[12px] font-medium leading-snug text-[#62748D] dark:text-slate-400">
-            Усі способи дістатися — в одному застосунку.
-          </p>
-        </div>
-
-        {/* 3D Illustration matching design */}
-        <div className="home-v5-hero-art flex min-h-[5.5rem] flex-1 justify-center overflow-hidden">
-          <img
-            src="/hero_car_route.png"
-            alt="Маршрут та попутники MARSHGO"
-            className="pointer-events-none h-full max-h-[19svh] w-full max-w-[440px] select-none object-contain drop-shadow-sm dark:brightness-90"
+            onClick={() => setActiveSlide(1)}
+            aria-label="Слайд 2"
+            className={`h-1.5 rounded-full transition-all ${
+              activeSlide === 1 ? 'w-5 bg-white' : 'w-1.5 bg-white/50'
+            }`}
           />
         </div>
-
-        {/* Big Blue CTA Card: Почати навігацію */}
-        <div className="home-primary-action shrink-0">
-          <button
-            type="button"
-            onClick={onStartNavigation}
-            className="group relative flex w-full items-center justify-between overflow-hidden rounded-[22px] bg-gradient-to-r from-[#0066FF] to-[#0050DC] p-2.5 text-white shadow-[0_10px_25px_rgba(0,102,255,0.35)] transition-all hover:shadow-[0_12px_28px_rgba(0,102,255,0.45)] active:scale-[0.99]"
-          >
-            {/* Left White Squircle with Blue Car */}
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-[14px] bg-white text-[#0066FF] shadow-sm">
-              <CarFront size={22} strokeWidth={2.4} />
-            </div>
-
-            {/* Middle Content */}
-            <div className="min-w-0 flex-1 px-3 text-left">
-              <div className="flex items-center gap-2">
-                <span className="text-[15px] font-bold tracking-tight text-white">
-                  Почати навігацію
-                </span>
-                <span className="hidden min-[430px]:inline-flex items-center gap-1 rounded-full bg-[#08488E]/85 px-2 py-0.5 text-[11px] font-semibold text-white">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#22C55E]"></span>
-                  Автопідбір
-                </span>
-              </div>
-              <p className="mt-0.5 truncate text-[10.5px] font-normal text-blue-100/90">
-                Маршрут і попутники по дорозі
-              </p>
-            </div>
-
-            {/* Right White Circle with Arrow */}
-            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-[#0066FF] shadow-sm transition-transform group-hover:translate-x-0.5">
-              <ArrowRight size={18} strokeWidth={2.5} />
-            </div>
-          </button>
-        </div>
-
-        {/* Two Cards Grid: Пасажир & Водій */}
-        <div className="home-role-actions grid shrink-0 grid-cols-2 gap-2">
-          {/* Passenger Card */}
-          <button
-            type="button"
-            onClick={onSearchTrip}
-            className="group flex flex-col justify-between rounded-[20px] border border-slate-100/80 bg-white p-3 text-left shadow-sm transition hover:shadow-md active:scale-[0.99] dark:border-slate-800 dark:bg-[#111e36]"
-          >
-            <div>
-              {/* Category pill/icon */}
-              <div className="flex items-center gap-2">
-                <div className="grid h-8 w-8 place-items-center rounded-[12px] bg-[#EAF2FF] text-[#0066FF] dark:bg-blue-950/60 dark:text-blue-400">
-                  <Search size={18} strokeWidth={2.5} />
-                </div>
-                <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#8A9BA8] dark:text-slate-400">
-                  Пасажир
-                </span>
-              </div>
-
-              {/* Title & Chevron */}
-              <div className="mt-2 flex items-center justify-between gap-1">
-                <h2 className="text-[14px] font-extrabold leading-tight text-[#0D1C34] dark:text-white">
-                  Шукаю поїздку
-                </h2>
-                <div className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#F3F7FC] text-[#8A9BA8] transition-colors group-hover:text-blue-600 dark:bg-slate-800 dark:group-hover:text-blue-400">
-                  <ChevronRight size={16} strokeWidth={2.5} />
-                </div>
-              </div>
-            </div>
-
-            {/* Subtitle */}
-            <p className="mt-1 text-[10.5px] leading-snug text-[#7A8B9E] dark:text-slate-400">
-              Знайти рейс або створити запит
-            </p>
-          </button>
-
-          {/* Driver Card */}
-          <button
-            type="button"
-            onClick={onPlanTrip}
-            className="group flex flex-col justify-between rounded-[20px] border border-slate-100/80 bg-white p-3 text-left shadow-sm transition hover:shadow-md active:scale-[0.99] dark:border-slate-800 dark:bg-[#111e36]"
-          >
-            <div>
-              {/* Category pill/icon */}
-              <div className="flex items-center gap-2">
-                <div className="grid h-8 w-8 place-items-center rounded-[12px] bg-[#FFF5E5] text-[#D97706] dark:bg-amber-950/50 dark:text-amber-400">
-                  <CarFront size={18} strokeWidth={2.5} />
-                </div>
-                <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#8A9BA8] dark:text-slate-400">
-                  Водій
-                </span>
-              </div>
-
-              {/* Title & Chevron */}
-              <div className="mt-2 flex items-center justify-between gap-1">
-                <h2 className="text-[14px] font-extrabold leading-tight text-[#0D1C34] dark:text-white">
-                  Запланувати поїздку
-                </h2>
-                <div className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#F3F7FC] text-[#8A9BA8] transition-colors group-hover:text-amber-600 dark:bg-slate-800 dark:group-hover:text-amber-400">
-                  <ChevronRight size={16} strokeWidth={2.5} />
-                </div>
-              </div>
-            </div>
-
-            {/* Subtitle */}
-            <p className="mt-1 text-[10.5px] leading-snug text-[#7A8B9E] dark:text-slate-400">
-              Власне авто та вільні місця
-            </p>
-          </button>
-        </div>
-
-        {/* 3 Trust Badges */}
-        <div className="home-v5-trust-badges flex shrink-0 items-center justify-between px-1 py-0.5">
-          {/* Badge 1: 0% комісії */}
-          <div className="flex items-center gap-2">
-            <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#EAF2FF] text-[#0066FF] dark:bg-blue-950/60 dark:text-blue-400">
-              <ShieldCheck size={18} strokeWidth={2.2} />
-            </div>
-            <div className="leading-tight">
-              <p className="text-[10px] font-extrabold text-[#0D1C34] dark:text-white">
-                0% комісії
-              </p>
-              <p className="text-[9px] font-medium text-[#7A8B9E] dark:text-slate-400">
-                Community
-              </p>
-            </div>
-          </div>
-
-          {/* Badge 2: Перевірені авто */}
-          <div className="flex items-center gap-2">
-            <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#EAF2FF] text-[#0066FF] dark:bg-blue-950/60 dark:text-blue-400">
-              <CarFront size={18} strokeWidth={2.2} />
-            </div>
-            <div className="leading-tight">
-              <p className="text-[10px] font-extrabold text-[#0D1C34] dark:text-white">
-                Перевірені
-              </p>
-              <p className="text-[9px] font-medium text-[#7A8B9E] dark:text-slate-400">
-                авто
-              </p>
-            </div>
-          </div>
-
-          {/* Badge 3: Пошук по коридору */}
-          <div className="flex items-center gap-2">
-            <div className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#EAF2FF] text-[#0066FF] dark:bg-blue-950/60 dark:text-blue-400">
-              <Navigation size={18} strokeWidth={2.2} />
-            </div>
-            <div className="leading-tight">
-              <p className="text-[10px] font-extrabold text-[#0D1C34] dark:text-white">
-                Пошук по
-              </p>
-              <p className="text-[9px] font-medium text-[#7A8B9E] dark:text-slate-400">
-                коридору
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
+
+      {/* 2. Active Trip Card (Mint Green Card from Reference Photo 1) */}
+      {activeBooking ? <div className="mb-4">
+        <button
+          type="button"
+          onClick={() => onOpenActiveBooking?.(activeBooking.id)}
+          className="flex w-full items-center justify-between rounded-3xl border border-[#C6F0DC] bg-[#E8F8F0] p-4 text-left shadow-sm transition hover:shadow-md hover:border-emerald-400 active:scale-[0.99] dark:border-emerald-900/60 dark:bg-[#0A261E]"
+        >
+          <div className="flex items-center gap-3.5 min-w-0">
+            {/* Green icon container */}
+            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white text-emerald-600 shadow-xs border border-emerald-100 dark:bg-emerald-900/60 dark:text-emerald-300 dark:border-emerald-800">
+              <Ticket size={24} strokeWidth={2.2} />
+            </div>
+
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 leading-none">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[11px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
+                  Активна поїздка
+                </span>
+              </div>
+              <h2 className="mt-1 text-base font-black text-[#142642] dark:text-white truncate">
+                {activeBooking.origin} → {activeBooking.destination}
+              </h2>
+              <p className="text-xs font-semibold text-emerald-900/70 dark:text-emerald-400/80">
+                {new Intl.DateTimeFormat('uk-UA', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Europe/Kyiv' }).format(new Date(activeBooking.departureAt))} · {activeBooking.driverName}
+              </p>
+            </div>
+          </div>
+
+          <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-emerald-800/60 dark:text-emerald-300">
+            <ChevronRight size={22} strokeWidth={2.4} />
+          </div>
+        </button>
+      </div> : <button type="button" onClick={onSearchTrip} className="mb-4 flex w-full items-center justify-between rounded-3xl border border-blue-100 bg-white p-4 text-left shadow-sm transition hover:border-blue-300 dark:border-slate-800 dark:bg-[#101E38]"><span className="flex items-center gap-3"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"><Ticket size={22} /></span><span><b className="block text-sm text-slate-900 dark:text-white">Знайти поїздку</b><span className="mt-1 block text-xs text-slate-500">Пошук за реальними маршрутами й доступністю</span></span></span><ChevronRight size={20} className="text-blue-600" /></button>}
+
+      {/* 3. The 4 Grand Interactive Action Cards (2x2 Grid from Reference Photos) */}
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4">
+        {/* Card 1: Навігація (Blue Gradient Card) */}
+        <button
+          type="button"
+          onClick={onStartNavigation}
+          className="group relative flex flex-col justify-between overflow-hidden rounded-[28px] border border-blue-400/20 bg-gradient-to-br from-[#1E6BFF] via-[#0D57E6] to-[#0A41B3] p-4 sm:p-5 text-left text-white shadow-md shadow-blue-500/15 transition-all hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] min-h-[160px] sm:min-h-[175px]"
+        >
+          {/* Subtle vehicle background image */}
+          <div
+            className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-30 mix-blend-overlay transition-transform group-hover:scale-105"
+            style={{ backgroundImage: 'url(/images/card_navigation_car.jpg)' }}
+          />
+
+          <div className="relative z-10">
+            <div className="grid h-11 w-11 place-items-center rounded-2xl bg-white text-[#0D57E6] shadow-sm">
+              <Navigation size={22} strokeWidth={2.4} />
+            </div>
+          </div>
+
+          <div className="relative z-10 mt-3 flex items-end justify-between">
+            <div className="pr-2 min-w-0">
+              <h3 className="text-lg sm:text-xl font-black tracking-tight text-white leading-tight">
+                Навігація
+              </h3>
+              <p className="mt-1 text-[11px] sm:text-xs font-medium text-blue-100 leading-snug line-clamp-2">
+                Побудувати оптимальний маршрут
+              </p>
+            </div>
+            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-[#0D57E6] shadow-md transition group-hover:scale-110">
+              <ArrowRight size={17} strokeWidth={2.5} />
+            </div>
+          </div>
+        </button>
+
+        {/* Card 2: Карта транспорту (Emerald Gradient Card) */}
+        <button
+          type="button"
+          onClick={onOpenMap ?? onStartNavigation}
+          className="group relative flex flex-col justify-between overflow-hidden rounded-[28px] border border-emerald-400/20 bg-gradient-to-br from-[#10B981] via-[#059669] to-[#047857] p-4 sm:p-5 text-left text-white shadow-md shadow-emerald-500/15 transition-all hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] min-h-[160px] sm:min-h-[175px]"
+        >
+          <div
+            className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-25 mix-blend-overlay transition-transform group-hover:scale-105"
+            style={{ backgroundImage: 'url(/images/hero_mountain_bus.jpg)' }}
+          />
+
+          <div className="relative z-10">
+            <div className="grid h-11 w-11 place-items-center rounded-2xl bg-white text-[#059669] shadow-sm">
+              <Bus size={22} strokeWidth={2.4} />
+            </div>
+          </div>
+
+          <div className="relative z-10 mt-3 flex items-end justify-between">
+            <div className="pr-2 min-w-0">
+              <h3 className="text-lg sm:text-xl font-black tracking-tight text-white leading-tight">
+                Карта транспорту
+              </h3>
+              <p className="mt-1 text-[11px] sm:text-xs font-medium text-emerald-100 leading-snug line-clamp-2">
+                Увесь міський транспорт на одній карті
+              </p>
+            </div>
+            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-[#059669] shadow-md transition group-hover:scale-110">
+              <ArrowRight size={17} strokeWidth={2.5} />
+            </div>
+          </div>
+        </button>
+
+        {/* Card 3: Знайти (Purple Gradient Card) */}
+        <button
+          type="button"
+          onClick={onSearchTrip}
+          className="group relative flex flex-col justify-between overflow-hidden rounded-[28px] border border-purple-400/20 bg-gradient-to-br from-[#8B5CF6] via-[#7C3AED] to-[#6D28D9] p-4 sm:p-5 text-left text-white shadow-md shadow-purple-500/15 transition-all hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] min-h-[160px] sm:min-h-[175px]"
+        >
+          <div
+            className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-25 mix-blend-overlay transition-transform group-hover:scale-105"
+            style={{ backgroundImage: 'url(/images/hero_ukraine_mobility.jpg)' }}
+          />
+
+          <div className="relative z-10">
+            <div className="grid h-11 w-11 place-items-center rounded-2xl bg-white text-[#7C3AED] shadow-sm">
+              <Search size={22} strokeWidth={2.4} />
+            </div>
+          </div>
+
+          <div className="relative z-10 mt-3 flex items-end justify-between">
+            <div className="pr-2 min-w-0">
+              <h3 className="text-lg sm:text-xl font-black tracking-tight text-white leading-tight">
+                Знайти
+              </h3>
+              <p className="mt-1 text-[11px] sm:text-xs font-medium text-purple-100 leading-snug line-clamp-2">
+                Попутників, поїздки та транспорт
+              </p>
+            </div>
+            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-[#7C3AED] shadow-md transition group-hover:scale-110">
+              <ArrowRight size={17} strokeWidth={2.5} />
+            </div>
+          </div>
+        </button>
+
+        {/* Card 4: Опублікувати (Orange Gradient Card) */}
+        <button
+          type="button"
+          onClick={onPlanTrip}
+          className="group relative flex flex-col justify-between overflow-hidden rounded-[28px] border border-amber-400/20 bg-gradient-to-br from-[#F59E0B] via-[#EA580C] to-[#D97706] p-4 sm:p-5 text-left text-white shadow-md shadow-amber-500/15 transition-all hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] min-h-[160px] sm:min-h-[175px]"
+        >
+          <div
+            className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-25 mix-blend-overlay transition-transform group-hover:scale-105"
+            style={{ backgroundImage: 'url(/images/card_navigation_car.jpg)' }}
+          />
+
+          <div className="relative z-10">
+            <div className="grid h-11 w-11 place-items-center rounded-2xl bg-white text-[#EA580C] shadow-sm">
+              <Plus size={24} strokeWidth={2.8} />
+            </div>
+          </div>
+
+          <div className="relative z-10 mt-3 flex items-end justify-between">
+            <div className="pr-2 min-w-0">
+              <h3 className="text-lg sm:text-xl font-black tracking-tight text-white leading-tight">
+                Опублікувати
+              </h3>
+              <p className="mt-1 text-[11px] sm:text-xs font-medium text-amber-100 leading-snug line-clamp-2">
+                Створити поїздку або знайти пасажирів
+              </p>
+            </div>
+            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-[#EA580C] shadow-md transition group-hover:scale-110">
+              <ArrowRight size={17} strokeWidth={2.5} />
+            </div>
+          </div>
+        </button>
+      </div>
+
+      {/* The 4 action cards conclude the main Home view per Audio 1 instructions */}
     </div>
   );
 };

@@ -22,6 +22,7 @@ export interface MapAdapter {
   setCustomMarkers?(markers: CustomMapMarker[]): void;
   getMap?(): unknown;
   setVehicle(point: Coordinate, heading?: number | null, speedMps?: number | null, label?: string | null): void;
+  clearVehicle?(): void;
   startNavigationCamera(point: Coordinate, initialBearing?: number | null): void;
   setMeetingPoints(points: { pickup?: Coordinate | null; driver?: Coordinate | null; passenger?: Coordinate | null } | null, fit?: boolean): void;
   setRouteProgress(vertex: number, position?: Coordinate | null): void;

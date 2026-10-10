@@ -10,11 +10,14 @@ import { TripReviewModal } from './components/TripReviewModal';
 import { DriverWorkflowModal } from './components/DriverWorkflowModal';
 import { NotificationsCenterModal } from './components/NotificationsCenterModal';
 import { MOCK_ASSETS } from '../search/assets/mockAssets';
+import { useEffect } from 'react';
+import { productionApi } from '../../services/productionApi';
 
 interface TripLifecycleCoordinatorProps {
   initialTrip?: Partial<ActiveTripData>;
   onCloseLifecycle?: () => void;
   onBookAlternative?: (altId: string) => void;
+  currentUser?: any;
 }
 
 export function buildDefaultActiveTrip(): ActiveTripData {
@@ -62,6 +65,7 @@ export const TripLifecycleCoordinator: React.FC<TripLifecycleCoordinatorProps> =
   initialTrip,
   onCloseLifecycle,
   onBookAlternative,
+  currentUser,
 }) => {
   const [trip, setTrip] = useState<ActiveTripData>(() => ({
     ...buildDefaultActiveTrip(),
@@ -69,6 +73,37 @@ export const TripLifecycleCoordinator: React.FC<TripLifecycleCoordinatorProps> =
   }));
 
   const [currentView, setCurrentView] = useState<ActiveView>('hub');
+
+  useEffect(() => {
+    if (!trip.rawBooking?.id) return;
+    const unsub = productionApi.subscribeRealtime((event) => {
+      const eventType = event.type as string;
+      if (eventType.startsWith('booking.') && (event.data as any).booking_id === trip.rawBooking?.id) {
+        if (eventType === 'booking.cancelled') {
+          setTrip((prev) => ({
+            ...prev,
+            status: 'cancelled',
+            statusLabel: 'Скасовано',
+          }));
+        } else if (eventType === 'booking.completed') {
+          setTrip((prev) => ({
+            ...prev,
+            status: 'completed',
+            statusLabel: 'Завершено',
+          }));
+          setShowReviewModal(true);
+        } else if (eventType === 'booking.passenger_boarded') {
+          setTrip((prev) => ({
+            ...prev,
+            status: 'in_progress',
+            statusLabel: 'У дорозі',
+          }));
+          setCurrentView('hub');
+        }
+      }
+    }, () => {});
+    return () => unsub();
+  }, [trip.rawBooking?.id]);
 
   // Modals state
   const [showPhoneModal, setShowPhoneModal] = useState(false);
@@ -135,6 +170,8 @@ export const TripLifecycleCoordinator: React.FC<TripLifecycleCoordinatorProps> =
           driver={trip.driver}
           onBack={() => setCurrentView('hub')}
           onCallDriver={() => setShowPhoneModal(true)}
+          bookingId={trip.rawBooking?.id}
+          currentUserId={currentUser?.id}
         />
       )}
 

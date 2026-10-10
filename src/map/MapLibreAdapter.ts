@@ -245,6 +245,18 @@ export class MapLibreAdapter implements MapAdapter {
     if (this.cameraMode === 'FOLLOW_HEADING' || this.cameraMode === 'FOLLOW') this.followCamera(900);
   }
 
+  clearVehicle() {
+    this.vehicle = null;
+    this.heading = null;
+    this.speedKmh = 0;
+    const source = this.map.getSource('marshgo-vehicle') as maplibregl.GeoJSONSource | undefined;
+    source?.setData({ type: 'FeatureCollection', features: [] });
+    this.marker?.remove();
+    this.marker = null;
+    this.labelMarker?.remove();
+    this.labelMarker = null;
+  }
+
   /**
    * Opens the navigation view like any car navigator: close to the driver, tilted in 3D and rotated to look ahead along the route,
    * before the first GPS fix even arrives.

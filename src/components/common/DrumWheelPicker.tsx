@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 
@@ -23,7 +23,7 @@ export function DrumWheelPicker<T extends string | number>({
   className = '',
 }: DrumWheelPickerProps<T>) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const isScrollingRef = useRef(false);
+  const isProgrammaticScrollRef = useRef(false);
   const [isDragging, setIsDragging] = useState(false);
   const startYRef = useRef(0);
   const startScrollTopRef = useRef(0);
@@ -31,14 +31,20 @@ export function DrumWheelPicker<T extends string | number>({
   const selectedIndex = Math.max(0, items.indexOf(value));
   const lastFeedbackIndexRef = useRef(selectedIndex);
   const lastFeedbackAtRef = useRef(0);
+  const scrollReleaseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const mountedAtRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    lastFeedbackIndexRef.current = selectedIndex;
+  }, [selectedIndex]);
 
   const playRatchet = useCallback((index: number) => {
     if (lastFeedbackIndexRef.current === index) return;
     lastFeedbackIndexRef.current = index;
 
     const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
-    if (now - lastFeedbackAtRef.current < 28) return;
+    if (now - lastFeedbackAtRef.current < 32) return;
     lastFeedbackAtRef.current = now;
 
     if (typeof window !== 'undefined') {
@@ -56,12 +62,12 @@ export function DrumWheelPicker<T extends string | number>({
           oscillator.type = 'triangle';
           oscillator.frequency.setValueAtTime(1180, startAt);
           envelope.gain.setValueAtTime(0.0001, startAt);
-          envelope.gain.exponentialRampToValueAtTime(0.025, startAt + 0.004);
-          envelope.gain.exponentialRampToValueAtTime(0.0001, startAt + 0.026);
+          envelope.gain.exponentialRampToValueAtTime(0.035, startAt + 0.004);
+          envelope.gain.exponentialRampToValueAtTime(0.0001, startAt + 0.03);
           oscillator.connect(envelope);
           envelope.connect(context.destination);
           oscillator.start(startAt);
-          oscillator.stop(startAt + 0.03);
+          oscillator.stop(startAt + 0.034);
         }
       } catch {
         // Audio feedback is optional; keep wheel interaction working if the browser blocks it.
@@ -79,19 +85,28 @@ export function DrumWheelPicker<T extends string | number>({
     }
   }, []);
 
-  // Sync scroll position when value changes from outside
-  useEffect(() => {
-    if (!containerRef.current || isDragging || isScrollingRef.current) return;
+  // Align the wheel before its first paint; later external changes animate smoothly.
+  useLayoutEffect(() => {
+    if (!containerRef.current || isDragging) return;
+    const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    if (mountedAtRef.current === null) mountedAtRef.current = now;
+    const isInitialAlignment = now - mountedAtRef.current < 120;
     const targetScroll = selectedIndex * ITEM_HEIGHT;
     if (Math.abs(containerRef.current.scrollTop - targetScroll) > 2) {
-      containerRef.current.scrollTo({
-        top: targetScroll,
-        behavior: 'smooth',
-      });
+      isProgrammaticScrollRef.current = true;
+      if (scrollReleaseTimerRef.current) clearTimeout(scrollReleaseTimerRef.current);
+      if (isInitialAlignment) {
+        containerRef.current.scrollTop = targetScroll;
+        scrollReleaseTimerRef.current = setTimeout(() => { isProgrammaticScrollRef.current = false; }, 80);
+      } else {
+        containerRef.current.scrollTo({ top: targetScroll, behavior: 'smooth' });
+        scrollReleaseTimerRef.current = setTimeout(() => { isProgrammaticScrollRef.current = false; }, 240);
+      }
     }
   }, [selectedIndex, isDragging]);
 
   useEffect(() => () => {
+    if (scrollReleaseTimerRef.current) clearTimeout(scrollReleaseTimerRef.current);
     if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
       void audioContextRef.current.close().catch(() => undefined);
     }
@@ -104,10 +119,10 @@ export function DrumWheelPicker<T extends string | number>({
     const clampedIndex = Math.max(0, Math.min(items.length - 1, nearestIndex));
     const targetScroll = clampedIndex * ITEM_HEIGHT;
 
-    containerRef.current.scrollTo({
-      top: targetScroll,
-      behavior: 'smooth',
-    });
+    isProgrammaticScrollRef.current = true;
+    if (scrollReleaseTimerRef.current) clearTimeout(scrollReleaseTimerRef.current);
+    containerRef.current.scrollTo({ top: targetScroll, behavior: 'smooth' });
+    scrollReleaseTimerRef.current = setTimeout(() => { isProgrammaticScrollRef.current = false; }, 240);
 
     const chosen = items[clampedIndex];
     if (chosen !== undefined && chosen !== value) {
@@ -117,8 +132,7 @@ export function DrumWheelPicker<T extends string | number>({
   }, [items, value, onChange, playRatchet]);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    if (isDragging) return;
-    isScrollingRef.current = true;
+    if (isDragging || isProgrammaticScrollRef.current) return;
     const currentScroll = e.currentTarget.scrollTop;
     const nearestIndex = Math.round(currentScroll / ITEM_HEIGHT);
     const clampedIndex = Math.max(0, Math.min(items.length - 1, nearestIndex));
@@ -127,10 +141,6 @@ export function DrumWheelPicker<T extends string | number>({
       playRatchet(clampedIndex);
       onChange(chosen);
     }
-    // Timeout to release programmatic lock
-    setTimeout(() => {
-      isScrollingRef.current = false;
-    }, 150);
   };
 
   // Touch / Pointer dragging for realistic momentum and haptic feel
@@ -176,17 +186,17 @@ export function DrumWheelPicker<T extends string | number>({
       {/* Center highlight glass lens */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-2 top-1/2 -translate-y-1/2 h-[44px] rounded-xl border border-blue-500/20 bg-blue-500/10 dark:border-[#2D66A8]/50 dark:bg-[#153455]/90 z-10"
+        className="pointer-events-none absolute inset-x-2 top-1/2 -translate-y-1/2 h-[44px] rounded-xl border border-blue-500/35 bg-blue-500/10 shadow-[0_0_18px_rgba(37,99,235,0.10)] dark:border-[#3988ff]/55 dark:bg-[#153455]/90 dark:shadow-[0_0_22px_rgba(37,99,235,0.16)] z-10"
       />
 
       {/* Top and Bottom Gradient Fades (iOS barrel wheel perspective) */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-[88px] bg-gradient-to-b from-white dark:from-[#071426] to-transparent z-20"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[88px] bg-gradient-to-b from-[#f8fafc] dark:from-[#091b31] to-transparent z-20"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[88px] bg-gradient-to-t from-white dark:from-[#071426] to-transparent z-20"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[88px] bg-gradient-to-t from-[#f8fafc] dark:from-[#091b31] to-transparent z-20"
       />
 
       {/* Scrollable list */}
@@ -227,10 +237,13 @@ export function DrumWheelPicker<T extends string | number>({
               onClick={() => {
                 if (item !== value) playRatchet(index);
                 onChange(item);
+                isProgrammaticScrollRef.current = true;
+                if (scrollReleaseTimerRef.current) clearTimeout(scrollReleaseTimerRef.current);
                 containerRef.current?.scrollTo({
                   top: index * ITEM_HEIGHT,
                   behavior: 'smooth',
                 });
+                scrollReleaseTimerRef.current = setTimeout(() => { isProgrammaticScrollRef.current = false; }, 240);
               }}
               style={{
                 height: ITEM_HEIGHT,

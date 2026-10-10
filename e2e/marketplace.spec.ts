@@ -104,6 +104,83 @@ async function setPassengerCount(page: import('@playwright/test').Page, count: n
   await page.getByRole('button', { name: 'Застосувати', exact: true }).click();
 }
 
+test('time drum plays a ratchet tick and keeps arrival-time mode', async ({ browser, baseURL }) => {
+  expect(baseURL).toBeTruthy();
+  const context = await browser.newContext({ baseURL, timezoneId: 'Europe/Kyiv' });
+  const page = await context.newPage();
+  try {
+    await page.addInitScript(() => {
+      const feedback = { audioTicks: 0, audioContexts: 0, vibrationTicks: 0 };
+      Object.defineProperty(window, '__timeDrumFeedback', { configurable: true, value: feedback });
+      Object.defineProperty(navigator, 'vibrate', {
+        configurable: true,
+        value: () => { feedback.vibrationTicks += 1; return true; },
+      });
+      class MockAudioContext {
+        state = 'running';
+        currentTime = 0;
+        destination = {};
+        constructor() { feedback.audioContexts += 1; }
+        createOscillator() {
+          return {
+            type: 'triangle',
+            frequency: { setValueAtTime() {} },
+            connect() {},
+            start: () => { feedback.audioTicks += 1; },
+            stop() {},
+          };
+        }
+        createGain() {
+          return {
+            gain: { setValueAtTime() {}, exponentialRampToValueAtTime() {} },
+            connect() {},
+          };
+        }
+        resume() { return Promise.resolve(); }
+        close() { return Promise.resolve(); }
+      }
+      Object.defineProperty(window, 'AudioContext', { configurable: true, value: MockAudioContext });
+    });
+    await signIn(page, 'Time Drum Passenger', `+38075${String(Date.now()).slice(-7)}`);
+    await openSearchTab(page);
+    await page.getByRole('button', { name: /^Час/ }).click();
+    await expect(page.getByTestId('time-drum-modal')).toBeVisible();
+    const hourWheel = page.getByRole('listbox', { name: 'Години' });
+    const minuteWheel = page.getByRole('listbox', { name: 'Хвилини' });
+    const selectedTime = page.locator('[aria-live="polite"][aria-label^="Обраний час"]');
+    await expect.poll(async () => {
+      const hour = await hourWheel.locator('[role="option"][aria-selected="true"]').innerText();
+      const minute = await minuteWheel.locator('[role="option"][aria-selected="true"]').innerText();
+      return await selectedTime.getAttribute('aria-label') === `Обраний час ${hour}:${minute}`;
+    }).toBe(true);
+    await page.screenshot({ path: '/tmp/marshgo-time-drum-picker.png' });
+
+    const currentHour = Number(await hourWheel.locator('[role="option"][aria-selected="true"]').innerText());
+    const nextHour = String((currentHour + 1) % 24).padStart(2, '0');
+    await hourWheel.getByRole('option', { name: nextHour, exact: true }).evaluate((option) => (option as HTMLElement).click());
+    await expect(hourWheel.locator('[role="option"][aria-selected="true"]')).toHaveText(nextHour);
+    const feedbackSnapshot = await page.evaluate(() => (window as Window & { __timeDrumFeedback?: { audioTicks: number; audioContexts: number; vibrationTicks: number } }).__timeDrumFeedback);
+    expect(feedbackSnapshot?.audioContexts).toBeGreaterThan(0);
+    await expect.poll(() => page.evaluate(() => {
+      const feedback = (window as Window & { __timeDrumFeedback?: { audioTicks: number; vibrationTicks: number } }).__timeDrumFeedback;
+      return feedback?.audioTicks ?? 0;
+    })).toBeGreaterThan(0);
+    await expect.poll(() => page.evaluate(() => {
+      const feedback = (window as Window & { __timeDrumFeedback?: { audioTicks: number; vibrationTicks: number } }).__timeDrumFeedback;
+      return feedback?.vibrationTicks ?? 0;
+    })).toBeGreaterThan(0);
+
+    const arrivalMode = page.getByRole('button', { name: 'Прибуття', exact: true });
+    await arrivalMode.click();
+    await expect(arrivalMode).toHaveAttribute('aria-pressed', 'true');
+    await page.getByRole('button', { name: 'Застосувати', exact: true }).click();
+    await page.getByRole('button', { name: /^Час/ }).click();
+    await expect(page.getByRole('button', { name: 'Прибуття', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  } finally {
+    await context.close();
+  }
+});
+
 test('route transport catalogue exposes the twelve canonical modes in order and disables unroutable modes', async ({ browser, baseURL }) => {
   expect(baseURL).toBeTruthy();
   const context = await browser.newContext({ baseURL, timezoneId: 'Europe/Kyiv' });
@@ -1228,6 +1305,10 @@ test('Journey Planner preserves a Community offer and does not claim CHEAPEST wi
     expect(bookedJourney).toHaveLength(1);
     expect(bookedJourney[0]).toMatchObject({ state: 'READY', confirmed_price_minor: 15000, leg_state: 'CONFIRMED', price_status: 'LOCKED' });
 
+    // The saved-routes subtab intentionally focuses on journey plans; return to
+    // the overview before exercising booking cancellation controls.
+    await page.getByRole('button', { name: 'Огляд', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Скасувати', exact: true })).toBeVisible();
     const cancelResponse = page.waitForResponse(response => response.url().endsWith(`/api/v1/bookings/${linkedBooking.data.id}/cancel`));
     await page.getByRole('button', { name: 'Скасувати', exact: true }).click();
     const cancellationDialog = page.getByRole('alertdialog', { name: 'Скасувати бронювання?' });
@@ -1238,7 +1319,7 @@ test('Journey Planner preserves a Community offer and does not claim CHEAPEST wi
     await expect(page.getByText('Ціна не визначена')).toBeVisible();
 
     // Cancellation exposes the provider-backed rescue alternatives on the stored route.
-    const replacement = page.getByRole('button').filter({ hasText: 'Rescue E2E Corridor Origin' }).first();
+    const replacement = page.locator('button[data-offer-id]').filter({ hasText: 'Rescue E2E Corridor Origin' }).first();
     await expect(replacement).toHaveAttribute('data-offer-id', rescueCorridorAlternativeId);
     await replacement.click();
     await expect(page.getByRole('heading', { name: /Rescue E2E Corridor Origin/ })).toBeVisible();
@@ -1268,8 +1349,10 @@ test('Journey Planner preserves a Community offer and does not claim CHEAPEST wi
     await expect(page.getByRole('heading', { name: 'Сповіщення' })).toBeVisible();
     await expect(page.getByText('План маршруту оновлено').first()).toBeVisible();
     await expect(page.getByText('Бронювання підтверджено').first()).toBeVisible();
+    const unreadPlanNotice = page.locator('[data-notification-read="false"]').filter({ hasText: 'План маршруту оновлено' }).first();
+    await expect(unreadPlanNotice).toBeVisible();
     const markReadResponse = page.waitForResponse(response => /\/api\/v1\/notifications\/[0-9a-f-]+\/read$/.test(response.url()));
-    await page.getByRole('button').filter({ hasText: 'План маршруту оновлено' }).first().click();
+    await unreadPlanNotice.click();
     expect((await markReadResponse).status()).toBe(200);
   } finally {
     await context.close();
