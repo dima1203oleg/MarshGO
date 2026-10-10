@@ -6,9 +6,15 @@ import { initializePlatform } from './platform';
 
 initializePlatform();
 
+import { ErrorBoundary } from './components/ErrorBoundary';
+
 const rootElement = document.getElementById('root')!;
 rootElement.replaceChildren();
 // The release entry imports only the server-backed application. The legacy
 // localStorage prototype in App.tsx is intentionally not in this module graph.
-createRoot(rootElement).render(<ProductionMarketplace />);
+createRoot(rootElement).render(
+  <ErrorBoundary>
+    <ProductionMarketplace />
+  </ErrorBoundary>
+);
 Reflect.set(window, '__MARSHGO_BOOTED__', true);
