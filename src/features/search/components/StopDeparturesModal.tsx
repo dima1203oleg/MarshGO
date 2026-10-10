@@ -6,11 +6,6 @@ import {
   Accessibility,
   Bus,
   TramFront,
-  Navigation,
-  X,
-  MapPin,
-  Clock,
-  Info,
 } from 'lucide-react';
 
 export interface StopDepartureItem {

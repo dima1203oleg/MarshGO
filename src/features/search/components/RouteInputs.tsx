@@ -40,6 +40,7 @@ export const RouteInputs: React.FC<RouteInputsProps> = ({
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     if (!query.trim() || query.trim().length < 2) {
       setSuggestions([]);
+      setLoadingSuggestions(false);
       return;
     }
     setLoadingSuggestions(true);
@@ -229,9 +230,11 @@ export const RouteInputs: React.FC<RouteInputsProps> = ({
       </div>
 
       {/* Autocomplete Suggestions Dropdown */}
-      {activeField && suggestions.length > 0 && (
+      {activeField && (loadingSuggestions || suggestions.length > 0) && (
         <div className="border-t border-slate-100 dark:border-slate-800 p-2 space-y-1 max-h-56 overflow-y-auto">
-          {suggestions.map((s, idx) => (
+          {loadingSuggestions ? (
+            <p role="status" className="px-2.5 py-3 text-xs text-slate-500 dark:text-slate-400">Шукаємо адресу…</p>
+          ) : suggestions.map((s, idx) => (
             <button
               key={`${s.label}-${idx}`}
               type="button"
