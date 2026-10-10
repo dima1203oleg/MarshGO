@@ -185,9 +185,8 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
   padding-bottom: calc(5.25rem + env(safe-area-inset-bottom));
 }
 
-/* The search map is a viewport screen with a docked bottom sheet. Keep it out
-   of the document's scroll flow so iOS viewport changes cannot fling the map
-   and its search panel independently of the fixed tab bar. */
+/* The search map fills one viewport; its map pans inside the screen. The shared
+   tab bar keeps the same fixed positioning as Trips and Profile. */
 @media (max-width: 639px) {
   html:has(.production-app .search-map-form),
   body:has(.production-app .search-map-form) {
@@ -195,17 +194,11 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
     overflow: hidden;
     overscroll-behavior: none;
   }
-  body:has(.production-app .search-map-form) {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-  }
   .production-app:has(.search-map-form) {
     display: flex;
-    position: fixed;
-    inset: 0;
+    position: relative;
     width: 100%;
-    height: auto;
+    height: 100dvh;
     min-height: 0;
     flex-direction: column;
     overflow: hidden;
@@ -228,11 +221,6 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
     overflow: hidden;
   }
   .production-app .search-map-form { width: 100%; height: auto; min-height: 0; min-width: 0; flex: 1 1 auto; }
-  .production-app:has(.search-map-form) > .app-tabbar {
-    position: absolute;
-    inset-inline: 0;
-    bottom: 0;
-  }
 }
 
 /* Home is a single mobile viewport: keep the top banner, active trip and
@@ -245,19 +233,11 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
     overflow: hidden;
     overscroll-behavior: none;
   }
-  body:has(.production-app .home-v5-screen) {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-  }
   .production-app:has(.home-v5-screen) {
     display: flex;
-    /* Pin the app shell to the viewport like the trips tab bar. The document
-       cannot scroll beneath it while browser chrome changes the visible area. */
-    position: fixed;
-    inset: 0;
+    position: relative;
     width: 100%;
-    height: auto;
+    height: 100dvh;
     min-height: 0;
     flex-direction: column;
     overflow: hidden;
@@ -306,11 +286,6 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
   .home-v5-actions > .home-v5-action-card {
     height: 100%;
     min-height: 0 !important;
-  }
-  .production-app:has(.home-v5-screen) > .app-tabbar {
-    position: absolute;
-    inset-inline: 0;
-    bottom: 0;
   }
 }
 

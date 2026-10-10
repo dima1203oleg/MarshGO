@@ -86,6 +86,7 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
         actions: bounds('.home-v5-actions'),
         homeCards,
         tabbar: bounds('.production-app > .app-tabbar'),
+        tabbarPosition: getComputedStyle(document.querySelector<HTMLElement>('.production-app > .app-tabbar')!).position,
         tabbarBottom: document.querySelector<HTMLElement>('.production-app > .app-tabbar')?.getBoundingClientRect().bottom ?? null,
         scrollY: window.scrollY,
         overflowers: [...document.querySelectorAll<HTMLElement>('html, body, body *')].map(element => {
@@ -108,6 +109,7 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
       expect(Math.max(...layout.homeCards.map(card => card.bottom)), `${viewport.name} home cards must fit above the fixed tab bar`).toBeLessThanOrEqual(layout.tabbar!.top + 1);
       expect(layout.homeCards.every(card => card.bottom > card.top + 95), `${viewport.name} action cards must retain readable height`).toBe(true);
       expect(layout.tabbarBottom, `${viewport.name} tab bar must stay pinned to the viewport bottom`).toBeGreaterThanOrEqual(viewport.height - 1);
+      expect(layout.tabbarPosition, `${viewport.name} must use the same fixed tab bar as Trips and Profile`).toBe('fixed');
       expect(layout.scrollY, `${viewport.name} home must not be vertically scrolled`).toBe(0);
     }
     const screenshot = await page.screenshot({ path: `/tmp/marshgo-${browserName}-${viewport.name}.png`, fullPage: true });
@@ -134,6 +136,7 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
       tabbarTop: tabbar?.getBoundingClientRect().top ?? null,
       tabbarBottom: tabbar?.getBoundingClientRect().bottom ?? null,
       tabbarHeight: tabbar?.getBoundingClientRect().height ?? null,
+      tabbarPosition: tabbar ? getComputedStyle(tabbar).position : null,
     };
   });
   expect(searchLayout.documentHeight, 'phone search should not create document scrolling').toBeLessThanOrEqual(searchLayout.viewportHeight + 1);
@@ -142,10 +145,23 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
   expect(searchLayout.panelBottom!, 'search sheet must not overlap the tab bar').toBeLessThan(searchLayout.tabbarTop!);
   expect(searchLayout.tabbarBottom, 'search tab bar must stay pinned to the viewport bottom').toBeGreaterThanOrEqual(searchLayout.viewportHeight - 1);
   expect(searchLayout.tabbarHeight, 'bottom navigation must keep the same height across tabs').toBeCloseTo(homeTabbarHeight, 0);
+  expect(searchLayout.tabbarPosition, 'search must use the same fixed tab bar as Trips and Profile').toBe('fixed');
   if (browserName !== 'webkit') {
     await page.mouse.move(195, 430);
     await page.mouse.wheel(0, 480);
     expect(await page.evaluate(() => window.scrollY), 'map gesture must not scroll the page').toBe(0);
+  }
+  for (const destination of ['Мої поїздки', 'Профіль', 'Пошук']) {
+    await page.getByRole('navigation', { name: 'Основна навігація' }).getByRole('button', { name: destination, exact: true }).click();
+    await expect(page.locator('.app-tabbar')).toBeVisible();
+    const nav = await page.locator('.app-tabbar').evaluate(element => ({
+      position: getComputedStyle(element).position,
+      bottom: element.getBoundingClientRect().bottom,
+      height: element.getBoundingClientRect().height,
+    }));
+    expect(nav.position, `${destination} should keep the shared tab bar fixed`).toBe('fixed');
+    expect(nav.bottom, `${destination} should pin the tab bar to the viewport bottom`).toBeCloseTo(844, 0);
+    expect(nav.height, `${destination} should keep the tab bar height stable`).toBeCloseTo(homeTabbarHeight, 0);
   }
   await page.getByRole('navigation', { name: 'Основна навігація' }).getByRole('button', { name: 'Головна', exact: true }).click();
   await expect(page.getByRole('heading', { name: /Розумні поїздки для міста і міжміста/ })).toBeVisible();
