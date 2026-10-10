@@ -1,6 +1,22 @@
 import { expect, test } from '@playwright/test';
+import type { ApiBooking } from '../src/services/productionApi';
 
 test('production sign-in, home and search stay usable across screen sizes', async ({ page, browserName }) => {
+  const activeBooking: ApiBooking = {
+    id: 'layout-check-booking', offer_id: 'layout-check-offer', seat_count: 1,
+    total_price_minor: 0, currency: 'UAH', fee_class: 'community',
+    platform_fee_minor: 0, fee_rule_version: 'test', status: 'confirmed',
+    origin_name: 'Львів', destination_name: 'Стрий',
+    departure_at: new Date(Date.now() + 86_400_000).toISOString(),
+    driver_name: 'Test Driver', passenger_name: 'Test Passenger',
+    current_user_is_driver: false, completion_confirmation_count: 0,
+    current_user_confirmed_completion: false, current_user_has_review: false,
+  };
+  // Keep the API sign-in real while rendering the home state that exposes the
+  // extra active-trip card. No booking is written to the isolated test database.
+  await page.route('**/api/v1/bookings', route => route.request().method() === 'GET'
+    ? route.fulfill({ json: { data: [activeBooking] } })
+    : route.continue());
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(`pageerror: ${error.message}`));
   page.on('console', message => {
@@ -14,7 +30,11 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
   });
 
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Вхід за номером телефону' })).toBeVisible();
+  const loginHeading = page.getByRole('heading', { name: 'Вхід за номером телефону' });
+  const welcome = page.getByRole('button', { name: /У мене вже є акаунт/i });
+  await expect(loginHeading.or(welcome).first()).toBeVisible();
+  if (await welcome.isVisible()) await welcome.click();
+  await expect(loginHeading).toBeVisible();
   await page.getByPlaceholder('Ваше ім’я').fill(`Compat ${browserName}`);
   await page.getByPlaceholder('+380 номер телефону').fill(`+38091${String(Date.now()).slice(-7)}`);
   await page.getByRole('button', { name: 'Почати', exact: true }).click();
@@ -28,7 +48,8 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
     page.getByRole('button', { name: 'Підтвердити номер' }).click(),
   ]);
   await expect(page.locator('.production-app')).toBeVisible();
-  await expect(page.getByRole('heading', { name: /Їдеш\? MARSHGO знайде попутника/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Розумні поїздки для міста і міжміста/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Активна поїздка Львів → Стрий/ })).toBeVisible();
 
   for (const viewport of [
     { name: 'small-phone', width: 320, height: 568 },
@@ -41,12 +62,32 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     await page.waitForTimeout(100);
     const layout = await page.evaluate(() => {
-      const cta = [...document.querySelectorAll('button')].find(button => button.textContent?.includes('Почати навігацію'))?.getBoundingClientRect();
+      const cta = [...document.querySelectorAll('button')].find(button => button.textContent?.includes('Побудувати оптимальний маршрут'))?.getBoundingClientRect();
+      const bounds = (selector: string) => {
+        const element = document.querySelector<HTMLElement>(selector);
+        if (!element) return null;
+        const rect = element.getBoundingClientRect();
+        return { top: rect.top, bottom: rect.bottom, height: rect.height };
+      };
+      const homeCards = [...document.querySelectorAll<HTMLElement>('.home-v5-action-card')].map(element => {
+        const rect = element.getBoundingClientRect();
+        return { top: rect.top, bottom: rect.bottom };
+      });
       return {
         viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
         documentWidth: document.documentElement.scrollWidth,
+        documentHeight: document.documentElement.scrollHeight,
         body: { width: document.body.scrollWidth, bounds: document.body.getBoundingClientRect().toJSON() },
         root: { width: document.documentElement.scrollWidth, bounds: document.documentElement.getBoundingClientRect().toJSON() },
+        header: bounds('.production-app > .app-header'),
+        home: bounds('.home-v5-screen'),
+        hero: bounds('.home-v5-hero'),
+        actions: bounds('.home-v5-actions'),
+        homeCards,
+        tabbar: bounds('.production-app > .app-tabbar'),
+        tabbarBottom: document.querySelector<HTMLElement>('.production-app > .app-tabbar')?.getBoundingClientRect().bottom ?? null,
+        scrollY: window.scrollY,
         overflowers: [...document.querySelectorAll<HTMLElement>('html, body, body *')].map(element => {
           const rect = element.getBoundingClientRect();
           return { tag: element.tagName, className: typeof element.className === 'string' ? element.className.slice(0, 100) : '', text: element.textContent?.trim().slice(0, 50), left: rect.left, right: rect.right, width: rect.width };
@@ -59,15 +100,47 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
     expect(layout.cta!.left, `${viewport.name} primary action begins outside the viewport`).toBeGreaterThanOrEqual(0);
     expect(layout.cta!.right, `${viewport.name} primary action ends outside the viewport`).toBeLessThanOrEqual(viewport.width);
     if (viewport.height >= 667) expect(layout.cta!.bottom, `${viewport.name} primary action is clipped below the viewport`).toBeLessThanOrEqual(viewport.height);
+    if (viewport.width < 640) {
+      expect(layout.documentHeight, `${viewport.name} page should not scroll vertically`).toBeLessThanOrEqual(viewport.height + 1);
+      expect(layout.home, `${viewport.name} must show the home screen`).not.toBeNull();
+      expect(layout.hero!.top, `${viewport.name} hero starts below the app header`).toBeGreaterThanOrEqual(layout.header!.bottom - 1);
+      expect(layout.homeCards, `${viewport.name} should render all four home actions`).toHaveLength(4);
+      expect(Math.max(...layout.homeCards.map(card => card.bottom)), `${viewport.name} home cards must fit above the fixed tab bar`).toBeLessThanOrEqual(layout.tabbar!.top + 1);
+      expect(layout.homeCards.every(card => card.bottom > card.top + 95), `${viewport.name} action cards must retain readable height`).toBe(true);
+      expect(layout.tabbarBottom, `${viewport.name} tab bar must stay pinned to the viewport bottom`).toBeGreaterThanOrEqual(viewport.height - 1);
+      expect(layout.scrollY, `${viewport.name} home must not be vertically scrolled`).toBe(0);
+    }
     const screenshot = await page.screenshot({ path: `/tmp/marshgo-${browserName}-${viewport.name}.png`, fullPage: true });
     await test.info().attach(`${browserName}-${viewport.name}`, { body: screenshot, contentType: 'image/png' });
   }
 
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('navigation', { name: 'Основна навігація' }).getByRole('button', { name: 'Пошук', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Знайди маршрут' })).toBeVisible();
-  await expect(page.getByPlaceholder('Місто, адреса або зупинка').first()).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Знайти маршрут' })).toBeVisible();
+  await expect(page.getByPlaceholder('Моє місцеперебування')).toBeVisible();
+  await expect(page.getByPlaceholder('Введіть адресу, місто або зупинку')).toBeVisible();
+  const searchLayout = await page.evaluate(() => {
+    const map = document.querySelector<HTMLElement>('.search-map-form');
+    const tabbar = document.querySelector<HTMLElement>('.production-app > .app-tabbar');
+    const searchPanel = [...document.querySelectorAll<HTMLElement>('.search-map-form section')]
+      .find(section => section.querySelector('h1')?.textContent?.trim() === 'Знайти маршрут');
+    return {
+      documentHeight: document.documentElement.scrollHeight,
+      viewportHeight: window.innerHeight,
+      scrollY: window.scrollY,
+      mapBottom: map?.getBoundingClientRect().bottom ?? null,
+      panelBottom: searchPanel?.getBoundingClientRect().bottom ?? null,
+      tabbarTop: tabbar?.getBoundingClientRect().top ?? null,
+      tabbarBottom: tabbar?.getBoundingClientRect().bottom ?? null,
+    };
+  });
+  expect(searchLayout.documentHeight, 'phone search should not create document scrolling').toBeLessThanOrEqual(searchLayout.viewportHeight + 1);
+  expect(searchLayout.scrollY, 'phone search should stay at the top of its fixed map shell').toBe(0);
+  expect(searchLayout.panelBottom, 'search sheet should be visible above the fixed tab bar').not.toBeNull();
+  expect(searchLayout.panelBottom!, 'search sheet must not overlap the tab bar').toBeLessThan(searchLayout.tabbarTop!);
+  expect(searchLayout.tabbarBottom, 'search tab bar must stay pinned to the viewport bottom').toBeGreaterThanOrEqual(searchLayout.viewportHeight - 1);
   await page.getByRole('navigation', { name: 'Основна навігація' }).getByRole('button', { name: 'Головна', exact: true }).click();
-  await expect(page.getByRole('heading', { name: /Їдеш\? MARSHGO знайде попутника/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Розумні поїздки для міста і міжміста/ })).toBeVisible();
 
   await page.goto('/unknown-route');
   await expect(page.getByRole('heading', { name: 'Сторінку не знайдено' })).toBeVisible();

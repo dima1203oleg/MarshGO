@@ -48,10 +48,10 @@ export const HomeV5: React.FC<HomeV5Props> = ({
   return (
     <div className="home-v5-screen mx-auto w-full max-w-xl px-4 pb-20 pt-2 transition-colors duration-200">
       {/* 1. Hero Dynamic Promotional Banner (Carousel: Screen 1 & Screen 3) */}
-      <div className="relative mb-4 overflow-hidden rounded-[32px] border border-blue-500/10 shadow-lg shadow-blue-500/5 transition-all">
+      <div className="home-v5-hero relative mb-4 overflow-hidden rounded-[32px] border border-blue-500/10 shadow-lg shadow-blue-500/5 transition-all">
         {activeSlide === 0 ? (
           /* Slide 1: Розумні поїздки для міста і міжміста (Photo 1) */
-          <div className="relative min-h-[220px] sm:min-h-[240px] w-full overflow-hidden bg-gradient-to-br from-[#EAF2FF] via-[#F3F8FF] to-[#E3EFFF] p-5 sm:p-6 dark:from-[#0B1E40] dark:via-[#091730] dark:to-[#0B1A38]">
+          <div className="home-v5-hero-slide relative min-h-[220px] sm:min-h-[240px] w-full overflow-hidden bg-gradient-to-br from-[#EAF2FF] via-[#F3F8FF] to-[#E3EFFF] p-5 sm:p-6 dark:from-[#0B1E40] dark:via-[#091730] dark:to-[#0B1A38]">
             {/* Background scenic photo with gradient masking */}
             <div
               className="pointer-events-none absolute inset-0 bg-cover bg-right sm:bg-center opacity-85 transition-opacity"
@@ -76,7 +76,7 @@ export const HomeV5: React.FC<HomeV5Props> = ({
                 </p>
               </div>
 
-              <div className="mt-4 flex items-center gap-2">
+              <div className="home-v5-hero-cta mt-4 flex items-center gap-2">
                 <button
                   type="button"
                   onClick={onSearchTrip}
@@ -98,7 +98,7 @@ export const HomeV5: React.FC<HomeV5Props> = ({
           </div>
         ) : (
           /* Slide 2: ВІДКРИВАЙ Нові маршрути щодня (Photo 3) */
-          <div className="relative min-h-[220px] sm:min-h-[240px] w-full overflow-hidden bg-gradient-to-br from-[#00388A] via-[#0A48A5] to-[#0D5BCE] p-5 sm:p-6 text-white">
+          <div className="home-v5-hero-slide relative min-h-[220px] sm:min-h-[240px] w-full overflow-hidden bg-gradient-to-br from-[#00388A] via-[#0A48A5] to-[#0D5BCE] p-5 sm:p-6 text-white">
             <div
               className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-70 transition-opacity"
               style={{
@@ -121,7 +121,7 @@ export const HomeV5: React.FC<HomeV5Props> = ({
                 </p>
               </div>
 
-              <div className="mt-4">
+              <div className="home-v5-hero-cta mt-4">
                 <button
                   type="button"
                   onClick={onSearchTrip}
@@ -157,7 +157,7 @@ export const HomeV5: React.FC<HomeV5Props> = ({
       </div>
 
       {/* 2. Active Trip Card (Mint Green Card from Reference Photo 1) */}
-      {activeBooking ? <div className="mb-4">
+      {activeBooking ? <div className="home-v5-active-trip mb-4">
         <button
           type="button"
           onClick={() => onOpenActiveBooking?.(activeBooking.id)}
@@ -189,15 +189,15 @@ export const HomeV5: React.FC<HomeV5Props> = ({
             <ChevronRight size={22} strokeWidth={2.4} />
           </div>
         </button>
-      </div> : <button type="button" onClick={onSearchTrip} className="mb-4 flex w-full items-center justify-between rounded-3xl border border-blue-100 bg-white p-4 text-left shadow-sm transition hover:border-blue-300 dark:border-slate-800 dark:bg-[#101E38]"><span className="flex items-center gap-3"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"><Ticket size={22} /></span><span><b className="block text-sm text-slate-900 dark:text-white">Знайти поїздку</b><span className="mt-1 block text-xs text-slate-500">Пошук за реальними маршрутами й доступністю</span></span></span><ChevronRight size={20} className="text-blue-600" /></button>}
+      </div> : <button type="button" onClick={onSearchTrip} className="home-v5-active-trip mb-4 flex w-full items-center justify-between rounded-3xl border border-blue-100 bg-white p-4 text-left shadow-sm transition hover:border-blue-300 dark:border-slate-800 dark:bg-[#101E38]"><span className="flex items-center gap-3"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300"><Ticket size={22} /></span><span><b className="block text-sm text-slate-900 dark:text-white">Знайти поїздку</b><span className="mt-1 block text-xs text-slate-500">Пошук за реальними маршрутами й доступністю</span></span></span><ChevronRight size={20} className="text-blue-600" /></button>}
 
       {/* 3. The 4 Grand Interactive Action Cards (2x2 Grid from Reference Photos) */}
-      <div className="mb-6 grid grid-cols-2 gap-3 sm:gap-4">
+      <div className="home-v5-actions mb-6 grid grid-cols-2 gap-3 sm:gap-4">
         {/* Card 1: Навігація (Blue Gradient Card) */}
         <button
           type="button"
           onClick={onStartNavigation}
-          className="group relative flex flex-col justify-between overflow-hidden rounded-[28px] border border-blue-400/20 bg-gradient-to-br from-[#1E6BFF] via-[#0D57E6] to-[#0A41B3] p-4 sm:p-5 text-left text-white shadow-md shadow-blue-500/15 transition-all hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] min-h-[160px] sm:min-h-[175px]"
+          className="home-v5-action-card group relative flex flex-col justify-between overflow-hidden rounded-[28px] border border-blue-400/20 bg-gradient-to-br from-[#1E6BFF] via-[#0D57E6] to-[#0A41B3] p-4 sm:p-5 text-left text-white shadow-md shadow-blue-500/15 transition-all hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] min-h-[160px] sm:min-h-[175px]"
         >
           {/* Subtle vehicle background image */}
           <div
@@ -230,7 +230,7 @@ export const HomeV5: React.FC<HomeV5Props> = ({
         <button
           type="button"
           onClick={onOpenMap ?? onStartNavigation}
-          className="group relative flex flex-col justify-between overflow-hidden rounded-[28px] border border-emerald-400/20 bg-gradient-to-br from-[#10B981] via-[#059669] to-[#047857] p-4 sm:p-5 text-left text-white shadow-md shadow-emerald-500/15 transition-all hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] min-h-[160px] sm:min-h-[175px]"
+          className="home-v5-action-card group relative flex flex-col justify-between overflow-hidden rounded-[28px] border border-emerald-400/20 bg-gradient-to-br from-[#10B981] via-[#059669] to-[#047857] p-4 sm:p-5 text-left text-white shadow-md shadow-emerald-500/15 transition-all hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] min-h-[160px] sm:min-h-[175px]"
         >
           <div
             className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-25 mix-blend-overlay transition-transform group-hover:scale-105"
@@ -262,7 +262,7 @@ export const HomeV5: React.FC<HomeV5Props> = ({
         <button
           type="button"
           onClick={onSearchTrip}
-          className="group relative flex flex-col justify-between overflow-hidden rounded-[28px] border border-purple-400/20 bg-gradient-to-br from-[#8B5CF6] via-[#7C3AED] to-[#6D28D9] p-4 sm:p-5 text-left text-white shadow-md shadow-purple-500/15 transition-all hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] min-h-[160px] sm:min-h-[175px]"
+          className="home-v5-action-card group relative flex flex-col justify-between overflow-hidden rounded-[28px] border border-purple-400/20 bg-gradient-to-br from-[#8B5CF6] via-[#7C3AED] to-[#6D28D9] p-4 sm:p-5 text-left text-white shadow-md shadow-purple-500/15 transition-all hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] min-h-[160px] sm:min-h-[175px]"
         >
           <div
             className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-25 mix-blend-overlay transition-transform group-hover:scale-105"
@@ -294,7 +294,7 @@ export const HomeV5: React.FC<HomeV5Props> = ({
         <button
           type="button"
           onClick={onPlanTrip}
-          className="group relative flex flex-col justify-between overflow-hidden rounded-[28px] border border-amber-400/20 bg-gradient-to-br from-[#F59E0B] via-[#EA580C] to-[#D97706] p-4 sm:p-5 text-left text-white shadow-md shadow-amber-500/15 transition-all hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] min-h-[160px] sm:min-h-[175px]"
+          className="home-v5-action-card group relative flex flex-col justify-between overflow-hidden rounded-[28px] border border-amber-400/20 bg-gradient-to-br from-[#F59E0B] via-[#EA580C] to-[#D97706] p-4 sm:p-5 text-left text-white shadow-md shadow-amber-500/15 transition-all hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] min-h-[160px] sm:min-h-[175px]"
         >
           <div
             className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-25 mix-blend-overlay transition-transform group-hover:scale-105"
