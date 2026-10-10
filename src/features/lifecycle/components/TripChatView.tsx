@@ -16,6 +16,8 @@ interface TripChatViewProps {
   onBack: () => void;
   onCallDriver: () => void;
   onSendMessage?: (text: string) => void;
+  bookingId?: string;
+  currentUserId?: string;
 }
 
 const DEFAULT_MESSAGES: ChatMessageItem[] = [
@@ -48,20 +50,66 @@ const QUICK_CHIPS = [
   'Вже підходжу 🚶',
 ];
 
+import { productionApi } from '../../../services/productionApi';
+
 export const TripChatView: React.FC<TripChatViewProps> = ({
   driver,
   initialMessages = DEFAULT_MESSAGES,
   onBack,
   onCallDriver,
   onSendMessage,
+  bookingId,
+  currentUserId,
 }) => {
   const [messages, setMessages] = useState<ChatMessageItem[]>(initialMessages);
   const [inputText, setInputText] = useState('');
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  useEffect(() => {
+    if (!bookingId) return;
+    let isActive = true;
+    void productionApi.conversation(bookingId).then((conv) => {
+      if (!isActive) return;
+      setConversationId(conv.id);
+      return productionApi.messages(conv.id);
+    }).then((apiMsgs) => {
+      if (!isActive || !apiMsgs) return;
+      const mapped = apiMsgs.reverse().map(m => ({
+        id: m.id,
+        sender: m.sender_id === currentUserId ? 'me' : 'driver',
+        text: m.body,
+        time: new Intl.DateTimeFormat('uk-UA', { hour: '2-digit', minute: '2-digit' }).format(new Date(m.created_at)),
+        status: 'read'
+      } as ChatMessageItem));
+      setMessages(mapped);
+    }).catch(console.error);
+    return () => { isActive = false; };
+  }, [bookingId, currentUserId]);
+
+  useEffect(() => {
+    if (!conversationId) return;
+    const unsub = productionApi.subscribeRealtime((event) => {
+      if (event.type === 'conversation.message.created' && event.data.conversation_id === conversationId) {
+        const m = event.data;
+        setMessages(prev => {
+          if (prev.some(x => x.id === m.id)) return prev;
+          return [...prev, {
+            id: m.id,
+            sender: m.sender_id === currentUserId ? 'me' : 'driver',
+            text: m.body,
+            time: new Intl.DateTimeFormat('uk-UA', { hour: '2-digit', minute: '2-digit' }).format(new Date(m.created_at)),
+            status: 'read'
+          }];
+        });
+      }
+    }, () => {});
+    return () => unsub();
+  }, [conversationId, currentUserId]);
 
   useEffect(() => {
     scrollToBottom();
@@ -72,7 +120,7 @@ export const TripChatView: React.FC<TripChatViewProps> = ({
     if (!text) return;
 
     const newMsg: ChatMessageItem = {
-      id: `msg-${Date.now()}`,
+      id: `msg-local-${Date.now()}`,
       sender: 'me',
       text,
       time: new Intl.DateTimeFormat('uk-UA', { hour: '2-digit', minute: '2-digit' }).format(new Date()),
@@ -83,20 +131,28 @@ export const TripChatView: React.FC<TripChatViewProps> = ({
     setInputText('');
     onSendMessage?.(text);
 
-    // Simulated driver friendly auto-reply after 1.5s
-    if (text.includes('на місці') || text.includes('підходжу')) {
-      setTimeout(() => {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `msg-reply-${Date.now()}`,
-            sender: 'driver',
-            text: 'Добре, бачу вас! Вмикаю аварійку на чорній Toyota Camry.',
-            time: new Intl.DateTimeFormat('uk-UA', { hour: '2-digit', minute: '2-digit' }).format(new Date()),
-            status: 'read',
-          },
-        ]);
-      }, 1500);
+    if (conversationId) {
+      productionApi.sendMessage(conversationId, text)
+        .then((m) => {
+          setMessages((prev) => prev.map(old => old.id === newMsg.id ? { ...old, id: m.id, status: 'read' } : old));
+        })
+        .catch(console.error);
+    } else {
+      // Simulated driver friendly auto-reply after 1.5s
+      if (text.includes('на місці') || text.includes('підходжу')) {
+        setTimeout(() => {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `msg-reply-${Date.now()}`,
+              sender: 'driver',
+              text: 'Добре, бачу вас! Вмикаю аварійку на чорній Toyota Camry.',
+              time: new Intl.DateTimeFormat('uk-UA', { hour: '2-digit', minute: '2-digit' }).format(new Date()),
+              status: 'read',
+            },
+          ]);
+        }, 1500);
+      }
     }
   };
 
