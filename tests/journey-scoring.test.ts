@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { scoreJourneys, selectRepresentativeJourneys } from '../server/journey/scoring';
+import { scoreJourneys, selectRepresentativeJourneys, strategiesWithComparablePrices } from '../server/journey/scoring';
 import type { JourneyOption } from '../server/journey/types';
 
 const candidates: JourneyOption[] = [
@@ -31,5 +31,16 @@ describe('Journey strategy scoring', () => {
   it('rejects incomplete or invalid option measurements instead of inventing values', () => {
     assert.throws(() => scoreJourneys([{ ...candidates[0], reliability: 1.2 }], 'RELIABLE'), /invalid scoring features/);
     assert.throws(() => scoreJourneys([{ ...candidates[0], priceMinor: -1 }], 'CHEAPEST'), /invalid scoring features/);
+  });
+
+  it('does not claim a cheapest route when any candidate has no fare', () => {
+    const withUnknownFare: JourneyOption[] = [
+      candidates[0],
+      { ...candidates[1], id: 'unknown-fare', priceMinor: null },
+    ];
+    assert.deepEqual(
+      strategiesWithComparablePrices(withUnknownFare, ['FASTEST', 'CHEAPEST', 'BALANCED']),
+      ['FASTEST', 'BALANCED'],
+    );
   });
 });

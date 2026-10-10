@@ -3,11 +3,24 @@ export type JourneyStrategy = typeof JOURNEY_STRATEGIES[number];
 
 export type JourneyLegMode =
   | 'WALK' | 'COMMUNITY' | 'COMMUNITY_DEMAND' | 'TAXI' | 'TRANSFER' | 'BUS' | 'MINIBUS'
-  | 'RAIL' | 'TRAM' | 'TROLLEYBUS' | 'METRO' | 'URBAN_BUS' | 'CARSHARING' | 'FERRY'
-  | 'CITY_TRAIN' | 'FUNICULAR';
+  | 'RAIL' | 'TRAM' | 'TROLLEYBUS' | 'METRO' | 'URBAN_BUS' | 'CARSHARING' | 'FERRY' | 'FUNICULAR'
+  | 'BIKE' | 'SCOOTER';
 
 export const JOURNEY_TRANSPORT_TYPES = ['carpool','taxi','carsharing','car_rental','transfer','bus','marshrutka','trolleybus','tram','metro','city_train','funicular','train','suburban_train','intercity_bus','bike','scooter','moped','plane','ferry','walk'] as const;
 export type JourneyTransportType = typeof JOURNEY_TRANSPORT_TYPES[number];
+
+const journeyTransportAliases: Partial<Record<JourneyTransportType, readonly JourneyTransportType[]>> = {
+  bus: ['bus', 'intercity_bus'],
+  train: ['train', 'suburban_train', 'city_train'],
+};
+
+export function journeyTransportTypeSelected(
+  actual: JourneyTransportType,
+  selected?: readonly JourneyTransportType[],
+): boolean {
+  if (!selected) return true;
+  return selected.some((type) => type === actual || journeyTransportAliases[type]?.includes(actual) === true);
+}
 
 export interface JourneyOption {
   id: string;
@@ -38,7 +51,9 @@ export interface JourneyPreferences {
   allowPublicTransport?: boolean;
   allowCarsharing?: boolean;
   allowTransfer?: boolean;
+  allowWalk?: boolean;
   preferredVehicleClass?: string;
   allowedTransportTypes?: JourneyTransportType[];
   allowedTransitProviders?: string[];
+  allowedTransitProvidersByType?: Partial<Record<JourneyTransportType, string[]>>;
 }

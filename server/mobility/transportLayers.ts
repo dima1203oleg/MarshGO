@@ -208,7 +208,27 @@ export function intersects(a: Bbox, b: Bbox): boolean { return a[0] <= b[2] && a
 /** A feed's route is drawn when any of its points is inside the viewport (keeps payloads small without clipping lines). */
 export function routeInBbox(route: NetworkRoute, bbox: Bbox): boolean { return route.coordinates.some(([lon, lat]) => inBbox(bbox, lon, lat)); }
 
-export interface LiveVehicle { id: string; lon: number; lat: number; type: LineType | 'other'; route: string; bearing: number | null; providerId: string }
+export interface LiveVehicle {
+  id: string;
+  lon: number;
+  lat: number;
+  type: LineType | 'other';
+  route: string;
+  bearing: number | null;
+  speed: number | null;
+  observedAt: string | null;
+  stopId: string | null;
+  providerId: string;
+}
+
+/** Convert an epoch timestamp to ISO without guessing that an untimed fix is fresh. */
+export function normalizeObservedAt(value: unknown): string | null {
+  const numeric = typeof value === 'number' ? value : typeof value === 'string' && value.trim() ? Number(value) : NaN;
+  if (!Number.isFinite(numeric) || numeric <= 0) return null;
+  const epochMilliseconds = numeric > 1_000_000_000_000 ? numeric : numeric * 1000;
+  const date = new Date(epochMilliseconds);
+  return Number.isFinite(date.getTime()) ? date.toISOString() : null;
+}
 
 const VEHICLE_TTL_MS = 10_000;
 const vehicleCache = new Map<string, { at: number; promise: Promise<LiveVehicle[]> }>();
@@ -224,7 +244,20 @@ async function loadVehicles(providerId: string, sourceType: string, url: string,
       if (!position || !Number.isFinite(position.latitude) || !Number.isFinite(position.longitude)) continue;
       const routeId = entity.vehicle?.trip?.routeId ?? '';
       const known = routeNames.get(routeId);
-      out.push({ id: `${providerId}:${entity.id}`, lon: position.longitude, lat: position.latitude, type: known?.type ?? 'other', route: known?.name ?? routeId, bearing: Number.isFinite(position.bearing) ? Number(position.bearing) : null, providerId });
+      const observedAt = normalizeObservedAt(entity.vehicle?.timestamp ?? message.header.timestamp);
+      const speed = Number.isFinite(position.speed) ? Math.round(Number(position.speed) * 3.6) : null;
+      out.push({
+        id: `${providerId}:${entity.id}`,
+        lon: position.longitude,
+        lat: position.latitude,
+        type: known?.type ?? 'other',
+        route: known?.name ?? routeId,
+        bearing: Number.isFinite(position.bearing) ? Number(position.bearing) : null,
+        speed,
+        observedAt,
+        stopId: entity.vehicle?.stopId ?? null,
+        providerId,
+      });
     }
     return out;
   }
@@ -232,11 +265,24 @@ async function loadVehicles(providerId: string, sourceType: string, url: string,
   const out: LiveVehicle[] = [];
   for (const vehicle of extractVehicleList(body)) {
     const lat = Number(vehicle.latitude ?? vehicle.lat), lon = Number(vehicle.longitude ?? vehicle.lon ?? vehicle.lng);
-    if (!Number.isFinite(lat) || !Number.isFinite(lon) || (lat === 0 && lon === 0)) continue;
+    if (!Number.isFinite(lat) || !Number.isFinite(lon) || (lat === 0 && lon === 0) || Math.abs(lat) > 90 || Math.abs(lon) > 180) continue;
     const label = vehicleTransportLabel(vehicle);
     const bearing = Number(vehicle.bearing ?? vehicle.course ?? vehicle.azimuth);
-    out.push({ id: `${providerId}:${String(vehicle.vehicle_id ?? vehicle.id ?? vehicle.license_plate ?? `${lat},${lon}`)}`, lon, lat, type: asLineType(label) ?? 'other',
-      route: String(vehicle.route_name ?? vehicle.route ?? vehicle.route_short_name ?? ''), bearing: Number.isFinite(bearing) ? bearing : null, providerId });
+    const rawSpeed = Number(vehicle.speed ?? vehicle.speed_kmh ?? vehicle.velocity);
+    const speed = Number.isFinite(rawSpeed) ? Math.round(rawSpeed) : null;
+    const observedAt = normalizeObservedAt(vehicle.timestamp ?? vehicle.gps_time ?? vehicle.time);
+    out.push({
+      id: `${providerId}:${String(vehicle.vehicle_id ?? vehicle.id ?? vehicle.license_plate ?? `${lat},${lon}`)}`,
+      lon,
+      lat,
+      type: asLineType(label) ?? 'other',
+      route: String(vehicle.route_name ?? vehicle.route ?? vehicle.route_short_name ?? ''),
+      bearing: Number.isFinite(bearing) ? bearing : null,
+      speed,
+      observedAt,
+      stopId: vehicle.stop_id ? String(vehicle.stop_id) : null,
+      providerId,
+    });
   }
   return out;
 }

@@ -27,6 +27,8 @@ export type ArrivalConfidence = 'HIGH' | 'MEDIUM' | 'LOW' | 'UNKNOWN';
 export interface TransitArrival {
   stopId: string;
   routeId: string;
+  /** Source-provided mode hint, when the vehicle feed supplies one. */
+  mode?: string;
   tripId?: string;
   vehicleId?: string;
   scheduledArrival?: string;   // ISO 8601
@@ -50,8 +52,9 @@ export interface StopArrivalInput {
   providerId?: string;
   /** Position from VehiclePositionCache. May be null if no vehicle matched. */
   vehiclePosition?: LiveVehiclePosition | null;
-  /** Scheduled arrival from GTFS static (Unix seconds). */
+  /** Scheduled arrival from GTFS static (Unix seconds or Date/string). */
   scheduledArrivalUnix?: number;
+  scheduledArrival?: Date | string;
   /** Stop sequence and coordinates along the route shape (used for projection). */
   routeShapePoints?: Array<{ lat: number; lon: number; cumulativeDistanceM: number }>;
   /** Total shape length from stop of interest to end-of-line (used for normalisation). */
@@ -61,7 +64,6 @@ export interface StopArrivalInput {
 
 const EARTH_RADIUS_M = 6_371_000;
 const STALE_THRESHOLD_MS = 5 * 60_000;   // > 5 min = stale
-const ANCIENT_THRESHOLD_MS = 15 * 60_000; // > 15 min = too old to project
 
 function distanceMeters(
   aLon: number, aLat: number,
@@ -157,6 +159,7 @@ export function calculateStopArrival(input: StopArrivalInput): TransitArrival {
   const base: TransitArrival = {
     stopId,
     routeId,
+    mode: input.vehiclePosition?.mode,
     vehicleId: input.vehiclePosition?.vehicleId,
     tripId: input.vehiclePosition?.tripId ?? undefined,
     arrivalSource: 'UNKNOWN',
@@ -166,8 +169,15 @@ export function calculateStopArrival(input: StopArrivalInput): TransitArrival {
   };
 
   // ── Path 3: Schedule only ─────────────────────────────────────────────────
-  if (input.scheduledArrivalUnix !== undefined) {
-    const scheduledDate = new Date(input.scheduledArrivalUnix * 1000);
+  const schedUnix = input.scheduledArrivalUnix ?? (
+    input.scheduledArrival instanceof Date
+      ? Math.round(input.scheduledArrival.getTime() / 1000)
+      : typeof input.scheduledArrival === 'string'
+      ? Math.round(new Date(input.scheduledArrival).getTime() / 1000)
+      : undefined
+  );
+  if (schedUnix !== undefined) {
+    const scheduledDate = new Date(schedUnix * 1000);
     const etaSec = Math.max(0, Math.round((scheduledDate.getTime() - now.getTime()) / 1000));
     const result: TransitArrival = {
       ...base,
@@ -192,8 +202,9 @@ export function calculateStopArrival(input: StopArrivalInput): TransitArrival {
   const observedAt = vp.observedAt.toISOString();
   const ageMs = now.getTime() - vp.observedAt.getTime();
 
-  // Too old to project reliably
-  if (ageMs > ANCIENT_THRESHOLD_MS) {
+  // A stale position remains useful to identify the vehicle, but must never
+  // produce a live ETA. Fall back to the static schedule above when available.
+  if (vp.isStale || ageMs > STALE_THRESHOLD_MS) {
     const result: TransitArrival = {
       ...base,
       vehicleId: vp.vehicleId,
@@ -202,12 +213,10 @@ export function calculateStopArrival(input: StopArrivalInput): TransitArrival {
       arrivalSource: 'UNKNOWN',
       confidence: 'UNKNOWN',
       isRealtime: false,
-      displayLabel: `Маршрут ${vp.routeId ?? routeId} — GPS застарів (${Math.round(ageMs / 60_000)} хв тому)`,
+      displayLabel: `Маршрут ${vp.routeId ?? routeId} — GPS застарів (${Math.max(0, Math.round(ageMs / 60_000))} хв тому)`,
     };
     return result;
   }
-
-  const isStale = ageMs > STALE_THRESHOLD_MS;
 
   // ── Path 2: GPS projection along shape ───────────────────────────────────
   if (input.routeShapePoints && input.routeShapePoints.length >= 2) {
@@ -226,8 +235,7 @@ export function calculateStopArrival(input: StopArrivalInput): TransitArrival {
       const rawEtaSec = remainingM / speedMs;
       const etaSec = Math.round(rawEtaSec * 1.3);
 
-      // Downgrade confidence if GPS is stale
-      const confidence: ArrivalConfidence = isStale ? 'LOW' : 'MEDIUM';
+      const confidence: ArrivalConfidence = 'MEDIUM';
 
       const predictedDate = new Date(now.getTime() + etaSec * 1000);
       const result: TransitArrival = {
@@ -262,7 +270,7 @@ export function calculateStopArrival(input: StopArrivalInput): TransitArrival {
       predictedArrival: predictedDate.toISOString(),
       observedAt,
       arrivalSource: 'VEHICLE_PROJECTION',
-      confidence: isStale ? 'UNKNOWN' : 'LOW',
+      confidence: 'LOW',
       isRealtime: true,
       etaSeconds: etaSec,
       displayLabel: '',

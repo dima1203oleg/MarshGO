@@ -8,6 +8,19 @@ const apiUrl = process.env.API_TEST_URL;
 const databaseUrl = process.env.API_TEST_DATABASE_URL;
 const enabled = Boolean(apiUrl && databaseUrl);
 const database = databaseUrl ? new URL(databaseUrl) : null;
+function nextKyivScheduleWindow(hour: number, minute: number): Date {
+  const formatter = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Kyiv', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+  });
+  const candidate = new Date(Date.now());
+  candidate.setUTCSeconds(0, 0);
+  for (let offset = 0; offset < 48 * 60; offset += 1) {
+    const [localHour, localMinute] = formatter.format(candidate).split(':').map(Number);
+    if (localHour === hour && localMinute === minute && candidate.getTime() > Date.now()) return candidate;
+    candidate.setTime(candidate.getTime() + 60_000);
+  }
+  throw new Error('Could not find the next Kyiv transit schedule window');
+}
 if (enabled && database && !['127.0.0.1', 'localhost', '::1'].includes(database.hostname)) {
   throw new Error('API integration tests are restricted to a loopback database');
 }
@@ -213,7 +226,7 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
         ...body,
         origin: { name: 'Малоголосківська, Львів', coordinates: [24.0029933, 49.8681678] },
         destination: { name: 'Сихів, Львів', coordinates: [24.057585, 49.794117] },
-        departureAt: new Date(Date.now() + 60 * 60_000).toISOString(),
+        departureAt: (transportType === 'tram' ? nextKyivScheduleWindow(9, 15) : new Date(Date.now() + 60 * 60_000)).toISOString(),
       } : body;
       const modeResponse = await fetch(`${apiUrl}/api/v1/journeys/search`, {
         method: 'POST', headers: { 'content-type': 'application/json', 'x-dev-user-id': passengerA },
