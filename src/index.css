@@ -195,6 +195,11 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
     overflow: hidden;
     overscroll-behavior: none;
   }
+  body:has(.production-app .search-map-form) {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+  }
   .production-app:has(.search-map-form) {
     display: flex;
     position: fixed;
@@ -223,6 +228,11 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
     overflow: hidden;
   }
   .production-app .search-map-form { width: 100%; height: auto; min-height: 0; min-width: 0; flex: 1 1 auto; }
+  .production-app:has(.search-map-form) > .app-tabbar {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+  }
 }
 
 /* Home is a single mobile viewport: keep the top banner, active trip and
@@ -234,6 +244,11 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
     height: 100%;
     overflow: hidden;
     overscroll-behavior: none;
+  }
+  body:has(.production-app .home-v5-screen) {
+    position: fixed;
+    inset: 0;
+    width: 100%;
   }
   .production-app:has(.home-v5-screen) {
     display: flex;
@@ -291,6 +306,11 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
   .home-v5-actions > .home-v5-action-card {
     height: 100%;
     min-height: 0 !important;
+  }
+  .production-app:has(.home-v5-screen) > .app-tabbar {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
   }
 }
 
@@ -417,6 +437,11 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 }
 .app-tabbar button { min-height: 2.9rem; }
 .app-tabbar button[aria-current="page"] { color: var(--mg-blue); }
+@media (max-width: 639px) {
+  /* The active Home dot otherwise changes the bar's intrinsic height when
+     switching tabs, making the whole bottom navigation visibly hop. */
+  .production-app > .app-tabbar > .app-tabbar-inner { height: 3.125rem; }
+}
 .home-v5-screen { overscroll-behavior: none; }
 .home-v5-content { overscroll-behavior: none; }
 @media (max-height: 740px) and (max-width: 700px) {

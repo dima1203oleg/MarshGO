@@ -115,6 +115,7 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
   }
 
   await page.setViewportSize({ width: 390, height: 844 });
+  const homeTabbarHeight = await page.locator('.app-tabbar').evaluate(element => element.getBoundingClientRect().height);
   await page.getByRole('navigation', { name: 'Основна навігація' }).getByRole('button', { name: 'Пошук', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Знайти маршрут' })).toBeVisible();
   await expect(page.getByPlaceholder('Моє місцеперебування')).toBeVisible();
@@ -132,6 +133,7 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
       panelBottom: searchPanel?.getBoundingClientRect().bottom ?? null,
       tabbarTop: tabbar?.getBoundingClientRect().top ?? null,
       tabbarBottom: tabbar?.getBoundingClientRect().bottom ?? null,
+      tabbarHeight: tabbar?.getBoundingClientRect().height ?? null,
     };
   });
   expect(searchLayout.documentHeight, 'phone search should not create document scrolling').toBeLessThanOrEqual(searchLayout.viewportHeight + 1);
@@ -139,6 +141,12 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
   expect(searchLayout.panelBottom, 'search sheet should be visible above the fixed tab bar').not.toBeNull();
   expect(searchLayout.panelBottom!, 'search sheet must not overlap the tab bar').toBeLessThan(searchLayout.tabbarTop!);
   expect(searchLayout.tabbarBottom, 'search tab bar must stay pinned to the viewport bottom').toBeGreaterThanOrEqual(searchLayout.viewportHeight - 1);
+  expect(searchLayout.tabbarHeight, 'bottom navigation must keep the same height across tabs').toBeCloseTo(homeTabbarHeight, 0);
+  if (browserName !== 'webkit') {
+    await page.mouse.move(195, 430);
+    await page.mouse.wheel(0, 480);
+    expect(await page.evaluate(() => window.scrollY), 'map gesture must not scroll the page').toBe(0);
+  }
   await page.getByRole('navigation', { name: 'Основна навігація' }).getByRole('button', { name: 'Головна', exact: true }).click();
   await expect(page.getByRole('heading', { name: /Розумні поїздки для міста і міжміста/ })).toBeVisible();
 
