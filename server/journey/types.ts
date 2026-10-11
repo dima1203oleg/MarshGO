@@ -31,6 +31,7 @@ export interface JourneyOption {
   reliability: number | null;
   transferRisk: number;
   comfort: number | null;
+  diversityKey?: string | null;
   legs: Array<{ mode: JourneyLegMode; providerId?: string | null }>;
 }
 
