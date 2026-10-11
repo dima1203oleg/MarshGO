@@ -128,6 +128,7 @@ function journeyResultsToSearchItems(journeys: ApiJourney[]): RouteSearchResultI
         priceStatus: leg.priceStatus,
         availabilityStatus: leg.availabilityStatus,
         distanceMeters: leg.distanceMeters,
+        coordinates: leg.coordinates,
       };
     });
     const strategy = journey.strategy === 'CUSTOM' ? 'BALANCED' : journey.strategy;

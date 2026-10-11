@@ -2470,7 +2470,8 @@ app.post('/api/v1/journeys/search', requireAuth, asyncHandler(async (req, res) =
         responseLegs.push({ id: inserted.rows[0].id, mode: 'WALK', offerId: null, origin, destination,
           departureAt, arrivalAt, durationSeconds, distanceMeters: meters, priceMinor: null,
           priceStatus: 'UNKNOWN', availabilityStatus: 'AVAILABLE', source: 'walking-estimate',
-          lastUpdatedAt: new Date().toISOString(), driver: null, vehicle: null, title: label });
+          lastUpdatedAt: new Date().toISOString(), driver: null, vehicle: null, title: label,
+          coordinates: [origin.coordinates, destination.coordinates], geometrySource: 'walking-estimate' });
       };
 
       await saveWalkLeg(
@@ -2503,9 +2504,10 @@ app.post('/api/v1/journeys/search', requireAuth, asyncHandler(async (req, res) =
           origin: { name: segment.originStop.name, coordinates: segment.originStop.coordinates },
           destination: { name: segment.destinationStop.name, coordinates: segment.destinationStop.coordinates },
           departureAt: segment.departureAt, arrivalAt: segment.arrivalAt, durationSeconds,
-          distanceMeters: null, priceMinor: null, priceStatus: 'UNKNOWN', availabilityStatus: 'UNKNOWN',
+          distanceMeters: segment.distanceMeters, priceMinor: null, priceStatus: 'UNKNOWN', availabilityStatus: 'UNKNOWN',
           source: 'gtfs-static', lastUpdatedAt: segment.sourceFreshAt, providerName: segment.providerName,
-          routeName: segment.routeName, transportType: segment.transportType, headsign: segment.headsign, driver: null, vehicle: null });
+          routeName: segment.routeName, transportType: segment.transportType, headsign: segment.headsign, driver: null, vehicle: null,
+          coordinates: segment.coordinates, geometrySource: segment.geometrySource });
       }
       await saveWalkLeg(
         { name: last.destinationStop.name, coordinates: last.destinationStop.coordinates },

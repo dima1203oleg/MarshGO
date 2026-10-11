@@ -220,6 +220,8 @@ export type ApiJourney = {
     providerName?: string;
     routeName?: string;
     headsign?: string;
+    coordinates?: [number, number][];
+    geometrySource?: 'gtfs-shape' | 'gtfs-stop-sequence' | 'walking-estimate';
     driver: { id: string; name: string; averageRating: number | null; reviewCount: number } | null;
     vehicle: { id: string; make: string; model: string } | null;
   }>;

@@ -8,6 +8,7 @@ import {
   effectiveProviders,
   hasJourneySearchProvider,
   isAllActive,
+  loadSelection,
   providersForJourneySearch,
   selectAll,
   toggleProvider,
@@ -29,6 +30,21 @@ const groups = [
 ];
 
 describe('transport types and providers', () => {
+  it('resets a previous narrow stored selection so all routeable modes are initially searched', () => {
+    const original = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+    const values = new Map<string, string>([['marshgo_transport_selection_v2', JSON.stringify({ active: ['bus', 'marshrutka'], providers: {} })]]);
+    Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: {
+      getItem: (key: string) => values.get(key) ?? null,
+      setItem: (key: string, value: string) => values.set(key, value),
+    } });
+    try {
+      assert.deepEqual(loadSelection(), defaultSelection);
+    } finally {
+      if (original) Object.defineProperty(globalThis, 'localStorage', original);
+      else Reflect.deleteProperty(globalThis, 'localStorage');
+    }
+  });
+
   it('exposes exactly 12 canonical transport tiles in the approved order', () => {
     assert.deepEqual(transportTypes.map((type) => type.id), [
       'bus', 'marshrutka', 'trolleybus', 'tram', 'metro', 'carpool',
@@ -64,6 +80,19 @@ describe('transport types and providers', () => {
     assert.deepEqual(selection.active, []);
     assert.deepEqual(activeTypesForSearch(selection), []);
     assert.deepEqual(toJourneyPreferences(selection, groups).allowedTransportTypes, []);
+  });
+
+  it('keeps default route categories when local provider discovery is empty', () => {
+    const preferences = toJourneyPreferences({ ...defaultSelection, active: ['bus', 'tram', 'carpool'] }, []);
+    assert.deepEqual(preferences.allowedTransportTypes, ['bus', 'intercity_bus', 'tram', 'carpool']);
+    assert.equal(preferences.allowPublicTransport, true);
+  });
+
+  it('does not broaden an explicit provider choice when discovery has no matching provider', () => {
+    const selection = toggleProvider({ ...defaultSelection, active: ['bus'] }, 'bus', 'bus:Львівавтодор');
+    const preferences = toJourneyPreferences(selection, []);
+    assert.deepEqual(preferences.allowedTransportTypes, []);
+    assert.equal(preferences.allowPublicTransport, false);
   });
 
   it('filters providers by real route adapter and remembers provider choices by category', () => {

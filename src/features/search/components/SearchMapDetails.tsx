@@ -86,8 +86,13 @@ export const SearchMapDetails: React.FC<SearchMapDetailsProps> = ({
   const priceText = item.priceLabel ? item.priceLabel.replace(' UAH', ' грн').replace(' ₴', ' грн') : 'Ціну не надано';
 
   const routeCoordinates: Coordinate[] = useMemo(() => {
-    return item.routeGeometry && item.routeGeometry.length >= 2 ? item.routeGeometry : [];
-  }, [item.routeGeometry]);
+    if (item.routeGeometry && item.routeGeometry.length >= 2) return item.routeGeometry;
+    if (item.legs && item.legs.length > 0) {
+      const flattened = item.legs.flatMap((leg) => leg.coordinates || []);
+      if (flattened.length >= 2) return flattened;
+    }
+    return [];
+  }, [item.routeGeometry, item.legs]);
 
   // Offer geometry can arrive after this view mounts. Refit when that real
   // provider geometry becomes available so the route does not stay off-screen

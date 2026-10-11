@@ -10,6 +10,7 @@ const MAX_STOPS_PER_TRANSPORT_TYPE = 2;
 const EARTH_RADIUS_M = 6_371_000;
 
 type CsvRow = Record<string, string>;
+type GtfsShapePoint = { sequence: number; lon: number; lat: number; distanceTraveled?: number };
 export type TransitJourneyMode = 'BUS' | 'MINIBUS' | 'RAIL' | 'TRAM' | 'TROLLEYBUS' | 'METRO' | 'FERRY' | 'FUNICULAR';
 export type GtfsTransportType = 'bus' | 'marshrutka' | 'intercity_bus' | 'train' | 'suburban_train' | 'city_train' | 'tram' | 'trolleybus' | 'metro' | 'ferry' | 'funicular';
 
@@ -18,11 +19,12 @@ export interface GtfsTimetableFeed {
   timezone: string;
   routes: Map<string, { name: string; mode: TransitJourneyMode; transportType: GtfsTransportType }>;
   stops: Map<string, { id: string; name: string; lon: number; lat: number }>;
-  trips: Map<string, { routeId: string; serviceId: string; headsign: string }>;
-  stopTimes: Map<string, Array<{ stopId: string; sequence: number; arrivalSeconds: number; departureSeconds: number; pickupType: number; dropOffType: number; sourceStopName?: string; sourceStopCoordinates?: [number, number] }>>;
+  trips: Map<string, { routeId: string; serviceId: string; headsign: string; shapeId?: string }>;
+  stopTimes: Map<string, Array<{ stopId: string; sequence: number; arrivalSeconds: number; departureSeconds: number; pickupType: number; dropOffType: number; sourceStopName?: string; sourceStopCoordinates?: [number, number]; shapeDistanceTraveled?: number }>>;
   stopTimesByStop: Map<string, Array<{ tripId: string; index: number }>>;
   calendars: Map<string, { start: string; end: string; weekdays: boolean[] }>;
   exceptions: Map<string, Map<string, number>>;
+  shapes: Map<string, GtfsShapePoint[]>;
   providersByRoute?: Map<string, { id: string; name: string; city: string; fetchedAt: Date }>;
 }
 
@@ -49,6 +51,9 @@ export interface GtfsDirectJourney {
   sourceFreshAt: Date;
   distanceToOriginStopMeters: number;
   distanceFromDestinationStopMeters: number;
+  coordinates?: Array<[number, number]>;
+  geometrySource?: 'gtfs-shape' | 'gtfs-stop-sequence';
+  distanceMeters?: number | null;
 }
 
 interface SearchInput {
@@ -150,11 +155,26 @@ export function parseGtfsTimetable(files: Record<string, Uint8Array>, fetchedAt 
     stops.set(row.stop_id, { id: row.stop_id, name: row.stop_name?.trim() || row.stop_id, lon, lat });
   }
 
-  const trips = new Map<string, { routeId: string; serviceId: string; headsign: string }>();
+  const trips: GtfsTimetableFeed['trips'] = new Map();
   for (const row of csvRows(text('trips.txt'))) {
     if (!row.trip_id || !row.service_id || !routes.has(row.route_id)) continue;
-    trips.set(row.trip_id, { routeId: row.route_id, serviceId: row.service_id, headsign: row.trip_headsign?.trim() || '' });
+    trips.set(row.trip_id, { routeId: row.route_id, serviceId: row.service_id, headsign: row.trip_headsign?.trim() || '',
+      ...(row.shape_id?.trim() ? { shapeId: row.shape_id.trim() } : {}) });
   }
+
+  const shapes: GtfsTimetableFeed['shapes'] = new Map();
+  for (const row of csvRows(text('shapes.txt'))) {
+    const lon = Number(row.shape_pt_lon), lat = Number(row.shape_pt_lat), sequence = integer(row.shape_pt_sequence, -1);
+    if (!row.shape_id || !Number.isFinite(lon) || !Number.isFinite(lat) || sequence < 0
+      || Math.abs(lon) > 180 || Math.abs(lat) > 90 || (lon === 0 && lat === 0)) continue;
+    const distanceTraveled = row.shape_dist_traveled === undefined || row.shape_dist_traveled.trim() === ''
+      ? undefined : Number(row.shape_dist_traveled);
+    const points = shapes.get(row.shape_id) ?? [];
+    points.push({ sequence, lon, lat,
+      ...(Number.isFinite(distanceTraveled) && distanceTraveled! >= 0 ? { distanceTraveled } : {}) });
+    shapes.set(row.shape_id, points);
+  }
+  for (const points of shapes.values()) points.sort((a, b) => a.sequence - b.sequence);
 
   const stopTimes: GtfsTimetableFeed['stopTimes'] = new Map();
   for (const row of csvRows(text('stop_times.txt'))) {
@@ -163,8 +183,11 @@ export function parseGtfsTimetable(files: Record<string, Uint8Array>, fetchedAt 
     if (arrivalSeconds === null || departureSeconds === null) continue;
     const list = stopTimes.get(row.trip_id) ?? [];
     const sourceStop = stops.get(row.stop_id);
+    const shapeDistanceTraveled = row.shape_dist_traveled === undefined || row.shape_dist_traveled.trim() === ''
+      ? undefined : Number(row.shape_dist_traveled);
     list.push({ stopId: row.stop_id, sequence: integer(row.stop_sequence, -1), arrivalSeconds, departureSeconds,
       pickupType: integer(row.pickup_type), dropOffType: integer(row.drop_off_type),
+      ...(Number.isFinite(shapeDistanceTraveled) && shapeDistanceTraveled! >= 0 ? { shapeDistanceTraveled } : {}),
       ...(sourceStop ? { sourceStopName: sourceStop.name, sourceStopCoordinates: [sourceStop.lon, sourceStop.lat] as [number, number] } : {}) });
     stopTimes.set(row.trip_id, list);
   }
@@ -190,7 +213,7 @@ export function parseGtfsTimetable(files: Record<string, Uint8Array>, fetchedAt 
     exceptions.set(row.service_id, byDate);
   }
 
-  return { fetchedAt, timezone, routes, stops, trips, stopTimes, stopTimesByStop, calendars, exceptions };
+  return { fetchedAt, timezone, routes, stops, trips, stopTimes, stopTimesByStop, calendars, exceptions, shapes };
 }
 
 /**
@@ -210,6 +233,7 @@ export function mergeGtfsTimetables(sources: readonly GtfsTimetableSource[]): Gt
   const stops: GtfsTimetableFeed['stops'] = new Map();
   const trips: GtfsTimetableFeed['trips'] = new Map();
   const stopTimes: GtfsTimetableFeed['stopTimes'] = new Map();
+  const shapes: GtfsTimetableFeed['shapes'] = new Map();
   const calendars: GtfsTimetableFeed['calendars'] = new Map();
   const exceptions: GtfsTimetableFeed['exceptions'] = new Map();
   const providersByRoute = new Map<string, { id: string; name: string; city: string; fetchedAt: Date }>();
@@ -270,6 +294,7 @@ export function mergeGtfsTimetables(sources: readonly GtfsTimetableSource[]): Gt
       routes.set(mergedRouteId, route);
       providersByRoute.set(mergedRouteId, { id: source.providerId, name: source.providerName, city: source.providerCity, fetchedAt: source.feed.fetchedAt });
     }
+    for (const [shapeId, points] of source.feed.shapes) shapes.set(`${prefix}${shapeId}`, points);
     for (const [serviceId, calendar] of source.feed.calendars) calendars.set(`${prefix}${serviceId}`, calendar);
     for (const [serviceId, byDate] of source.feed.exceptions) exceptions.set(`${prefix}${serviceId}`, new Map(byDate));
     for (const [tripId, trip] of source.feed.trips) {
@@ -277,7 +302,8 @@ export function mergeGtfsTimetables(sources: readonly GtfsTimetableSource[]): Gt
       const mergedRouteId = `${prefix}${trip.routeId}`;
       const mergedServiceId = `${prefix}${trip.serviceId}`;
       if (!routes.has(mergedRouteId)) continue;
-      trips.set(mergedTripId, { ...trip, routeId: mergedRouteId, serviceId: mergedServiceId });
+      trips.set(mergedTripId, { ...trip, routeId: mergedRouteId, serviceId: mergedServiceId,
+        ...(trip.shapeId ? { shapeId: `${prefix}${trip.shapeId}` } : {}) });
       const entries = source.feed.stopTimes.get(tripId)?.flatMap((entry) => {
         const stopId = remappedStops.get(entry.stopId);
         return stopId ? [{ ...entry, stopId }] : [];
@@ -294,7 +320,7 @@ export function mergeGtfsTimetables(sources: readonly GtfsTimetableSource[]): Gt
     stopTimesByStop.set(entry.stopId, matches);
   });
   const fetchedAt = new Date(Math.min(...ordered.map((source) => source.feed.fetchedAt.getTime())));
-  return { fetchedAt, timezone, routes, stops, trips, stopTimes, stopTimesByStop, calendars, exceptions, providersByRoute };
+  return { fetchedAt, timezone, routes, stops, trips, stopTimes, stopTimesByStop, calendars, exceptions, shapes, providersByRoute };
 }
 
 function isValidTimezone(timezone: string): boolean {
@@ -373,6 +399,97 @@ function distanceMeters(a: [number, number], b: [number, number]): number {
   return 2 * EARTH_RADIUS_M * Math.asin(Math.sqrt(h));
 }
 
+function lineLengthMeters(coordinates: readonly [number, number][]): number {
+  return Math.round(coordinates.slice(1).reduce((sum, point, index) => sum + distanceMeters(coordinates[index], point), 0));
+}
+
+const nearestShapeIndexes = new WeakMap<GtfsShapePoint[], Map<string, number>>();
+
+function nearestShapePoint(points: GtfsShapePoint[], cacheKey: string, coordinate: [number, number]): number {
+  let indexes = nearestShapeIndexes.get(points);
+  if (!indexes) { indexes = new Map(); nearestShapeIndexes.set(points, indexes); }
+  const cached = indexes.get(cacheKey);
+  if (cached !== undefined) return cached;
+  let nearestIndex = 0;
+  let nearestDistance = Number.POSITIVE_INFINITY;
+  points.forEach((point, index) => {
+    const distance = distanceMeters(coordinate, [point.lon, point.lat]);
+    if (distance < nearestDistance) { nearestDistance = distance; nearestIndex = index; }
+  });
+  indexes.set(cacheKey, nearestIndex);
+  return nearestIndex;
+}
+
+function tripSegmentGeometry(
+  feed: GtfsTimetableFeed,
+  tripId: string,
+  fromIndex: number,
+  toIndex: number,
+): { coordinates: Array<[number, number]>; geometrySource: GtfsDirectJourney['geometrySource']; distanceMeters: number | null } {
+  const tripStops = feed.stopTimes.get(tripId) ?? [];
+  const start = tripStops[fromIndex];
+  const end = tripStops[toIndex];
+  const coordinateAt = (stop: typeof start): [number, number] | undefined => {
+    if (!stop) return undefined;
+    if (stop.sourceStopCoordinates) return stop.sourceStopCoordinates;
+    const value = feed.stops.get(stop.stopId);
+    return value ? [value.lon, value.lat] : undefined;
+  };
+  const startCoordinates = coordinateAt(start);
+  const endCoordinates = coordinateAt(end);
+  const trip = feed.trips.get(tripId);
+  const shape = trip?.shapeId ? feed.shapes.get(trip.shapeId) : undefined;
+  if (shape && shape.length >= 2 && startCoordinates && endCoordinates) {
+    let fromShapeIndex: number;
+    let toShapeIndex: number;
+    const hasMonotonicShapeDistances = shape.every((point, index) => point.distanceTraveled !== undefined
+      && (index === 0 || point.distanceTraveled! >= shape[index - 1].distanceTraveled!));
+    if (hasMonotonicShapeDistances
+      && start?.shapeDistanceTraveled !== undefined && end?.shapeDistanceTraveled !== undefined
+      && start.shapeDistanceTraveled !== end.shapeDistanceTraveled) {
+      const ascending = start.shapeDistanceTraveled < end.shapeDistanceTraveled;
+      const low = Math.min(start.shapeDistanceTraveled, end.shapeDistanceTraveled);
+      const high = Math.max(start.shapeDistanceTraveled, end.shapeDistanceTraveled);
+      let left = 0, right = shape.length;
+      while (left < right) {
+        const middle = (left + right) >>> 1;
+        if (shape[middle].distanceTraveled! < low) left = middle + 1;
+        else right = middle;
+      }
+      const firstInRange = left;
+      left = 0; right = shape.length;
+      while (left < right) {
+        const middle = (left + right) >>> 1;
+        if (shape[middle].distanceTraveled! <= high) left = middle + 1;
+        else right = middle;
+      }
+      const lastInRange = left - 1;
+      if (lastInRange - firstInRange >= 1) {
+        fromShapeIndex = ascending ? firstInRange : lastInRange;
+        toShapeIndex = ascending ? lastInRange : firstInRange;
+      } else {
+        fromShapeIndex = nearestShapePoint(shape, start!.stopId, startCoordinates);
+        toShapeIndex = nearestShapePoint(shape, end!.stopId, endCoordinates);
+      }
+    } else {
+      fromShapeIndex = nearestShapePoint(shape, start!.stopId, startCoordinates);
+      toShapeIndex = nearestShapePoint(shape, end!.stopId, endCoordinates);
+    }
+    const direction = fromShapeIndex <= toShapeIndex ? 1 : -1;
+    const coordinates: Array<[number, number]> = [];
+    for (let index = fromShapeIndex; direction > 0 ? index <= toShapeIndex : index >= toShapeIndex; index += direction) {
+      coordinates.push([shape[index].lon, shape[index].lat]);
+    }
+    if (coordinates.length >= 2) return { coordinates, geometrySource: 'gtfs-shape', distanceMeters: lineLengthMeters(coordinates) };
+  }
+
+  const coordinates = tripStops.slice(fromIndex, toIndex + 1).flatMap((stop): Array<[number, number]> => {
+    const point = coordinateAt(stop);
+    return point ? [point] : [];
+  });
+  return { coordinates, geometrySource: 'gtfs-stop-sequence', distanceMeters: null };
+}
+
 export function findDirectGtfsJourneys(feed: GtfsTimetableFeed, input: SearchInput): GtfsDirectJourney[] {
   const now = input.now ?? new Date();
   if (!Number.isFinite(input.earliestDeparture.getTime()) || !Number.isFinite(input.latestDeparture.getTime())
@@ -432,6 +549,7 @@ export function findDirectGtfsJourneys(feed: GtfsTimetableFeed, input: SearchInp
           searched.add(resultKey);
           const originCoordinates = from.sourceStopCoordinates ?? [originMatch.stop.lon, originMatch.stop.lat] as [number, number];
           const destinationCoordinates = to.sourceStopCoordinates ?? [destinationMatch.stop.lon, destinationMatch.stop.lat] as [number, number];
+          const geometry = tripSegmentGeometry(feed, tripId, fromIndex, toIndex);
           results.push({ providerId: input.providerId, providerName: input.providerName, mode: route.mode,
             routeId: trip.routeId, routeName: route.name, headsign: trip.headsign, tripId,
             originStop: { id: originMatch.stop.id, name: from.sourceStopName ?? originMatch.stop.name, coordinates: originCoordinates },
@@ -439,7 +557,8 @@ export function findDirectGtfsJourneys(feed: GtfsTimetableFeed, input: SearchInp
             transportType: route.transportType,
             departureAt, arrivalAt, sourceFreshAt: feed.fetchedAt,
             distanceToOriginStopMeters: Math.round(distanceMeters(input.origin, originCoordinates)),
-            distanceFromDestinationStopMeters: Math.round(distanceMeters(input.destination, destinationCoordinates)) });
+            distanceFromDestinationStopMeters: Math.round(distanceMeters(input.destination, destinationCoordinates)),
+            ...geometry });
           break;
         }
       }
@@ -667,9 +786,22 @@ export function findGtfsItineraries(feed: GtfsTimetableFeed, input: GtfsItinerar
       walk([segment]);
   }
 
-  return [...results.values()]
+  const selected = [...results.values()]
     .sort((a, b) => a.arrivalAt.getTime() - b.arrivalAt.getTime() || a.transfers - b.transfers || a.id.localeCompare(b.id))
     .slice(0, limit);
+  // Build geometry only for alternatives that will be returned to the API.
+  // Busy feeds may have thousands of time-feasible paths; materializing each
+  // shape before ranking caused discarded alternatives to dominate latency.
+  return selected.map((itinerary) => ({
+    ...itinerary,
+    segments: itinerary.segments.map((segment) => {
+      const tripStops = feed.stopTimes.get(segment.tripId) ?? [];
+      const fromIndex = tripStops.findIndex((stop) => stop.stopId === segment.originStop.id);
+      const toIndex = tripStops.findIndex((stop) => stop.stopId === segment.destinationStop.id);
+      if (fromIndex < 0 || toIndex <= fromIndex) return segment;
+      return { ...segment, ...tripSegmentGeometry(feed, segment.tripId, fromIndex, toIndex) };
+    }),
+  }));
 }
 
 const feedCache = new Map<string, { cachedAt: number; promise: Promise<GtfsTimetableFeed> }>();
@@ -679,7 +811,7 @@ export function cachedGtfsTimetable(providerId: string, url: string, now = Date.
   if (hit && now - hit.cachedAt < CACHE_TTL_MS) return hit.promise;
   const promise = (async () => {
     const { data } = await fetchBinary(url, MAX_FEED_BYTES, 15000);
-    const unzipped = unzipSync(data, { filter: (file) => /(^|\/)(agency|routes|stops|trips|stop_times|calendar|calendar_dates)\.txt$/.test(file.name) && file.originalSize < 100 * 1024 * 1024 });
+    const unzipped = unzipSync(data, { filter: (file) => /(^|\/)(agency|routes|stops|trips|stop_times|calendar|calendar_dates|shapes)\.txt$/.test(file.name) && file.originalSize < 100 * 1024 * 1024 });
     const files = Object.fromEntries(Object.entries(unzipped).map(([name, content]) => [name.split('/').pop() as string, content]));
     return parseGtfsTimetable(files);
   })();

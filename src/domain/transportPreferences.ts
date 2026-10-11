@@ -69,7 +69,9 @@ export const defaultSelection: TransportSelection = {
   providers: {},
 };
 
-const KEY = 'marshgo_transport_selection_v2';
+// Reset earlier persisted narrow selections to the canonical default so a
+// fresh search starts with every currently routable mode enabled.
+const KEY = 'marshgo_transport_selection_v3';
 
 export function loadSelection(): TransportSelection {
   try {
@@ -203,7 +205,13 @@ export function toJourneyPreferences(
   groups: ApiTransportProviders[] | null
 ): Record<string, boolean | string[] | Record<string, string[]>> {
   const active = journeySearchSupportedTypes.filter((type) => selection.active.includes(type));
-  const withProviders = active.filter((type) => type === 'carpool' || groups === null || effectiveProviders(selection, type, groups).length > 0);
+  // With the default "all providers" choice, keep every selected category in
+  // the request. Provider discovery can be temporarily empty or geographically
+  // scoped; the route API has the authoritative corridor-level coverage data.
+  // An explicit provider choice remains constrained to providers returned by
+  // discovery, so a failed lookup never broadens a user's filter silently.
+  const withProviders = active.filter((type) => choiceFor(selection, type).all
+    || (groups !== null && effectiveProviders(selection, type, groups).length > 0));
   const allowedTransportTypes = withProviders.flatMap((category) => journeyTypesForCategory[category as CanonicalTransportTypeId]);
   const transit = withProviders.filter((type) => type !== 'carpool');
   const allowedTransitProvidersByType: Record<string, string[]> = {};

@@ -23,6 +23,31 @@ function feed(overrides: { monday?: string; exceptionDate?: string; exceptionTyp
   return parseGtfsTimetable(files);
 }
 
+test('uses GTFS shapes for transit geometry and computes distance from that path', () => {
+  const timetable = feed();
+  timetable.trips.set('t1', { ...timetable.trips.get('t1')!, shapeId: 'shape-1' });
+  timetable.shapes.set('shape-1', [
+    { sequence: 1, lon: 24.0200, lat: 49.8400, distanceTraveled: 0 },
+    { sequence: 2, lon: 24.0250, lat: 49.8450, distanceTraveled: 700 },
+    { sequence: 3, lon: 24.0300, lat: 49.8500, distanceTraveled: 1400 },
+  ]);
+  const stopTimes = timetable.stopTimes.get('t1')!;
+  stopTimes[0].shapeDistanceTraveled = 0;
+  stopTimes[1].shapeDistanceTraveled = 1400;
+  const journeys = findDirectGtfsJourneys(timetable, {
+    providerId: 'test', providerName: 'Test', origin: [24.0200, 49.8400], destination: [24.0300, 49.8500],
+    earliestDeparture: new Date('2026-10-12T05:00:00.000Z'), latestDeparture: new Date('2026-10-12T06:00:00.000Z'),
+    now: new Date('2026-10-12T04:00:00.000Z'),
+  });
+
+  assert.equal(journeys.length, 1);
+  const journey = journeys[0];
+  assert.ok(journey);
+  assert.equal(journey.geometrySource, 'gtfs-shape');
+  assert.deepEqual(journey.coordinates, [[24.02, 49.84], [24.025, 49.845], [24.03, 49.85]]);
+  assert.ok(typeof journey.distanceMeters === 'number' && journey.distanceMeters > 1000);
+});
+
 function connectingFeed() {
   const files: Record<string, Uint8Array> = {
     'agency.txt': new TextEncoder().encode('agency_id,agency_name,agency_url,agency_timezone\na,Test,https://example.test,Europe/Kyiv'),

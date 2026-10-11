@@ -69,6 +69,7 @@ export interface RouteLegItem {
   priceStatus?: 'ESTIMATED' | 'LOCKED' | 'DYNAMIC' | 'UNKNOWN';
   availabilityStatus?: string;
   distanceMeters?: number | null;
+  coordinates?: [number, number][];
 }
 
 export interface RouteSearchResultItem {
