@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ArrowRight,
   Bike,
@@ -12,8 +12,13 @@ import {
   TrainFront,
   Zap,
 } from 'lucide-react';
-import type { ApiJourney, ApiJourneySearchResult } from '../services/productionApi';
+import type { ApiJourney, ApiJourneySearchResult, ApiJourneyStrategy } from '../services/productionApi';
 import { transportColor } from '../domain/transportVisuals';
+
+const strategyLabels: Record<ApiJourneyStrategy, string> = {
+  FASTEST: 'Найшвидший', CHEAPEST: 'Найдешевший', BALANCED: 'Оптимальний',
+  PREMIUM: 'Premium', RELIABLE: 'Найнадійніший', CUSTOM: 'Ваш пріоритет',
+};
 
 const formatDuration = (seconds: number) => {
   const minutes = Math.max(1, Math.round(seconds / 60));
@@ -77,10 +82,12 @@ function JourneyCard({
   journey,
   onOpenOffer,
   onViewOnMap,
+  activeStrategy,
 }: {
   journey: ApiJourney;
   onOpenOffer: (offerId: string) => void;
   onViewOnMap?: (journey: ApiJourney) => void;
+  activeStrategy: ApiJourneyStrategy;
 }) {
   const firstLeg = journey.legs[0];
   const lastLeg = journey.legs.at(-1);
@@ -131,6 +138,9 @@ function JourneyCard({
     >
       {/* Top Multi-Segment Ribbon: 🚶 4 хв → 🚌 21 → 🚋 24 */}
       <div className="flex items-center justify-between gap-2">
+        <span className="mb-1 inline-flex shrink-0 rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-bold text-blue-800 dark:bg-blue-950/60 dark:text-blue-200">
+          {strategyLabels[activeStrategy]}{journey.strategyRanks?.[activeStrategy] ? ` · №${journey.strategyRanks[activeStrategy]}` : ''}
+        </span>
         <div className="flex flex-1 items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
           {ribbonLegs.map((leg, idx) => {
             const isWalk = leg.mode === 'WALK';
@@ -220,8 +230,44 @@ export function JourneyResultsPanel({
   onOpenOffer: (offerId: string, journeyId: string, journeyLegId: string) => void;
   onViewOnMap?: (journey: ApiJourney) => void;
 }) {
+  const strategyOptions = result.availableStrategies?.length
+    ? result.availableStrategies
+    : [...new Set(result.journeys.flatMap((journey) => journey.recommendedStrategies ?? [journey.strategy]))];
+  const defaultStrategy = result.requestedStrategy && strategyOptions.includes(result.requestedStrategy)
+    ? result.requestedStrategy
+    : strategyOptions.includes('BALANCED') ? 'BALANCED' : strategyOptions[0] ?? 'BALANCED';
+  const [activeStrategy, setActiveStrategy] = useState<ApiJourneyStrategy>(defaultStrategy);
+  useEffect(() => setActiveStrategy(defaultStrategy), [result, defaultStrategy]);
+  const visibleJourneys = result.journeys
+    .filter((journey) => journey.strategyRanks
+      ? typeof journey.strategyRanks[activeStrategy] === 'number'
+      : (journey.recommendedStrategies ?? [journey.strategy]).includes(activeStrategy))
+    .sort((a, b) => (a.strategyRanks?.[activeStrategy] ?? Number.MAX_SAFE_INTEGER)
+      - (b.strategyRanks?.[activeStrategy] ?? Number.MAX_SAFE_INTEGER)
+      || a.totalDurationSeconds - b.totalDurationSeconds);
   return (
     <section aria-label="План маршруту" className="mt-4">
+
+      {strategyOptions.some((strategy) => ['BALANCED', 'FASTEST', 'CHEAPEST'].includes(strategy)) && (
+        <div role="group" aria-label="Ранжування маршрутів" className="mb-3 grid grid-cols-3 gap-2">
+          {strategyOptions.filter((strategy) => ['BALANCED', 'FASTEST', 'CHEAPEST'].includes(strategy)).map((strategy) => {
+            const count = result.journeys.filter((journey) => journey.strategyRanks
+              ? typeof journey.strategyRanks[strategy] === 'number'
+              : (journey.recommendedStrategies ?? [journey.strategy]).includes(strategy)).length;
+            return <button key={strategy} type="button" aria-pressed={activeStrategy === strategy}
+              onClick={() => setActiveStrategy(strategy)}
+              className={`min-h-11 rounded-xl border px-2 py-2 text-[11px] font-bold ${activeStrategy === strategy ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200 bg-white text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300'}`}>
+              {strategyLabels[strategy]} · {count}
+            </button>;
+          })}
+        </div>
+      )}
+
+      {result.resultsTruncated && (
+        <p className="mb-3 rounded-xl border border-blue-100 bg-blue-50 p-3 text-xs leading-5 text-blue-900 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-100">
+          Показано до {result.alternativeLimitPerStrategy ?? 12} варіантів на режим із {result.paretoCount ?? result.candidateCount ?? 'знайдених'} Pareto-варіантів.
+        </p>
+      )}
 
       {result.partial && (
         <div className="mb-3 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
@@ -237,12 +283,13 @@ export function JourneyResultsPanel({
 
       {result.journeys.length ? (
         <div className="space-y-4">
-          {result.journeys.map((journey) => (
+          {visibleJourneys.map((journey) => (
             <JourneyCard
               key={journey.id}
               journey={journey}
               onOpenOffer={(offerId) => onOpenOffer(offerId, journey.id, journey.legs[0]?.id ?? '')}
               onViewOnMap={onViewOnMap}
+              activeStrategy={activeStrategy}
             />
           ))}
         </div>

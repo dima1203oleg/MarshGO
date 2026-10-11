@@ -21,7 +21,7 @@ import { cachedGtfsTimetable, findGtfsItineraries, mergeGtfsTimetables, MAX_GTFS
 import { bboxIntersectsRouteCorridor, providerCityNamedInEndpoints } from './journey/providerCoverage';
 import { projectNotification } from './notifications';
 import { optimizeStopInsertion, type NavigationStop } from './navigation/stopOptimizer';
-import { selectRepresentativeJourneys, strategiesWithComparablePrices } from './journey/scoring';
+import { paretoFrontier, selectStrategyAlternatives, strategiesWithComparablePrices } from './journey/scoring';
 import { JOURNEY_STRATEGIES, journeyTransportTypeSelected, type JourneyOption, type JourneyStrategy } from './journey/types';
 import { getRendezvousSettings, isWithinPickupGeofence, resolveRendezvousAction, type RendezvousAction, type RendezvousState } from './rendezvous';
 import { cachedSnapshot, selectNearby } from './mobility/nearby';
@@ -2332,7 +2332,10 @@ app.post('/api/v1/journeys/search', requireAuth, asyncHandler(async (req, res) =
   ];
   const availableStrategies = strategiesWithComparablePrices(rankedCandidates, strategies)
     .filter((strategy) => strategy !== 'CHEAPEST' || !hasUnpricedTransitCandidates);
-  const representatives = selectRepresentativeJourneys(rankedCandidates, availableStrategies);
+  const alternativeLimitPerStrategy = 12;
+  const paretoCandidates = paretoFrontier(rankedCandidates);
+  const representatives = selectStrategyAlternatives(rankedCandidates, availableStrategies, alternativeLimitPerStrategy);
+  const selectedCandidateIds = new Set(representatives.map(({ journey }) => journey.id));
   const routePlannerTypes = new Set<string>(['carpool']);
   for (const source of feedSources) {
     for (const route of source.feed.routes.values()) {
@@ -2402,7 +2405,9 @@ app.post('/api/v1/journeys/search', requireAuth, asyncHandler(async (req, res) =
       );
       await client.query('UPDATE journeys SET current_leg_id=$2 WHERE id=$1', [journeyId, leg.rows[0].id]);
       journeys.push({
-        id: journeyId, offerId: offer.offer_id, strategy: representative.strategy, score: representative.score, state: 'PLANNED',
+        id: journeyId, offerId: offer.offer_id, strategy: representative.strategy,
+        recommendedStrategies: representative.recommendedStrategies, strategyRanks: representative.strategyRanks,
+        score: representative.score, state: 'PLANNED',
         source: 'community-offer',
         totalDurationSeconds: candidate.durationSeconds, totalPriceMinor: candidate.totalPriceMinor,
         confirmedPriceMinor: null, estimatedPriceMinMinor: candidate.totalPriceMinor, estimatedPriceMaxMinor: candidate.totalPriceMinor,
@@ -2515,7 +2520,8 @@ app.post('/api/v1/journeys/search', requireAuth, asyncHandler(async (req, res) =
       );
       if (firstTransitLegId) await client.query('UPDATE journeys SET current_leg_id=$2 WHERE id=$1', [journeyId, firstTransitLegId]);
       journeys.push({ id: journeyId, offerId: null, source: 'gtfs-static', providerName: itinerary.providerName,
-        strategy: representative.strategy, score: representative.score, state: 'PLANNED',
+        strategy: representative.strategy, recommendedStrategies: representative.recommendedStrategies,
+        strategyRanks: representative.strategyRanks, score: representative.score, state: 'PLANNED',
         totalDurationSeconds: itinerary.durationSeconds, totalPriceMinor: null, confirmedPriceMinor: null,
         estimatedPriceMinMinor: null, estimatedPriceMaxMinor: null, walkingMeters: itinerary.walkingMeters,
         transfers: itinerary.transfers, reliabilityScore: null, legs: responseLegs });
@@ -2529,6 +2535,13 @@ app.post('/api/v1/journeys/search', requireAuth, asyncHandler(async (req, res) =
   }
   res.json({ data: {
     journeys,
+    requestedStrategy: search.strategy,
+    availableStrategies,
+    candidateCount: rankedCandidates.length,
+    paretoCount: paretoCandidates.length,
+    returnedCount: journeys.length,
+    alternativeLimitPerStrategy,
+    resultsTruncated: paretoCandidates.some((candidate) => !selectedCandidateIds.has(candidate.id)),
     partial: journeys.length === 0 || providerErrors.length > 0 || unsupportedPreferences.length > 0
       || journeys.some((journey) => journey.source === 'gtfs-static'),
     blockedProviders,

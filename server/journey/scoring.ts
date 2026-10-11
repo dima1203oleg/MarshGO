@@ -35,6 +35,55 @@ export function strategiesWithComparablePrices<T extends JourneyOption>(
 
 type Metric = 'durationSeconds' | 'priceMinor' | 'transfers' | 'walkingMeters' | 'risk' | 'comfortPenalty';
 
+function riskMetric(journey: JourneyOption): number {
+  return Math.max(journey.transferRisk, journey.reliability === null ? 1 : 1 - journey.reliability);
+}
+
+function dominates(a: JourneyOption, b: JourneyOption): boolean {
+  if ((a.priceMinor === null) !== (b.priceMinor === null)) return false;
+  const metricsA = [a.durationSeconds, a.priceMinor ?? 0, a.transfers, a.walkingMeters, riskMetric(a)];
+  const metricsB = [b.durationSeconds, b.priceMinor ?? 0, b.transfers, b.walkingMeters, riskMetric(b)];
+  return metricsA.every((value, index) => value <= metricsB[index])
+    && metricsA.some((value, index) => value < metricsB[index]);
+}
+
+/** Unknown fares remain incomparable with known fares. */
+export function paretoFrontier<T extends JourneyOption>(journeys: readonly T[]): T[] {
+  return journeys.filter((candidate) => !journeys.some((other) => other !== candidate && dominates(other, candidate)));
+}
+
+export interface StrategyRecommendation<T extends JourneyOption> {
+  journey: T;
+  strategy: JourneyStrategy;
+  recommendedStrategies: JourneyStrategy[];
+  score: number;
+  strategyRanks?: Partial<Record<JourneyStrategy, number>>;
+}
+
+/** Return a bounded union of the best Pareto alternatives in each strategy. */
+export function selectStrategyAlternatives<T extends JourneyOption>(
+  journeys: readonly T[], strategies: readonly JourneyStrategy[], maximumPerStrategy = 12,
+): StrategyRecommendation<T>[] {
+  if (!Number.isInteger(maximumPerStrategy) || maximumPerStrategy < 1 || maximumPerStrategy > 50) {
+    throw new TypeError('maximum alternatives per strategy must be between 1 and 50');
+  }
+  const frontier = paretoFrontier(journeys);
+  const alternatives = new Map<string, StrategyRecommendation<T>>();
+  for (const strategy of strategies) {
+    scoreJourneys(frontier, strategy).slice(0, maximumPerStrategy).forEach(({ journey, score }, index) => {
+      const existing = alternatives.get(journey.id);
+      if (existing) {
+        existing.recommendedStrategies.push(strategy);
+        existing.strategyRanks ??= {};
+        existing.strategyRanks[strategy] = index + 1;
+      } else {
+        alternatives.set(journey.id, { journey, strategy, recommendedStrategies: [strategy], score, strategyRanks: { [strategy]: index + 1 } });
+      }
+    });
+  }
+  return [...alternatives.values()];
+}
+
 function normalized(value: number, min: number, max: number): number {
   if (max === min) return 0;
   return Math.max(0, Math.min(1, (value - min) / (max - min)));
@@ -63,7 +112,7 @@ export function scoreJourneys<T extends JourneyOption>(
     priceMinor: (journey) => journey.priceMinor ?? Number.MAX_SAFE_INTEGER,
     transfers: (journey) => journey.transfers,
     walkingMeters: (journey) => journey.walkingMeters,
-    risk: (journey) => Math.max(journey.transferRisk, journey.reliability === null ? 1 : 1 - journey.reliability),
+    risk: riskMetric,
     comfortPenalty: (journey) => journey.comfort === null ? 0.5 : 1 - journey.comfort,
   };
   const ranges = Object.fromEntries(Object.entries(metrics).map(([key, valueOf]) => {

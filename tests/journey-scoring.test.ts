@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { JOURNEY_SCORE_WEIGHTS, scoreJourneys, selectRepresentativeJourneys, strategiesWithComparablePrices } from '../server/journey/scoring';
+import { JOURNEY_SCORE_WEIGHTS, scoreJourneys, selectRepresentativeJourneys, selectStrategyAlternatives, strategiesWithComparablePrices } from '../server/journey/scoring';
 import type { JourneyOption } from '../server/journey/types';
 
 const candidates: JourneyOption[] = [
@@ -36,6 +36,24 @@ describe('Journey strategy scoring', () => {
       ...candidates[0], id: `bus-${index}`, durationSeconds: 3600 + index * 60,
     }));
     assert.equal(selectRepresentativeJourneys(many, ['BALANCED'], 8).length, 8);
+  });
+
+  it('returns bounded Pareto alternatives with a rank for each strategy', () => {
+    const options: JourneyOption[] = [
+      { ...candidates[0], id: 'balanced', durationSeconds: 6000, priceMinor: 12000, transfers: 0 },
+      { ...candidates[1], id: 'fast', durationSeconds: 3000, priceMinor: 40000 },
+      { ...candidates[0], id: 'cheap', durationSeconds: 12000, priceMinor: 3000, transfers: 1 },
+      { ...candidates[0], id: 'dominated', durationSeconds: 13000, priceMinor: 4000, transfers: 2 },
+    ];
+    const selected = selectStrategyAlternatives(options, ['BALANCED', 'FASTEST', 'CHEAPEST'], 2);
+    assert.ok(selected.length >= 3);
+    assert.equal(selected.some((item) => item.journey.id === 'dominated'), false);
+    assert.ok(selected.every((item) => item.recommendedStrategies.every((strategy) =>
+      Number.isInteger(item.strategyRanks?.[strategy]) && (item.strategyRanks?.[strategy] ?? 0) <= 2)));
+  });
+
+  it('rejects an excessive per-strategy result limit', () => {
+    assert.throws(() => selectStrategyAlternatives(candidates, ['FASTEST'], 51), /between 1 and 50/);
   });
 
   it('penalizes fragile connections for the RELIABLE strategy', () => {
