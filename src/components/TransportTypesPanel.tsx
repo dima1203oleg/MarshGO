@@ -22,20 +22,21 @@ interface TransportTypesPanelProps {
   onChange: (selection: TransportSelection) => void;
   onOpenMap?: () => void;
   onSearch?: () => void;
+  showProviders?: boolean;
 }
 
 // Exactly ordered as in the reference screenshot (4 x 3)
 const GRID_MODES: Array<{ id: TransportTypeId; label: string }> = [
   // Row 1
-  { id: 'bus', label: 'Автобуси' },
-  { id: 'marshrutka', label: 'Маршрутки' },
-  { id: 'trolleybus', label: 'Тролейбуси' },
-  { id: 'tram', label: 'Трамваї' },
-  // Row 2
-  { id: 'metro', label: 'Метро' },
   { id: 'carpool', label: 'Попутки' },
+  { id: 'marshrutka', label: 'Маршрутки' },
+  { id: 'bus', label: 'Автобуси' },
   { id: 'taxi', label: 'Таксі' },
-  { id: 'train', label: 'Поїзди' },
+  // Row 2
+  { id: 'trolleybus', label: 'Тролейбуси' },
+  { id: 'metro', label: 'Метро' },
+  { id: 'tram', label: 'Трамваї' },
+  { id: 'train', label: 'Поїзд' },
   // Row 3
   { id: 'bike', label: 'Велосипеди' },
   { id: 'scooter', label: 'Самокати' },
@@ -47,14 +48,16 @@ export const TransportTypesPanel: React.FC<TransportTypesPanelProps> = ({
   selection,
   groups = null,
   onChange,
+  showProviders = true,
 }) => {
   const [showProvidersSheet, setShowProvidersSheet] = useState(false);
   const allActive = isAllActive(selection);
 
-  const isConnected = (type: TransportTypeId) => isJourneySearchSupported(type) && hasJourneySearchProvider(type, groups);
+  const isSupported = (type: TransportTypeId) => isJourneySearchSupported(type);
+  const hasProvider = (type: TransportTypeId) => isSupported(type) && hasJourneySearchProvider(type, groups);
 
   const handleTileClick = (typeId: TransportTypeId) => {
-    if (!isConnected(typeId)) return;
+    if (!isSupported(typeId)) return;
     const updated = toggleType(selection, typeId);
     onChange(updated);
   };
@@ -77,25 +80,26 @@ export const TransportTypesPanel: React.FC<TransportTypesPanelProps> = ({
       {/* 4x3 Grid matching reference screenshot */}
       <div className="grid grid-cols-4 gap-2">
         {GRID_MODES.map((mode) => {
-          const connected = isConnected(mode.id);
-          const isSelected = connected && selection.active.includes(mode.id);
+          const supported = isSupported(mode.id);
+          const connected = hasProvider(mode.id);
+          const isSelected = supported && selection.active.includes(mode.id);
           const disabledReason = !isJourneySearchSupported(mode.id)
             ? 'Для цієї категорії ще немає маршрутизатора.'
-            : groups === null ? 'Оберіть місто, щоб перевірити доступність.' : 'Немає доступного розкладу в цій зоні.';
+            : groups === null ? 'Провайдера ще не перевірено; вибір лишається в пошуковому запиті.' : 'Немає підтвердженого джерела в цьому коридорі; пошук перевірить доступні дані.';
 
           return (
             <button
               key={mode.id}
               type="button"
-              aria-pressed={connected && isSelected}
-              aria-label={connected ? mode.label : `${mode.label} — ${disabledReason}`}
-              title={connected ? undefined : disabledReason}
-              disabled={!connected}
+              aria-pressed={isSelected}
+              aria-label={supported ? mode.label : `${mode.label} — ${disabledReason}`}
+              title={!connected ? disabledReason : undefined}
+              disabled={!supported}
               onClick={() => handleTileClick(mode.id)}
               className={`relative flex flex-col items-center justify-between rounded-2xl p-2 pt-2.5 pb-2 text-center transition-all active:scale-95 min-h-[78px] ${
                 isSelected
                   ? 'border-2 border-[#0066FF] bg-white shadow-xs dark:border-[#0066FF] dark:bg-[#101E38]'
-                  : connected
+                  : supported
                   ? 'border border-slate-200/90 bg-white hover:border-slate-300 dark:border-slate-800 dark:bg-[#101E38]'
                   : 'border border-slate-200/60 bg-slate-50/70 opacity-60 dark:border-slate-800/60 dark:bg-slate-900/40'
               }`}
@@ -114,7 +118,7 @@ export const TransportTypesPanel: React.FC<TransportTypesPanelProps> = ({
 
               {/* Mode title */}
               <span
-                className={`mt-1 block w-full truncate text-[11px] font-bold ${
+                className={`mt-1 block w-full whitespace-nowrap text-[10px] leading-tight font-bold ${
                   isSelected
                     ? 'text-[#0066FF] dark:text-blue-400 font-extrabold'
                     : 'text-slate-700 dark:text-slate-300'
@@ -128,7 +132,7 @@ export const TransportTypesPanel: React.FC<TransportTypesPanelProps> = ({
       </div>
 
       {/* Section: Провайдери */}
-      <div className="mt-4 rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-[#101E38] p-3.5 shadow-xs">
+      {showProviders && <div className="mt-4 rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-[#101E38] p-3.5 shadow-xs">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <Layers size={14} className="text-[#0066FF]" />
@@ -157,7 +161,7 @@ export const TransportTypesPanel: React.FC<TransportTypesPanelProps> = ({
               </span>
             )) : <span className="text-xs text-slate-500">Для вибраних категорій у цій зоні немає підключених провайдерів.</span>}
         </div>
-      </div>
+      </div>}
 
       {/* Providers Sheet Modal if clicked */}
       {showProvidersSheet && (
@@ -183,7 +187,7 @@ export const TransportTypesPanel: React.FC<TransportTypesPanelProps> = ({
             </div>
             <div className="py-4 space-y-2.5">
               {groups === null ? <p className="text-sm text-slate-500">Джерела з'являться після вибору міста.</p>
-                : transportTypes.filter((type) => selection.active.includes(type.id) && isConnected(type.id)).map((type) => {
+                : transportTypes.filter((type) => selection.active.includes(type.id) && hasProvider(type.id)).map((type) => {
                   const providers = providersForJourneySearch(type.id, groups);
                   const choice = choiceFor(selection, type.id);
                   return <div key={type.id} className="rounded-2xl bg-slate-50 p-3 dark:bg-slate-900/60">

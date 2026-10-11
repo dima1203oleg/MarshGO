@@ -205,6 +205,7 @@ export class MobilityRegistryService {
       enabled: true,
       sourceAttribution: 'MARSHGO Core Engine (0% commission)',
     });
+
   }
 
   public register(entry: ProviderRegistryEntry): void {

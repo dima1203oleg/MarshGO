@@ -27,7 +27,7 @@ export function styleUrlForMode(mode: MapMode, configured: string | undefined): 
 /** Exactly three map modes. Transit, bikes, scooters, ... are information layers on top of 2D (see transportLayers.ts), never separate maps. */
 export type MapLayer = 'standard' | 'navigation' | 'hybrid';
 export const mapLayers: Record<MapLayer, { label: string; pitch: number }> = {
-  standard: { label: '2D', pitch: 0 },
+  standard: { label: 'Схема', pitch: 0 },
   navigation: { label: '3D', pitch: 60 },
   hybrid: { label: 'Супутник', pitch: 0 },
 };

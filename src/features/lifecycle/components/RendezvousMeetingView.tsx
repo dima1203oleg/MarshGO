@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ArrowLeft,
   CheckCircle2,
@@ -17,6 +17,8 @@ interface RendezvousMeetingViewProps {
   onConfirmBoarding: () => void;
 }
 
+import { productionApi } from '../../../services/productionApi';
+
 export const RendezvousMeetingView: React.FC<RendezvousMeetingViewProps> = ({
   trip,
   onBack,
@@ -26,22 +28,53 @@ export const RendezvousMeetingView: React.FC<RendezvousMeetingViewProps> = ({
 }) => {
   const [sharingLocation, setSharingLocation] = useState(true);
   const [statusNotice, setStatusNotice] = useState<string | null>(null);
-  const driverEta = trip.driverEtaMinutes || 4;
+  const [rendezvousId, setRendezvousId] = useState<string | null>(null);
+  const [driverLocation, setDriverLocation] = useState<[number, number] | null>(trip.driverCoordinates || null);
+  const [driverEta, setDriverEta] = useState(trip.driverEtaMinutes || 0);
+
+  useEffect(() => {
+    if (!trip.rawBooking?.id) return;
+    let isActive = true;
+    void productionApi.activateRendezvous(trip.rawBooking.id).then((rz) => {
+      if (!isActive) return;
+      setRendezvousId(rz.id);
+    }).catch(console.error);
+
+    return () => { isActive = false; };
+  }, [trip.rawBooking?.id]);
+
+  useEffect(() => {
+    if (!rendezvousId) return;
+    const unsub = productionApi.subscribeRealtime((event) => {
+      if (event.type.startsWith('rendezvous.') && (event.data as any).rendezvous_id === rendezvousId) {
+        const d = event.data as any;
+        if (d.coordinates && d.participant === 'driver') {
+          setDriverLocation(d.coordinates);
+        }
+        if (d.state === 'boarding' || d.state === 'arrived') {
+          setDriverEta(0);
+        }
+      }
+    }, () => {});
+    return () => unsub();
+  }, [rendezvousId]);
 
   const handleNotifyArrived = () => {
     setStatusNotice('Водієві надіслано сигнал «Я на місці»');
+    if (rendezvousId) void productionApi.rendezvousStatus(rendezvousId, 'arrived');
     setTimeout(() => setStatusNotice(null), 3000);
   };
 
   const handleNotifyDelay = () => {
     setStatusNotice('Водієві надіслано «Буду за 2 хв»');
+    if (rendezvousId) void productionApi.rendezvousStatus(rendezvousId, 'delayed', 2);
     setTimeout(() => setStatusNotice(null), 3000);
   };
 
   return (
     <div className="relative flex flex-col h-[100svh] w-full max-w-md mx-auto overflow-hidden bg-[#F4F8FF] dark:bg-[#070E1B] text-[#081B35] dark:text-white">
       {/* Top Floating Controls */}
-      <header className="absolute top-0 inset-x-0 z-30 flex items-center justify-between p-4 pt-[max(0.6rem,env(safe-area-inset-top))] pointer-events-none">
+      <header className="absolute top-0 inset-x-0 z-30 flex items-center justify-between p-4 pt-[max(3.5rem,calc(env(safe-area-inset-top)+0.85rem))] pointer-events-none">
         <button
           type="button"
           onClick={onBack}
@@ -76,10 +109,11 @@ export const RendezvousMeetingView: React.FC<RendezvousMeetingViewProps> = ({
         <div className="absolute inset-0 z-0">
           <MarshGoMap
             route={[
-              [24.015, 49.815],
-              [24.025, 49.825],
-              [24.032, 49.832],
+              trip.passengerCoordinates,
+              trip.pickupCoordinates,
             ]}
+            vehicle={driverLocation}
+            theme="MARSHGO_NAVIGATION_LIGHT"
             onStatus={() => {}}
             onAdapter={() => {}}
           />
@@ -199,7 +233,10 @@ export const RendezvousMeetingView: React.FC<RendezvousMeetingViewProps> = ({
         {/* Boarding Confirmation Button */}
         <button
           type="button"
-          onClick={onConfirmBoarding}
+          onClick={() => {
+            if (rendezvousId) void productionApi.rendezvousBoarding(rendezvousId);
+            onConfirmBoarding();
+          }}
           className="w-full rounded-[20px] bg-[#0866F5] py-3.5 text-center text-sm font-black text-white shadow-lg shadow-blue-500/25 transition active:scale-[0.98] flex items-center justify-center gap-2"
         >
           <CheckCircle2 size={18} />

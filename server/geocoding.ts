@@ -11,21 +11,35 @@ export class GeocodingUnavailableError extends Error {
 
 export function parseNominatimSuggestions(payload: unknown): PlaceSuggestion[] {
   if (!Array.isArray(payload)) throw new GeocodingUnavailableError('Geocoder returned an invalid response');
-  return payload.flatMap((item): PlaceSuggestion[] => {
+  const items = payload.flatMap((item): Array<PlaceSuggestion & { score: number }> => {
     if (!item || typeof item !== 'object') return [];
     const record = item as Record<string, unknown>;
     const label = typeof record.display_name === 'string' ? record.display_name.trim() : '';
     const latitude = typeof record.lat === 'string' || typeof record.lat === 'number' ? Number(record.lat) : NaN;
     const longitude = typeof record.lon === 'string' || typeof record.lon === 'number' ? Number(record.lon) : NaN;
     const providerId = record.place_id === undefined ? '' : String(record.place_id);
-    // A rivers, lakes or forests named like a town ("Стрий" the river) must never become a pickup point.
+    // Rivers, lakes or forests named like a town ("Стрий" the river) must never become a pickup point.
     const category = String(record.category ?? record.class ?? '');
     const kind = String(record.type ?? '');
     if (category === 'waterway' || (category === 'natural' && /^(water|river|stream|bay|strait|wetland|coastline|spring|reservoir|wood|scrub|grassland|heath)$/.test(kind)) || category === 'landuse' || category === 'leisure') return [];
     if (!label || !providerId || !Number.isFinite(latitude) || !Number.isFinite(longitude) ||
         Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return [];
-    return [{ label, latitude, longitude, providerId }];
+
+    let score = typeof record.importance === 'number' ? record.importance : (Number(record.importance) || 0);
+    // Major urban centers and districts have far higher passenger traffic than small rural villages with similar names
+    const isMajorMetro = /(Львів|Київ|Харків|Одеса|Дніпро|Запоріжжя|Вінниця|Полтава|Черкаси|Житомир|Суми|Хмельницький|Чернівці|Рівне|Івано-Франківськ|Тернопіль|Луцьк|Ужгород)/i.test(label);
+    if (isMajorMetro) {
+      score += 0.05;
+      if (kind === 'suburb' || kind === 'quarter' || kind === 'neighbourhood' || kind === 'district') {
+        score += 0.03;
+      }
+    }
+    return [{ label, latitude, longitude, providerId, score }];
   });
+
+  return items
+    .sort((a, b) => b.score - a.score)
+    .map(({ label, latitude, longitude, providerId }) => ({ label, latitude, longitude, providerId }));
 }
 
 const reverseCache = new Map<string, { at: number; place: PlaceSuggestion }>();

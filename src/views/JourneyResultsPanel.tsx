@@ -5,32 +5,15 @@ import {
   BusFront,
   CableCar,
   CarFront,
-  Clock3,
+  ChevronRight,
   Footprints,
   MapPin,
   Ship,
-  Sparkles,
-  Ticket,
   TrainFront,
   Zap,
 } from 'lucide-react';
-import type { ApiJourney, ApiJourneySearchResult, ApiJourneyStrategy } from '../services/productionApi';
-
-const strategyLabels: Record<ApiJourneyStrategy, string> = {
-  FASTEST: 'Найшвидше',
-  CHEAPEST: 'Найдешевше',
-  BALANCED: 'Оптимально',
-  PREMIUM: 'Преміум',
-  RELIABLE: 'Найнадійніше',
-  CUSTOM: 'Ваш пріоритет',
-};
-
-const formatPrice = (minor: number) =>
-  new Intl.NumberFormat('uk-UA', {
-    style: 'currency',
-    currency: 'UAH',
-    maximumFractionDigits: 0,
-  }).format(minor / 100);
+import type { ApiJourney, ApiJourneySearchResult } from '../services/productionApi';
+import { transportColor } from '../domain/transportVisuals';
 
 const formatDuration = (seconds: number) => {
   const minutes = Math.max(1, Math.round(seconds / 60));
@@ -90,85 +73,6 @@ function getModeIcon(mode: string, size = 15) {
   }
 }
 
-function getModeTheme(mode: string) {
-  switch (mode) {
-    case 'METRO':
-      return {
-        bg: 'bg-rose-50 dark:bg-rose-950/40',
-        text: 'text-rose-700 dark:text-rose-300',
-        border: 'border-rose-200 dark:border-rose-900',
-        dot: 'bg-rose-500',
-      };
-    case 'RAIL':
-      return {
-        bg: 'bg-indigo-50 dark:bg-indigo-950/40',
-        text: 'text-indigo-700 dark:text-indigo-300',
-        border: 'border-indigo-200 dark:border-indigo-900',
-        dot: 'bg-indigo-600',
-      };
-    case 'TRAM':
-      return {
-        bg: 'bg-amber-50 dark:bg-amber-950/40',
-        text: 'text-amber-800 dark:text-amber-300',
-        border: 'border-amber-200 dark:border-amber-900',
-        dot: 'bg-amber-500',
-      };
-    case 'TROLLEYBUS':
-    case 'BUS':
-    case 'MINIBUS':
-      return {
-        bg: 'bg-sky-50 dark:bg-sky-950/40',
-        text: 'text-sky-700 dark:text-sky-300',
-        border: 'border-sky-200 dark:border-sky-900',
-        dot: 'bg-sky-500',
-      };
-    case 'SCOOTER':
-      return {
-        bg: 'bg-amber-100 dark:bg-amber-950/60',
-        text: 'text-amber-800 dark:text-amber-200',
-        border: 'border-amber-300 dark:border-amber-800',
-        dot: 'bg-amber-500',
-      };
-    case 'BIKE':
-      return {
-        bg: 'bg-emerald-100 dark:bg-emerald-950/60',
-        text: 'text-emerald-800 dark:text-emerald-200',
-        border: 'border-emerald-300 dark:border-emerald-800',
-        dot: 'bg-emerald-500',
-      };
-    case 'TAXI':
-    case 'TRANSFER':
-      return {
-        bg: 'bg-yellow-50 dark:bg-yellow-950/40',
-        text: 'text-yellow-800 dark:text-yellow-300',
-        border: 'border-yellow-200 dark:border-yellow-900',
-        dot: 'bg-yellow-500',
-      };
-    case 'COMMUNITY':
-    case 'COMMUNITY_DEMAND':
-      return {
-        bg: 'bg-emerald-50 dark:bg-emerald-950/40',
-        text: 'text-emerald-700 dark:text-emerald-300',
-        border: 'border-emerald-200 dark:border-emerald-900',
-        dot: 'bg-emerald-500',
-      };
-    case 'FUNICULAR':
-      return {
-        bg: 'bg-teal-50 dark:bg-teal-950/40',
-        text: 'text-teal-700 dark:text-teal-300',
-        border: 'border-teal-200 dark:border-teal-900',
-        dot: 'bg-teal-500',
-      };
-    default:
-      return {
-        bg: 'bg-slate-100 dark:bg-slate-800',
-        text: 'text-slate-700 dark:text-slate-300',
-        border: 'border-slate-200 dark:border-slate-700',
-        dot: 'bg-slate-400',
-      };
-  }
-}
-
 function JourneyCard({
   journey,
   onOpenOffer,
@@ -186,244 +90,122 @@ function JourneyCard({
   const time = (value: string) =>
     new Intl.DateTimeFormat('uk-UA', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Kyiv' }).format(new Date(value));
 
-  const transit = journey.legs.some((candidate) => candidate.source === 'gtfs-static' || candidate.source === 'kyiv-open-data' || candidate.mode === 'RAIL' || candidate.mode === 'TRAM' || candidate.mode === 'METRO');
-  const priceLabel = journey.confirmedPriceMinor !== null ? 'Підтверджена ціна' : transit ? 'Розрахована вартість' : 'Орієнтовна ціна';
   const shownPrice = journey.confirmedPriceMinor ?? journey.totalPriceMinor;
+  const estimatedPrice = journey.estimatedPriceMinMinor != null && journey.estimatedPriceMaxMinor != null
+    ? `${Math.round(journey.estimatedPriceMinMinor / 100)}–${Math.round(journey.estimatedPriceMaxMinor / 100)} грн · оцінка`
+    : null;
   const bookingLeg = journey.legs.find((candidate) => candidate.offerId);
   const bookingOfferId = journey.offerId ?? bookingLeg?.offerId ?? null;
-  const isMultimodalChain = journey.legs.length > 1;
 
-  // Filter actionable legs for top ribbon (merge walks or keep summary)
-  const ribbonLegs = journey.legs.filter((l) => l.mode !== 'WALK' || l.durationSeconds >= 60 || journey.legs.length === 1);
+  // Filter actionable legs for top ribbon (keep walks that are >= 1 min or only leg)
+  const ribbonLegs = journey.legs.filter((l) => l.mode !== 'WALK' || l.durationSeconds >= 45 || journey.legs.length === 1);
+
+  // Accurately compute total route distance
+  const distanceIsComplete = journey.legs.every((leg) => leg.distanceMeters != null && Number.isFinite(leg.distanceMeters));
+  const totalDistanceMeters = distanceIsComplete ? journey.legs.reduce((acc, leg) => acc + (leg.distanceMeters ?? 0), 0) : 0;
+  const distanceLabel = totalDistanceMeters > 0
+    ? `${(totalDistanceMeters / 1000).toFixed(1)} км`
+    : journey.walkingMeters > 0
+      ? `${journey.walkingMeters} м пішки`
+      : 'Відстань не надана';
+
+  const departureTimeStr = time(firstLeg.departureAt);
+  const arrivalTimeStr = time(lastLeg.arrivalAt);
 
   return (
-    <article className="journey-result-card rounded-3xl border border-[#E3EBF4] bg-white p-5 shadow-xs transition-shadow hover:shadow-md dark:border-slate-800 dark:bg-[#101E38]">
-      {/* Card Header */}
-      <div className="flex items-center justify-between gap-3 pb-3 border-b border-[#F0F4F9] dark:border-slate-800/80">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EAF2FF] px-3 py-1 text-[11px] font-extrabold text-[#0066FF] dark:bg-blue-950/60 dark:text-blue-300">
-            {isMultimodalChain ? <Sparkles size={12} /> : null}
-            {isMultimodalChain ? 'Мультимодальний' : primaryLeg.routeName ? `№${primaryLeg.routeName}` : modeLabels[primaryLeg.mode] ?? strategyLabels[journey.strategy]}
-          </span>
-          {journey.transfers > 0 && (
-            <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-              {journey.transfers} {journey.transfers === 1 ? 'пересадка' : 'пересадки'}
-            </span>
-          )}
-        </div>
-
-        <span className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
-          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-          {transit ? (primaryLeg.routeName ? `Маршрут №${primaryLeg.routeName}` : (journey.providerName ?? 'Офіційний розклад')) : 'MARSHGO Community'}
-        </span>
-      </div>
-
-      {/* Segmented Transit Ribbon matching Reference Screenshot 1 */}
-      {ribbonLegs.length > 0 && (
-        <div className="my-3 flex items-center gap-2.5 overflow-x-auto no-scrollbar rounded-2xl bg-[#EEF2F7]/80 p-2.5 dark:bg-[#0B1730]">
+    <article
+      role="button"
+      tabIndex={0}
+      aria-label={`${modeLabels[primaryLeg.mode] ?? 'Маршрут'}: ${firstLeg.origin.name} — ${lastLeg.destination.name}, ${formatDuration(journey.totalDurationSeconds)}${shownPrice != null ? `, ${Math.round(shownPrice / 100)} гривень` : estimatedPrice ? `, ${estimatedPrice}` : ', ціна не надана'}. Відкрити деталі.`}
+      onClick={() => {
+        if (bookingOfferId) onOpenOffer(bookingOfferId);
+        else if (onViewOnMap) onViewOnMap(journey);
+      }}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          event.currentTarget.click();
+        }
+      }}
+      className="block min-h-11 cursor-pointer rounded-[22px] border border-[#D5DFEB] bg-white p-4 shadow-[0_3px_12px_rgba(20,38,66,0.07)] transition-all hover:border-[#1769ED]/50 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 active:scale-[0.99] dark:border-slate-700 dark:bg-[#101E38]"
+    >
+      {/* Top Multi-Segment Ribbon: 🚶 4 хв → 🚌 21 → 🚋 24 */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-1 items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
           {ribbonLegs.map((leg, idx) => {
             const isWalk = leg.mode === 'WALK';
-            const badgeBg = leg.mode === 'TRAM' ? '#DC2626' : leg.mode === 'TROLLEYBUS' ? '#0284C7' : leg.mode === 'MINIBUS' ? '#F59E0B' : '#16A34A';
+            const badgeColor = isWalk ? null : transportColor(leg.mode);
+
             return (
               <React.Fragment key={leg.id || idx}>
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="grid h-7 w-7 place-items-center rounded-xl bg-white dark:bg-slate-800 shadow-2xs">
-                    {getModeIcon(leg.mode, 14)}
-                  </span>
-                  {leg.routeName && !isWalk && (
-                    <span
-                      style={{ backgroundColor: badgeBg }}
-                      className="grid min-w-[32px] h-6 place-items-center rounded-lg px-2 text-xs font-black text-white shadow-xs"
-                    >
-                      {leg.routeName}
-                    </span>
-                  )}
-                  <div className="flex flex-col text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 leading-tight">
-                    {leg.priceMinor != null && (
-                      <span className="font-bold text-slate-700 dark:text-slate-200">
-                        {Math.round(leg.priceMinor / 100)} UAH
-                      </span>
-                    )}
-                    <span>
-                      {isWalk
-                        ? `${Math.round(leg.durationSeconds / 60)} хв пішки`
-                        : leg.distanceMeters != null
-                        ? `${(leg.distanceMeters / 1000).toFixed(1)} км`
-                        : `${Math.round(leg.durationSeconds / 60)} хв`}
-                    </span>
+                {isWalk ? (
+                  <div className="flex items-center gap-1 rounded-[8px] bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 text-[11px] font-bold text-[#6A7F98] dark:text-slate-300 shrink-0">
+                    <Footprints size={12} />
+                    <span>{Math.max(1, Math.round(leg.durationSeconds / 60))} хв</span>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex items-center gap-1.5 rounded-[8px] px-2.5 py-0.5 text-[11.5px] font-extrabold text-white shadow-2xs shrink-0" style={{ backgroundColor: badgeColor ?? undefined }}>
+                    {getModeIcon(leg.mode, 12)}
+                    <span>{leg.routeName || modeLabels[leg.mode] || 'Транспорт'}</span>
+                  </div>
+                )}
                 {idx < ribbonLegs.length - 1 && (
-                  <ArrowRight size={14} className="text-slate-300 dark:text-slate-600 shrink-0" />
+                  <ArrowRight size={12} className="text-[#B5C4D8] dark:text-slate-600 shrink-0 mx-0.5" />
                 )}
               </React.Fragment>
             );
           })}
         </div>
-      )}
-
-      {/* Departure & Arrival Path Summary */}
-      <div className="mt-3 grid grid-cols-[auto_1fr] gap-x-3.5">
-        <div className="flex flex-col items-center pt-1.5">
-          <span className="h-3 w-3 rounded-full border-[3px] border-[#0066FF] bg-white dark:bg-[#101E38]" />
-          <span className="my-1.5 w-0.5 flex-1 border-l-2 border-dashed border-[#BBD7FB] dark:border-blue-900" />
-          <span className="h-3 w-3 rounded-full bg-[#EF4444] ring-4 ring-rose-50 dark:ring-rose-950/50" />
-        </div>
-
-        <div className="min-w-0 pb-2">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Початок</span>
-              <b className="mt-0.5 block truncate text-sm font-extrabold text-[#142642] dark:text-white">
-                {firstLeg.origin.name}
-              </b>
-            </div>
-            <b className="shrink-0 text-base font-extrabold tabular-nums text-[#142642] dark:text-white">
-              {time(firstLeg.departureAt)}
-            </b>
-          </div>
-
-          <div className="my-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
-            <span className="flex items-center gap-1">
-              <Clock3 size={13} className="text-[#0066FF]" />
-              {formatDuration(journey.totalDurationSeconds)}
-            </span>
-            <span className="flex items-center gap-1">
-              <MapPin size={13} className="text-slate-400" />
-              {journey.transfers ? `${journey.transfers} пересадки` : 'Прямий рейс'}
-            </span>
-            {journey.walkingMeters > 0 && (
-              <span className="flex items-center gap-1">
-                <Footprints size={13} className="text-slate-400" />
-                {journey.walkingMeters} м пішки
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Прибуття</span>
-              <b className="mt-0.5 block truncate text-sm font-extrabold text-[#142642] dark:text-white">
-                {lastLeg.destination.name}
-              </b>
-            </div>
-            <b className="shrink-0 text-base font-extrabold tabular-nums text-[#142642] dark:text-white">
-              {time(lastLeg.arrivalAt)}
-            </b>
-          </div>
+        <div className="shrink-0 text-[#B5C4D8] dark:text-slate-500">
+          <ChevronRight size={18} />
         </div>
       </div>
 
-      {/* Multimodal Timeline Legs */}
-      {isMultimodalChain && (
-        <div className="mt-4 space-y-2 rounded-2xl bg-[#F8FAFD] p-3 dark:bg-[#0B1730]">
-          <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#0066FF] dark:text-blue-400 mb-2">
-            Деталі маршруту та пересадок
-          </p>
-          <ol aria-label="Етапи маршруту" className="space-y-2">
-            {journey.legs.map((routeLeg, index) => {
-              const theme = getModeTheme(routeLeg.mode);
-              const nextLeg = journey.legs[index + 1];
-              const transferBufferMinutes = nextLeg
-                ? Math.round((new Date(nextLeg.departureAt).getTime() - new Date(routeLeg.arrivalAt).getTime()) / 60_000)
-                : 0;
-
-              return (
-                <li key={routeLeg.id} className="relative rounded-xl bg-white p-3 shadow-2xs dark:bg-[#101E38]">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-2.5 min-w-0">
-                      <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg ${theme.bg} ${theme.text}`}>
-                        {getModeIcon(routeLeg.mode, 14)}
-                      </span>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <b className="text-xs font-extrabold text-[#142642] dark:text-white">
-                            {index + 1}. {modeLabels[routeLeg.mode] ?? routeLeg.mode}
-                          </b>
-                          {routeLeg.routeName && (
-                            <span className="rounded-md bg-slate-100 px-1.5 py-0.2 text-[10px] font-black text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                              {routeLeg.routeName}
-                            </span>
-                          )}
-                        </div>
-                        <p className="mt-0.5 truncate text-[11px] text-slate-500 dark:text-slate-400">
-                          {routeLeg.origin.name} → {routeLeg.destination.name}
-                        </p>
-                        {routeLeg.providerName && (
-                          <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
-                            {routeLeg.providerName}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="text-right shrink-0">
-                      <span className="block text-xs font-extrabold tabular-nums text-[#142642] dark:text-white">
-                        {time(routeLeg.departureAt)} – {time(routeLeg.arrivalAt)}
-                      </span>
-                      {routeLeg.priceMinor != null && (
-                        <span className="block text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
-                          {formatPrice(routeLeg.priceMinor)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Transfer buffer note */}
-                  {transferBufferMinutes > 0 && nextLeg && (
-                    <div className="mt-2 flex items-center gap-1.5 rounded-lg bg-blue-50/70 px-2 py-1 text-[10px] font-bold text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
-                      <Clock3 size={11} />
-                      <span>
-                        Пересадка: {transferBufferMinutes} хв (буфер платформи на {routeLeg.destination.name})
-                      </span>
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-          </ol>
+      {/* Main Duration & Departure-Arrival time + Price */}
+      <div className="mt-3 flex items-baseline justify-between gap-2">
+        <div className="flex items-baseline gap-2">
+          <span className="text-[17px] font-black tracking-tight text-[#142642] dark:text-white">
+            {formatDuration(journey.totalDurationSeconds)}
+          </span>
+          <span className="text-[13px] font-bold text-[#526781] dark:text-slate-300">
+            {departureTimeStr} – {arrivalTimeStr}
+          </span>
         </div>
+
+        <div className={`max-w-[46%] shrink-0 text-right text-[13px] font-extrabold ${shownPrice != null ? 'text-[#142642] dark:text-white' : estimatedPrice ? 'text-amber-800 dark:text-amber-200' : 'text-[#526781] dark:text-slate-300'}`}>
+          {shownPrice != null ? <><span className="mr-1.5 inline-block h-2 w-2 rounded-full bg-[#10B981]" />{Math.round(shownPrice / 100)} грн</> : estimatedPrice ?? 'Ціна не надана'}
+        </div>
+      </div>
+
+      {/* Subtitle Details: Transfers · Distance · Source */}
+      <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] font-semibold text-[#526781] dark:text-slate-300">
+        <span>{journey.transfers > 0 ? `${journey.transfers} ${journey.transfers === 1 ? 'пересадка' : 'пересадки'}` : 'Без пересадок'}</span>
+        {distanceLabel && (
+          <>
+            <span className="h-1 w-1 rounded-full bg-[#B5C4D8] dark:bg-slate-600 shrink-0" />
+            <span>{distanceLabel}</span>
+          </>
+        )}
+        {journey.source === 'gtfs-static' && (
+          <>
+            <span className="h-1 w-1 rounded-full bg-[#B5C4D8] dark:bg-slate-600 shrink-0" />
+            <span className="text-[#1458C8] dark:text-sky-300 font-bold">Розклад · GTFS</span>
+          </>
+        )}
+      </div>
+      {journey.legs.some((leg) => leg.priceStatus === 'UNKNOWN' || leg.availabilityStatus === 'UNKNOWN') && (
+        <p className="mt-2 rounded-lg bg-slate-50 px-2.5 py-2 text-xs font-semibold text-[#526781] dark:bg-slate-800/70 dark:text-slate-300">
+          {journey.legs.some((leg) => leg.priceStatus === 'UNKNOWN') ? 'Тариф не надано джерелом' : ''}
+          {journey.legs.some((leg) => leg.priceStatus === 'UNKNOWN' && leg.availabilityStatus === 'UNKNOWN') ? ' · ' : ''}
+          {journey.legs.some((leg) => leg.availabilityStatus === 'UNKNOWN') ? 'Наявність місць не підтверджена' : ''}
+        </p>
       )}
 
-      {/* Bottom Pricing & Action Section */}
-      <div className="mt-4 flex items-center justify-between gap-3 border-t border-[#F0F4F9] pt-3 dark:border-slate-800">
-        <div className="min-w-0">
-          <small className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">{priceLabel}</small>
-          <b className="text-xl font-black text-[#142642] dark:text-white tabular-nums">
-            {shownPrice === null ? '—' : formatPrice(shownPrice)}
-          </b>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {onViewOnMap && (
-            <button
-              type="button"
-              onClick={() => onViewOnMap(journey)}
-              className="flex items-center gap-1.5 rounded-2xl border border-blue-200 bg-blue-50/70 px-3.5 py-2.5 text-xs font-extrabold text-[#0066FF] hover:bg-blue-100 transition active:scale-95 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300"
-              title="Переглянути відрізок та рух транспорту на карті"
-            >
-              <MapPin size={14} />
-              На карті
-            </button>
-          )}
-
-          {bookingOfferId ? (
-            <button
-              type="button"
-              onClick={() => onOpenOffer(bookingOfferId)}
-              className="flex items-center justify-center gap-2 rounded-2xl bg-[#0066FF] px-4 py-2.5 text-xs font-black text-white shadow-md shadow-blue-600/20 transition-all hover:bg-blue-700 active:scale-95"
-            >
-              <Ticket size={14} />
-              Забронювати
-              <ArrowRight size={14} />
-            </button>
-          ) : (
-            <div className="flex items-center gap-1.5 rounded-2xl bg-slate-100 px-3 py-2.5 text-xs font-bold text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-              <TrainFront size={14} className="text-[#0066FF]" />
-              Розклад підтверджено
-            </div>
-          )}
-        </div>
+      {/* Origin → Destination footer */}
+      <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] font-medium text-[#6A7F98] dark:text-slate-400 truncate flex items-center gap-1.5">
+        <span className="truncate">{firstLeg.origin.name.split(',')[0]}</span>
+        <ArrowRight size={10} className="text-[#B5C4D8] dark:text-slate-600 shrink-0" />
+        <span className="truncate">{lastLeg.destination.name.split(',')[0]}</span>
       </div>
     </article>
   );
@@ -440,17 +222,6 @@ export function JourneyResultsPanel({
 }) {
   return (
     <section aria-label="План маршруту" className="mt-4">
-      <div className="mb-4">
-        <p className="text-[10px] font-extrabold uppercase tracking-[.18em] text-[#0066FF] dark:text-blue-400">
-          Розумний мультимодальний маршрут
-        </p>
-        <h2 className="mt-1 text-2xl font-black tracking-tight text-[#142642] dark:text-white">
-          Найкращі варіанти поїздки
-        </h2>
-        <p className="mt-1 text-xs text-[#6A7F98] dark:text-slate-400">
-          Скомпоновано з пересадками, розкладами та розрахунком часу.
-        </p>
-      </div>
 
       {result.partial && (
         <div className="mb-3 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">

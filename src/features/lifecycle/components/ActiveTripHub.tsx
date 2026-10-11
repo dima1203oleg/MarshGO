@@ -37,7 +37,7 @@ export const ActiveTripHub: React.FC<ActiveTripHubProps> = ({
   return (
     <div className="mx-auto flex flex-col min-h-[100svh] w-full max-w-md overflow-x-hidden bg-[#F4F8FF] dark:bg-[#070E1B] text-[#081B35] dark:text-white pb-24">
       {/* Top Header */}
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-100/80 dark:border-slate-800/80 bg-white/95 dark:bg-[#0B1730]/95 backdrop-blur-md px-4 py-3 pt-[max(0.6rem,env(safe-area-inset-top))]">
+      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-100/80 dark:border-slate-800/80 bg-white/95 dark:bg-[#0B1730]/95 backdrop-blur-md px-4 py-3 pt-[max(3.5rem,calc(env(safe-area-inset-top)+0.85rem))]">
         <button
           type="button"
           onClick={onBack}

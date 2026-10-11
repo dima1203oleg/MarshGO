@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 
 // Only the local machine and the zrok tunnel may reach the dev/preview server (DNS-rebinding protection).
-const tunnelHosts = ['localhost', '127.0.0.1', '.zrok.io'];
+const tunnelHosts = ['localhost', '127.0.0.1', '.zrok.io', 'marshgo-dima.shares.zrok.io'];
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(() => {

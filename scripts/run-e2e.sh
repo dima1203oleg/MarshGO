@@ -14,7 +14,12 @@ export DATABASE_URL
 node scripts/ensure-e2e-database.ts
 node ops/scripts/materialize-release.mjs
 SERVER_SHA="$(node -e 'process.stdout.write(JSON.parse(require("node:fs").readFileSync("RELEASE_MANIFEST.json","utf8")).server_sha)')"
-export E2E_SERVER_DIR="$PWD/.release/server-${SERVER_SHA}"
+if [[ -z "${E2E_SERVER_DIR:-}" ]]; then
+  export E2E_SERVER_DIR="$PWD/.release/server-${SERVER_SHA}"
+  export E2E_SERVER_PINNED_SHA="$SERVER_SHA"
+else
+  unset E2E_SERVER_PINNED_SHA
+fi
 if [[ ! -f "$E2E_SERVER_DIR/node_modules/.package-lock.json" ]]; then
   npm ci --prefix "$E2E_SERVER_DIR" --no-audit --no-fund
 fi

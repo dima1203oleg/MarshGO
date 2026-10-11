@@ -24,9 +24,10 @@
     "test:integration:restart": "tsx --test tests/booking-restart.integration.test.ts",
     "test:integration": "bash scripts/run-integration-tests.sh",
     "build": "vite build",
-    "preview": "vite preview",
+    "preview": "vite preview --port=3000 --host=0.0.0.0",
+    "serve:prod": "npm run build && npm run preview",
     "clean": "rm -rf dist",
-    "api": "tsx server/index.ts",
+    "api": "NODE_OPTIONS='--max-old-space-size=4096' tsx server/index.ts",
     "db:migrate": "tsx server/migrate.ts",
     "mobility:seed": "tsx server/mobility/seedUkraine.ts",
     "ios:sync": "npm run build && cap sync ios",
@@ -34,7 +35,7 @@
     "ios:simulator": "bash scripts/build-ios-simulator.sh",
     "test:integration:journey": "tsx --test tests/journey-schema.integration.test.ts",
     "navigation:replay": "tsx tools/navigation-replay/index.ts",
-    "share": "zrok share public http://localhost:4173 -n public:marshgo-dima --headless"
+    "share": "zrok share public http://localhost:3000 -n public:marshgo-dima --headless"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1143.0",

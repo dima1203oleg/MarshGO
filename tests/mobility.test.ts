@@ -98,6 +98,11 @@ describe('GTFS parsing', () => {
     assert.equal(routeTypeLabel(0), 'tram'); assert.equal(routeTypeLabel(1), 'metro'); assert.equal(routeTypeLabel(2), 'train');
     assert.equal(routeTypeLabel(3), 'bus'); assert.equal(routeTypeLabel(11), 'trolleybus'); assert.equal(routeTypeLabel(715), 'bus');
     assert.equal(routeTypeLabel(102), 'train'); assert.equal(routeTypeLabel(106), 'suburban');
+    assert.equal(routeTypeLabel(3, 'А21 Кільцева дорога Три слони'), 'bus');
+    assert.equal(routeTypeLabel(3, 'А14 Городоцька-Кільцева'), 'bus');
+    assert.equal(routeTypeLabel(3, 'Тр32 Університет - вул. Суботівська'), 'trolleybus');
+    assert.equal(routeTypeLabel(3, 'Тр 24 маршрут'), 'trolleybus');
+    assert.equal(routeTypeLabel(3, 'Міська електричка кільцева'), 'city_train');
   });
   it('summarises a feed and flags missing files and bad coordinates', () => {
     const files = {

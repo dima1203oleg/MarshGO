@@ -37,7 +37,7 @@ export const DriverWorkflowModal: React.FC<DriverWorkflowModalProps> = ({
   return (
     <div className="relative flex flex-col h-[100svh] w-full max-w-md mx-auto overflow-hidden bg-[#081B35] text-white">
       {/* Top Driver Bar */}
-      <header className="flex items-center justify-between p-4 pt-[max(0.6rem,env(safe-area-inset-top))] bg-[#081B35]/90 backdrop-blur-md border-b border-slate-700/60 z-30">
+      <header className="flex items-center justify-between p-4 pt-[max(3.5rem,calc(env(safe-area-inset-top)+0.85rem))] bg-[#081B35]/90 backdrop-blur-md border-b border-slate-700/60 z-30">
         <button
           type="button"
           onClick={onClose}

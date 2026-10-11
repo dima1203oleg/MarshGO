@@ -114,7 +114,7 @@ export const RouteMapPreviewSheet: React.FC<RouteMapPreviewSheetProps> = ({
       </div>
 
       {/* TOP FLOATING SEARCH & ROUTE BAR (Matching Reference Screenshot 3) */}
-      <div className="pointer-events-none absolute inset-x-3 sm:inset-x-5 top-[max(0.8rem,env(safe-area-inset-top))] z-30 flex items-start gap-2.5">
+      <div className="pointer-events-none absolute inset-x-3 sm:inset-x-5 top-[max(3.5rem,calc(env(safe-area-inset-top)+0.85rem))] z-30 flex items-start gap-2.5">
         {/* Floating Left Circular Buttons: Back [<] & Menu [≡] */}
         <div className="pointer-events-auto flex flex-col gap-2 shrink-0">
           <button

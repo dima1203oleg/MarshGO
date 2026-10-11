@@ -25,7 +25,7 @@ export const SearchHeader: React.FC<SearchHeaderProps> = ({
   };
 
   return (
-    <header className="flex w-full items-center justify-between px-4 pt-[max(0.6rem,env(safe-area-inset-top))] pb-2 relative z-30">
+    <header className="flex w-full items-center justify-between px-4 pt-[max(3.5rem,calc(env(safe-area-inset-top)+0.85rem))] pb-2 relative z-30">
       {/* Brand & City */}
       <div className="flex items-center gap-2.5">
         <div className="grid h-10 w-10 place-items-center rounded-[14px] bg-[#0066FF] text-white shadow-md shadow-blue-500/25 shrink-0">

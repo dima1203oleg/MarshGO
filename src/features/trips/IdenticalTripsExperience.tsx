@@ -1,20 +1,21 @@
 import React, { useMemo, useState } from 'react';
-import { Bell, CalendarDays, Car, CheckCircle2, ChevronRight, Clock3, MessageCircle, Plus, Search, Ticket, Users } from 'lucide-react';
+import { Bell, CalendarDays, Car, CheckCircle2, ChevronRight, Clock3, MessageCircle, MoreHorizontal, Plus, Search, Ticket, Users } from 'lucide-react';
 import type { ApiBooking, ApiDemand, ApiOffer, ApiRescueResult, ApiStoredJourney } from '../../services/productionApi';
 
-export type UserRoleMode = 'passenger' | 'driver';
-export type SubTabMode = 'overview' | 'offers' | 'demands' | 'saved';
+export type SubTabMode = 'overview' | 'offers' | 'demands' | 'saved' | 'history';
+type OverviewFilter = 'active' | 'upcoming' | 'cancelled';
 
 interface IdenticalTripsProps {
   onOpenSearch?: () => void;
   onOpenPublish?: () => void;
   onOpenNotifications?: () => void;
   onOpenChat?: (bookingId?: string) => void;
-  onNavigateHome?: () => void;
   onManageBooking?: (bookingId: string) => void;
   onEditOffer?: (offerId: string) => void;
   onCancelBooking?: (bookingId: string) => void;
   onOpenJourney?: (journeyId: string) => void;
+  onOpenDemand?: (demandId: string) => void;
+  onRepeatJourney?: (origin: string, destination: string) => void;
   onOpenRescueOffer?: (offerId: string, journeyId: string, journeyLegId: string) => void;
   bookings?: ApiBooking[];
   offers?: ApiOffer[];
@@ -24,7 +25,6 @@ interface IdenticalTripsProps {
 }
 
 const ACTIVE_BOOKING_STATES = new Set(['confirmed', 'boarding', 'in_progress']);
-const TERMINAL_JOURNEY_STATES = new Set(['CANCELLED', 'COMPLETED', 'FAILED']);
 
 function formatDate(value: string): string {
   const date = new Date(value);
@@ -54,58 +54,60 @@ function StatusPill({ status }: { status: string }) {
 }
 
 export const IdenticalTripsExperience: React.FC<IdenticalTripsProps> = ({
-  onOpenSearch, onOpenPublish, onOpenNotifications, onOpenChat, onNavigateHome,
+  onOpenSearch, onOpenPublish, onOpenNotifications, onOpenChat,
   onManageBooking, onEditOffer, onCancelBooking, onOpenJourney, onOpenRescueOffer,
   journeys = [], bookings = [], offers = [], demands = [], bookingRescues = {},
 }) => {
-  const [role, setRole] = useState<UserRoleMode>('passenger');
   const [subTab, setSubTab] = useState<SubTabMode>('overview');
-  const activeJourneys = useMemo(() => journeys.filter((journey) => !TERMINAL_JOURNEY_STATES.has(journey.state)), [journeys]);
-  const upcomingBookings = useMemo(() => bookings.filter((booking) => ACTIVE_BOOKING_STATES.has(booking.status)), [bookings]);
-  const nextJourney = [...activeJourneys].sort((a, b) => Date.parse(a.requested_departure_at) - Date.parse(b.requested_departure_at))[0];
-  const nextBooking = [...upcomingBookings].sort((a, b) => Date.parse(a.departure_at) - Date.parse(b.departure_at))[0];
-  const bookingList = role === 'driver' ? bookings.filter((booking) => booking.current_user_is_driver) : bookings.filter((booking) => !booking.current_user_is_driver);
+  const [overviewFilter, setOverviewFilter] = useState<OverviewFilter>('active');
+  const visibleOverviewJourneys = useMemo(() => journeys.filter((journey) => {
+    if (overviewFilter === 'active') return journey.state === 'ACTIVE';
+    if (overviewFilter === 'upcoming') return ['PLANNED', 'READY', 'PARTIALLY_RESERVED'].includes(journey.state);
+    return journey.state === 'CANCELLED';
+  }), [journeys, overviewFilter]);
+  const visibleOverviewBookings = useMemo(() => bookings.filter((booking) => {
+    if (overviewFilter === 'active') return ['boarding', 'in_progress'].includes(booking.status);
+    if (overviewFilter === 'upcoming') return ['confirmed', 'pending'].includes(booking.status);
+    return booking.status === 'cancelled';
+  }), [bookings, overviewFilter]);
+  const bookingList = visibleOverviewBookings;
+  const upcomingOffers = useMemo(() => overviewFilter === 'upcoming'
+    ? offers.filter((offer) => (offer.status ?? 'published') === 'published' && Date.parse(offer.departure_at) >= Date.now())
+    : [], [offers, overviewFilter]);
+  const sectionTabs: Array<{ id: SubTabMode; label: string }> = [
+    { id: 'overview', label: 'Поїздки' },
+    { id: 'offers', label: `Мої пропозиції${offers.length ? ` · ${offers.length}` : ''}` },
+    { id: 'demands', label: `Мої заявки${demands.length ? ` · ${demands.length}` : ''}` },
+    { id: 'saved', label: `Збережені${journeys.length ? ` · ${journeys.length}` : ''}` },
+    { id: 'history', label: 'Історія' },
+  ];
+  const overviewTabs: Array<{ id: OverviewFilter; label: string }> = [
+    { id: 'active', label: 'Активні' },
+    { id: 'upcoming', label: 'Заплановані' },
+    { id: 'cancelled', label: 'Скасовані' },
+  ];
 
   return (
-    <main className="min-h-[70svh] bg-[#F5F8FD] px-4 pb-28 pt-3 dark:bg-[#08121f]">
+    <main className="trips-experience min-h-[70svh] bg-[#F5F8FD] px-4 pb-28 pt-[max(4.75rem,calc(env(safe-area-inset-top)+2rem))] dark:bg-[#08121f]">
       <div className="mx-auto max-w-xl space-y-4">
-        <header className="flex items-center justify-between rounded-3xl border border-[#E3EBF4] bg-white px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-[#101E38]">
-          <button type="button" onClick={onNavigateHome} className="flex items-center gap-2 text-left" aria-label="На головну">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-blue-600 font-black text-white">M</span>
-            <span><b className="block text-sm text-slate-900 dark:text-white">MARSHGO</b><span className="text-[10px] text-slate-500">Мої поїздки</span></span>
-          </button>
-          <div className="flex gap-2">
-            <button type="button" onClick={() => onOpenChat?.()} aria-label="Повідомлення" className="grid h-10 w-10 place-items-center rounded-full bg-slate-50 text-slate-600 dark:bg-slate-800 dark:text-slate-200"><MessageCircle size={18} /></button>
-            <button type="button" onClick={onOpenNotifications} aria-label="Сповіщення" className="grid h-10 w-10 place-items-center rounded-full bg-slate-50 text-slate-600 dark:bg-slate-800 dark:text-slate-200"><Bell size={18} /></button>
-          </div>
-        </header>
+        <div className="flex items-center justify-between px-1"><h1 className="text-3xl font-black tracking-tight text-slate-950 dark:text-white">Мої поїздки</h1><button type="button" aria-label="Сповіщення" onClick={onOpenNotifications} className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm dark:border-slate-700 dark:bg-[#101E38] dark:text-slate-200"><Bell size={18} /></button></div>
 
-        <section className="rounded-3xl border border-[#E3EBF4] bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-[#101E38]">
-          <div className="flex items-start justify-between gap-3">
-            <div><h1 className="text-2xl font-black tracking-tight text-slate-950 dark:text-white">Мої поїздки</h1><p className="mt-1 text-sm text-slate-500">Бронювання, маршрути, пропозиції та заявки з вашого акаунта.</p></div>
-            <span className="rounded-2xl bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">{bookings.length + journeys.length}</span>
-          </div>
-          <div className="mt-4 grid grid-cols-2 rounded-2xl bg-slate-100 p-1 dark:bg-slate-900">
-            {(['passenger', 'driver'] as const).map((value) => <button key={value} type="button" onClick={() => setRole(value)} className={`rounded-xl px-3 py-2.5 text-sm font-bold ${role === value ? 'bg-white text-blue-700 shadow-sm dark:bg-slate-800 dark:text-blue-300' : 'text-slate-500'}`}>{value === 'passenger' ? 'Пасажир' : 'Водій'}</button>)}
-          </div>
-          <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
-            {([{ id: 'overview', label: 'Огляд' }, { id: 'offers', label: `Пропозиції · ${offers.length}` }, { id: 'demands', label: `Заявки · ${demands.length}` }, { id: 'saved', label: `Маршрути · ${journeys.length}` }] as const).map((tab) => <button key={tab.id} type="button" aria-label={tab.id === 'saved' ? 'Збережені маршрути' : undefined} onClick={() => setSubTab(tab.id)} className={`shrink-0 rounded-full px-4 py-2 text-xs font-bold ${subTab === tab.id ? 'bg-blue-600 text-white' : 'border border-slate-200 bg-white text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300'}`}>{tab.label}</button>)}
-          </div>
-        </section>
+        {subTab === 'overview' ? <div className="flex items-center gap-1.5"><nav role="tablist" aria-label="Фільтр поїздок" className="no-scrollbar flex min-w-0 flex-1 gap-1.5 overflow-x-auto pb-1">
+          {overviewTabs.map((tab) => <button key={tab.id} type="button" role="tab" aria-selected={overviewFilter === tab.id} onClick={() => setOverviewFilter(tab.id)} className={`min-h-10 shrink-0 rounded-full px-2.5 text-[11px] font-extrabold transition ${overviewFilter === tab.id ? 'bg-[#0879F9] text-white shadow-sm' : 'border border-slate-200 bg-white text-slate-600 dark:border-slate-700 dark:bg-[#101E38] dark:text-slate-300'}`}>{tab.label}</button>)}
+        </nav><button type="button" onClick={() => setSubTab('offers')} aria-label="Інші розділи поїздок" title="Пропозиції, заявки, збережене та історія" className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-slate-200 bg-white text-slate-600 dark:border-slate-700 dark:bg-[#101E38] dark:text-slate-300"><MoreHorizontal size={19} /></button></div> : <nav role="tablist" aria-label="Розділи поїздок" className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
+          {sectionTabs.map((tab) => <button key={tab.id} type="button" role="tab" aria-selected={subTab === tab.id} onClick={() => setSubTab(tab.id)} className={`min-h-10 shrink-0 rounded-full px-3.5 text-xs font-extrabold transition ${subTab === tab.id ? 'bg-[#0879F9] text-white shadow-sm' : 'border border-slate-200 bg-white text-slate-600 dark:border-slate-700 dark:bg-[#101E38] dark:text-slate-300'}`}>{tab.label}</button>)}
+        </nav>}
 
-        {subTab === 'overview' && <>
-          <section className="rounded-3xl border border-[#E3EBF4] bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-[#101E38]">
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-500"><CalendarDays size={15} /> НАЙБЛИЖЧА ПОЇЗДКА</div>
-            {nextJourney ? <div className="mt-3"><div className="flex items-start justify-between gap-2"><h2 className="text-lg font-black text-slate-900 dark:text-white">{nextJourney.origin_name} → {nextJourney.destination_name}</h2><StatusPill status={nextJourney.state} /></div><p className="mt-2 text-sm text-slate-500">{formatDate(nextJourney.requested_departure_at)} · {nextJourney.passenger_count} пас.</p><p className="mt-1 text-sm font-bold text-slate-700 dark:text-slate-200">{formatMoney(nextJourney.confirmed_price_minor ?? nextJourney.total_price_minor)} · {nextJourney.legs.length} сегм.</p><button onClick={() => onOpenJourney?.(nextJourney.id)} className="mt-4 w-full rounded-2xl bg-blue-600 py-3 text-sm font-bold text-white">Відкрити маршрут</button></div> : nextBooking ? <div className="mt-3"><div className="flex items-start justify-between gap-2"><h2 className="text-lg font-black text-slate-900 dark:text-white">{nextBooking.origin_name} → {nextBooking.destination_name}</h2><StatusPill status={nextBooking.status} /></div><p className="mt-2 text-sm text-slate-500">{formatDate(nextBooking.departure_at)} · {nextBooking.seat_count} місц.</p><p className="mt-1 text-sm font-bold text-slate-700 dark:text-slate-200">{formatMoney(nextBooking.total_price_minor, nextBooking.currency)}</p><button onClick={() => onManageBooking?.(nextBooking.id)} className="mt-4 w-full rounded-2xl bg-blue-600 py-3 text-sm font-bold text-white">Деталі бронювання</button></div> : <EmptyState title="Запланованих поїздок поки немає" text="Знайдіть маршрут або опублікуйте поїздку. Додані варіанти з’являться тут." onSearch={onOpenSearch} onPublish={onOpenPublish} />}
-          </section>
-          <section className="space-y-3">
-            <div className="flex items-center justify-between"><h2 className="text-lg font-black text-slate-900 dark:text-white">Бронювання</h2><span className="text-xs text-slate-500">{bookingList.length}</span></div>
-            {bookingList.length ? bookingList.slice(0, 5).map((booking) => {
-              const linkedLeg = journeys.flatMap((journey) => journey.legs.map((leg) => ({ journey, leg }))).find(({ leg }) => leg.bookingId === booking.id);
-              return <BookingCard key={booking.id} booking={booking} rescue={bookingRescues[booking.id]} routeRef={linkedLeg ? { journeyId: linkedLeg.journey.id, journeyLegId: linkedLeg.leg.id } : undefined} onOpenRescueOffer={onOpenRescueOffer} onOpenChat={onOpenChat} onManage={onManageBooking} onCancel={onCancelBooking} />;
-            }) : <EmptyCard text="Бронювань для цього режиму ще немає." />}
-          </section>
-        </>}
+        {subTab === 'overview' && <section className="space-y-3">
+          <div className="flex items-center justify-between"><h2 className="flex items-center gap-2 text-lg font-black text-slate-900 dark:text-white"><CalendarDays size={18} className="text-slate-500" />{overviewFilter === 'active' ? 'Сьогодні' : overviewFilter === 'upcoming' ? 'Майбутні' : 'Скасовані'}</h2><span className="text-xs text-slate-500">{bookingList.length + visibleOverviewJourneys.length + upcomingOffers.length}</span></div>
+          {visibleOverviewJourneys.map((journey) => <button key={journey.id} type="button" onClick={() => onOpenJourney?.(journey.id)} className={`flex w-full items-center gap-3 rounded-3xl border p-3.5 text-left shadow-sm transition active:scale-[.99] ${overviewFilter === 'active' ? 'border-emerald-200 bg-[#E8F8F0] dark:border-emerald-900/60 dark:bg-[#0A261E]' : 'border-[#E3EBF4] bg-white dark:border-slate-800 dark:bg-[#101E38]'}`}><span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-white text-blue-600 shadow-sm dark:bg-slate-800 dark:text-blue-300"><Ticket size={21} /></span><span className="min-w-0 flex-1"><span className="block truncate text-sm font-black text-slate-900 dark:text-white">{journey.origin_name.split(',')[0]} → {journey.destination_name.split(',')[0]}</span><span className="mt-1 block truncate text-[11px] text-slate-500">{formatDate(journey.requested_departure_at)} · {journey.passenger_count} пас.</span><span className="mt-1 block truncate text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">{journey.legs.map((leg) => leg.mode).join(' → ') || statusLabel(journey.state)}</span></span><ChevronRight size={19} className="shrink-0 text-slate-400" /></button>)}
+          {bookingList.slice(0, 5).map((booking) => {
+            const linkedLeg = journeys.flatMap((journey) => journey.legs.map((leg) => ({ journey, leg }))).find(({ leg }) => leg.bookingId === booking.id);
+            return <BookingCard key={booking.id} booking={booking} rescue={bookingRescues[booking.id]} routeRef={linkedLeg ? { journeyId: linkedLeg.journey.id, journeyLegId: linkedLeg.leg.id } : undefined} onOpenRescueOffer={onOpenRescueOffer} onOpenChat={onOpenChat} onManage={onManageBooking} onCancel={onCancelBooking} />;
+          })}
+          {upcomingOffers.map((offer) => <article key={offer.id} className="flex items-center gap-3 rounded-3xl border border-[#E3EBF4] bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-[#101E38]">{offer.vehicle_photo_url ? <img src={offer.vehicle_photo_url} alt="" className="h-12 w-14 shrink-0 rounded-xl object-cover" /> : <span className="grid h-12 w-14 shrink-0 place-items-center rounded-xl bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"><Car size={21} /></span>}<span className="min-w-0 flex-1"><span className="block truncate text-sm font-black text-slate-900 dark:text-white">{offer.origin_name.split(',')[0]} → {offer.destination_name.split(',')[0]}</span><span className="mt-1 block text-[11px] text-slate-500">{formatDate(offer.departure_at)} · {offer.available_seats} місць</span><span className="mt-1 block text-[11px] font-bold text-emerald-700 dark:text-emerald-300">{formatMoney(offer.price_per_seat_minor, offer.currency)} за місце</span></span><button type="button" aria-label="Редагувати пропозицію" onClick={() => onEditOffer?.(offer.id)} className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-slate-50 text-slate-500 dark:bg-slate-800"><ChevronRight size={18} /></button></article>)}
+          {!bookingList.length && !visibleOverviewJourneys.length && !upcomingOffers.length && <EmptyState title={overviewFilter === 'active' ? 'Активних поїздок поки немає' : overviewFilter === 'upcoming' ? 'Запланованих поїздок поки немає' : 'Скасованих поїздок немає'} text="Тут показуються лише поїздки з вашого акаунта." onSearch={overviewFilter !== 'cancelled' ? onOpenSearch : undefined} onPublish={overviewFilter !== 'cancelled' ? onOpenPublish : undefined} />}
+        </section>}
 
         {subTab === 'offers' && <section className="space-y-3"><h2 className="text-lg font-black text-slate-900 dark:text-white">Мої пропозиції</h2>{offers.length ? offers.map((offer) => <article key={offer.id} className="rounded-3xl border border-[#E3EBF4] bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-[#101E38]"><div className="flex items-start justify-between gap-3"><div><h3 className="font-black text-slate-900 dark:text-white">{offer.origin_name} → {offer.destination_name}</h3><p className="mt-1 text-xs text-slate-500">{formatDate(offer.departure_at)}</p><p className="mt-2 text-sm font-bold text-blue-700 dark:text-blue-300">{formatMoney(offer.price_per_seat_minor, offer.currency)} за місце</p><p className="mt-1 text-xs text-slate-500">{offer.available_seats} вільних із {offer.total_seats} місць</p></div><Car className="text-blue-600" /></div><button type="button" onClick={() => onEditOffer?.(offer.id)} className="mt-4 w-full rounded-xl border border-blue-200 py-3 text-xs font-bold text-blue-700 dark:border-blue-900 dark:text-blue-300">Відкрити пропозицію</button></article>) : <EmptyState title="Опублікованих поїздок поки немає" text="Створені пропозиції відображатимуться тут після відповіді сервера." onPublish={onOpenPublish} />}</section>}
 
@@ -116,10 +118,6 @@ export const IdenticalTripsExperience: React.FC<IdenticalTripsProps> = ({
     </main>
   );
 };
-
-function EmptyCard({ text }: { text: string }) {
-  return <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-5 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-[#101E38]">{text}</div>;
-}
 
 function EmptyState({ title, text, onSearch, onPublish }: { title: string; text: string; onSearch?: () => void; onPublish?: () => void }) {
   return <div className="mt-3 rounded-2xl bg-slate-50 p-4 text-center dark:bg-slate-900"><p className="font-bold text-slate-800 dark:text-slate-100">{title}</p><p className="mt-1 text-xs leading-5 text-slate-500">{text}</p><div className="mt-3 flex justify-center gap-2">{onSearch && <button type="button" onClick={onSearch} className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-bold text-white"><Search size={14} />Пошук</button>}{onPublish && <button type="button" onClick={onPublish} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"><Plus size={14} />Створити</button>}</div></div>;

@@ -5,8 +5,10 @@ import { bboxOf, type ConnectionReport } from './types';
 /** GTFS route_type → MARSHGO transport label (basic and extended route types). */
 export function routeTypeLabel(routeType: number, routeName = ''): string {
   const name = routeName.normalize('NFKC').toLocaleLowerCase('uk-UA');
+  // Some Ukrainian feeds incorrectly encode trolleybuses as route_type=3.
+  if (name.includes('тролейбус') || name.includes('trolleybus') || /(?:^|\s)тр\s*\d/u.test(name)) return 'trolleybus';
   if (name.includes('фунікулер') || name.includes('funicular')) return 'funicular';
-  if (name.includes('міська електричка') || name.includes('city train') || name.includes('city express') || name.includes('кільцева')) return 'city_train';
+  if (name.includes('міська електричка') || name.includes('city train') || name.includes('city express') || name.includes('кільцева електричка')) return 'city_train';
   if (name.includes('маршрутка') || name.includes('маршрутн') || name.includes('minibus')) return 'marshrutka';
   if (routeType === 0 || (routeType >= 900 && routeType < 1000)) return 'tram';
   if (routeType === 1 || (routeType >= 400 && routeType < 500)) return 'metro';

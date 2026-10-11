@@ -18,6 +18,7 @@ interface SearchExperienceV6Props {
   unreadNotificationCount?: number;
   onOpenReverseMarketplace?: (origin: string, destination: string) => void;
   onOpenPointPicker?: (field: 'origin' | 'destination') => void;
+  onBackToHome?: () => void;
   onSubViewChange?: (view: 'form' | 'results' | 'map_details') => void;
   transportSelection: TransportSelection;
   onTransportSelectionChange: (selection: TransportSelection) => void;
@@ -180,6 +181,28 @@ function journeyResultsToSearchItems(journeys: ApiJourney[]): RouteSearchResultI
   });
 }
 
+function journeySearchNotice(result: Awaited<ReturnType<typeof productionApi.searchJourneys>>): string | null {
+  const unsupportedTypes = result.unsupportedPreferences
+    .filter((value) => value.startsWith('transportType:'))
+    .map((value) => value.split(':')[1]);
+  const transportLabels: Record<string, string> = {
+    bus: 'автобуси', marshrutka: 'маршрутки', trolleybus: 'тролейбуси', tram: 'трамваї',
+    metro: 'метро', train: 'поїзди', carpool: 'попутки', taxi: 'таксі', bike: 'велосипеди', scooter: 'самокати',
+  };
+  const notices = [
+    ...(result.partial ? ['Результат частковий: враховано лише доступні джерела в цьому коридорі.'] : []),
+    ...(result.unsupportedPreferences.includes('CHEAPEST:public-transit-fares-unavailable')
+      ? ['Найдешевший маршрут не визначено: у розкладах немає підтверджених тарифів.'] : []),
+    ...(unsupportedTypes.includes('marshrutka')
+      ? ['Пошуковий розклад не відокремлює маршрутки від автобусів; live-позиції можуть надходити окремо. Для побудови маршруту за розкладом оберіть «Автобуси».']
+      : unsupportedTypes.length
+        ? [`У цьому коридорі немає підключеного джерела для: ${unsupportedTypes.map((type) => transportLabels[type] ?? type).join(', ')}.`]
+        : []),
+    ...(result.providerErrors.length ? [`Джерела тимчасово недоступні: ${result.providerErrors.join('; ')}.`] : []),
+  ];
+  return notices.length ? notices.join(' ') : null;
+}
+
 async function resolveCityPlace(city: string, contextLabel?: string): Promise<RoutePlace> {
   const query = city.trim();
   let matches = await productionApi.suggestPlaces(query).catch(() => []);
@@ -205,6 +228,7 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
   unreadNotificationCount = 0,
   onOpenReverseMarketplace,
   onOpenPointPicker,
+  onBackToHome,
   onSubViewChange,
   transportSelection,
   onTransportSelectionChange,
@@ -213,13 +237,14 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
   initialDestination = '',
 }) => {
   const initialSearchRoute = parseSearchRoute(window.location.search);
+  const hasInitialSearchRoute = initialSearchRoute !== null;
   // Booking and trip lifecycle are owned by ProductionMarketplace/API.
   const [subView, setSubViewState] = useState<'form' | 'results' | 'map_details'>(() => {
     if (initialSearchRoute) return 'results';
     const params = new URLSearchParams(window.location.search);
     const v = params.get('view');
     if (v === 'results') return 'results';
-    if (v === 'map' || v === 'map_details') return 'map_details';
+    if (v === 'form') return 'form';
     return 'form';
   });
 
@@ -233,17 +258,17 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
     return params.get('view') === 'filters';
   });
 
-  // Empty coordinates stay unresolved until the user selects a real place result.
+  // Default to Lviv reference points when none provided
   const [origin, setOrigin] = useState<RoutePlace>(() => ({
-    label: initialSearchRoute?.origin?.label || initialOrigin || '',
-    latitude: initialSearchRoute?.origin?.latitude,
-    longitude: initialSearchRoute?.origin?.longitude,
+    label: initialSearchRoute?.origin?.label || initialOrigin || 'Малого Голоска',
+    latitude: initialSearchRoute?.origin?.latitude ?? 49.8642,
+    longitude: initialSearchRoute?.origin?.longitude ?? 24.0152,
     providerId: initialSearchRoute?.origin?.providerId,
   }));
   const [destination, setDestination] = useState<RoutePlace>(() => ({
-    label: initialSearchRoute?.destination?.label || initialDestination || '',
-    latitude: initialSearchRoute?.destination?.latitude,
-    longitude: initialSearchRoute?.destination?.longitude,
+    label: initialSearchRoute?.destination?.label || initialDestination || 'вул. Сихівська',
+    latitude: initialSearchRoute?.destination?.latitude ?? 49.7915,
+    longitude: initialSearchRoute?.destination?.longitude ?? 24.0628,
     providerId: initialSearchRoute?.destination?.providerId,
   }));
 
@@ -269,8 +294,8 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
   // Filters State
   const [filters, setFilters] = useState<SearchFiltersState>({
     modes: new Set<SearchTransportMode>(['all']),
-    maxPrice: 2000,
-    maxDurationHours: 12,
+    maxPrice: 5000,
+    maxDurationHours: 24,
     maxTransfers: 'any',
     minRating: 0,
     onlyVerified: false,
@@ -278,25 +303,29 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
     wifi: false,
   });
 
-  // Filter mode tab inside results view (Screen 2: all modes and supported categories).
-  const [resultsFilterMode, setResultsFilterMode] = useState<SearchTransportMode>('all');
-
   // Search results & loading state
   const [isSearching, setIsSearching] = useState(false);
   const [isResolvingPlaces] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [searchNotice, setSearchNotice] = useState<string | null>(null);
-  const [results, setResults] = useState<RouteSearchResultItem[]>(() =>
-    []
-  );
-  const [selectedItem, setSelectedItem] = useState<RouteSearchResultItem | null>(() =>
-    null
-  );
-  const [selectedItemInitialMode, setSelectedItemInitialMode] = useState<'details' | 'map'>('details');
+  const [results, setResults] = useState<RouteSearchResultItem[]>([]);
+  const [selectedItem, setSelectedItem] = useState<RouteSearchResultItem | null>(null);
+  const [selectedItemInitialMode, setSelectedItemInitialMode] = useState<'details' | 'map'>('map');
+  const selectedModeAliases: Partial<Record<SearchTransportMode, string[]>> = {
+    bus: ['bus', 'intercity_bus'],
+    marshrutka: ['marshrutka', 'minibus'],
+    train: ['train', 'suburban_train', 'city_train'],
+  };
+  const resultHasSelectedMode = (item: RouteSearchResultItem) => {
+    if (filters.modes.has('all')) return true;
+    const itemModes = [item.type, ...(item.legs ?? []).map((leg) => leg.mode)];
+    return [...filters.modes].some((mode) => mode !== 'all'
+      && (selectedModeAliases[mode] ?? [mode]).some((alias) => itemModes.includes(alias as SearchTransportMode)));
+  };
   const filteredResults = results.filter((item) =>
-    (filters.modes.has('all') || filters.modes.has(item.type)) &&
-    (item.priceMinor === null || item.priceMinor <= filters.maxPrice * 100) &&
-    (item.durationSeconds === 0 || item.durationSeconds <= filters.maxDurationHours * 3600) &&
+    resultHasSelectedMode(item) &&
+    (filters.maxPrice >= 5000 || item.priceMinor === null || item.priceMinor <= filters.maxPrice * 100) &&
+    (filters.maxDurationHours >= 24 || item.durationSeconds === 0 || item.durationSeconds <= filters.maxDurationHours * 3600) &&
     (item.driver?.rating ?? 0) >= filters.minRating &&
     (filters.maxTransfers === 'any' ||
       (filters.maxTransfers === 'direct' && (item.transfers ?? 0) === 0) ||
@@ -308,22 +337,25 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
   );
   // Sync initial props
   useEffect(() => {
+    // A shared planner URL carries geocoded endpoint data. Do not replace it
+    // with the shell's display-only labels (for example, “Моє місцеперебування”)
+    // or the restored search loses the coordinates required by the planner.
+    if (hasInitialSearchRoute) return;
     if (initialOrigin) {
       setOrigin((current) => current.label === initialOrigin ? current : { label: initialOrigin });
     }
     if (initialDestination) {
       setDestination((current) => current.label === initialDestination ? current : { label: initialDestination });
     }
-  }, [initialOrigin, initialDestination]);
+  }, [hasInitialSearchRoute, initialOrigin, initialDestination]);
 
   useEffect(() => {
-    if (origin.latitude == null || origin.longitude == null) {
-      setSearchProviderGroups(null);
-      return;
-    }
     let current = true;
     setSearchProviderGroups(null);
-    productionApi.providersByTransport({ latitude: origin.latitude, longitude: origin.longitude }).then((groups) => {
+    // Keep providers from both ends and the corridor available to the planner.
+    // Restricting this list to the origin point hides destination-city feeds
+    // (for example Lviv when travelling from Stryi) before the API can route.
+    productionApi.providersByTransport().then((groups) => {
       if (current) {
         setSearchProviderGroups(groups);
       }
@@ -333,7 +365,7 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
       }
     });
     return () => { current = false; };
-  }, [origin.latitude, origin.longitude, origin.label]);
+  }, []);
 
   const handleSearchJourneys = async (request?: {
     origin?: RoutePlace;
@@ -392,20 +424,11 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
       });
       const items = journeyResultsToSearchItems(result.journeys);
       setResults(items);
-      if (items[0]) handleOpenResultOnMap(items[0]);
-      else {
-        setSelectedItem(null);
-        setSubView('results');
-      }
-      const notices = [
-        ...(result.partial ? ['Результат частковий: враховано лише доступні джерела в цьому коридорі.'] : []),
-        ...(result.unsupportedPreferences.includes('CHEAPEST:public-transit-fares-unavailable')
-          ? ['Найдешевший маршрут не визначено: у розкладах немає підтверджених тарифів.'] : []),
-        ...(result.unsupportedPreferences.filter((value) => value.startsWith('transportType:')).length
-          ? [`Не входять до побудови: ${result.unsupportedPreferences.filter((value) => value.startsWith('transportType:')).map((value) => value.split(':')[1]).join(', ')}.`] : []),
-        ...(result.providerErrors.length ? [`Джерела тимчасово недоступні: ${result.providerErrors.join('; ')}.`] : []),
-      ];
-      setSearchNotice(notices.join(' '));
+      // The canonical post-search screen is the complete route list. Opening
+      // the first result here hides every other option behind the map preview.
+      setSelectedItem(null);
+      setSubView('results');
+      setSearchNotice(journeySearchNotice(result));
       const route = buildSearchRoute({
         origin: { ...effectiveOrigin, latitude: effectiveOrigin.latitude!, longitude: effectiveOrigin.longitude!, providerId: effectiveOrigin.providerId ?? 'selected-point' },
         destination: { ...effectiveDestination, latitude: effectiveDestination.latitude!, longitude: effectiveDestination.longitude!, providerId: effectiveDestination.providerId ?? 'selected-point' },
@@ -431,67 +454,68 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
     if (!route) return;
     restoreRouteRef.current = null;
     let active = true;
-    setIsSearching(true);
     const strategy = route.strategy === 'CUSTOM' ? 'BALANCED' : route.strategy;
-    const restore = route.mode === 'planner'
-      ? productionApi.searchJourneys({
-        origin: { name: route.origin.label, coordinates: [route.origin.longitude, route.origin.latitude] },
-        destination: { name: route.destination.label, coordinates: [route.destination.longitude, route.destination.latitude] },
-        departureAt: route.departure,
-        passengers: route.passengers,
-        strategy,
-        preferences: toJourneyPreferences(transportSelection, searchProviderGroups),
-      }).then((result) => {
+    const restore = (async () => {
+      if (route.mode === 'planner') {
+        const [restoredOrigin, restoredDestination] = await Promise.all([
+          route.origin.latitude == null || route.origin.longitude == null
+            ? resolveCityPlace(route.origin.label, route.destination.label)
+            : Promise.resolve(route.origin),
+          route.destination.latitude == null || route.destination.longitude == null
+            ? resolveCityPlace(route.destination.label, route.origin.label)
+            : Promise.resolve(route.destination),
+        ]);
+        if (!active) return;
+        setOrigin(restoredOrigin);
+        setDestination(restoredDestination);
+        setIsSearching(true);
+        const result = await productionApi.searchJourneys({
+          origin: { name: restoredOrigin.label, coordinates: [restoredOrigin.longitude!, restoredOrigin.latitude!] },
+          destination: { name: restoredDestination.label, coordinates: [restoredDestination.longitude!, restoredDestination.latitude!] },
+          departureAt: route.departure,
+          passengers: route.passengers,
+          strategy,
+          preferences: toJourneyPreferences(transportSelection, searchProviderGroups),
+        });
         if (!active) return;
         const items = journeyResultsToSearchItems(result.journeys);
         setResults(items);
-        if (items[0]) handleOpenResultOnMap(items[0]);
-        else {
-          setSelectedItem(null);
-          setSubView('results');
-        }
-        setSearchNotice(result.partial ? 'Результат частковий: враховано лише доступні джерела в цьому коридорі.' : null);
-      })
-      : productionApi.offers({
+        setSelectedItem(null);
+        setSubView('results');
+        setSearchNotice(journeySearchNotice(result));
+        return;
+      }
+      setIsSearching(true);
+      const offers = await productionApi.offers({
         origin: route.origin.label,
         destination: route.destination.label,
         date: route.date,
         seats: route.passengers,
-        originCoordinates: [route.origin.longitude, route.origin.latitude],
-        destinationCoordinates: [route.destination.longitude, route.destination.latitude],
-      }).then((offers) => {
-        if (!active) return;
-        const restoredTime = route.departure.match(/T(\d{2}:\d{2})/)?.[1] ?? '18:30';
-        const offerItems = offersToSearchItems(offers, route.date, restoredTime, 'depart_at');
-        rawOfferItemsRef.current = offerItems;
-        const items = rankSearchResults(offerItems, strategy);
-        setResults(items);
-        setSelectedItem(items[0] ?? null);
-        setSubView('results');
+        ...(route.origin.latitude != null && route.origin.longitude != null
+          ? { originCoordinates: [route.origin.longitude, route.origin.latitude] as [number, number] } : {}),
+        ...(route.destination.latitude != null && route.destination.longitude != null
+          ? { destinationCoordinates: [route.destination.longitude, route.destination.latitude] as [number, number] } : {}),
       });
+      if (!active) return;
+      const restoredTime = route.departure.match(/T(\d{2}:\d{2})/)?.[1] ?? '18:30';
+      const offerItems = offersToSearchItems(offers, route.date, restoredTime, 'depart_at');
+      rawOfferItemsRef.current = offerItems;
+      const items = rankSearchResults(offerItems, strategy);
+      setResults(items);
+      setSelectedItem(items[0] ?? null);
+      setSubView('results');
+    })();
     void restore.catch((error: unknown) => {
-      if (active) setSearchError(error instanceof Error ? error.message : 'Не вдалося відновити результати пошуку.');
+      if (active) {
+        setSearchError(error instanceof Error ? error.message : 'Не вдалося відновити результати пошуку.');
+        setSubView('form');
+      }
     }).finally(() => { if (active) setIsSearching(false); });
     return () => { active = false; };
   }, []);
 
-  // Card clicked -> open Screen 3 (Map details)
+  // The canonical sequence is results -> selected route map -> route details.
   const handleSelectResultItem = (item: RouteSearchResultItem) => {
-    setSelectedItem(item);
-    setSelectedItemInitialMode('details');
-    setSubView('map_details');
-    if (item.offerId && !item.routeGeometry) {
-      void productionApi.offer(item.offerId).then((offer) => {
-        if (offer.route_geometry?.length) {
-          setSelectedItem((current) => current?.offerId === offer.id
-            ? { ...current, routeGeometry: offer.route_geometry ?? undefined }
-            : current);
-        }
-      }).catch(() => undefined);
-    }
-  };
-
-  const handleOpenResultOnMap = (item: RouteSearchResultItem) => {
     setSelectedItem(item);
     setSelectedItemInitialMode('map');
     setSubView('map_details');
@@ -516,8 +540,8 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
   };
 
   return (
-    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#F4F8FF] dark:bg-[#070E1B] text-[#081B35] dark:text-white transition-colors duration-200">
-      {/* SCREEN 1: MAP-FIRST SEARCH */}
+    <div className="search-experience h-full min-h-0 w-full max-w-full overflow-hidden bg-[#F4F8FF] dark:bg-[#070E1B] text-[#081B35] dark:text-white transition-colors duration-200">
+      {/* Canonical route form: route, date/time, all mode choices, then search. */}
       {subView === 'form' && (
         <SearchMapForm
           origin={origin}
@@ -525,6 +549,7 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
           onOriginChange={setOrigin}
           onDestinationChange={setDestination}
           onOpenMapPicker={onOpenPointPicker}
+          onBackToHome={onBackToHome}
           dateStr={dateStr}
           timeStr={timeStr}
           timeMode={timeMode}
@@ -536,12 +561,28 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
           selection={transportSelection}
           groups={searchProviderGroups}
           onSelectionChange={onTransportSelectionChange}
-          strategy={searchStrategy}
-          onStrategyChange={handleSelectStrategy}
           onSearch={() => void handleSearchJourneys()}
           isSearching={isSearching}
           isResolvingPlaces={isResolvingPlaces}
           error={searchError}
+        />
+      )}
+
+      {subView === 'map_details' && selectedItem && (
+        <SearchMapDetails
+          item={selectedItem}
+          originTitle={origin.label}
+          destTitle={destination.label}
+          notice={searchNotice}
+          dateStr={dateStr}
+          timeStr={timeStr}
+          passengers={passengers}
+          resultCount={filteredResults.length}
+          onOpenNotifications={onOpenNotifications}
+          unreadNotificationCount={unreadNotificationCount}
+          initialMode={selectedItemInitialMode}
+          onBackToResults={() => setSubView('results')}
+          onBook={handleBookItem}
         />
       )}
 
@@ -558,13 +599,10 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
           onRetry={() => void handleSearchJourneys()}
           notice={searchNotice}
           items={filteredResults}
-          selectedFilterMode={resultsFilterMode}
-          onSelectFilterMode={setResultsFilterMode}
           selectedStrategy={searchStrategy}
           onSelectStrategy={handleSelectStrategy}
           onOpenFiltersModal={() => setShowFiltersModal(true)}
           onSelectResultItem={handleSelectResultItem}
-          onOpenMapView={() => { const firstResult = filteredResults.find((item) => resultsFilterMode === 'all' || item.type === resultsFilterMode); if (firstResult) handleOpenResultOnMap(firstResult); }}
           onBackToSearchForm={() => setSubView('form')}
           onOpenReverseMarketplace={() => {
             if (onOpenReverseMarketplace) {
@@ -572,35 +610,6 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
             }
           }}
         />
-      )}
-
-      {/* SCREEN 3: MAP DETAILS VIEW */}
-      {subView === 'map_details' && selectedItem && (
-        <SearchMapDetails
-          item={selectedItem}
-          originTitle={origin.label}
-          destTitle={destination.label}
-          notice={searchNotice}
-          dateStr={dateStr}
-          timeStr={timeStr}
-          passengers={passengers}
-          onOpenNotifications={onOpenNotifications}
-          unreadNotificationCount={unreadNotificationCount}
-          initialMode={selectedItemInitialMode}
-          onBackToResults={() => setSubView('results')}
-          onSwapRoute={() => {
-            setOrigin(destination);
-            setDestination(origin);
-          }}
-          onBook={handleBookItem}
-        />
-      )}
-      {subView === 'map_details' && !selectedItem && (
-        <div className="mx-auto flex min-h-[70svh] w-full max-w-md flex-col items-center justify-center px-6 text-center">
-          <p className="text-base font-bold">Маршрут не вибрано</p>
-          <p className="mt-2 text-sm text-slate-500">Поверніться до результатів і відкрийте маршрут, отриманий від провайдера.</p>
-          <button type="button" onClick={() => setSubView('results')} className="mt-4 rounded-xl bg-[#0066FF] px-5 py-3 text-sm font-bold text-white">До результатів</button>
-        </div>
       )}
 
       {/* SCREEN 4: SEARCH FILTERS MODAL */}

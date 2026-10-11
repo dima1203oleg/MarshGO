@@ -104,7 +104,7 @@ export function MeetingMapView({ booking, initial, onClose }: { booking: ApiBook
 
   return <main className="fixed inset-0 z-[80] overflow-hidden bg-[#dbeafe] text-[#17243a]" aria-label="Карта зустрічі">
     <MarshGoMap route={[]} theme="MARSHGO_LIGHT" onStatus={() => undefined} onAdapter={(next) => { adapter.current = next; next?.setMeetingPoints({ pickup, driver: driverPoint, passenger: passengerPoint }); }}/>
-    <div className="pointer-events-none absolute inset-x-4 top-[max(.8rem,env(safe-area-inset-top))] z-[500] space-y-2">
+    <div className="pointer-events-none absolute inset-x-4 top-[max(3.5rem,calc(env(safe-area-inset-top)+0.85rem))] z-[500] space-y-2">
       <div className="pointer-events-auto flex items-center gap-2 rounded-full bg-white p-2 shadow-xl">
         <button type="button" onClick={onClose} aria-label="Назад" className="grid h-10 w-10 place-items-center rounded-full bg-slate-100"><ArrowLeft size={18}/></button>
         <div className="min-w-0 flex-1 px-1"><h1 className="truncate text-sm font-extrabold">Зустріч із {who}</h1><p className="truncate text-[11px] text-slate-500">Початок маршруту · {rendezvous.pickup.label}</p></div>

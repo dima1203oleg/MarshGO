@@ -188,24 +188,33 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 /* The search map fills one viewport; its map pans inside the screen. The shared
    tab bar keeps the same fixed positioning as Trips and Profile. */
 @media (max-width: 639px) {
-  html:has(.production-app .search-map-form),
-  body:has(.production-app .search-map-form) {
+  html:has(.production-app.is-locked-viewport),
+  body:has(.production-app.is-locked-viewport) {
     height: 100%;
     overflow: hidden;
     overscroll-behavior: none;
   }
-  .production-app:has(.search-map-form) {
+  .production-app.is-locked-viewport {
     display: flex;
     position: relative;
     width: 100%;
-    height: 100dvh;
+    height: 100svh;
     min-height: 0;
     flex-direction: column;
     overflow: hidden;
     padding-bottom: calc(4rem + env(safe-area-inset-bottom));
   }
-  .production-app:has(.search-map-form) > .app-header { flex: 0 0 auto; }
-  .production-app:has(.search-map-form) > .pt-1 {
+  .production-app.is-locked-viewport > .app-header { flex: 0 0 auto; }
+  .production-app.is-locked-viewport > [role="status"] {
+    position: absolute;
+    z-index: 40;
+    top: max(.5rem, env(safe-area-inset-top));
+    left: .75rem;
+    right: .75rem;
+    width: auto;
+    margin: 0;
+  }
+  .production-app.is-locked-viewport > .pt-1 {
     display: grid;
     grid-template-rows: minmax(0, 1fr);
     flex: 1 1 auto;
@@ -213,155 +222,157 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
     overflow: hidden;
     padding-top: 0;
   }
-  .production-app:has(.search-map-form) > .pt-1 > :has(.search-map-form) {
+.production-app.is-locked-viewport > .pt-1 > .search-experience {
     display: flex;
+    width: 100%;
     height: 100%;
     min-height: 0;
+    max-height: 100%;
+    flex: 1 1 auto;
     flex-direction: column;
     overflow: hidden;
   }
-  .production-app .search-map-form { width: 100%; height: auto; min-height: 0; min-width: 0; flex: 1 1 auto; }
+  .production-app .search-route-form-screen { height: 100%; min-height: 0; }
+  .production-app .search-route-form-header { flex: 0 0 auto; }
+  .production-app .search-route-form-content {
+    min-height: 0;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .production-app .search-route-form-content > section[aria-label="Види транспорту для пошуку"] {
+    margin-top: .875rem;
+  }
+  .production-app .search-route-form-content > section[aria-label="Види транспорту для пошуку"] > section {
+    margin-top: 0;
+  }
+  .production-app .search-route-form-content [aria-label="Види транспорту"] > div.grid {
+    gap: .4rem;
+  }
+  .production-app .search-route-form-content [aria-label="Види транспорту"] > div.grid > button {
+    min-height: 4.55rem;
+    border-radius: 1rem;
+    background: var(--mg-surface-primary);
+  }
+  .production-app .search-route-form-footer { padding-bottom: max(.75rem, env(safe-area-inset-bottom)); }
+  .production-app .search-route-form-screen { width: 100%; height: 100%; min-height: 0; min-width: 0; flex: 1 1 auto; overflow: hidden; }
+  .production-app .search-results-screen,
+  .production-app .route-map-screen,
+  .production-app .route-details-screen {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
+    flex: 1 1 auto;
+    overflow: hidden;
+  }
+  .production-app .search-results-screen { padding-bottom: 0; }
+  .production-app .search-results-content,
+  .production-app .route-details-timeline {
+    min-height: 0;
+    overscroll-behavior: contain;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .production-app .route-details-screen { padding-bottom: 0; }
+  .production-app .route-map-result-anchor { bottom: .5rem !important; }
+  .production-app.is-locked-viewport > .pt-1 > .profile-experience,
+  .production-app.is-locked-viewport > .pt-1 > .trips-experience {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: calc(7rem + env(safe-area-inset-bottom));
+  }
 }
 
-/* Home is a single mobile viewport: keep the top banner, active trip and
-   action cards together above the fixed tab bar instead of letting the page
-   scroll and move the banner out of view. */
+/* Home and search stay inside the app viewport; only inner lists may scroll. */
 @media (max-width: 639px) {
-  html:has(.production-app .home-v5-screen),
-  body:has(.production-app .home-v5-screen) {
-    height: 100%;
-    overflow: hidden;
-    overscroll-behavior: none;
-  }
-  .production-app:has(.home-v5-screen) {
-    display: flex;
-    position: relative;
-    width: 100%;
-    height: 100dvh;
-    min-height: 0;
-    flex-direction: column;
-    overflow: hidden;
-    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
-  }
-  .production-app:has(.home-v5-screen) > .app-header { flex: 0 0 auto; }
-  .production-app:has(.home-v5-screen) > .pt-1 {
-    display: grid;
-    grid-template-rows: minmax(0, 1fr);
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: hidden;
-    padding-top: 0;
-  }
-  .production-app:has(.home-v5-screen) > .pt-1 > .home-v5-screen {
+  .production-app.is-locked-viewport > .pt-1 > .home-v5-screen {
     display: flex;
     width: 100%;
     height: 100%;
     min-height: 0;
     flex-direction: column;
     overflow: hidden;
-    padding-top: .25rem;
-    padding-bottom: .5rem;
+    gap: 0;
+    padding-top: .35rem;
+    padding-bottom: .35rem;
   }
-  .home-v5-screen > .home-v5-hero,
-  .home-v5-screen > .home-v5-active-trip { flex: 0 0 auto; }
-  .home-v5-screen > .home-v5-hero {
-    height: clamp(8.5rem, 17svh, 9.5rem);
-    margin-bottom: .75rem;
+  .home-v5-city { margin-bottom: .45rem; }
+  .home-v5-hero {
+    height: clamp(9.25rem, 20svh, 10.75rem);
+    min-height: 9.25rem;
+    padding: .85rem;
   }
-  .home-v5-hero-slide {
-    height: 100%;
-    min-height: 0 !important;
-    padding: .75rem 1rem !important;
-  }
-  .home-v5-hero-slide h1 { font-size: 1.125rem !important; }
-  .home-v5-hero-cta { margin-top: .5rem !important; }
-  .home-v5-screen > .home-v5-active-trip { margin-bottom: .75rem; }
+  .home-v5-hero > img { object-position: center 57%; }
+  .home-v5-active-trips { flex: 0 0 auto; }
+  .home-v5-trip-card { min-height: 4.75rem; }
   .home-v5-screen > .home-v5-actions {
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     min-height: 0;
-    grid-template-rows: repeat(2, minmax(0, 1fr));
-    gap: .625rem;
-    margin-bottom: .5rem;
+    grid-template-rows: repeat(2, clamp(6.9rem, 15svh, 7.7rem));
+    gap: .55rem;
+    margin-bottom: 0;
   }
   .home-v5-actions > .home-v5-action-card {
     height: 100%;
     min-height: 0 !important;
   }
+  .home-v5-routes { flex: 0 0 auto; margin-top: .7rem; }
+  .home-v5-route-card { height: 4.85rem; }
 }
 
 @media (max-width: 639px) and (max-height: 740px) {
-  .home-v5-screen > .home-v5-hero {
-    height: clamp(7.5rem, 18svh, 8.5rem);
-    margin-bottom: .625rem;
+  .home-v5-hero { height: clamp(8.25rem, 19svh, 9.25rem); min-height: 8.25rem; }
+  .production-app.is-locked-viewport > .pt-1 > .home-v5-screen > .home-v5-actions {
+    grid-template-rows: repeat(2, clamp(6.2rem, 15svh, 7rem));
   }
-  .home-v5-hero-slide { padding: .5rem .75rem !important; }
-  .home-v5-hero-slide h1 { font-size: 1rem !important; }
-  .home-v5-hero-cta { margin-top: .375rem !important; }
-  .home-v5-screen > .home-v5-active-trip { margin-bottom: .625rem; }
-  .home-v5-active-trip > button { padding: .625rem .75rem; }
-  .home-v5-active-trip > button > span:first-child > span:first-child { width: 2.5rem; height: 2.5rem; }
-  .home-v5-screen > .home-v5-actions { gap: .5rem; margin-bottom: .25rem; }
-  .home-v5-action-card { padding: .75rem !important; }
-  .home-v5-action-card > div:nth-of-type(2) > div { width: 2.5rem; height: 2.5rem; }
-  .home-v5-action-card > div:last-child { margin-top: .5rem; }
-  .home-v5-action-card h3 { font-size: 1rem; }
-  .home-v5-action-card p { font-size: .6875rem; }
 }
 
-@media (max-width: 639px) and (max-height: 620px) {
-  .production-app:has(.home-v5-screen) { padding-bottom: calc(3.5rem + env(safe-area-inset-bottom)); }
-  .home-v5-screen { padding-inline: .75rem !important; }
-  .home-v5-screen > .home-v5-hero {
-    height: 5.75rem;
-    margin-bottom: .375rem;
+@media (max-width: 639px) and (max-height: 680px) {
+  .production-app.is-locked-viewport > .pt-1 > .home-v5-screen { padding-inline: .75rem !important; }
+  .home-v5-hero { height: 7.25rem; min-height: 7.25rem; padding: .65rem; }
+  .production-app.is-locked-viewport > .pt-1 > .home-v5-screen > .home-v5-actions {
+    grid-template-rows: repeat(2, clamp(5.5rem, 15svh, 6.25rem));
+    gap: .5rem;
   }
-  .home-v5-hero-slide { padding: .375rem .625rem !important; }
-  .home-v5-hero-slide h1 { font-size: .9375rem !important; line-height: 1.1 !important; }
-  .home-v5-hero-slide p { font-size: .625rem !important; line-height: 1.15 !important; }
-  .home-v5-hero-cta { display: none; }
-  .home-v5-screen > .home-v5-active-trip { margin-bottom: .375rem; }
-  .home-v5-active-trip > button,
-  button.home-v5-active-trip { min-height: 3.5rem; padding: .375rem .5rem; }
-  .home-v5-active-trip > button > div:first-child { gap: .5rem; }
-  .home-v5-active-trip > button > div:first-child > div:first-child { width: 2rem; height: 2rem; }
-  button.home-v5-active-trip > span:first-child { gap: .5rem; }
-  button.home-v5-active-trip > span:first-child > span:first-child { width: 2rem; height: 2rem; }
-  .home-v5-active-trip h2 { font-size: .75rem; }
-  .home-v5-active-trip p { font-size: .625rem; }
-  .home-v5-screen > .home-v5-actions { gap: .375rem; margin-bottom: 0; }
-  .home-v5-action-card { padding: .5rem !important; }
-  .home-v5-action-card > div:first-child > div { width: 2rem; height: 2rem; }
-  .home-v5-action-card > div:first-child > div svg { width: 1.125rem; height: 1.125rem; }
-  .home-v5-action-card > div:last-child { margin-top: .375rem; }
-  .home-v5-action-card h3 { font-size: .8125rem; }
-  .home-v5-action-card p { font-size: .625rem; line-height: 1.15 !important; }
-  .home-v5-action-card > div:last-child > div:last-child { width: 1.75rem; height: 1.75rem; }
+  .home-v5-action-card { padding: .625rem !important; }
+  .home-v5-action-icon { height: 2rem; width: 2rem; }
+  .home-v5-action-icon svg { height: 1rem; width: 1rem; }
+  .home-v5-action-card-title { font-size: .8rem; }
+  .home-v5-route-card { height: 4.5rem; }
 }
 
-/* Keep required map attribution visible, but make it a quiet, single-line
-   label that does not compete with the route controls. */
-.search-map-form .maplibregl-ctrl-attrib {
-  max-width: calc(100vw - 1rem);
-  padding: 0 3px !important;
-  border-radius: 4px 0 0 0;
-  background: rgb(255 255 255 / 58%) !important;
-  color: #475569;
-  font-size: 8px !important;
-  line-height: 11px !important;
-  opacity: .78;
-  white-space: nowrap;
-}
-.search-map-form .maplibregl-ctrl-attrib-inner { white-space: nowrap; }
-.search-map-form .maplibregl-ctrl-bottom-right {
-  bottom: calc(var(--search-sheet-height, 11rem) + 1rem) !important;
-  right: .5rem;
-}
+/* Owner's canonical home tiles: real imagery under a strong semantic tint. */
+.home-v5-action-card { color: #fff; border-color: rgb(255 255 255 / .55); box-shadow: 0 6px 18px rgb(17 47 88 / .16); }
+.home-v5-action-art { transition: transform .35s ease; }
+.home-v5-action-card:active .home-v5-action-art { transform: scale(1.04); }
+.home-v5-action-card--navigation .home-v5-action-tint { background: linear-gradient(145deg, rgb(0 99 255 / .86), rgb(0 79 220 / .8)); }
+.home-v5-action-card--transport .home-v5-action-tint { background: linear-gradient(145deg, rgb(0 185 132 / .86), rgb(0 132 103 / .82)); }
+.home-v5-action-card--search .home-v5-action-tint { background: linear-gradient(145deg, rgb(139 57 232 / .88), rgb(91 40 190 / .82)); }
+.home-v5-action-card--publish .home-v5-action-tint { background: linear-gradient(145deg, rgb(255 130 0 / .89), rgb(236 75 12 / .84)); }
+.home-v5-action-icon { border-radius: 1rem; background: #fff; color: var(--mg-brand-primary); box-shadow: 0 2px 8px rgb(0 0 0 / .12); }
+.home-v5-action-card--transport .home-v5-action-icon { color: #07876b; }
+.home-v5-action-card--search .home-v5-action-icon { color: #8545df; }
+.home-v5-action-card--publish .home-v5-action-icon { color: #e64d28; }
+.home-v5-action-arrow { color: #1769ed; }
+.home-v5-action-card .home-v5-action-card-title { text-shadow: 0 1px 4px rgb(0 0 0 / .25); }
+.home-v5-action-card > span.relative { text-shadow: 0 1px 3px rgb(0 0 0 / .25); }
+html.dark .home-v5-action-card--navigation .home-v5-action-tint { background: linear-gradient(145deg, rgb(9 38 95 / .85), rgb(6 31 78 / .8)); }
+html.dark .home-v5-action-card--transport .home-v5-action-tint { background: linear-gradient(145deg, rgb(7 89 67 / .88), rgb(5 66 54 / .83)); }
+html.dark .home-v5-action-card--search .home-v5-action-tint { background: linear-gradient(145deg, rgb(75 34 136 / .9), rgb(51 26 104 / .85)); }
+html.dark .home-v5-action-card--publish .home-v5-action-tint { background: linear-gradient(145deg, rgb(126 62 13 / .9), rgb(101 37 11 / .85)); }
+html.dark .home-v5-route-card img { filter: brightness(.82); }
 
 .app-header {
   position: sticky;
   top: 0;
   z-index: 30;
-  padding-top: max(.65rem, env(safe-area-inset-top));
+  padding-top: max(3.5rem, calc(env(safe-area-inset-top, 0px) + 0.85rem));
   background: var(--mg-surface-glass);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   backdrop-filter: blur(20px) saturate(180%);
@@ -428,7 +439,7 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
   .home-v5-hero-copy p { display: none; }
   .home-v5-content { gap: .25rem; }
 }
-.auth-screen { isolation: isolate; min-height: 100svh; min-height: 100dvh; }
+.auth-screen { isolation: isolate; min-height: 100svh; }
 .auth-screen button { min-height: 44px; }
 .auth-screen input { min-height: 48px; font-size: 16px; }
 .auth-screen h1 { text-wrap: balance; }

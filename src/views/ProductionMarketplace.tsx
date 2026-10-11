@@ -1,6 +1,6 @@
 import { FormEvent, lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ArrowDownUp, ArrowLeft, ArrowRight, Baby, Ban, Bell, Briefcase, CalendarDays, CarFront, ChevronRight,
+  ArrowDownUp, ArrowLeft, ArrowRight, Baby, Ban, Bell, Briefcase, CalendarDays, CarFront, ChevronDown, ChevronRight,
   CircleUserRound, Clock3, Compass, Flag, Home, MapPin, MessageCircle, Minus, Navigation,
   PawPrint, Plus, Search, ShieldCheck, SlidersHorizontal, Ticket, Users, X,
 } from 'lucide-react';
@@ -13,7 +13,6 @@ import { passengersLabel } from '../domain/plural';
 import { TransportTypesPanel } from '../components/TransportTypesPanel';
 import { OtherModesPanel } from '../components/OtherModesPanel';
 import { PlanTripChoice } from './PlanTripChoice';
-import { OnboardingSlides } from '../components/OnboardingSlides';
 import { OfferEditSheet } from '../components/TripManagement';
 import { activeTypesForSearch, loadSelection, saveSelection, toJourneyPreferences, type TransportSelection } from '../domain/transportPreferences';
 import { TicketQr } from '../components/TicketQr';
@@ -24,7 +23,8 @@ import { defaultKyivDateTime, formatKyivDateTimeInput, kyivDateTimeInputToDate, 
 import { useProductionTabRouter } from '../routing/useProductionTabRouter';
 import { pathForProductionEntity, type ProductionTab } from '../routing/productionRoutes';
 import { buildSearchRoute, parseSearchRoute } from '../routing/searchRouteState';
-import { JourneyResultsPanel } from './JourneyResultsPanel';
+import type { ProfileView } from '../features/profile/IdenticalProfileExperience';
+const JourneyResultsPanel = lazy(() => import('./JourneyResultsPanel').then((module) => ({ default: module.JourneyResultsPanel })));
 const MobilityAdminPanel = lazy(() => import('./MobilityAdminPanel').then((module) => ({ default: module.MobilityAdminPanel })));
 const ProfileSections = lazy(() => import('./ProfileSections').then((module) => ({ default: module.ProfileSections })));
 const MapPointPicker = lazy(() => import('../components/MapPointPicker').then((module) => ({ default: module.MapPointPicker })));
@@ -32,13 +32,14 @@ const OfferRoutePreview = lazy(() => import('./OfferRoutePreview').then((module)
 const MeetingMapView = lazy(() => import('./MeetingMapView').then((module) => ({ default: module.MeetingMapView })));
 const TransportMapView = lazy(() => import('./TransportMapView').then((module) => ({ default: module.TransportMapView })));
 const ProductionNavigation = lazy(() => import('./ProductionNavigation').then((module) => ({ default: module.ProductionNavigation })));
-import { HomeV5 } from './HomeV5';
-import { SearchExperienceV6 } from '../features/search/SearchExperienceV6';
-import { TripLifecycleCoordinator } from '../features/lifecycle/TripLifecycleCoordinator';
-import { PublishTripModal } from '../components/mobility/PublishTripModal';
-import { QuickNavModal } from '../components/mobility/QuickNavModal';
-import { IdenticalTripsExperience } from '../features/trips/IdenticalTripsExperience';
-import { IdenticalProfileExperience, type ProfileView } from '../features/profile/IdenticalProfileExperience';
+const HomeV5 = lazy(() => import('./HomeV5').then((module) => ({ default: module.HomeV5 })));
+const SearchExperienceV6 = lazy(() => import('../features/search/SearchExperienceV6').then((module) => ({ default: module.SearchExperienceV6 })));
+const TripLifecycleCoordinator = lazy(() => import('../features/lifecycle/TripLifecycleCoordinator').then((module) => ({ default: module.TripLifecycleCoordinator })));
+const PublishTripModal = lazy(() => import('../components/mobility/PublishTripModal').then((module) => ({ default: module.PublishTripModal })));
+const QuickNavModal = lazy(() => import('../components/mobility/QuickNavModal').then((module) => ({ default: module.QuickNavModal })));
+const IdenticalTripsExperience = lazy(() => import('../features/trips/IdenticalTripsExperience').then((module) => ({ default: module.IdenticalTripsExperience })));
+const IdenticalProfileExperience = lazy(() => import('../features/profile/IdenticalProfileExperience').then((module) => ({ default: module.IdenticalProfileExperience })));
+const OnboardingSlides = lazy(() => import('../components/OnboardingSlides').then((module) => ({ default: module.OnboardingSlides })));
 
 type Tab = ProductionTab;
 const formatMoney = (minor: number, currency: string) => new Intl.NumberFormat('uk-UA', { style: 'currency', currency, maximumFractionDigits: 0 }).format(minor / 100);
@@ -71,7 +72,7 @@ export function ProductionMarketplace() {
   const [useLegacySearchForm, setUseLegacySearchForm] = useState(import.meta.env.VITE_ENABLE_LEGACY_SEARCH_FORM === 'true');
   const [searchOriginPlace, setSearchOriginPlace] = useState<ApiPlace | null>(null);
   const [searchDestinationPlace, setSearchDestinationPlace] = useState<ApiPlace | null>(null);
-  const [searchSubView, setSearchSubView] = useState<'form' | 'results' | 'map_details'>('form');
+  const [, setSearchSubView] = useState<'form' | 'results' | 'map_details'>('form');
   const [routePlaceField, setRoutePlaceField] = useState<'origin' | 'destination' | null>(null);
   const [routePlaceSuggestions, setRoutePlaceSuggestions] = useState<ApiPlace[]>([]);
   const [date, setDate] = useState(todayKyiv);
@@ -84,6 +85,8 @@ export function ProductionMarketplace() {
   const [journeyStrategy, setJourneyStrategy] = useState<ApiJourneyStrategy>('BALANCED');
   const [journeyResult, setJourneyResult] = useState<ApiJourneySearchResult | null>(null);
   const [journeyResultMode, setJourneyResultMode] = useState('all');
+  const [journeyResultSource, setJourneyResultSource] = useState<'all' | 'schedule' | 'realtime'>('all');
+  const [showJourneyResultFilters, setShowJourneyResultFilters] = useState(false);
   const [journeyBookingLink, setJourneyBookingLink] = useState<{ journeyId: string; journeyLegId: string } | null>(null);
   const [journeys, setJourneys] = useState<ApiStoredJourney[]>([]);
   const [notificationPage, setNotificationPage] = useState<ApiNotificationPage>({ items: [], nextCursor: null, unreadCount: 0 });
@@ -158,7 +161,7 @@ export function ProductionMarketplace() {
   const [tripsSection, setTripsSection] = useState<'active' | 'upcoming' | 'offers' | 'demands' | 'bookings' | 'past' | 'cancelled' | 'requests'>('upcoming');
   const tripsSectionChosen = useRef(false);
   const [providerGroups, setProviderGroups] = useState<Awaited<ReturnType<typeof productionApi.providersByTransport>> | null>(null);
-  const [offerSort, setOfferSort] = useState<'earliest' | 'cheapest' | 'fastest'>('earliest');
+  const [offerSort] = useState<'earliest' | 'cheapest' | 'fastest'>('earliest');
   const [restoredSearchMode, setRestoredSearchMode] = useState<'offers' | 'planner' | null>(null);
   const [selectedOffer, setSelectedOffer] = useState<ApiOffer | null>(null);
   const [selectedJourney, setSelectedJourney] = useState<ApiStoredJourney | null>(null);
@@ -611,7 +614,9 @@ export function ProductionMarketplace() {
         departureAt: departure.toISOString(), passengers: journeyPassengers, strategy,
         preferences: toJourneyPreferences(selection, availableProviderGroups),
       });
-      setJourneyResult(result); setJourneyResultMode('all'); setShowResults(true); setRestoredSearchMode('planner');
+      setJourneyResult(result);
+      setJourneyResultMode('all'); setJourneyResultSource('all'); setShowJourneyResultFilters(false);
+      setShowResults(true); setRestoredSearchMode('planner');
       const searchPath = buildSearchRoute({
         origin: journeyOrigin, destination: journeyDestination, date: journeyDate, passengers: journeyPassengers,
         departure: departureInput, strategy, mode: 'planner',
@@ -685,6 +690,10 @@ export function ProductionMarketplace() {
   );
 
   const book = async (offer: ApiOffer, count = journeyBookingLink ? seats : bookSeats) => {
+    if (user?.id === 'guest_user') {
+      setBookError('Для завершення бронювання увійдіть за номером телефону.');
+      return;
+    }
     setBusy(true); setStatusMessage(''); setBookError('');
     try {
       await productionApi.book(offer.id, count, journeyBookingLink ?? undefined);
@@ -1289,7 +1298,18 @@ export function ProductionMarketplace() {
 
   const continueToPhoneLogin = () => {
     setOnboardingStep(0);
-    
+  };
+  const continueAsGuest = () => {
+    const guestUser: ApiUser = {
+      id: 'guest_user',
+      display_name: 'Гість',
+      phone_e164: '+380000000000',
+      roles: ['passenger'],
+      is_verified: false,
+    };
+    setUser(guestUser);
+    setAuthIntro(false);
+    setOnboardingStep(0);
   };
   const requestOnboardingLocation = () => {
     if (!navigator.geolocation) {
@@ -1326,6 +1346,7 @@ export function ProductionMarketplace() {
           <div className="w-full">
             <button onClick={() => { setAuthIntro(false); setOnboardingStep(1);  }} className="w-full rounded-2xl bg-blue-600 px-5 py-[1.05rem] text-sm font-bold shadow-lg shadow-blue-950/45">Почати</button>
             <button onClick={() => { setAuthIntro(false); setOnboardingStep(0);  }} className="mt-3 w-full rounded-2xl border border-white/50 bg-slate-950/25 px-5 py-3.5 text-sm font-semibold backdrop-blur-sm">У мене вже є акаунт</button>
+            <button type="button" onClick={continueAsGuest} className="mt-2.5 w-full rounded-2xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-blue-100 hover:bg-white/15">Переглянути як гість</button>
           </div>
         </> : onboardingStep > 0 ? <OnboardingSlides step={onboardingStep as 1 | 2 | 3} permissionMessage={onboardingPermissionMessage}
           onNext={() => setOnboardingStep(Math.min(3, onboardingStep + 1))} onBack={() => onboardingStep === 1 ? setAuthIntro(true) : setOnboardingStep(onboardingStep - 1)}
@@ -1337,6 +1358,7 @@ export function ProductionMarketplace() {
             <input required minLength={2} maxLength={80} value={name} onChange={(event) => setName(event.target.value)} className="w-full rounded-2xl border border-white/20 bg-white/10 px-4 py-3.5 text-white outline-none placeholder:text-blue-100/55 focus:border-sky-300" placeholder="Ваше ім’я" autoComplete="name" />
             <input required type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} className="w-full rounded-2xl border border-white/20 bg-white/10 px-4 py-3.5 text-white outline-none placeholder:text-blue-100/55 focus:border-sky-300" placeholder="+380 номер телефону" autoComplete="tel" />
             <button disabled={busy} className="w-full rounded-2xl bg-blue-600 px-5 py-4 font-bold shadow-lg shadow-blue-900/40 disabled:opacity-60">{busy ? 'Надсилаємо…' : 'Почати'}</button>
+            <button type="button" onClick={continueAsGuest} className="w-full rounded-2xl border border-white/20 bg-white/10 py-3.5 text-sm font-semibold text-blue-100 hover:bg-white/15">Продовжити без реєстрації як гість →</button>
           </form>
         </> : <>
           <h1 className="text-3xl font-extrabold">Вхід за номером</h1><p className="mt-2 text-sm text-blue-100/80">Підтвердьте номер телефону, щоб продовжити.</p>
@@ -1362,8 +1384,8 @@ export function ProductionMarketplace() {
 
   const status = statusMessage ? <div role="status" className="mx-auto mt-3 w-full max-w-xl rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-800">{statusMessage}<button onClick={() => setStatusMessage('')} className="float-right"><X size={16}/></button></div> : null;
   const totalUnreadMessages = Object.values(unreadConversations).reduce((sum, count) => sum + (count ?? 0), 0);
-  const hideGlobalHeader = (tab === 'profile' && profileView !== 'main') || tab === 'trips' || tab === 'navigation' || tab === 'map' || (tab === 'search' && searchSubView !== 'form') || Boolean(selectedOffer) || Boolean(selectedJourney) || Boolean(meetingBookingId);
-  const header = hideGlobalHeader ? null : <header className="app-header sticky top-0 z-40 border-b border-[#E3EBF4]/80 bg-white/95 px-4 pb-2.5 pt-[max(.6rem,env(safe-area-inset-top))] backdrop-blur-xl dark:border-slate-800/80 dark:bg-[#0B1730]/95">
+  const hideGlobalHeader = tab === 'profile' || tab === 'trips' || tab === 'navigation' || tab === 'map' || tab === 'search' || Boolean(selectedOffer) || Boolean(selectedJourney) || Boolean(meetingBookingId);
+  const header = hideGlobalHeader ? null : <header className="app-header sticky top-0 z-40 border-b border-[#E3EBF4]/80 bg-white/95 px-4 pb-2.5 pt-[max(4.75rem,calc(env(safe-area-inset-top)+2rem))] backdrop-blur-xl dark:border-slate-800/80 dark:bg-[#0B1730]/95">
     <div className="mx-auto flex w-full max-w-xl items-center justify-between">
       <button type="button" onClick={() => { setTab('home'); setShowResults(false); setSelectedOffer(null); setSelectedJourney(null); }} className="flex items-center gap-2.5 text-left transition hover:opacity-90">
         <BrandMark size="sm"/>
@@ -1379,10 +1401,10 @@ export function ProductionMarketplace() {
         {([['home','Головна'],['search','Пошук'],['trips','Мої поїздки'],['profile','Профіль']] as const).map(([id,label])=><button key={id} aria-current={tab===id?'page':undefined} onClick={()=>{setTab(id);if(id==='home')setShowResults(false);if(id==='profile')setProfileView('main');setSelectedOffer(null);setSelectedJourney(null);setSelectedBooking(null);setJourneyBookingLink(null);}} className="rounded-xl px-3 py-2 text-xs font-bold text-slate-600 hover:bg-blue-50 hover:text-blue-700 aria-[current=page]:bg-blue-50 aria-[current=page]:text-blue-700 dark:text-slate-300 dark:hover:bg-slate-800 dark:aria-[current=page]:bg-slate-800 dark:aria-[current=page]:text-blue-400">{label}</button>)}
       </nav>
       <div className="flex items-center gap-2">
-        <button type="button" onClick={() => { setSelectedBooking(null); setTab('chat'); }} aria-label={`Повідомлення${totalUnreadMessages > 0 ? `, непрочитаних: ${totalUnreadMessages}` : ''}`} className={`relative grid h-10 w-10 place-items-center rounded-full border border-[#E3EBF4] bg-white text-[#142642] shadow-xs transition hover:bg-slate-50 active:scale-95 dark:border-slate-800 dark:bg-[#101E38] dark:text-slate-200 ${tab === 'chat' ? 'ring-2 ring-[#0066FF] text-[#0066FF] dark:text-blue-400' : ''}`}>
+        {tab !== 'home' && <button type="button" onClick={() => { setSelectedBooking(null); setTab('chat'); }} aria-label={`Повідомлення${totalUnreadMessages > 0 ? `, непрочитаних: ${totalUnreadMessages}` : ''}`} className={`relative grid h-10 w-10 place-items-center rounded-full border border-[#E3EBF4] bg-white text-[#142642] shadow-xs transition hover:bg-slate-50 active:scale-95 dark:border-slate-800 dark:bg-[#101E38] dark:text-slate-200 ${tab === 'chat' ? 'ring-2 ring-[#0066FF] text-[#0066FF] dark:text-blue-400' : ''}`}>
           <MessageCircle size={18} strokeWidth={2.2}/>
           {totalUnreadMessages > 0 && <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-rose-600 px-1 text-[9px] font-black text-white ring-2 ring-white dark:ring-[#101E38]">{totalUnreadMessages > 99 ? '99+' : totalUnreadMessages}</span>}
-        </button>
+        </button>}
         <button type="button" onClick={() => void openNotifications()} aria-label={`Сповіщення${notificationPage.unreadCount ? `, непрочитаних ${notificationPage.unreadCount}` : ''}`} className="relative grid h-10 w-10 place-items-center rounded-full border border-[#E3EBF4] bg-white text-[#142642] shadow-xs transition hover:bg-slate-50 active:scale-95 dark:border-slate-800 dark:bg-[#101E38] dark:text-slate-200">
           <Bell size={18} strokeWidth={2.2}/>
           {notificationPage.unreadCount > 0 && <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-rose-600 px-1 text-[9px] font-black text-white ring-2 ring-white dark:ring-[#101E38]">{notificationPage.unreadCount > 99 ? '99+' : notificationPage.unreadCount}</span>}
@@ -1391,7 +1413,7 @@ export function ProductionMarketplace() {
           type="button"
           onClick={() => { setTab('profile'); setProfileView('main'); }}
           aria-label="Мій профіль"
-          className={`relative grid h-10 w-10 place-items-center rounded-full border border-[#E3EBF4] bg-white text-[#142642] shadow-xs transition hover:bg-slate-50 active:scale-95 dark:border-slate-800 dark:bg-[#101E38] dark:text-slate-200 ${tab === 'profile' ? 'ring-2 ring-[#0066FF] ring-offset-2 dark:ring-offset-[#0B1730]' : ''}`}
+          className="relative grid h-10 w-10 place-items-center rounded-full border border-[#E3EBF4] bg-white text-[#142642] shadow-xs transition hover:bg-slate-50 active:scale-95 dark:border-slate-800 dark:bg-[#101E38] dark:text-slate-200"
         >
           <div className="relative h-8 w-8 overflow-hidden rounded-full p-[1.5px] bg-gradient-to-tr from-[#0066FF] to-cyan-400">
             {authenticatedUser.driver_photo_url ? <img src={authenticatedUser.driver_photo_url} alt="Фото профілю" className="h-full w-full rounded-full object-cover" /> : <span aria-hidden="true" className="grid h-full w-full place-items-center rounded-full bg-white text-[10px] font-black text-blue-700">{authenticatedUser.display_name.split(/\s+/).slice(0, 2).map((part) => part[0] ?? '').join('').toLocaleUpperCase('uk-UA')}</span>}
@@ -1914,7 +1936,6 @@ export function ProductionMarketplace() {
     </div>
   ) : (
     <SearchExperienceV6
-      onOpenNotifications={() => void openNotifications()}
       unreadNotificationCount={notificationPage.unreadCount}
       initialOrigin={searchOriginPlace?.label || origin || ''}
       initialDestination={searchDestinationPlace?.label || destination || ''}
@@ -1922,6 +1943,7 @@ export function ProductionMarketplace() {
       onTransportSelectionChange={changeTransportSelection}
       initialStrategy={journeyStrategy === 'CUSTOM' ? 'BALANCED' : journeyStrategy}
       onOpenPointPicker={(field) => setPicker({ form: 'search', field })}
+      onBackToHome={() => { setTab('home'); setShowResults(false); }}
       onSubViewChange={setSearchSubView}
       onBookOfferId={(offerId, passengerCount, journey) => {
         setSeats(passengerCount);
@@ -1938,180 +1960,206 @@ export function ProductionMarketplace() {
     />
   );
 
-  const activeHomeBooking = bookings.find((b) => b.status === 'confirmed' || b.status === 'in_progress') ?? null;
+  const nowForHome = Date.now();
+  const homeTrips = [
+    ...bookings
+      .filter((booking) => ['boarding', 'in_progress'].includes(booking.status)
+        || (booking.status === 'confirmed' && new Date(booking.departure_at).getTime() >= nowForHome))
+      .map((booking) => ({
+        id: booking.id,
+        kind: 'booking' as const,
+        origin_name: booking.origin_name,
+        destination_name: booking.destination_name,
+        departure_at: booking.departure_at,
+        status: booking.status,
+        priceLabel: formatMoney(booking.total_price_minor, booking.currency),
+      })),
+    ...journeys
+      .filter((journey) => journey.state === 'ACTIVE'
+        || (journey.state === 'PLANNED' && new Date(journey.requested_departure_at).getTime() >= nowForHome))
+      .map((journey) => ({
+        id: journey.id,
+        kind: 'journey' as const,
+        origin_name: journey.origin_name,
+        destination_name: journey.destination_name,
+        departure_at: journey.requested_departure_at,
+        status: journey.state,
+        priceLabel: journey.confirmed_price_minor !== null
+          ? formatMoney(journey.confirmed_price_minor, 'UAH')
+          : journey.total_price_minor !== null ? formatMoney(journey.total_price_minor, 'UAH') : undefined,
+      })),
+  ].sort((a, b) => {
+    const aActive = ['boarding', 'in_progress', 'ACTIVE'].includes(a.status);
+    const bActive = ['boarding', 'in_progress', 'ACTIVE'].includes(b.status);
+    return Number(bActive) - Number(aActive) || new Date(a.departure_at).getTime() - new Date(b.departure_at).getTime();
+  }).slice(0, 5);
+
   const homeScreen = (
     <HomeV5
       onStartNavigation={() => { setNavAutoStart(true); setTab('navigation'); }}
       onSearchTrip={() => { setNavAutoStart(false); setTab('search'); }}
       onPlanTrip={() => { setShowCreateMenu(true); }}
       onOpenMap={() => { setNavAutoStart(false); setTab('map'); }}
-      activeBooking={activeHomeBooking ? {
-        id: activeHomeBooking.id,
-        origin: activeHomeBooking.origin_name,
-        destination: activeHomeBooking.destination_name,
-        departureAt: activeHomeBooking.departure_at,
-        driverName: activeHomeBooking.driver_name,
-        status: activeHomeBooking.status,
-      } : null}
-      onOpenActiveBooking={(id) => { setSelectedBooking(bookings.find((b) => b.id === id) ?? null); setTripsSection('active'); setTab('trips'); }}
+      trips={homeTrips}
+      onOpenTrip={(trip) => {
+        if (trip.kind === 'booking') {
+          const booking = bookings.find((item) => item.id === trip.id);
+          if (booking) {
+            setSelectedBooking(booking);
+            setTab('trips');
+          }
+        } else {
+          const journey = journeys.find((item) => item.id === trip.id);
+          if (journey) {
+            setSelectedJourney(journey);
+            setTab('trips');
+          }
+        }
+      }}
+      onSearchDestination={(city) => {
+        if (!origin.trim()) setOrigin('Львів');
+        setDestination(city);
+        setSearchOriginPlace(null);
+        setSearchDestinationPlace(null);
+        setNavAutoStart(false);
+        setTab('search');
+      }}
     />
   );  const planScreen = <PlanTripChoice onBack={() => setTab('home')}
     onAsDriver={() => { if (!authenticatedUser?.roles?.includes('driver')) { setStatusMessage('Щоб запланувати поїздку автомобілем, додайте та верифікуйте авто у профілі.'); setTab('profile'); return; } setTab('offer-new'); }}
     onAsPassenger={() => setTab('demand')}/>;
 
-  const journeyModeLabel = (journey: ApiJourneySearchResult['journeys'][number]) => {
-    if (journey.legs.length > 1) return 'Комбіновані';
-    const labels: Record<string, string> = {
-      COMMUNITY: 'Попутки', TAXI: 'Таксі', BUS: 'Автобуси', MINIBUS: 'Маршрутки', RAIL: 'Поїзди',
-      TRAM: 'Трамвай', TROLLEYBUS: 'Тролейбус', METRO: 'Метро', FERRY: 'Пором',
-      FUNICULAR: 'Фунікулер', BIKE: 'Велосипед', SCOOTER: 'Самокати',
-      CARSHARING: 'Каршеринг', WALK: 'Пішки',
-    };
-    return labels[journey.legs[0]?.mode ?? ''] ?? 'Інше';
-  };
-  const journeyModeChoices = journeyResult
-    ? [...new Set(journeyResult.journeys.map(journeyModeLabel))]
-    : [];
-  const visibleJourneyResult = journeyResult && journeyResultMode !== 'all'
-    ? { ...journeyResult, journeys: journeyResult.journeys.filter((journey) => journeyModeLabel(journey) === journeyResultMode) }
-    : journeyResult;
+  const strategyResultJourneys = journeyResult?.journeys.filter((journey) => journey.strategy === journeyStrategy) ?? [];
+  const resultHasRealtime = strategyResultJourneys.some((journey) => journey.legs.some((leg) => /gtfs-?rt|real.?time|\bgps\b/i.test(`${leg.source} ${leg.availabilityStatus}`)));
+  const resultHasSchedule = strategyResultJourneys.some((journey) => journey.legs.some((leg) => /gtfs|schedule|розклад/i.test(`${leg.source} ${leg.availabilityStatus}`)));
+  const availableResultModeOptions = [
+    ...[...new Set(strategyResultJourneys.flatMap((journey) => journey.legs
+      .filter((leg) => leg.mode !== 'WALK').map((leg) => leg.mode)) ?? [])]
+      .map((mode) => ({ id: mode, label: ({
+        COMMUNITY: 'Попутки', TAXI: 'Таксі', BUS: 'Автобуси', MINIBUS: 'Маршрутки', RAIL: 'Поїзди',
+        TRAM: 'Трамваї', TROLLEYBUS: 'Тролейбуси', METRO: 'Метро', FERRY: 'Пором', FUNICULAR: 'Фунікулер',
+        BIKE: 'Велосипеди', SCOOTER: 'Самокати', CARSHARING: 'Каршеринг', TRANSFER: 'Трансфери',
+      } as Record<string, string>)[mode] ?? mode })),
+    ...(strategyResultJourneys.some((journey) => journey.legs.filter((leg) => leg.mode !== 'WALK').length > 1)
+      ? [{ id: 'COMBINED', label: 'Комбіновані' }] : []),
+  ];
+  const visibleJourneyResult = journeyResult ? {
+    ...journeyResult,
+    journeys: journeyResult.journeys.filter((journey) => {
+      const modeMatches = journeyResultMode === 'all' || (journeyResultMode === 'COMBINED'
+        ? journey.legs.filter((leg) => leg.mode !== 'WALK').length > 1
+        : journey.legs.some((leg) => leg.mode === journeyResultMode));
+      const sourceMatches = journeyResultSource === 'all' || journey.legs.some((leg) => journeyResultSource === 'realtime'
+        ? /gtfs-?rt|real.?time|\bgps\b/i.test(`${leg.source} ${leg.availabilityStatus}`)
+        : /gtfs|schedule|розклад/i.test(`${leg.source} ${leg.availabilityStatus}`));
+      return modeMatches && sourceMatches && journey.strategy === journeyStrategy;
+    }),
+  } : null;
 
-  const sortedJourneys = (() => {
-    if (!visibleJourneyResult?.journeys) return [];
-    const list = [...visibleJourneyResult.journeys];
-    if (journeyStrategy === 'FASTEST') {
-      return list.sort((a, b) => a.totalDurationSeconds - b.totalDurationSeconds || (a.totalPriceMinor ?? 0) - (b.totalPriceMinor ?? 0));
-    }
-    if (journeyStrategy === 'CHEAPEST') {
-      return list.sort((a, b) => (a.totalPriceMinor ?? 999999) - (b.totalPriceMinor ?? 999999) || a.totalDurationSeconds - b.totalDurationSeconds);
-    }
-    // BALANCED: composite score based on duration, price, and transfer penalty
-    return list.sort((a, b) => {
-      const priceA = a.totalPriceMinor ?? 2500;
-      const priceB = b.totalPriceMinor ?? 2500;
-      const scoreA = a.totalDurationSeconds * 0.6 + priceA * 0.4 + a.transfers * 300;
-      const scoreB = b.totalDurationSeconds * 0.6 + priceB * 0.4 + b.transfers * 300;
-      return scoreA - scoreB;
-    });
-  })();
+  // Keep the API's strategy ranking; fallback prices would make unknown fares look comparable.
+  const sortedJourneys = visibleJourneyResult?.journeys ?? [];
 
   const resultsScreen = (
-    <div className="journey-results mx-auto w-full max-w-xl px-4 pb-8">
+    <div className="journey-results mx-auto w-full max-w-xl pb-8 bg-[#F5F8FC] dark:bg-[#0B1730] min-h-[100svh]">
       {/* Header matching 05_Результати.png */}
-      <div className="mb-4 flex items-center gap-3">
+      <div className="flex items-center justify-between px-4 pt-[max(4.75rem,calc(env(safe-area-inset-top)+2rem))] pb-3 bg-white border-b border-slate-100 dark:bg-[#101E38] dark:border-slate-800 sticky top-0 z-20">
         <button
           onClick={() => { setShowResults(false); setJourneyResult(null); setRestoredSearchMode(null); setTab('search'); }}
           aria-label="Повернутися до пошуку"
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[#E3EBF4] bg-white text-[#142642] shadow-xs dark:border-slate-800 dark:bg-[#101E38] dark:text-slate-200"
+          className="flex items-center gap-2 text-[17px] font-extrabold text-[#142642] dark:text-white"
         >
-          <ArrowLeft size={18} />
+          <ArrowLeft size={18} /> Результати пошуку
         </button>
-        <div className="min-w-0 flex-1">
-          <h1 title={`${origin} → ${destination}`} className="truncate text-lg font-extrabold text-[#142642] dark:text-white">
-            {origin.split(',')[0]} → {destination.split(',')[0]}
-          </h1>
-          <p className="text-xs text-[#6A7F98] dark:text-slate-400">
-            {new Intl.DateTimeFormat('uk-UA', { dateStyle: 'medium', timeZone: 'Europe/Kyiv' }).format(new Date(`${date}T12:00:00`))} · {passengersLabel(seats)}
-          </p>
-        </div>
-        <div className="flex items-center gap-1 rounded-2xl bg-[#F5F8FC] p-1 border border-[#E3EBF4] dark:border-slate-800 dark:bg-[#0B1730]">
-          <button
-            type="button"
-            className="rounded-xl bg-white px-3 py-1.5 text-xs font-extrabold text-[#1769ED] shadow-xs dark:bg-[#101E38] dark:text-blue-400"
-          >
-            Список ({journeyResult?.journeys.length ?? offers.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setActiveMapJourney(visibleJourneyResult?.journeys[0] ?? journeyResult?.journeys[0] ?? null);
-              setTab('map');
-            }}
-            className="rounded-xl px-3 py-1.5 text-xs font-semibold text-[#6A7F98] hover:text-[#142642] dark:text-slate-400 dark:hover:text-white"
-          >
-            Карта
-          </button>
-        </div>
-      </div>
-
-      {/* Transport filters reflect modes returned by the active providers. */}
-      <div className="no-scrollbar mb-4 flex gap-2 overflow-x-auto pb-1">
-        {(journeyResult
-          ? [{ id: 'all', label: 'Усі', count: journeyResult.journeys.length }, ...journeyModeChoices.map((label) => ({ id: label, label, count: journeyResult.journeys.filter((journey) => journeyModeLabel(journey) === label).length }))]
-          : [{ id: 'all', label: 'Усі', count: offers.length }, { id: 'Попутки', label: 'Попутки', count: offers.length }]
-        ).map((item) => {
-          const active = journeyResult ? journeyResultMode === item.id : item.id === 'all';
-          return <button
-            key={item.id}
-            type="button"
-            aria-pressed={active}
-            onClick={() => { if (journeyResult) setJourneyResultMode(item.id); }}
-            className={`shrink-0 rounded-full px-4 py-2 text-xs font-extrabold transition-all ${active ? 'bg-[#1769ED] text-white shadow-xs' : 'border border-[#E3EBF4] bg-white text-[#6A7F98] hover:border-slate-300 dark:border-slate-800 dark:bg-[#101E38] dark:text-slate-300'}`}
-          >
-            {item.label} <span className="opacity-75">{item.count}</span>
-          </button>;
-        })}
-      </div>
-
-      {offers.length > 1 && (
-        <div role="group" aria-label="Сортування поїздок" className="no-scrollbar mb-4 flex items-center gap-2 overflow-x-auto pb-1">
-          <span className="shrink-0 text-[11px] font-bold text-[#6A7F98]">Сортувати:</span>
-          {([['earliest', 'Найраніше'], ['cheapest', 'Найдешевше'], ['fastest', 'Найшвидше']] as const).map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              aria-pressed={offerSort === key}
-              onClick={() => setOfferSort(key)}
-              className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-bold transition-colors ${
-                offerSort === key
-                  ? 'border-[#1769ED] bg-[#EAF2FF] text-[#1769ED] dark:border-blue-500 dark:bg-blue-950/60 dark:text-blue-300'
-                  : 'border-[#E3EBF4] bg-white text-[#6A7F98] dark:border-slate-800 dark:bg-[#101E38] dark:text-slate-400'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {offers.length > 0 && offers.every((item) => item.other_date) && (
-        <p role="status" className="mb-3 rounded-2xl bg-amber-50 p-3 text-xs leading-5 text-amber-900 border border-amber-100">
-          На обрану дату поїздок немає. Нижче — той самий маршрут в інші дні.
-        </p>
-      )}
-
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-extrabold text-[#142642] dark:text-white">Знайдені поїздки</h2>
-        <span className="text-xs font-semibold text-[#6A7F98]">{journeyResult?.journeys.length ?? offers.length} варіантів</span>
+        <button
+          type="button"
+          aria-label="Фільтри результатів"
+          aria-expanded={showJourneyResultFilters}
+          onClick={() => setShowJourneyResultFilters((open) => !open)}
+          className="grid h-11 w-11 place-items-center rounded-full text-[#51647D] transition hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:text-slate-300 dark:hover:bg-slate-800"
+        >
+          <SlidersHorizontal size={18} />
+        </button>
       </div>
 
       {journeyResult ? (
         <>
-          <div role="group" aria-label="Пріоритет маршрутів" className="mb-3 flex gap-2 overflow-x-auto pb-1">
-            {([
-              ['BALANCED', 'Оптимальний'],
-              ['FASTEST', 'Найшвидший'],
-              ['CHEAPEST', 'Найдешевший'],
-            ] as const).map(([strategy, label]) => (
+          <div className="bg-white px-4 pt-3 pb-3 border-b border-slate-100 dark:bg-[#101E38] dark:border-slate-800 shadow-[0_2px_10px_rgba(0,0,0,0.03)] sticky top-[calc(max(4.75rem,calc(env(safe-area-inset-top)+2rem))+44px)] z-10">
+            <div role="group" aria-label="Пріоритет маршрутів" className="flex gap-2 overflow-x-auto no-scrollbar pb-3">
+              {([
+                ['BALANCED', 'Оптимальний'],
+                ['FASTEST', 'Найшвидший'],
+                ['CHEAPEST', 'Найдешевший'],
+              ] as const).map(([strategy, label]) => (
+                <button
+                  key={strategy}
+                  type="button"
+                  disabled={busy || !journeyResult?.journeys.some((journey) => journey.strategy === strategy)}
+                  aria-pressed={journeyStrategy === strategy}
+                  title={!journeyResult?.journeys.some((journey) => journey.strategy === strategy)
+                    ? strategy === 'CHEAPEST' ? 'Не можна визначити без тарифів у джерелі' : 'Для цього запиту та джерел варіанта немає'
+                    : undefined}
+                  onClick={() => void searchJourney({ strategy, keepResults: true })}
+                  className={`min-h-11 shrink-0 rounded-[20px] px-4 text-[13px] font-extrabold transition-all active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-45 ${journeyStrategy === strategy ? 'bg-[#1769ED] text-white shadow-xs' : 'border border-[#D5DFEB] bg-white text-[#334963] hover:border-[#1769ED] dark:border-slate-700 dark:bg-[#1A2C4E] dark:text-slate-200'}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex gap-2 overflow-x-auto no-scrollbar">
               <button
-                key={strategy}
                 type="button"
-                aria-pressed={journeyStrategy === strategy}
-                onClick={() => setJourneyStrategy(strategy)}
-                className={`shrink-0 rounded-full border px-3.5 py-2 text-xs font-extrabold transition-all active:scale-95 ${journeyStrategy === strategy ? 'border-blue-600 bg-blue-600 text-white shadow-xs' : 'border-[#E3EBF4] bg-white text-[#6A7F98] hover:border-blue-300 dark:border-slate-800 dark:bg-[#101E38] dark:text-slate-300'}`}
+                disabled={!resultHasRealtime}
+                aria-pressed={journeyResultSource === 'realtime'}
+                title={resultHasRealtime ? 'Показати варіанти з підтвердженими даними GPS у реальному часі' : 'У знайдених варіантах немає підтверджених GPS-даних'}
+                onClick={() => setJourneyResultSource((source) => source === 'realtime' ? 'all' : 'realtime')}
+                className={`flex min-h-11 shrink-0 items-center gap-2 rounded-xl border px-3 text-xs font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-55 ${journeyResultSource === 'realtime' ? 'border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-200' : 'border-[#D5DFEB] bg-white text-[#334963] dark:border-slate-700 dark:bg-[#1A2C4E] dark:text-slate-200'}`}
               >
-                {label}
+                <MapPin size={15} /> GPS {resultHasRealtime ? '· наживо' : '· немає'}
               </button>
-            ))}
+              <button
+                type="button"
+                disabled={!resultHasSchedule}
+                aria-pressed={journeyResultSource === 'schedule'}
+                title={resultHasSchedule ? 'Показати варіанти з розкладом' : 'У знайдених варіантах немає розкладів'}
+                onClick={() => setJourneyResultSource((source) => source === 'schedule' ? 'all' : 'schedule')}
+                className={`flex min-h-11 shrink-0 items-center gap-2 rounded-xl border px-3 text-xs font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-55 ${journeyResultSource === 'schedule' ? 'border-blue-600 bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-200' : 'border-[#D5DFEB] bg-white text-[#334963] dark:border-slate-700 dark:bg-[#1A2C4E] dark:text-slate-200'}`}
+              >
+                <CalendarDays size={15} /> Розклад {resultHasSchedule ? `· ${strategyResultJourneys.filter((journey) => journey.legs.some((leg) => /gtfs|schedule|розклад/i.test(`${leg.source} ${leg.availabilityStatus}`))).length}` : '· немає'}
+              </button>
+              <button
+                type="button"
+                aria-expanded={showJourneyResultFilters}
+                onClick={() => setShowJourneyResultFilters((open) => !open)}
+                className="flex min-h-11 shrink-0 items-center gap-2 rounded-xl border border-[#D5DFEB] bg-white px-3 text-xs font-bold text-[#1769ED] transition-colors hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 dark:border-slate-700 dark:bg-[#1A2C4E] dark:text-blue-300"
+              >
+                Усі види <ChevronDown size={15} />
+              </button>
+            </div>
+            {showJourneyResultFilters && (
+              <div role="group" aria-label="Фільтр виду транспорту" className="mt-3 flex flex-wrap gap-2 rounded-2xl border border-blue-100 bg-blue-50/70 p-3 dark:border-blue-900/50 dark:bg-blue-950/30">
+                <button type="button" aria-pressed={journeyResultMode === 'all'} onClick={() => setJourneyResultMode('all')} className={`min-h-10 rounded-full px-3 text-xs font-bold ${journeyResultMode === 'all' ? 'bg-blue-600 text-white' : 'bg-white text-[#334963] dark:bg-slate-800 dark:text-slate-200'}`}>Усі варіанти</button>
+                {availableResultModeOptions.map((mode) => (
+                  <button key={mode.id} type="button" aria-pressed={journeyResultMode === mode.id} onClick={() => setJourneyResultMode(mode.id)} className={`min-h-10 rounded-full px-3 text-xs font-bold ${journeyResultMode === mode.id ? 'bg-blue-600 text-white' : 'bg-white text-[#334963] dark:bg-slate-800 dark:text-slate-200'}`}>
+                    {mode.label} · {strategyResultJourneys.filter((journey) => mode.id === 'COMBINED'
+                      ? journey.legs.filter((leg) => leg.mode !== 'WALK').length > 1
+                      : journey.legs.some((leg) => leg.mode === mode.id)).length ?? 0}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-          <JourneyResultsPanel
-            result={visibleJourneyResult ? { ...visibleJourneyResult, journeys: sortedJourneys } : journeyResult}
-            onOpenOffer={(offerId, journeyId, journeyLegId) => void openJourneyOffer(offerId, journeyId, journeyLegId)}
-            onViewOnMap={(journey) => {
-              setActiveMapJourney(journey);
-              setTab('map');
-            }}
-          />
+
+          <div className="px-4 mt-4">
+            <JourneyResultsPanel
+              result={visibleJourneyResult ? { ...visibleJourneyResult, journeys: sortedJourneys } : journeyResult}
+              onOpenOffer={(offerId, journeyId, journeyLegId) => void openJourneyOffer(offerId, journeyId, journeyLegId)}
+              onViewOnMap={(journey) => {
+                setActiveMapJourney(journey);
+                setTab('map');
+              }}
+            />
+          </div>
         </>
       ) : restoredSearchMode === 'planner' ? (
         <div className="rounded-3xl border border-[#E3EBF4] bg-white p-6 text-center dark:border-slate-800 dark:bg-[#101E38]">
@@ -2183,7 +2231,6 @@ export function ProductionMarketplace() {
           setTab('chat');
         }
       }}
-      onNavigateHome={() => setTab('home')}
       onManageBooking={(bookingId) => {
         const b = bookings.find((bk) => bk.id === bookingId);
         if (b) setSelectedBooking(b);
@@ -2753,6 +2800,7 @@ export function ProductionMarketplace() {
     <IdenticalProfileExperience
       user={authenticatedUser}
       vehicles={vehicles}
+      vehiclePhotos={vehiclePhotos}
       records={verificationRecords}
       currentView={profileView}
       onViewChange={(view) => setProfileView(view)}
@@ -2776,6 +2824,11 @@ export function ProductionMarketplace() {
       onAddVehicle={() => {
         if (authenticatedUser?.roles?.includes('driver')) setShowVehicleForm(true);
         else void enableDriver();
+      }}
+      onVerifyVehicle={(vehicle) => {
+        setVerificationTarget(vehicle);
+        setRegistrationEvidence(null);
+        setDriverLicenseEvidence(null);
       }}
       onUpdateUser={(updated) => {
         setUser((curr) => (curr ? { ...curr, ...updated } : curr));
@@ -2966,10 +3019,12 @@ export function ProductionMarketplace() {
 
   const screen = selectedJourney ? journeyDetailScreen : selectedOffer ? <div className="mx-auto w-full max-w-xl px-5 pb-5"><div className="mb-4 flex items-center gap-3"><button onClick={()=>{setSelectedOffer(null);setJourneyBookingLink(null);setTab('search');}} className="grid h-10 w-10 place-items-center rounded-full bg-white shadow-sm"><ArrowLeft size={18}/></button><div><p className="text-xs text-slate-500">Деталі поїздки</p><h1 className="font-extrabold">{selectedOffer.origin_name.split(',')[0]} → {selectedOffer.destination_name.split(',')[0]}</h1></div></div><div className="mb-3"><Suspense fallback={null}><OfferRoutePreview offer={selectedOffer}/></Suspense></div><div className="mb-3 overflow-hidden rounded-[1.4rem]"><VehiclePhoto url={selectedOffer.vehicle_photo_url} alt={`Авто водія ${selectedOffer.driver_name}`}/></div><div className="rounded-[1.5rem] bg-white p-5 shadow-sm"><span className="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-bold text-emerald-700">COMMUNITY · Попутка</span><div className="mt-5 grid grid-cols-2 gap-4"><div><small className="text-slate-400">Відправлення</small><p className="mt-1 text-xl font-extrabold">{formatDate(selectedOffer.departure_at,{hour:'2-digit',minute:'2-digit'})}</p><b>{selectedOffer.origin_name.split(',')[0]}</b></div><div className="text-right"><small className="text-slate-400">Прибуття</small><p className="mt-1 text-xl font-extrabold">{selectedOffer.arrival_at?formatDate(selectedOffer.arrival_at,{hour:'2-digit',minute:'2-digit'}):'—'}</p><b>{selectedOffer.destination_name.split(',')[0]}</b></div></div><div className="my-4 border-t border-slate-100"/><ol aria-label="Маршрут поїздки" className="relative ml-1 space-y-5 border-l-2 border-dashed border-[#BBD7FB] pl-5"><li className="relative"><span className="absolute -left-[1.72rem] top-1 h-3 w-3 rounded-full border-2 border-white bg-[#1789F4] shadow"/><p className="text-sm font-extrabold text-[#0E1F35]">{formatDate(selectedOffer.departure_at,{hour:'2-digit',minute:'2-digit'})} · {selectedOffer.origin_name.split(',')[0]}</p><p className="text-[11px] text-slate-400">Посадка</p></li>{selectedOffer.distance_m&&selectedOffer.duration_s?<li className="text-[11px] font-semibold text-slate-500">{(selectedOffer.distance_m/1000).toFixed(0)} км · {Math.floor(selectedOffer.duration_s/3600)} год {Math.round((selectedOffer.duration_s%3600)/60)} хв дорогою</li>:null}<li className="relative"><span className="absolute -left-[1.72rem] top-1 h-3 w-3 rounded-full border-2 border-white bg-[#EF4444] shadow"/><p className="text-sm font-extrabold text-[#0E1F35]">{selectedOffer.arrival_at?formatDate(selectedOffer.arrival_at,{hour:'2-digit',minute:'2-digit'}):'—'} · {selectedOffer.destination_name.split(',')[0]}</p><p className="text-[11px] text-slate-400">Висадка</p></li></ol><div className="my-4 border-t border-slate-100"/><p className="flex items-center gap-3 text-sm"><span className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-blue-100 font-bold text-blue-700">{selectedOffer.driver_photo_url?<img src={selectedOffer.driver_photo_url} alt={`Фото водія ${selectedOffer.driver_name}`} className="h-full w-full object-cover"/>:selectedOffer.driver_name.slice(0,1)}</span><span><b>{selectedOffer.driver_name}</b><small className="block text-slate-500">{selectedOffer.review_count?`★ ${Number(selectedOffer.average_rating).toFixed(1)} · ${selectedOffer.review_count} відгуків`:'Новий водій'}</small></span></p><div className="mt-5 flex justify-between text-sm"><span className="text-slate-500">Вільні місця</span><b>{selectedOffer.available_seats}</b></div>{!journeyBookingLink&&<div className="mt-4 flex items-center justify-between rounded-xl bg-[#f6f8fc] px-3 py-2.5"><span className="text-sm font-semibold text-slate-600">Скільки місць бронюємо</span><span className="flex items-center gap-3"><button type="button" aria-label="Менше місць" disabled={bookSeats<=1||busy} onClick={()=>setBookSeats(bookSeats-1)} className="grid h-9 w-9 place-items-center rounded-full bg-white shadow-sm disabled:opacity-30"><Minus size={16}/></button><b data-testid="book-seats" className="w-5 text-center text-lg">{bookSeats}</b><button type="button" aria-label="Більше місць" disabled={bookSeats>=Math.min(selectedOffer.available_seats,8)||busy} onClick={()=>setBookSeats(bookSeats+1)} className="grid h-9 w-9 place-items-center rounded-full bg-white shadow-sm disabled:opacity-30"><Plus size={16}/></button></span></div>}<div className="mt-3 flex justify-between text-sm"><span className="text-slate-500">Вартість за {journeyBookingLink?seats:bookSeats} {(journeyBookingLink?seats:bookSeats)===1?'місце':'місця'}</span><b className="text-lg">{formatMoney(selectedOffer.price_per_seat_minor*(journeyBookingLink?seats:bookSeats),selectedOffer.currency)}</b></div><p className="mt-1 text-right text-[10px] text-slate-400">MARSHGO Community · комісія платформи 0%</p>{myOffers.some((own)=>own.id===selectedOffer.id)&&<p className="mt-4 rounded-xl bg-slate-50 p-3 text-xs text-slate-600">Це ваша поїздка: водій не може бронювати місця в ній.</p>}{bookError&&<p role="alert" data-testid="book-error" className="mt-4 rounded-xl bg-rose-50 p-3 text-xs leading-5 text-rose-700">{bookError}</p>}<button data-testid="offer-book-button" data-offer-id={selectedOffer.id} disabled={busy||selectedOffer.available_seats<(journeyBookingLink?seats:bookSeats)||myOffers.some((own)=>own.id===selectedOffer.id)} onClick={()=>void book(selectedOffer)} className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 py-4 font-bold text-white disabled:opacity-50">{busy?'Обробляємо…':'Забронювати місце'}<ArrowRight size={17}/></button></div></div> : tab==='lifecycle' ? lifecycleScreen : tab==='navigation' ? <Suspense fallback={<main className="grid min-h-[100svh] place-items-center bg-[#f5f8fd] text-sm text-slate-500">Завантажуємо навігацію…</main>}><ProductionNavigation autoStart={navAutoStart} onAddVehicle={()=>{setNavAutoStart(false);setTab('profile');}} onBack={()=>{setNavAutoStart(false);setTab('home')}} onOpenDemand={(demandId,candidateId)=>void openNavigationDemand(demandId,candidateId)}/></Suspense> : tab==='map' ? <Suspense fallback={<main className="grid min-h-[100svh] place-items-center bg-[#f5f8fd] text-sm text-slate-500">Завантажуємо карту…</main>}><TransportMapView onBack={() => { setActiveMapJourney(null); setTab(journeyResult ? 'search' : 'home'); }} activeJourney={activeMapJourney ?? visibleJourneyResult?.journeys[0] ?? journeyResult?.journeys[0] ?? null} originName={origin} destinationName={destination} /></Suspense> : tab==='plan' ? planScreen : tab==='home' ? (showResults ? resultsScreen : homeScreen) : tab==='search' ? (journeyResult ? resultsScreen : searchScreen) : tab==='trips' ? tripsScreen : tab==='chat' ? chatScreen : tab==='profile' ? (profileSection ? <Suspense fallback={null}><ProfileSections section={profileSection} onBack={()=>setProfileSection(null)} vehicles={vehicles} records={verificationRecords} onLogoutAll={logoutAllDevices} onDownloadData={downloadPersonalData} onRequestDeletion={()=>setConfirmDeletion(true)} deletionRequest={deletionRequest} onCancelDeletion={()=>void cancelDeletion()} onLogout={logout}/></Suspense> : profileScreen) : tab==='admin' ? adminDashboard : tab==='demand' ? demandFormScreen : tab==='offer-new' ? offerFormScreen : tab==='requests' ? requestsScreen : myDemandsScreen;
 
-  return <main className="production-app min-h-[100svh] bg-[#f5f8fd] pb-[calc(5.3rem+env(safe-area-inset-bottom))] text-[#17243a] dark:bg-[#08121f] dark:text-white">
+  return <main className={`production-app min-h-[100svh] bg-[#f5f8fd] pb-[calc(5.3rem+env(safe-area-inset-bottom))] text-[#17243a] dark:bg-[#08121f] dark:text-white ${['home', 'search', 'trips', 'profile'].includes(tab) ? 'is-locked-viewport' : ''}`}>
     {header}
     {status}
-    <div className="pt-1">{screen}</div>
+    <Suspense fallback={<div role="status" className="mx-auto flex min-h-[55svh] max-w-xl items-center justify-center px-5 text-sm font-semibold text-slate-500">Завантажуємо розділ…</div>}>
+      <div className="pt-1">{screen}</div>
+    </Suspense>
     {pointPicker}
     <nav aria-label="Основна навігація" className="app-tabbar fixed inset-x-0 bottom-0 z-[45] border-t border-[#E3EBF4] bg-white/95 pt-1.5 backdrop-blur-xl dark:border-slate-800 dark:bg-[#0B1730]/95"><div className="app-tabbar-inner mx-auto flex max-w-md items-center justify-between px-3">{tabItems.map((item,index)=>{const Icon=item.icon;const active=tab===item.id;return <span key={item.id} className="contents">{index===2&&<button type="button" onClick={()=>{setSelectedJourney(null);setSelectedOffer(null);setShowQuickNav(true);}} aria-label="Створити або почати" className="app-create-button -mt-6 grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[#0066FF] text-white shadow-[0_8px_22px_rgba(0,102,255,0.4)] transition-transform hover:scale-105 active:scale-95 border-4 border-[#F5F8FC] dark:border-[#0B1730]"><Plus size={24} strokeWidth={2.8}/><span className="desktop-create-label">Створити</span></button>}<button aria-current={active?'page':undefined} onClick={()=>{setTab(item.id);if(item.id==='home')setShowResults(false);if(item.id==='profile')setProfileView('main');setSelectedOffer(null);setSelectedJourney(null);setSelectedBooking(null);setJourneyBookingLink(null);}} className={`flex flex-1 min-w-0 max-w-[62px] flex-col items-center gap-0.5 px-1 py-1 transition-colors ${active?'text-[#0066FF] dark:text-blue-400':'text-[#6A7F98] dark:text-slate-400'}`}><div className="relative"><Icon size={20} strokeWidth={active?2.5:2}/>{item.id==='chat'&&Object.values(unreadConversations).some(cnt=>(cnt??0)>0)&&<span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500"/>}</div><span className={`truncate text-[10px] ${active?'font-bold':'font-semibold'}`}>{item.label}</span>{active&&item.id==='home'&&<span className="h-1 w-1 rounded-full bg-[#0066FF] dark:bg-blue-400 -mt-0.5"></span>}</button></span>})}</div></nav>
     {createMenu}

@@ -66,12 +66,12 @@ export class MapLibreAdapter implements MapAdapter {
   private routeSegments: RouteSegment[] = [];
   private customMarkers: maplibregl.Marker[] = [];
 
-  constructor(container: HTMLElement, style: string | StyleSpecification, private readonly onStatus: (status: MapStatus) => void, private readonly hasBasemap: boolean, private readonly styleUrls?: Partial<Record<MapTheme, string>>, initialTheme: MapTheme = 'MARSHGO_NAVIGATION_LIGHT') {
+  constructor(container: HTMLElement, style: string | StyleSpecification, private readonly onStatus: (status: MapStatus) => void, private readonly hasBasemap: boolean, private readonly styleUrls?: Partial<Record<MapTheme, string>>, initialTheme: MapTheme = 'MARSHGO_NAVIGATION_LIGHT', compactAttribution = true) {
     this.theme = initialTheme;
     if (!pmtilesProtocolRegistered) { maplibregl.addProtocol('pmtiles', pmtilesProtocol.tile); pmtilesProtocolRegistered = true; }
     maplibregl.setWorkerUrl(mapLibreWorkerUrl);
     container.dataset.marshgoMapRenderer = 'maplibre';
-    this.map = new maplibregl.Map({ container, style, logoPosition: 'bottom-left', center: [30.5234, 50.4501], zoom: 5, pitchWithRotate: true, dragRotate: true, touchPitch: true, cooperativeGestures: false });
+    this.map = new maplibregl.Map({ container, style, logoPosition: 'bottom-left', attributionControl: { compact: compactAttribution }, center: [30.5234, 50.4501], zoom: 5, pitchWithRotate: true, dragRotate: true, touchPitch: true, cooperativeGestures: false });
     this.map.addControl(new maplibregl.NavigationControl({ showCompass: true, showZoom: false, visualizePitch: true }), 'bottom-right');
     this.map.on('load', () => { this.installLayers(); container.dataset.marshgoMapReady = 'true'; this.publish(this.hasBasemap ? 'available' : 'unconfigured'); });
     this.map.on('style.load', () => { this.installLayers(); container.dataset.marshgoMapReady = 'true'; if (this.hasBasemap && !this.map.getSource('marshgo-basemap') && this.status !== 'failed') this.publish('available'); });
@@ -176,7 +176,9 @@ export class MapLibreAdapter implements MapAdapter {
     this.progressVertex = 0;
     this.map.getContainer().dataset.marshgoRoutePointCount = String(points.length);
     const source = this.map.getSource('marshgo-route') as maplibregl.GeoJSONSource | undefined;
-    if (source) source.setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: points } });
+    if (source) source.setData(this.routeSegments.length > 0
+      ? { type: 'FeatureCollection', features: [] }
+      : { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: points } });
     this.reaim(true);
   }
 
@@ -373,6 +375,12 @@ export class MapLibreAdapter implements MapAdapter {
       }));
       source.setData({ type: 'FeatureCollection', features });
     }
+    // Keep the combined route only as the camera bounds. Drawing it beneath
+    // per-leg lines would add a false straight connector at every transfer.
+    const routeSource = this.map.getSource('marshgo-route') as maplibregl.GeoJSONSource | undefined;
+    if (routeSource) routeSource.setData(segments.length > 0
+      ? { type: 'FeatureCollection', features: [] }
+      : { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: this.route } });
   }
 
   setCustomMarkers(markers: CustomMapMarker[]) {

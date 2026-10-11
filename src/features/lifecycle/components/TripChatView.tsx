@@ -159,7 +159,7 @@ export const TripChatView: React.FC<TripChatViewProps> = ({
   return (
     <div className="fixed inset-0 z-40 mx-auto flex flex-col w-full max-w-md overflow-hidden bg-[#F4F8FF] dark:bg-[#070E1B] text-[#081B35] dark:text-white">
       {/* Chat Header */}
-      <header className="shrink-0 flex items-center justify-between border-b border-slate-100/80 dark:border-slate-800/80 bg-white/95 dark:bg-[#0B1730]/95 backdrop-blur-md px-4 py-3 pt-[max(0.6rem,env(safe-area-inset-top))]">
+      <header className="shrink-0 flex items-center justify-between border-b border-slate-100/80 dark:border-slate-800/80 bg-white/95 dark:bg-[#0B1730]/95 backdrop-blur-md px-4 py-3 pt-[max(3.5rem,calc(env(safe-area-inset-top)+0.85rem))]">
         <div className="flex items-center gap-3">
           <button
             type="button"

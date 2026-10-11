@@ -5,13 +5,14 @@ import process from 'node:process';
 
 const root = process.cwd();
 const manifest = JSON.parse(readFileSync(resolve(root, 'RELEASE_MANIFEST.json'), 'utf8'));
-const serverDirectory = resolve(root, '.release', `server-${manifest.server_sha}`);
+const serverDirectory = resolve(process.env.E2E_SERVER_DIR ?? resolve(root, '.release', `server-${manifest.server_sha}`));
 const actual = spawn('git', ['-C', serverDirectory, 'rev-parse', 'HEAD'], { stdio: ['ignore', 'pipe', 'inherit'] });
 let head = '';
 actual.stdout.on('data', (chunk) => { head += chunk; });
 actual.on('close', (code) => {
-  if (code !== 0 || head.trim() !== manifest.server_sha || !existsSync(resolve(serverDirectory, 'node_modules/.package-lock.json'))) {
-    process.stderr.write('Pinned canonical Server checkout or dependencies are unavailable. Run npm run test:e2e to materialize it.\n');
+  const pinnedSha = process.env.E2E_SERVER_PINNED_SHA;
+  if (code !== 0 || (pinnedSha && head.trim() !== pinnedSha) || !existsSync(resolve(serverDirectory, 'node_modules/.package-lock.json'))) {
+    process.stderr.write('E2E Server checkout or dependencies are unavailable or do not match the requested immutable SHA.\n');
     process.exit(2);
   }
   const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';

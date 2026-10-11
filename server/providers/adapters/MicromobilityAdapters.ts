@@ -16,7 +16,6 @@ export class NextbikeGbfsAdapter implements SharedVehicleProvider {
 
   async getStations(_bbox: [number, number, number, number]): Promise<SharedStationItem[]> {
     try {
-      // GBFS 2.x standard discovery
       const { data } = await fetchJson(this.gbfsDiscoveryUrl, 8000);
       const root = data as {
         data?: {

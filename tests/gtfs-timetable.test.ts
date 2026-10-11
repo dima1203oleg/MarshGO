@@ -216,6 +216,68 @@ test('composes a time-feasible bus-to-rail itinerary at the same canonical stop'
   assert.ok(results[0].arrivalAt.getTime() > results[0].segments.at(-1)!.arrivalAt.getTime());
 });
 
+test('deduplicates repeated runs of a line combination while preserving a different line chain', () => {
+  const transit = connectingFeed();
+  transit.routes.set('rail-alt', { name: 'Regional express', mode: 'RAIL', transportType: 'train' });
+  transit.trips.set('r2', { routeId: 'rail-alt', serviceId: 'weekday', headsign: 'Finish' });
+  transit.stopTimes.set('r2', [
+    { stopId: 'hub', sequence: 1, arrivalSeconds: 8 * 3600 + 36 * 60, departureSeconds: 8 * 3600 + 36 * 60, pickupType: 0, dropOffType: 0 },
+    { stopId: 'finish', sequence: 2, arrivalSeconds: 9 * 3600 + 5 * 60, departureSeconds: 9 * 3600 + 5 * 60, pickupType: 0, dropOffType: 0 },
+  ]);
+  transit.stopTimesByStop.get('hub')!.push({ tripId: 'r2', index: 0 });
+  transit.stopTimesByStop.get('finish')!.push({ tripId: 'r2', index: 1 });
+  transit.trips.set('b2', { routeId: 'bus', serviceId: 'weekday', headsign: 'Transfer hub' });
+  transit.stopTimes.set('b2', [
+    { stopId: 'start', sequence: 1, arrivalSeconds: 8 * 3600 + 5 * 60, departureSeconds: 8 * 3600 + 5 * 60, pickupType: 0, dropOffType: 0 },
+    { stopId: 'hub', sequence: 2, arrivalSeconds: 8 * 3600 + 25 * 60, departureSeconds: 8 * 3600 + 25 * 60, pickupType: 0, dropOffType: 0 },
+  ]);
+  transit.stopTimesByStop.get('start')!.push({ tripId: 'b2', index: 0 });
+  transit.stopTimesByStop.get('hub')!.push({ tripId: 'b2', index: 1 });
+
+  const results = findGtfsItineraries(transit, {
+    ...request('2026-10-12T04:55:00Z', '2026-10-12T05:30:00Z'),
+    maximumStopDistanceMeters: 300,
+    maximumTransfers: 1,
+    minimumTransferBufferSeconds: 600,
+  });
+
+  assert.equal(results.length, 2);
+  assert.deepEqual(results.map((result) => result.segments.map((segment) => segment.routeId)), [['bus', 'rail'], ['bus', 'rail-alt']]);
+  assert.equal(results[0].segments[0].tripId, 'b1', 'the earlier feasible run represents the bus-to-rail chain');
+});
+
+test('a busy bus schedule does not hide an available tram route in an all-mode search', () => {
+  const transit = feed({ departure: '08:00:00', arrival: '08:10:00' });
+  transit.routes.set('tram-route', { name: 'Т1', mode: 'TRAM', transportType: 'tram' });
+  transit.trips.set('tram-trip', { routeId: 'tram-route', serviceId: 'weekday', headsign: 'Destination' });
+  transit.stopTimes.set('tram-trip', [
+    { stopId: 'origin', sequence: 1, arrivalSeconds: 8 * 3600 + 15 * 60, departureSeconds: 8 * 3600 + 15 * 60, pickupType: 0, dropOffType: 0 },
+    { stopId: 'destination', sequence: 2, arrivalSeconds: 8 * 3600 + 35 * 60, departureSeconds: 8 * 3600 + 35 * 60, pickupType: 0, dropOffType: 0 },
+  ]);
+  transit.stopTimesByStop.get('origin')!.push({ tripId: 'tram-trip', index: 0 });
+  transit.stopTimesByStop.get('destination')!.push({ tripId: 'tram-trip', index: 1 });
+  for (let index = 0; index < 800; index++) {
+    const tripId = `busy-bus-${index}`;
+    transit.trips.set(tripId, { routeId: 'r', serviceId: 'weekday', headsign: 'Destination' });
+    transit.stopTimes.set(tripId, [
+      { stopId: 'origin', sequence: 1, arrivalSeconds: 8 * 3600, departureSeconds: 8 * 3600, pickupType: 0, dropOffType: 0 },
+      { stopId: 'destination', sequence: 2, arrivalSeconds: 8 * 3600 + 10 * 60, departureSeconds: 8 * 3600 + 10 * 60, pickupType: 0, dropOffType: 0 },
+    ]);
+    transit.stopTimesByStop.get('origin')!.push({ tripId, index: 0 });
+    transit.stopTimesByStop.get('destination')!.push({ tripId, index: 1 });
+  }
+
+  const results = findGtfsItineraries(transit, {
+    ...request('2026-10-12T04:55:00Z', '2026-10-12T05:30:00Z'),
+    maximumStopDistanceMeters: 2000,
+    maximumTransfers: 0,
+    allowedModes: ['BUS', 'TRAM'],
+    allowedTransportTypes: ['bus', 'tram'],
+  });
+
+  assert.deepEqual(results.map((itinerary) => itinerary.segments[0]?.transportType), ['bus', 'tram']);
+});
+
 test('keeps the nearest stop for each transport type when dense city stops crowd out a station', () => {
   const rail = transferFeed({ routeType: '2', routeName: 'Regional train', fromId: 'rail-origin', fromName: 'Rail station',
     fromLon: '24.0203', fromLat: '49.8401', toId: 'rail-destination', toName: 'Rail destination',

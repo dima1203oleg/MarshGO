@@ -745,11 +745,33 @@ export function findGtfsItineraries(feed: GtfsTimetableFeed, input: GtfsItinerar
   };
 
   let searchSteps = 0;
-  const MAX_SEARCH_STEPS = 1500;
+  const MAX_SEARCH_STEPS = 6000;
+  const startingSegmentsByMode = new Map<TransitJourneyMode, GtfsDirectJourney[]>();
+  for (const segment of segments) {
+    if (!originStopIds.has(segment.originStop.id) || segment.departureAt.getTime() > maxFirstDeparture
+      || segment.departureAt.getTime() < input.earliestDeparture.getTime() + walkingSeconds(segment.distanceToOriginStopMeters) * 1000) continue;
+    const queue = startingSegmentsByMode.get(segment.mode) ?? [];
+    queue.push(segment);
+    startingSegmentsByMode.set(segment.mode, queue);
+  }
+  const startQueues = [...startingSegmentsByMode.values()].map((items) => ({ items, index: 0 }));
+  const startingSegments: GtfsDirectJourney[] = [];
+  while (true) {
+    let added = false;
+    for (const queue of startQueues) {
+      const next = queue.items[queue.index++];
+      if (next) { startingSegments.push(next); added = true; }
+    }
+    if (!added) break;
+  }
+  const MAX_SEARCH_STEPS_PER_FIRST_MODE = Math.min(3000, Math.ceil(MAX_SEARCH_STEPS / Math.max(1, startingSegmentsByMode.size)));
+  const searchStepsByFirstMode = new Map<TransitJourneyMode, number>();
 
-  const walk = (path: GtfsDirectJourney[]) => {
-    if (searchSteps > MAX_SEARCH_STEPS || results.size >= limit * 5) return;
+  const walk = (path: GtfsDirectJourney[], firstMode: TransitJourneyMode) => {
+    const modeSteps = searchStepsByFirstMode.get(firstMode) ?? 0;
+    if (searchSteps >= MAX_SEARCH_STEPS || modeSteps >= MAX_SEARCH_STEPS_PER_FIRST_MODE) return;
     searchSteps++;
+    searchStepsByFirstMode.set(firstMode, modeSteps + 1);
     const last = path.at(-1)!;
     if (destinationStopIds.has(last.destinationStop.id)) addPath(path);
     const remainingLegs = maxTransitLegs - path.length;
@@ -767,7 +789,7 @@ export function findGtfsItineraries(feed: GtfsTimetableFeed, input: GtfsItinerar
       else high = middle;
     }
     for (let index = low; index < choices.length; index++) {
-      if (searchSteps > MAX_SEARCH_STEPS || results.size >= limit * 5) break;
+      if (searchSteps >= MAX_SEARCH_STEPS || (searchStepsByFirstMode.get(firstMode) ?? 0) >= MAX_SEARCH_STEPS_PER_FIRST_MODE) break;
       const next = choices[index];
       if (next.departureAt.getTime() > latestNext) break;
       if (!reachableWithin[remainingLegs - 1].has(next.destinationStop.id)) continue;
@@ -775,20 +797,30 @@ export function findGtfsItineraries(feed: GtfsTimetableFeed, input: GtfsItinerar
       const transferWalkSeconds = walkingSeconds(distanceMeters(last.destinationStop.coordinates, next.originStop.coordinates));
       const waitSeconds = (next.departureAt.getTime() - last.arrivalAt.getTime()) / 1000;
       if (waitSeconds < minimumTransferBufferSeconds + transferWalkSeconds) continue;
-      walk([...path, next]);
+      walk([...path, next], firstMode);
     }
   };
 
-  for (const segment of segments) {
-      if (searchSteps > MAX_SEARCH_STEPS || results.size >= limit * 5) break;
-      if (!originStopIds.has(segment.originStop.id) || segment.departureAt.getTime() > maxFirstDeparture) continue;
-      if (segment.departureAt.getTime() < input.earliestDeparture.getTime() + walkingSeconds(segment.distanceToOriginStopMeters) * 1000) continue;
-      walk([segment]);
+  for (const segment of startingSegments) {
+      if (searchSteps >= MAX_SEARCH_STEPS) break;
+      if ((searchStepsByFirstMode.get(segment.mode) ?? 0) >= MAX_SEARCH_STEPS_PER_FIRST_MODE) continue;
+      walk([segment], segment.mode);
   }
 
-  const selected = [...results.values()]
-    .sort((a, b) => a.arrivalAt.getTime() - b.arrivalAt.getTime() || a.transfers - b.transfers || a.id.localeCompare(b.id))
-    .slice(0, limit);
+  const selected: GtfsItinerary[] = [];
+  const selectedPaths = new Set<string>();
+  const rankedResults = [...results.values()]
+    .sort((a, b) => a.arrivalAt.getTime() - b.arrivalAt.getTime() || a.transfers - b.transfers || a.id.localeCompare(b.id));
+  for (const itinerary of rankedResults) {
+    // A different trip_id or transfer stop is a different scheduled run/path,
+    // not a different line combination. Keep the best run for each sequence
+    // of actual provider routes so busy stop clusters cannot crowd alternatives.
+    const pathKey = itinerary.segments.map((segment) => `${segment.providerId}:${segment.routeId}`).join('>');
+    if (selectedPaths.has(pathKey)) continue;
+    selectedPaths.add(pathKey);
+    selected.push(itinerary);
+    if (selected.length >= limit) break;
+  }
   // Build geometry only for alternatives that will be returned to the API.
   // Busy feeds may have thousands of time-feasible paths; materializing each
   // shape before ranking caused discarded alternatives to dominate latency.

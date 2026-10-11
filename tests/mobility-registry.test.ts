@@ -27,6 +27,10 @@ describe('Mobility Registry Service', () => {
     assert.ok(lvivProviders.length > 0, 'Should have Lviv providers');
   });
 
+  it('does not advertise unverified regional catalogue entries as providers', () => {
+    assert.equal(registry.getAll().some((provider) => provider.id.startsWith('regional-')), false);
+  });
+
   it('keeps commercial partners disabled when contracts are unconfirmed', () => {
     const uklon = registry.get('uklon-partner');
     assert.ok(uklon);

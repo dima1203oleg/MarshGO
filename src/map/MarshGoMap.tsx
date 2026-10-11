@@ -19,11 +19,13 @@ type Props = {
   theme?: MapTheme;
   /** 2D information layers (metro, buses, bikes, ...). Off for navigation, which keeps a clean map. */
   overlays?: boolean;
+  /** Keep provider credits expanded on compact screens when the attribution is styled as a quiet one-line label. */
+  compactAttribution?: boolean;
   onTransportHint?: (message: string | null) => void;
   onStatus: (status: MapStatus) => void;
   onAdapter: (adapter: MapAdapter | null) => void;
 };
-export function MarshGoMap({ route, routeSegments, customMarkers, vehicle, heading = null, speedMps = null, vehicleLabel = null, navigationCamera = false, theme = 'MARSHGO_NAVIGATION_LIGHT', overlays = false, onTransportHint, onStatus, onAdapter }: Props) {
+export function MarshGoMap({ route, routeSegments, customMarkers, vehicle, heading = null, speedMps = null, vehicleLabel = null, navigationCamera = false, theme = 'MARSHGO_NAVIGATION_LIGHT', overlays = false, compactAttribution = true, onTransportHint, onStatus, onAdapter }: Props) {
   const container = useRef<HTMLDivElement | null>(null);
   const adapter = useRef<MapAdapter | null>(null);
   const syncOverlays = useRef<() => void>(() => undefined);
@@ -34,7 +36,7 @@ export function MarshGoMap({ route, routeSegments, customMarkers, vehicle, headi
       if (cancelled || !container.current) return;
       const initialMode = getMapMode();
       const initialLayer = getMapLayer();
-      const instance = new MapLibreAdapter(container.current, styleForLayer(initialLayer, initialMode, configuredMapStyleUrl) ?? assets.style, onStatus, mapTilesConfigured(), assets.styles, theme);
+      const instance = new MapLibreAdapter(container.current, styleForLayer(initialLayer, initialMode, configuredMapStyleUrl) ?? assets.style, onStatus, mapTilesConfigured(), assets.styles, theme, compactAttribution);
       instance.setMode(initialMode);
       instance.setLayer(initialLayer);
       adapter.current = instance; onAdapter(instance);

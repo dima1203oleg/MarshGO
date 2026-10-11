@@ -355,7 +355,7 @@ export function TransportMapView({
       />
 
       {/* Top Header & Navigation Floating Controls */}
-      <div className="pointer-events-none absolute inset-x-3 sm:inset-x-5 top-[max(.8rem,env(safe-area-inset-top))] z-[500] flex flex-col gap-2">
+      <div className="pointer-events-none absolute inset-x-3 sm:inset-x-5 top-[max(3.5rem,calc(env(safe-area-inset-top)+0.85rem))] z-[500] flex flex-col gap-2">
         {/* Main Header Bar */}
         <div className="pointer-events-auto flex items-center gap-2 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-2 shadow-xl border border-slate-200/80 dark:border-slate-800">
           <button

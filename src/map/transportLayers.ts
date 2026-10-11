@@ -1,6 +1,7 @@
 import type { GeoJSONSource, Map as MapLibreMap, MapMouseEvent } from 'maplibre-gl';
 import * as maplibregl from 'maplibre-gl';
 import { productionApi, type GeoJsonCollection } from '../services/productionApi';
+import { transportColors } from '../domain/transportVisuals';
 
 /**
  * 2D information layers. They are MapLibre sources/layers (no DOM markers), loaded per viewport and only for the layers the user switched on.
@@ -185,16 +186,7 @@ export function viewportBbox(bounds: { west: number; south: number; east: number
   return [west, south, east, north].map((value) => value.toFixed(5)).join(',');
 }
 
-const colors: Record<string, string> = {
-  bus: '#0284C7',        // Sky Blue
-  marshrutka: '#F59E0B', // Amber / Orange for marshrutka
-  trolleybus: '#10B981', // Emerald Green
-  tram: '#EF4444',       // Vibrant Red
-  metro: '#8B5CF6',      // Purple
-  city_train: '#0D9488', // Teal
-  funicular: '#B45309',  // Brown
-  other: '#64748B'
-};
+const colors: Record<string, string> = transportColors;
 const empty: GeoJsonCollection = { type: 'FeatureCollection', features: [] };
 const SOURCES = { routes: 'mg-t-routes', stops: 'mg-t-stops', vehicles: 'mg-t-vehicles', micro: 'mg-t-micro' } as const;
 const lineColor = ['match', ['get', 'transport'], 'bus', colors.bus, 'marshrutka', colors.marshrutka, 'trolleybus', colors.trolleybus, 'tram', colors.tram, 'metro', colors.metro, 'city_train', colors.city_train, 'funicular', colors.funicular, colors.other] as never;

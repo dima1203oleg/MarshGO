@@ -25,7 +25,7 @@ import { selectRepresentativeJourneys, strategiesWithComparablePrices } from './
 import { JOURNEY_STRATEGIES, journeyTransportTypeSelected, type JourneyOption, type JourneyStrategy } from './journey/types';
 import { getRendezvousSettings, isWithinPickupGeofence, resolveRendezvousAction, type RendezvousAction, type RendezvousState } from './rendezvous';
 import { cachedSnapshot, selectNearby } from './mobility/nearby';
-import { cachedGeoJsonNetwork, cachedNetwork, cachedVehicles, geoJsonMode, inBbox, intersects, isLineType, parseBbox, routeInBbox, type LineType, type NetworkRoute } from './mobility/transportLayers';
+import { cachedGeoJsonNetwork, cachedNetwork, cachedVehicles, geoJsonMode, inBbox, intersects, isFreshVehicleObservation, isLineType, parseBbox, routeInBbox, type LineType, type NetworkRoute } from './mobility/transportLayers';
 import { buildTransportCities } from './mobility/cities';
 import { bboxContains } from './mobility/types';
 import type { MobilityAssetType } from './mobility/types';
@@ -561,7 +561,11 @@ app.get('/api/v1/transport/health', optionalAuth, asyncHandler(async (_req, res)
 
 const loadRoutes = async (box: [number, number, number, number], types: LineType[] = []) => {
   // Skip feeds that contain none of the requested transport types (e.g. a national rail feed when the user asked for trams).
-  const hasTypes = (row: LayerProviderRow) => types.length === 0 || types.some((type) => (row.last_report?.counts?.[`routes_${type}`] ?? 0) > 0);
+  const hasTypes = (row: LayerProviderRow) => types.length === 0 || types.some((type) =>
+    (row.last_report?.counts?.[`routes_${type}`] ?? 0) > 0
+    // Some feeds report trolleybuses as bus in the health summary. Build and
+    // classify route names before filtering so `Тр…` services stay discoverable.
+    || (type === 'trolleybus' && (row.last_report?.counts?.routes_bus ?? 0) > 0));
   const providers = (await layerProviders(['gtfs', 'geojson'], ['public_transit'])).filter((row) => providerTouches(row, box) && hasTypes(row));
   const settled = await Promise.all(providers.map((row) => layerFetch((row.source_type === 'gtfs'
     ? cachedNetwork(row.id, row.feed_url)
@@ -591,12 +595,18 @@ app.get('/api/v1/transport/stops', optionalAuth, asyncHandler(async (req, res) =
 app.get('/api/v1/transport/vehicles', optionalAuth, asyncHandler(async (req, res) => {
   const box = parseBbox(req.query.bbox); const types = typesParam(req.query.types);
   if (!box || types.length === 0) throw new ApiError(400, 'bbox (west,south,east,north, at most 2 degrees) and types are required', 'invalid_transport_query');
-  const realtime = (await layerProviders(['gtfs_rt', 'json'], ['public_transit'])).filter((row) => providerTouches(row, box));
+  const realtimeCandidates = (await layerProviders(['gtfs_rt', 'json'], ['public_transit'])).filter((row) => providerTouches(row, box));
+  // Catalog aliases can point to the same live endpoint. Fetch each feed once
+  // so vehicles are not rendered twice under different provider records.
+  const realtime = [...new Map(realtimeCandidates.map((row) => [`${row.source_type}:${row.feed_url}`, row])).values()];
   const { loaded } = await loadRoutes(box, types);
   const names = new Map<string, { name: string; type: LineType }>();
   for (const { network } of loaded) for (const route of network.routes) names.set(route.id.split('|')[0], { name: route.name, type: route.type });
   const settled = await Promise.all(realtime.map((row) => layerFetch(cachedVehicles(row.id, row.source_type, row.feed_url, names))));
-  const vehicles = settled.flatMap((item) => item.ok ? item.value : []).filter((vehicle) => inBbox(box, vehicle.lon, vehicle.lat) && (vehicle.type === 'other' || types.includes(vehicle.type)));
+  const vehicles = settled.flatMap((item) => item.ok ? item.value : []).filter((vehicle) =>
+    inBbox(box, vehicle.lon, vehicle.lat)
+    && isFreshVehicleObservation(vehicle.observedAt)
+    && (vehicle.type === 'other' || types.includes(vehicle.type)));
   const features = vehicles.slice(0, 1500).map((vehicle) => ({
     type: 'Feature' as const,
     properties: {
@@ -1393,9 +1403,11 @@ app.post('/api/v1/auth/otp/request', asyncHandler(async (req, res) => {
               (SELECT count(*)::int FROM otp_challenges WHERE request_ip_hash=$2 AND created_at>now()-interval '1 hour') AS ip_attempts_in_hour,
               (SELECT EXTRACT(EPOCH FROM (now()-max(created_at)))::int FROM otp_challenges WHERE phone_e164=$1 AND created_at>now()-interval '1 hour') AS seconds_since_latest`, [phone, requestIpHash],
     );
-    if (rows[0].seconds_since_latest !== null && rows[0].seconds_since_latest < 60) throw new ApiError(429, 'Wait before requesting another code');
-    if (Number(rows[0].attempts_in_hour) >= 5) throw new ApiError(429, 'OTP request limit reached for this phone');
-    if (Number(rows[0].ip_attempts_in_hour) >= 20) throw new ApiError(429, 'OTP request limit reached for this network');
+    const attempts = rows[0];
+    if (!attempts) throw new Error('OTP rate-limit query returned no row');
+    if (attempts.seconds_since_latest !== null && attempts.seconds_since_latest < 60) throw new ApiError(429, 'Wait before requesting another code');
+    if (Number(attempts.attempts_in_hour) >= 5) throw new ApiError(429, 'OTP request limit reached for this phone');
+    if (Number(attempts.ip_attempts_in_hour) >= 20) throw new ApiError(429, 'OTP request limit reached for this network');
     await client.query(
       `INSERT INTO otp_challenges(id,phone_e164,code_hash,display_name,request_ip_hash,expires_at)
        VALUES ($1,$2,$3,$4,$5,now()+interval '5 minutes')`,

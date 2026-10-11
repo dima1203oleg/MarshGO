@@ -10,17 +10,16 @@ export class UklonPartnerAdapter implements RideProvider {
 
   async getEstimates(_origin: Coordinate, _destination: Coordinate): Promise<RideEstimate[]> {
     if (!this.hasActiveContract) {
-      // Per Specification: Do not simulate prices or fake cars without confirmed API access
       return [];
     }
-    // In production with credentials, the official B2B endpoint would be invoked here
+    // Partner quote APIs are required for a valid fare and live pickup ETA.
     return [];
   }
 
   async requestRide(
     _origin: Coordinate,
     _destination: Coordinate,
-    _productId: string
+    _productId: string,
   ): Promise<{ bookingId: string; status: string }> {
     throw new Error('Uklon ride dispatch is unavailable pending partner contract execution.');
   }
@@ -38,13 +37,14 @@ export class BoltPartnerAdapter implements RideProvider {
     if (!this.hasActiveContract) {
       return [];
     }
+    // Partner quote APIs are required for a valid fare and live pickup ETA.
     return [];
   }
 
   async requestRide(
     _origin: Coordinate,
     _destination: Coordinate,
-    _productId: string
+    _productId: string,
   ): Promise<{ bookingId: string; status: string }> {
     throw new Error('Bolt ride dispatch is unavailable pending partner contract execution.');
   }

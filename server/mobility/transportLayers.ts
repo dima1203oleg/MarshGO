@@ -47,7 +47,8 @@ const asLineType = (label: string): LineType | null => (isLineType(label) ? labe
 export function buildNetwork(files: Record<string, string>): TransportNetwork {
   const routeInfo = new Map<string, { name: string; type: LineType }>();
   for (const route of rows(files['routes.txt'])) {
-    const type = asLineType(routeTypeLabel(Number(route.route_type)));
+    const routeName = `${route.route_short_name ?? ''} ${route.route_long_name ?? ''} ${route.route_desc ?? ''}`;
+    const type = asLineType(routeTypeLabel(Number(route.route_type), routeName));
     if (type) routeInfo.set(route.route_id, { name: (route.route_short_name || route.route_long_name || route.route_id).trim(), type });
   }
   const stopById = new Map<string, { name: string; lon: number; lat: number }>();
@@ -223,11 +224,27 @@ export interface LiveVehicle {
 
 /** Convert an epoch timestamp to ISO without guessing that an untimed fix is fresh. */
 export function normalizeObservedAt(value: unknown): string | null {
-  const numeric = typeof value === 'number' ? value : typeof value === 'string' && value.trim() ? Number(value) : NaN;
+  const protobufLong = typeof value === 'object' && value !== null && 'toNumber' in value
+    && typeof value.toNumber === 'function'
+    ? value.toNumber()
+    : NaN;
+  const numeric = typeof value === 'number' ? value
+    : typeof value === 'bigint' ? Number(value)
+      : typeof value === 'string' && value.trim() ? Number(value)
+        : protobufLong;
   if (!Number.isFinite(numeric) || numeric <= 0) return null;
   const epochMilliseconds = numeric > 1_000_000_000_000 ? numeric : numeric * 1000;
   const date = new Date(epochMilliseconds);
   return Number.isFinite(date.getTime()) ? date.toISOString() : null;
+}
+
+/** Keep untimed, invalid, future-skewed, and older-than-three-minute fixes off the live map. */
+export function isFreshVehicleObservation(observedAt: string | null, now = Date.now()): boolean {
+  if (!observedAt) return false;
+  const timestamp = Date.parse(observedAt);
+  if (!Number.isFinite(timestamp)) return false;
+  const ageMs = now - timestamp;
+  return ageMs >= -30_000 && ageMs <= 180_000;
 }
 
 const VEHICLE_TTL_MS = 10_000;
