@@ -10,6 +10,9 @@ import {
   MapPin,
   ArrowRight,
   Clock3,
+  CarFront,
+  Bike,
+  Zap,
   Loader2,
   AlertCircle,
   RefreshCw,
@@ -48,7 +51,10 @@ function transferLabel(count: number): string {
 function segmentIcon(mode: string) {
   const LegIcon = mode === 'walk' ? Footprints
     : mode === 'tram' || mode === 'trolleybus' ? TramFront
-      : mode === 'metro' || mode === 'train' || mode === 'suburban_train' ? Train : Bus;
+      : mode === 'metro' || mode === 'train' || mode === 'suburban_train' ? Train
+        : mode === 'carpool' || mode === 'taxi' || mode === 'carsharing' || mode === 'transfer' ? CarFront
+          : mode === 'bike' ? Bike
+            : mode === 'scooter' ? Zap : Bus;
   return <LegIcon size={13} aria-hidden="true"/>;
 }
 
@@ -56,9 +62,18 @@ function segmentChain(item: RouteSearchResultItem) {
   if (item.legs?.length) return item.legs.map((leg) => ({
     id: leg.id,
     mode: leg.mode,
-    label: [leg.modeLabel, leg.routeName].filter(Boolean).join(' ') || (leg.mode === 'walk' ? 'Пішки' : 'Транспорт'),
+    label: leg.mode === 'walk' ? 'Пішки' : leg.routeName?.trim() || leg.modeLabel || 'Транспорт',
+    modeLabel: leg.modeLabel,
   }));
-  return [{ id: item.id, mode: item.type, label: item.modeLabel || item.type }];
+  return [{ id: item.id, mode: item.type, label: item.modeLabel || item.type, modeLabel: item.modeLabel || item.type }];
+}
+
+function routeTitle(item: RouteSearchResultItem): string {
+  const labels = (item.legs ?? [])
+    .filter((leg) => leg.mode !== 'walk')
+    .map((leg) => leg.modeLabel)
+    .filter((label, index, all) => Boolean(label) && all.indexOf(label) === index);
+  return labels.join(' + ') || item.modeLabel;
 }
 
 interface SearchResultsListProps {
@@ -117,27 +132,27 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
 
   return (
     <div className="search-results-screen mx-auto flex min-h-[100svh] w-full max-w-md flex-col overflow-x-hidden bg-[#F4F8FD] text-[#0B1730] dark:bg-[#070E1B] pb-20">
-      {/* Results header follows the selected route and its actual search time. */}
+      {/* Canonical results header */}
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 bg-white/95 dark:bg-[#0B1730]/95 backdrop-blur-md px-4 py-3 pt-[max(4.75rem,calc(env(safe-area-inset-top)+2rem))]">
         <button
           type="button"
           onClick={onBackToSearchForm}
           aria-label="Назад"
-          className="grid h-10 w-10 place-items-center rounded-full text-slate-700 dark:text-slate-200 transition active:scale-95"
+          className="grid h-11 w-11 place-items-center rounded-full text-slate-700 dark:text-slate-200 transition active:scale-95"
         >
           <ArrowLeft size={20} />
         </button>
 
         <div className="min-w-0 flex-1 text-center">
           <h1 className="truncate text-sm font-extrabold text-[#0B1730] dark:text-white">Результати пошуку</h1>
-          <p className="mt-0.5 truncate text-[10px] font-semibold text-slate-500 dark:text-slate-400">{cleanOrigin} → {cleanDest} · {displayDate} · {timeStr || 'Час не вказано'} · {passengers} {passengers === 1 ? 'пасажир' : 'пасажири'}</p>
+          <p className="sr-only">{cleanOrigin} → {cleanDest} · {displayDate} · {timeStr || 'Час не вказано'} · {passengers} {passengers === 1 ? 'пасажир' : 'пасажири'}</p>
         </div>
 
         <button
           type="button"
           onClick={onOpenFiltersModal}
           aria-label="Фільтри"
-          className="grid h-10 w-10 place-items-center rounded-full text-slate-700 dark:text-slate-200 transition active:scale-95"
+          className="grid h-11 w-11 place-items-center rounded-full text-slate-700 dark:text-slate-200 transition active:scale-95"
         >
           <SlidersHorizontal size={18} />
         </button>
@@ -145,40 +160,40 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
 
       {/* Main Content */}
       <div className="search-results-content flex-1 space-y-3 px-4 pt-3">
-        {/* Strategy Tabs: [ Оптимальний ] [ Найшвидший ] [ Найдешевший ] */}
+        {/* Sort tabs from the MarshGO2 reference */}
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => handleStrategyChange('BALANCED')}
-            className={`flex-1 rounded-full py-2 text-xs font-black transition ${
+            className={`min-h-10 flex-1 rounded-2xl px-2 py-2 text-xs font-black transition ${
               activeStrategy === 'BALANCED'
                 ? 'bg-[#007AFF] text-white shadow-xs'
                 : 'bg-white dark:bg-[#101E38] text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800 hover:bg-slate-50'
             }`}
           >
-            Оптимальні
+            Оптимальний
           </button>
           <button
             type="button"
             onClick={() => handleStrategyChange('FASTEST')}
-            className={`flex-1 rounded-full py-2 text-xs font-black transition ${
+            className={`min-h-10 flex-1 rounded-2xl px-2 py-2 text-xs font-black transition ${
               activeStrategy === 'FASTEST'
                 ? 'bg-[#007AFF] text-white shadow-xs'
                 : 'bg-white dark:bg-[#101E38] text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800 hover:bg-slate-50'
             }`}
           >
-            Найшвидші
+            Найшвидший
           </button>
           <button
             type="button"
             onClick={() => handleStrategyChange('CHEAPEST')}
-            className={`flex-1 rounded-full py-2 text-xs font-black transition ${
+            className={`min-h-10 flex-1 rounded-2xl px-2 py-2 text-xs font-black transition ${
               activeStrategy === 'CHEAPEST'
                 ? 'bg-[#007AFF] text-white shadow-xs'
                 : 'bg-white dark:bg-[#101E38] text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800 hover:bg-slate-50'
             }`}
           >
-            Найдешевші
+            Найдешевший
           </button>
         </div>
 
@@ -214,9 +229,14 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
         )}
 
         {notice && !isLoading && !error && (
-          <div role="status" className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
-            {notice}
-          </div>
+          <details className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-4 text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
+            <summary className="flex min-h-6 cursor-pointer list-none items-center gap-2 font-bold marker:content-none">
+              <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-black dark:bg-amber-900/60">Частково</span>
+              <span className="min-w-0 flex-1 truncate">{notice}</span>
+              <ChevronRight size={14} className="shrink-0 text-amber-700 dark:text-amber-300" aria-hidden="true"/>
+            </summary>
+            <p className="mt-2 border-t border-amber-200 pt-2 dark:border-amber-800">{notice}</p>
+          </details>
         )}
 
         {/* Itinerary Cards List matching Screen 2 */}
@@ -248,7 +268,7 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
                       (e.currentTarget as HTMLElement).click();
                     }
                   }}
-                  className={`group flex w-full flex-col rounded-[22px] bg-white p-3.5 text-left shadow-[0_2px_10px_rgba(26,73,133,.05)] transition duration-200 hover:shadow-md active:scale-[0.99] dark:bg-[#101E38] ${
+                  className={`group flex w-full flex-col rounded-[22px] bg-white p-3.5 text-left shadow-[0_2px_10px_rgba(26,73,133,.05)] transition duration-200 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 active:scale-[0.99] dark:bg-[#101E38] ${
                     isFirst
                       ? 'border-2 border-[#007AFF] shadow-blue-500/10'
                       : 'border border-[#E3EBF4] dark:border-slate-800'
@@ -257,7 +277,7 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p className="truncate text-[13px] font-extrabold text-[#0B1730] dark:text-white">
-                        {legsChain.map((leg) => leg.label).join(' + ')}
+                        {routeTitle(realItem)}
                       </p>
                       <p className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                         <Clock3 size={13} className="shrink-0 text-[#007AFF]"/>
@@ -276,7 +296,7 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
                     {legsChain.map((leg, legIdx) => (
                       <React.Fragment key={leg.id}>
                         {legIdx > 0 && <ArrowRight size={12} className="shrink-0 text-slate-300 dark:text-slate-600"/>}
-                        <span className={`flex shrink-0 items-center gap-1.5 rounded-xl px-2.5 py-1 text-[11px] font-black ${leg.mode === 'walk' ? 'border border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300' : 'text-white shadow-2xs'}`}
+                        <span aria-label={`${leg.modeLabel}: ${leg.label}`} className={`flex shrink-0 items-center gap-1.5 rounded-xl px-2.5 py-1 text-[11px] font-black ${leg.mode === 'walk' ? 'border border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300' : 'text-white shadow-2xs'}`}
                           style={leg.mode === 'walk' ? undefined : { backgroundColor: transportColor(leg.mode) }}>
                           {segmentIcon(leg.mode)}{leg.label}
                         </span>
@@ -293,7 +313,7 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
                           <div key={leg.id} className="min-w-0 overflow-hidden rounded-lg bg-slate-50 px-1.5 py-1.5 text-center dark:bg-slate-900/70">
                             <span className="mb-1 block h-1 rounded-full" style={{ backgroundColor: isWalk ? '#94A3B8' : transportColor(leg.mode), borderBottom: isWalk ? '1px dashed white' : undefined }}/>
                             <span className="block truncate text-[9px] font-bold text-slate-600 dark:text-slate-300">{leg.durationLabel || leg.modeLabel}</span>
-                            <span className={`block truncate text-[9px] font-extrabold ${price ? 'text-[#0B1730] dark:text-white' : 'text-slate-400'}`}>{price ?? (isWalk ? 'Без оплати' : 'Ціна невідома')}</span>
+                            <span className={`block truncate text-[9px] font-extrabold ${price ? 'text-[#0B1730] dark:text-white' : 'text-slate-400'}`}>{price ?? (isWalk ? 'Пішки' : 'Ціна не надана')}</span>
                           </div>
                         );
                       })}
@@ -303,13 +323,9 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
                   <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                     <span>{transfersCount === 0 ? 'Без пересадок' : transferLabel(transfersCount)}</span>
                     {hasDistance && <><span aria-hidden="true">·</span><span>{realItem.distanceLabel}</span></>}
-                  </div>
-
-                  {/* Bottom Row: Origin → Destination text */}
-                  <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 text-[11px] text-slate-400 dark:text-slate-500 font-medium truncate flex items-center gap-1.5">
-                    <span className="truncate">{cleanOrigin}</span>
-                    <ArrowRight size={10} className="text-slate-300 dark:text-slate-600 shrink-0" />
-                    <span className="truncate">{cleanDest}</span>
+                    <span className="ml-auto flex shrink-0 items-center gap-1 text-right text-slate-400">
+                      <span>{cleanOrigin}</span><ArrowRight size={10} aria-hidden="true"/><span>{cleanDest}</span>
+                    </span>
                   </div>
                 </div>
               );

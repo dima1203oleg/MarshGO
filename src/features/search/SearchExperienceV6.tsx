@@ -457,6 +457,14 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
     const strategy = route.strategy === 'CUSTOM' ? 'BALANCED' : route.strategy;
     const restore = (async () => {
       if (route.mode === 'planner') {
+        if (new Date(route.departure).getTime() <= Date.now()) {
+          const suggestedDeparture = formatKyivDateTimeInput(new Date(Date.now() + 15 * 60_000));
+          setDateStr(suggestedDeparture.slice(0, 10));
+          setTimeStr(suggestedDeparture.slice(11, 16));
+          setSearchError('Час у збереженому пошуку вже минув. Перевірте запропонований час і натисніть «Знайти маршрут».');
+          setSubView('form');
+          return;
+        }
         const [restoredOrigin, restoredDestination] = await Promise.all([
           route.origin.latitude == null || route.origin.longitude == null
             ? resolveCityPlace(route.origin.label, route.destination.label)

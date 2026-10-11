@@ -313,9 +313,7 @@ export function ProductionMarketplace() {
     }).catch((error: unknown) => {
       if (active) setStatusMessage(error instanceof Error ? error.message : 'Не вдалося відновити результати пошуку.');
     });
-    if (parsed.mode === 'planner') {
-      setStatusMessage('Параметри планування відновлено.');
-    }
+    if (parsed.mode === 'planner') setStatusMessage('');
     return () => { active = false; };
   }, [loading, locationKey, route?.kind, route?.tab, tab, user?.id]);
 
@@ -1936,6 +1934,7 @@ export function ProductionMarketplace() {
     </div>
   ) : (
     <SearchExperienceV6
+      key={locationKey}
       unreadNotificationCount={notificationPage.unreadCount}
       initialOrigin={searchOriginPlace?.label || origin || ''}
       initialDestination={searchDestinationPlace?.label || destination || ''}
