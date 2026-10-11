@@ -15,11 +15,21 @@ describe('Journey strategy scoring', () => {
     assert.equal(scoreJourneys(candidates, 'CHEAPEST')[0].journey.id, 'bus');
   });
 
-  it('selects representative alternatives and suppresses near-identical routes', () => {
+  it('keeps every distinct route and scheduled alternative while ordering strategy winners first', () => {
     const similar: JourneyOption = { ...candidates[2], id: 'community-taxi-similar', durationSeconds: 3980, priceMinor: 43000 };
     const selected = selectRepresentativeJourneys([...candidates, similar]);
     assert.equal(new Set(selected.map((item) => item.journey.id)).size, selected.length);
     assert.ok(selected.some((item) => item.journey.id === 'community-taxi'));
+    assert.ok(selected.some((item) => item.journey.id === 'community-taxi-similar'));
+    assert.equal(selected.length, 4);
+    assert.equal(selected[0]?.journey.id, 'community-taxi');
+  });
+
+  it('keeps results within the planner result bound', () => {
+    const many = Array.from({ length: 25 }, (_, index): JourneyOption => ({
+      ...candidates[0], id: `bus-${index}`, durationSeconds: 3600 + index * 60,
+    }));
+    assert.equal(selectRepresentativeJourneys(many, ['BALANCED'], 8).length, 8);
   });
 
   it('penalizes fragile connections for the RELIABLE strategy', () => {

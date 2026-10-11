@@ -109,43 +109,30 @@ export function scoreJourneys<T extends JourneyOption>(
 export function selectRepresentativeJourneys<T extends JourneyOption>(
   journeys: readonly T[],
   strategies: readonly JourneyStrategy[] = ['FASTEST', 'CHEAPEST', 'PREMIUM', 'BALANCED', 'RELIABLE'],
-  maxSimilarityRatio = 0.03,
+  maxResults = 200,
 ): Array<{ strategy: JourneyStrategy; journey: T; score: number }> {
   const selected: Array<{ strategy: JourneyStrategy; journey: T; score: number }> = [];
+  const selectedIds = new Set<string>();
+  const add = (journey: T, strategy: JourneyStrategy, score: number) => {
+    if (selectedIds.has(journey.id) || selected.length >= maxResults) return;
+    selectedIds.add(journey.id);
+    selected.push({ strategy, journey, score });
+  };
 
-  const isDuplicate = (candidate: T) => selected.some((existing) => {
-    const existingModes = existing.journey.legs.map((leg) => leg.mode).join(',');
-    const candidateModes = candidate.legs.map((leg) => leg.mode).join(',');
-    if (existingModes !== candidateModes) return false;
-
-    // Check if route names are identical or different
-    const existingRoutes = existing.journey.legs.map((l: any) => l.routeName || '').filter(Boolean).join(',');
-    const candidateRoutes = candidate.legs.map((l: any) => l.routeName || '').filter(Boolean).join(',');
-    if (existingRoutes && candidateRoutes && existingRoutes !== candidateRoutes) return false;
-
-    const similarTime = Math.abs(existing.journey.durationSeconds - candidate.durationSeconds) <= Math.max(existing.journey.durationSeconds, candidate.durationSeconds) * maxSimilarityRatio;
-    const aPrice = existing.journey.priceMinor;
-    const bPrice = candidate.priceMinor;
-    const similarPrice = aPrice === bPrice || (aPrice !== null && bPrice !== null && Math.abs(aPrice - bPrice) <= Math.max(aPrice, bPrice, 1) * maxSimilarityRatio);
-    return existing.journey.transfers === candidate.transfers && similarTime && similarPrice;
-  });
-
-  // 1. First ensure winners for each strategy are included
+  // Keep the best alternatives for each strategy at the front of the list.
+  // Distinct departures on the same route remain separate options because
+  // their itinerary ids differ and they may have materially different waits.
   for (const strategy of strategies) {
     const scored = scoreJourneys(journeys, strategy);
     for (const item of scored.slice(0, 4)) {
-      if (!isDuplicate(item.journey)) {
-        selected.push({ strategy, journey: item.journey, score: item.score });
-      }
+      add(item.journey, strategy, item.score);
     }
   }
 
-  // 2. Also ensure each unique transport mode candidate (e.g. SCOOTER, BIKE, TAXI, TRAM, BUS, CARPOOL) has all viable variants included
+  // Append every other candidate inside the planner's bounded result window.
   const allScored = scoreJourneys(journeys, 'BALANCED');
   for (const item of allScored) {
-    if (!isDuplicate(item.journey) && selected.length < 30) {
-      selected.push({ strategy: 'BALANCED', journey: item.journey, score: item.score });
-    }
+    add(item.journey, 'BALANCED', item.score);
   }
 
   return selected;
