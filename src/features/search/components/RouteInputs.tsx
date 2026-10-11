@@ -135,7 +135,7 @@ export const RouteInputs: React.FC<RouteInputsProps> = ({
               type="button"
               onClick={handleClearOrigin}
               title="Очистити адресу"
-              className="grid h-7 w-7 place-items-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 transition"
+              className="grid h-11 w-11 place-items-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 transition"
               aria-label="Очистити адресу звідки"
             >
               <X size={15} />
@@ -146,7 +146,7 @@ export const RouteInputs: React.FC<RouteInputsProps> = ({
             type="button"
             onClick={() => onOpenMapPicker?.('origin')}
             title="Показати на карті: Відкрити карту для вибору адреси"
-            className="grid h-8 w-8 place-items-center rounded-xl bg-blue-50/60 dark:bg-blue-950/40 text-[#0066FF] dark:text-blue-400 hover:bg-blue-100/70 transition"
+            className="grid h-11 w-11 place-items-center rounded-xl bg-blue-50/60 dark:bg-blue-950/40 text-[#0066FF] dark:text-blue-400 hover:bg-blue-100/70 transition"
             aria-label="Обрати точку звідки на карті"
           >
             <Map size={16} strokeWidth={2.4} />
@@ -156,7 +156,7 @@ export const RouteInputs: React.FC<RouteInputsProps> = ({
             type="button"
             onClick={handleGpsCurrentLocation}
             title="Геолокація: Визначити моє поточне місцеперебування"
-            className={`grid h-8 w-8 place-items-center rounded-xl bg-blue-50/60 dark:bg-blue-950/40 text-[#0066FF] dark:text-blue-400 hover:bg-blue-100/70 transition ${
+            className={`grid h-11 w-11 place-items-center rounded-xl bg-blue-50/60 dark:bg-blue-950/40 text-[#0066FF] dark:text-blue-400 hover:bg-blue-100/70 transition ${
               detectingGps ? 'animate-spin' : ''
             }`}
             aria-label="Визначити поточну геолокацію"
@@ -200,7 +200,7 @@ export const RouteInputs: React.FC<RouteInputsProps> = ({
               type="button"
               onClick={handleClearDestination}
               title="Очистити адресу"
-              className="grid h-7 w-7 place-items-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 transition"
+              className="grid h-11 w-11 place-items-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 transition"
               aria-label="Очистити адресу куди"
             >
               <X size={15} />
@@ -211,7 +211,7 @@ export const RouteInputs: React.FC<RouteInputsProps> = ({
             type="button"
             onClick={() => onOpenMapPicker?.('destination')}
             title="Показати на карті: Відкрити карту для вибору адреси"
-            className="grid h-8 w-8 place-items-center rounded-xl bg-blue-50/60 dark:bg-blue-950/40 text-[#0066FF] dark:text-blue-400 hover:bg-blue-100/70 transition"
+            className="grid h-11 w-11 place-items-center rounded-xl bg-blue-50/60 dark:bg-blue-950/40 text-[#0066FF] dark:text-blue-400 hover:bg-blue-100/70 transition"
             aria-label="Обрати точку куди на карті"
           >
             <Map size={16} strokeWidth={2.4} />
@@ -221,7 +221,7 @@ export const RouteInputs: React.FC<RouteInputsProps> = ({
             type="button"
             onClick={handleSwap}
             title="Поміняти місцями початковий пункт і призначення"
-            className="grid h-8 w-8 place-items-center rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-2xs hover:bg-blue-50 hover:text-[#0066FF] transition active:scale-90"
+            className="grid h-11 w-11 place-items-center rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-2xs hover:bg-blue-50 hover:text-[#0066FF] transition active:scale-90"
             aria-label="Поміняти місцями куди і звідки"
           >
             <ArrowDownUp size={14} strokeWidth={2.4} />

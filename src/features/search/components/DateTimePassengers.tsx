@@ -57,7 +57,7 @@ export const DateTimePassengers: React.FC<DateTimePassengersProps> = ({
         <button
           type="button"
           onClick={() => setOpenCalendar(true)}
-          className="flex items-center justify-between gap-1 rounded-xl bg-white dark:bg-[#101E38] px-2.5 py-2 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs hover:border-[#0066FF] transition active:scale-95"
+          className="flex min-h-11 items-center justify-between gap-1 rounded-xl bg-white dark:bg-[#101E38] px-2.5 py-2 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs hover:border-[#0066FF] transition active:scale-95"
         >
           <div className="flex items-center gap-1.5 min-w-0">
             <Calendar size={13} className="text-[#0066FF] shrink-0" />
@@ -77,7 +77,7 @@ export const DateTimePassengers: React.FC<DateTimePassengersProps> = ({
         <button
           type="button"
           onClick={() => setOpenTimeDrum(true)}
-          className="flex items-center justify-between gap-1 rounded-xl bg-white dark:bg-[#101E38] px-2.5 py-2 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs hover:border-[#0066FF] transition active:scale-95"
+          className="flex min-h-11 items-center justify-between gap-1 rounded-xl bg-white dark:bg-[#101E38] px-2.5 py-2 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs hover:border-[#0066FF] transition active:scale-95"
         >
           <div className="flex items-center gap-1.5 min-w-0">
             <Clock size={13} className="text-[#0066FF] shrink-0" />
@@ -97,7 +97,7 @@ export const DateTimePassengers: React.FC<DateTimePassengersProps> = ({
         <button
           type="button"
           onClick={() => setOpenPassengersDrum(true)}
-          className="flex items-center justify-between gap-1 rounded-xl bg-white dark:bg-[#101E38] px-2.5 py-2 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs hover:border-[#0066FF] transition active:scale-95"
+          className="flex min-h-11 items-center justify-between gap-1 rounded-xl bg-white dark:bg-[#101E38] px-2.5 py-2 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs hover:border-[#0066FF] transition active:scale-95"
         >
           <div className="flex items-center gap-1.5 min-w-0">
             <User size={13} className="text-[#0066FF] shrink-0" />

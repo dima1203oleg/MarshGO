@@ -96,7 +96,7 @@ export const TransportTypesPanel: React.FC<TransportTypesPanelProps> = ({
               title={!connected ? disabledReason : undefined}
               disabled={!supported}
               onClick={() => handleTileClick(mode.id)}
-              className={`relative flex flex-col items-center justify-between rounded-2xl p-2 pt-2.5 pb-2 text-center transition-all active:scale-95 min-h-[78px] ${
+              className={`relative flex min-h-[68px] flex-col items-center justify-between rounded-2xl p-2 pt-2.5 pb-2 text-center transition-all active:scale-95 ${
                 isSelected
                   ? 'border-2 border-[#0066FF] bg-white shadow-xs dark:border-[#0066FF] dark:bg-[#101E38]'
                   : supported

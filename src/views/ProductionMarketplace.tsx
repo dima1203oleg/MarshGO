@@ -2028,7 +2028,10 @@ export function ProductionMarketplace() {
     onAsDriver={() => { if (!authenticatedUser?.roles?.includes('driver')) { setStatusMessage('Щоб запланувати поїздку автомобілем, додайте та верифікуйте авто у профілі.'); setTab('profile'); return; } setTab('offer-new'); }}
     onAsPassenger={() => setTab('demand')}/>;
 
-  const strategyResultJourneys = journeyResult?.journeys.filter((journey) => journey.strategy === journeyStrategy) ?? [];
+  const matchesJourneyStrategy = (journey: ApiJourney) => journey.recommendedStrategies
+    ? journey.recommendedStrategies.includes(journeyStrategy)
+    : journey.strategy === journeyStrategy;
+  const strategyResultJourneys = journeyResult?.journeys.filter(matchesJourneyStrategy) ?? [];
   const resultHasRealtime = strategyResultJourneys.some((journey) => journey.legs.some((leg) => /gtfs-?rt|real.?time|\bgps\b/i.test(`${leg.source} ${leg.availabilityStatus}`)));
   const resultHasSchedule = strategyResultJourneys.some((journey) => journey.legs.some((leg) => /gtfs|schedule|розклад/i.test(`${leg.source} ${leg.availabilityStatus}`)));
   const availableResultModeOptions = [
@@ -2051,7 +2054,7 @@ export function ProductionMarketplace() {
       const sourceMatches = journeyResultSource === 'all' || journey.legs.some((leg) => journeyResultSource === 'realtime'
         ? /gtfs-?rt|real.?time|\bgps\b/i.test(`${leg.source} ${leg.availabilityStatus}`)
         : /gtfs|schedule|розклад/i.test(`${leg.source} ${leg.availabilityStatus}`));
-      return modeMatches && sourceMatches && journey.strategy === journeyStrategy;
+      return modeMatches && sourceMatches && matchesJourneyStrategy(journey);
     }),
   } : null;
 

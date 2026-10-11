@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { scoreJourneys, selectRepresentativeJourneys, strategiesWithComparablePrices } from '../server/journey/scoring';
+import { JOURNEY_SCORE_WEIGHTS, scoreJourneys, selectRepresentativeJourneys, strategiesWithComparablePrices } from '../server/journey/scoring';
 import type { JourneyOption } from '../server/journey/types';
 
 const candidates: JourneyOption[] = [
@@ -10,6 +10,12 @@ const candidates: JourneyOption[] = [
 ];
 
 describe('Journey strategy scoring', () => {
+  it('uses the documented normalized starting weights for optimal search', () => {
+    assert.deepEqual(JOURNEY_SCORE_WEIGHTS.BALANCED, {
+      time: 0.35, price: 0.25, transfers: 0.10, walking: 0.10, risk: 0.20, comfort: 0,
+    });
+  });
+
   it('ranks door-to-door FASTEST and CHEAPEST alternatives by their strategy', () => {
     assert.equal(scoreJourneys(candidates, 'FASTEST')[0].journey.id, 'community-taxi');
     assert.equal(scoreJourneys(candidates, 'CHEAPEST')[0].journey.id, 'bus');
