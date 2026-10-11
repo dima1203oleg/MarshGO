@@ -95,6 +95,14 @@ export interface GtfsItinerary {
   transferWalkingMeters: number[];
 }
 
+export interface GtfsItinerarySearchResult {
+  itineraries: GtfsItinerary[];
+  /** True when the bounded graph walk stopped before exhausting its search space. */
+  searchTruncated: boolean;
+  /** True when more unique route chains existed than the requested result limit. */
+  resultLimitReached: boolean;
+}
+
 function csvRows(text: string | undefined): CsvRow[] {
   if (!text) return [];
   const lines = text.replace(/^\uFEFF/, '').split(/\r?\n/).filter((line) => line.length > 0);
@@ -578,7 +586,7 @@ export function findDirectGtfsJourneys(feed: GtfsTimetableFeed, input: SearchInp
  * feeds. Walking to and from the first/last stop uses a conservative straight-
  * line estimate and is surfaced separately in the result.
  */
-export function findGtfsItineraries(feed: GtfsTimetableFeed, input: GtfsItinerarySearchInput): GtfsItinerary[] {
+export function findGtfsItinerariesWithStats(feed: GtfsTimetableFeed, input: GtfsItinerarySearchInput): GtfsItinerarySearchResult {
   const now = input.now ?? new Date();
   const maximumJourneySeconds = input.maximumJourneySeconds ?? 24 * 60 * 60;
   const maximumTransfers = input.maximumTransfers ?? MAX_GTFS_TRANSFERS;
@@ -597,6 +605,7 @@ export function findGtfsItineraries(feed: GtfsTimetableFeed, input: GtfsItinerar
     throw new TypeError('GTFS itinerary search bounds are invalid');
   }
 
+  let stopSelectionTruncated = false;
   const closestStops = (point: [number, number]) => {
     const ranked = [...feed.stops.values()]
       .filter((stop) => feed.stopTimesByStop.has(stop.id))
@@ -622,11 +631,14 @@ export function findGtfsItineraries(feed: GtfsTimetableFeed, input: GtfsItinerar
         selectedByType.set(type, count + 1);
       }
     }
+    if (selected.size < ranked.length) stopSelectionTruncated = true;
     return [...selected.values()];
   };
   const originStops = closestStops(input.origin);
   const destinationStops = closestStops(input.destination);
-  if (!originStops.length || !destinationStops.length) return [];
+  if (!originStops.length || !destinationStops.length) {
+    return { itineraries: [], searchTruncated: false, resultLimitReached: false };
+  }
 
   const routeDistance = distanceMeters(input.origin, input.destination);
   const corridorWidth = Math.max(12_000, Math.min(60_000, routeDistance * 0.2));
@@ -819,10 +831,10 @@ export function findGtfsItineraries(feed: GtfsTimetableFeed, input: GtfsItinerar
       walk([segment], segment.mode);
   }
 
-  const selected: GtfsItinerary[] = [];
   const selectedPaths = new Set<string>();
   const rankedResults = [...results.values()]
     .sort((a, b) => a.arrivalAt.getTime() - b.arrivalAt.getTime() || a.transfers - b.transfers || a.id.localeCompare(b.id));
+  const uniqueRankedResults: GtfsItinerary[] = [];
   for (const itinerary of rankedResults) {
     // A different trip_id or transfer stop is a different scheduled run/path,
     // not a different line combination. Keep the best run for each sequence
@@ -830,22 +842,34 @@ export function findGtfsItineraries(feed: GtfsTimetableFeed, input: GtfsItinerar
     const pathKey = itinerary.segments.map((segment) => `${segment.providerId}:${segment.routeId}`).join('>');
     if (selectedPaths.has(pathKey)) continue;
     selectedPaths.add(pathKey);
-    selected.push(itinerary);
-    if (selected.length >= limit) break;
+    uniqueRankedResults.push(itinerary);
   }
+  const resultLimitReached = uniqueRankedResults.length > limit;
+  const selected = uniqueRankedResults.slice(0, limit);
+  const searchTruncated = stopSelectionTruncated || searchSteps >= MAX_SEARCH_STEPS
+    || [...searchStepsByFirstMode.values()].some((steps) => steps >= MAX_SEARCH_STEPS_PER_FIRST_MODE);
   // Build geometry only for alternatives that will be returned to the API.
   // Busy feeds may have thousands of time-feasible paths; materializing each
   // shape before ranking caused discarded alternatives to dominate latency.
-  return selected.map((itinerary) => ({
-    ...itinerary,
-    segments: itinerary.segments.map((segment) => {
-      const tripStops = feed.stopTimes.get(segment.tripId) ?? [];
-      const fromIndex = tripStops.findIndex((stop) => stop.stopId === segment.originStop.id);
-      const toIndex = tripStops.findIndex((stop) => stop.stopId === segment.destinationStop.id);
-      if (fromIndex < 0 || toIndex <= fromIndex) return segment;
-      return { ...segment, ...tripSegmentGeometry(feed, segment.tripId, fromIndex, toIndex) };
-    }),
-  }));
+  return {
+    itineraries: selected.map((itinerary) => ({
+      ...itinerary,
+      segments: itinerary.segments.map((segment) => {
+        const tripStops = feed.stopTimes.get(segment.tripId) ?? [];
+        const fromIndex = tripStops.findIndex((stop) => stop.stopId === segment.originStop.id);
+        const toIndex = tripStops.findIndex((stop) => stop.stopId === segment.destinationStop.id);
+        if (fromIndex < 0 || toIndex <= fromIndex) return segment;
+        return { ...segment, ...tripSegmentGeometry(feed, segment.tripId, fromIndex, toIndex) };
+      }),
+    })),
+    searchTruncated,
+    resultLimitReached,
+  };
+}
+
+/** Compatibility wrapper for callers that only need journeys, not cap diagnostics. */
+export function findGtfsItineraries(feed: GtfsTimetableFeed, input: GtfsItinerarySearchInput): GtfsItinerary[] {
+  return findGtfsItinerariesWithStats(feed, input).itineraries;
 }
 
 const feedCache = new Map<string, { cachedAt: number; promise: Promise<GtfsTimetableFeed> }>();

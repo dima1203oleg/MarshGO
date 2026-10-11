@@ -269,6 +269,12 @@ export function JourneyResultsPanel({
         </p>
       )}
 
+      {result.candidateGenerationTruncated && (
+        <p role="status" className="mb-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
+          Пошук досяг ліміту обробки джерел; частина маршрутів могла не потрапити до результатів. Уточніть час або види транспорту й повторіть пошук.
+        </p>
+      )}
+
       {result.partial && (
         <div className="mb-3 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
           Показані підключені офіційні розклади транспорту та поїздки MARSHGO Community.
