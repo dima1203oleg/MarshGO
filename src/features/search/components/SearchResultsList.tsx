@@ -9,12 +9,57 @@ import {
   Train,
   MapPin,
   ArrowRight,
+  Clock3,
   Loader2,
   AlertCircle,
   RefreshCw,
 } from 'lucide-react';
-import type { RouteSearchResultItem, SearchStrategyMode } from '../model/types';
+import type { RouteLegItem, RouteSearchResultItem, SearchStrategyMode } from '../model/types';
 import { transportColor } from '../../../domain/transportVisuals';
+
+function formatClock(value: string): string {
+  const clock = value.match(/(?:T|\s)(\d{1,2}:\d{2})/);
+  if (clock) return clock[1];
+  return value.match(/^\d{1,2}:\d{2}$/)?.[0] ?? '—';
+}
+
+function formatLegPrice(leg: RouteLegItem): string | null {
+  const label = leg.priceLabel?.trim();
+  if (label && !/не надан|не вказан|невідом|unknown/i.test(label)) {
+    return label.replace(' UAH', ' грн').replace(' ₴', ' грн');
+  }
+  if (leg.mode !== 'walk' && leg.priceMinor != null && Number.isFinite(leg.priceMinor)) {
+    return new Intl.NumberFormat('uk-UA', {
+      style: 'currency', currency: 'UAH', maximumFractionDigits: 0,
+    }).format(leg.priceMinor / 100);
+  }
+  return null;
+}
+
+function transferLabel(count: number): string {
+  const remainder100 = count % 100;
+  const remainder10 = count % 10;
+  if (remainder100 >= 11 && remainder100 <= 14) return `${count} пересадок`;
+  if (remainder10 === 1) return `${count} пересадка`;
+  if (remainder10 >= 2 && remainder10 <= 4) return `${count} пересадки`;
+  return `${count} пересадок`;
+}
+
+function segmentIcon(mode: string) {
+  const LegIcon = mode === 'walk' ? Footprints
+    : mode === 'tram' || mode === 'trolleybus' ? TramFront
+      : mode === 'metro' || mode === 'train' || mode === 'suburban_train' ? Train : Bus;
+  return <LegIcon size={13} aria-hidden="true"/>;
+}
+
+function segmentChain(item: RouteSearchResultItem) {
+  if (item.legs?.length) return item.legs.map((leg) => ({
+    id: leg.id,
+    mode: leg.mode,
+    label: [leg.modeLabel, leg.routeName].filter(Boolean).join(' ') || (leg.mode === 'walk' ? 'Пішки' : 'Транспорт'),
+  }));
+  return [{ id: item.id, mode: item.type, label: item.modeLabel || item.type }];
+}
 
 interface SearchResultsListProps {
   originTitle: string;
@@ -84,8 +129,8 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
         </button>
 
         <div className="min-w-0 flex-1 text-center">
-          <h1 className="truncate text-sm font-extrabold text-[#0B1730] dark:text-white">{cleanOrigin} → {cleanDest}</h1>
-          <p className="mt-0.5 truncate text-[10px] font-semibold text-slate-500 dark:text-slate-400">{displayDate} · {timeStr || 'Час не вказано'} · {passengers} {passengers === 1 ? 'пасажир' : 'пасажири'}</p>
+          <h1 className="truncate text-sm font-extrabold text-[#0B1730] dark:text-white">Результати пошуку</h1>
+          <p className="mt-0.5 truncate text-[10px] font-semibold text-slate-500 dark:text-slate-400">{cleanOrigin} → {cleanDest} · {displayDate} · {timeStr || 'Час не вказано'} · {passengers} {passengers === 1 ? 'пасажир' : 'пасажири'}</p>
         </div>
 
         <button
@@ -111,7 +156,7 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
                 : 'bg-white dark:bg-[#101E38] text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800 hover:bg-slate-50'
             }`}
           >
-            Оптимальний
+            Оптимальні
           </button>
           <button
             type="button"
@@ -122,7 +167,7 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
                 : 'bg-white dark:bg-[#101E38] text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800 hover:bg-slate-50'
             }`}
           >
-            Найшвидший
+            Найшвидші
           </button>
           <button
             type="button"
@@ -133,7 +178,7 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
                 : 'bg-white dark:bg-[#101E38] text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800 hover:bg-slate-50'
             }`}
           >
-            Найдешевший
+            Найдешевші
           </button>
         </div>
 
@@ -179,19 +224,14 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
           <div className="space-y-3 pt-1">
             {items.map((realItem, itemIdx) => {
               const durationLabel = realItem.durationLabel || 'Час не вказано';
-              const distanceLabel = realItem.distanceLabel || 'Відстань не вказана';
-              const priceLabel = realItem.priceLabel || 'Ціну не вказано';
-              const transfersCount = realItem.transfers ?? 0;
-              const transfersLabel = transfersCount === 0 ? 'Без пересадок' : `${transfersCount} пересадка`;
-              const legsChain = realItem.legs?.length
-                ? realItem.legs.map((leg) => ({
-                  type: leg.mode === 'walk' ? 'walk' : leg.mode,
-                  label: leg.mode === 'walk'
-                    ? (leg.durationLabel || `${Math.max(1, Math.round(leg.durationSeconds / 60))} хв`)
-                    : (leg.routeName || leg.modeLabel || leg.carrierName || leg.mode),
-                  badgeColor: leg.mode === 'walk' ? null : transportColor(leg.mode),
-                }))
-                : [{ type: 'transit', label: realItem.modeLabel, badgeColor: transportColor(realItem.type) }];
+              const hasDistance = realItem.distanceMeters != null && realItem.distanceMeters > 0
+                && realItem.distanceLabel && !/не надана|не вказана|невідом/i.test(realItem.distanceLabel);
+              const itemPrice = realItem.priceLabel && !/не надан|не вказан|невідом|unknown/i.test(realItem.priceLabel)
+                ? realItem.priceLabel.replace(' UAH', ' грн').replace(' ₴', ' грн')
+                : null;
+              const transitLegCount = realItem.legs?.filter((leg) => leg.mode !== 'walk').length ?? 1;
+              const transfersCount = realItem.transfers ?? Math.max(0, transitLegCount - 1);
+              const legsChain = segmentChain(realItem);
 
               const isFirst = itemIdx === 0;
 
@@ -208,50 +248,61 @@ export const SearchResultsList: React.FC<SearchResultsListProps> = ({
                       (e.currentTarget as HTMLElement).click();
                     }
                   }}
-                  className={`group flex w-full flex-col rounded-[22px] bg-white p-4 text-left shadow-[0_2px_10px_rgba(26,73,133,.05)] transition duration-200 hover:shadow-md active:scale-[0.99] dark:bg-[#101E38] ${
+                  className={`group flex w-full flex-col rounded-[22px] bg-white p-3.5 text-left shadow-[0_2px_10px_rgba(26,73,133,.05)] transition duration-200 hover:shadow-md active:scale-[0.99] dark:bg-[#101E38] ${
                     isFirst
                       ? 'border-2 border-[#007AFF] shadow-blue-500/10'
                       : 'border border-[#E3EBF4] dark:border-slate-800'
                   }`}
                 >
-                  {/* Top Row: Leg Badges Chain [🚶 4 хв] → [🚌 21] → [🚋 24] > */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      {legsChain.map((leg, legIdx) => {
-                        const LegIcon = leg.type === 'walk' ? Footprints
-                          : leg.type === 'tram' || leg.type === 'trolleybus' ? TramFront
-                          : leg.type === 'metro' || leg.type === 'train' || leg.type === 'suburban_train' ? Train
-                          : Bus;
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-[13px] font-extrabold text-[#0B1730] dark:text-white">
+                        {legsChain.map((leg) => leg.label).join(' + ')}
+                      </p>
+                      <p className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                        <Clock3 size={13} className="shrink-0 text-[#007AFF]"/>
+                        {formatClock(realItem.departureTime)} – {formatClock(realItem.arrivalTime)}
+                        <span className="mx-0.5">·</span>{durationLabel}
+                      </p>
+                    </div>
+                    <span className={`shrink-0 text-right ${itemPrice ? 'text-[#0B1730] dark:text-white' : 'text-slate-400'}`}>
+                      <span className="block text-[15px] font-black">{itemPrice ?? '—'}</span>
+                      <span className="block text-[9px] font-semibold text-slate-400">{itemPrice ? realItem.priceUnit : 'Ціну не надано'}</span>
+                    </span>
+                    <ChevronRight size={17} className="mt-1 shrink-0 text-slate-400 group-hover:text-[#0066FF] transition" />
+                  </div>
+
+                  <div className="mt-3 flex items-center gap-1.5 overflow-x-auto pb-0.5" aria-label="Послідовність видів транспорту">
+                    {legsChain.map((leg, legIdx) => (
+                      <React.Fragment key={leg.id}>
+                        {legIdx > 0 && <ArrowRight size={12} className="shrink-0 text-slate-300 dark:text-slate-600"/>}
+                        <span className={`flex shrink-0 items-center gap-1.5 rounded-xl px-2.5 py-1 text-[11px] font-black ${leg.mode === 'walk' ? 'border border-slate-200 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300' : 'text-white shadow-2xs'}`}
+                          style={leg.mode === 'walk' ? undefined : { backgroundColor: transportColor(leg.mode) }}>
+                          {segmentIcon(leg.mode)}{leg.label}
+                        </span>
+                      </React.Fragment>
+                    ))}
+                  </div>
+
+                  {realItem.legs?.length ? (
+                    <div className="mt-2 grid gap-1.5" style={{ gridTemplateColumns: `repeat(${realItem.legs.length}, minmax(0, 1fr))` }} aria-label="Тривалість і ціна сегментів">
+                      {realItem.legs.map((leg) => {
+                        const isWalk = leg.mode === 'walk';
+                        const price = isWalk ? null : formatLegPrice(leg);
                         return (
-                          <React.Fragment key={legIdx}>
-                            {legIdx > 0 && (
-                              <ArrowRight size={12} className="text-slate-300 dark:text-slate-600 shrink-0" />
-                            )}
-                            <span
-                              className={`flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-black shadow-2xs ${leg.type === 'walk' ? 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' : 'text-white'}`}
-                              style={leg.badgeColor ? { backgroundColor: leg.badgeColor } : undefined}
-                            >
-                              <LegIcon size={12} />
-                              <span>{leg.label}</span>
-                            </span>
-                          </React.Fragment>
+                          <div key={leg.id} className="min-w-0 overflow-hidden rounded-lg bg-slate-50 px-1.5 py-1.5 text-center dark:bg-slate-900/70">
+                            <span className="mb-1 block h-1 rounded-full" style={{ backgroundColor: isWalk ? '#94A3B8' : transportColor(leg.mode), borderBottom: isWalk ? '1px dashed white' : undefined }}/>
+                            <span className="block truncate text-[9px] font-bold text-slate-600 dark:text-slate-300">{leg.durationLabel || leg.modeLabel}</span>
+                            <span className={`block truncate text-[9px] font-extrabold ${price ? 'text-[#0B1730] dark:text-white' : 'text-slate-400'}`}>{price ?? (isWalk ? 'Без оплати' : 'Ціна невідома')}</span>
+                          </div>
                         );
                       })}
                     </div>
+                  ) : null}
 
-                    <ChevronRight size={18} className="text-slate-400 group-hover:text-[#0066FF] transition shrink-0 ml-2" />
-                  </div>
-
-                  {/* Middle Row: Duration & Details Matching Screen 2 */}
-                  <div className="mt-3 flex items-baseline gap-2.5 flex-wrap">
-                    <span className="text-[17px] font-black text-[#0B1730] dark:text-white tracking-tight">
-                      {durationLabel}
-                    </span>
-                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                      {transfersLabel}
-                      {distanceLabel && distanceLabel !== 'Відстань не вказана' ? ` • ${distanceLabel}` : ''}
-                      {priceLabel && priceLabel !== 'Ціну не надано' ? ` • ${priceLabel}` : ''}
-                    </span>
+                  <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                    <span>{transfersCount === 0 ? 'Без пересадок' : transferLabel(transfersCount)}</span>
+                    {hasDistance && <><span aria-hidden="true">·</span><span>{realItem.distanceLabel}</span></>}
                   </div>
 
                   {/* Bottom Row: Origin → Destination text */}
