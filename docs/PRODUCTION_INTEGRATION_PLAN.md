@@ -48,7 +48,7 @@ flowchart LR
 
 ### Phase 1 — contract freeze candidate, помилки та API сумісність
 
-**Зробити:** доробити Foundation WIP замість паралельного другого шару: runtime schemas/типи, coordinates як `[longitude,latitude]`, canonical `RouteResult`, bounded polyline6 codec, bounds, maneuvers, `NavigationError`, API DTO, Ownership/actor та event envelope. Побудувати OpenAPI для наявної `/api/v1` поверх фактичних handlers. Перевірити запит, відповідь і WebSocket за схемою. Зберегти сумісні overloads старих route масивів і нормалізувати тільки всередині boundary adapter.
+**Зробити:** доробити Foundation WIP замість паралельного другого шару: runtime schemas/типи, coordinates як `[longitude,latitude]`, canonical `RouteResult`, bounded polyline6 codec, bounds, maneuvers, `NavigationError`, HTTP DTO, Ownership/actor та event envelope. Сформувати опис HTTP-контрактів для наявної `/api/v1` поверх фактичних handlers. Перевірити запит, відповідь і WebSocket за схемою. Зберегти сумісні overloads старих route масивів і нормалізувати тільки всередині boundary adapter.
 
 **Рішення перед реалізацією:** чи за wire format для маршруту відповідає API v1 чи окреме optional поле; route version ownership; поведінка невідомих enum; payload-size ceiling. Canonical schema не можна називати `frozen`, доки нема contract compatibility tests з попереднім клієнтом.
 
