@@ -226,5 +226,20 @@
 **COVERAGE LIMITS**
 - The active route engine currently composes healthy configured GTFS schedules and direct MARSHGO Community rides. The tests do not establish nationwide feed coverage or live positions for every operator.
 - Separate verified supplies for marshrutkas, taxi, transfers, carsharing, bike and scooter rental are not active in this tested environment. Their categories remain visible and must report unavailable/unsupported instead of fabricating trips.
-- GTFS walking access/egress and inter-stop geometry remain straight-line estimates. Fares and seat availability are not verified for GTFS. Rescue currently suggests Community alternatives after a cancelled offer; it does not automatically rebook or monitor disruptions across a selected public-transport chain.
+- GTFS walking access/egress and unmodeled transfers use real foot-profile geometry when `WALKING_ROUTING_URL` is configured; otherwise they remain explicitly labeled straight-line estimates, and strict walking/time preferences exclude candidates whose walks are unverified. Fares and seat availability are not verified for GTFS. Rescue currently suggests Community alternatives after a cancelled offer; it does not automatically rebook or monitor disruptions across a selected public-transport chain.
 - No load-test p95 was measured in this verification run; production readiness for the full 12-category engine is not claimed.
+
+## 2026-10-12 — Routed pedestrian connections for scheduled journeys
+
+**DONE**
+- Added an optional OSRM-compatible foot-profile adapter with bounded concurrency, request timeout, short positive/negative caching and real route geometry.
+- When configured, journey search replaces straight-line access, egress and unmodeled transfer walks with routed distance/time, then rechecks departure reachability, transfer buffers, maximum walking distance and total duration. Missing foot routes and infeasible connections are excluded and surfaced as provider errors.
+- Explicit GTFS pathway geometry and its feed timing remain authoritative. Without `WALKING_ROUTING_URL`, estimates remain labeled and strict user constraints reject unverified walking paths.
+- Site journey-leg details now recognize the persisted `straight-line-estimate` source and show the same caveat as the search DTO.
+- Server: branch `codex/sync-mobility-registry`, commit `edbe28b3a36617c112d7325d0314f9c9340a1187`. Site: branch `codex/sync-journey-mobility-ui`, commit `186ee4b0095869be357674fc1a324450204e144f`. iOS CI pins this Site revision at `ad0ba2e2d35d444407b4fd6ab9e1656b1ab67ecf`.
+
+**VERIFICATION**
+- Server typecheck, lint and unit suite: PASS — 147 passed, 1 opt-in integration test skipped.
+- Site typecheck, lint, build and unit suite: PASS — 55/55.
+- GitHub Actions for the new Server, Site and iOS commits were still running at the time this note was recorded; the earlier root CI E2E run failed in six browser flows after six passed. The failures timed out or could not find the sign-in screen; no isolated root cause was established in that run.
+- No provider endpoint is configured or live-routed in this verification environment, so this confirms adapter behavior using contract fixtures, not current pedestrian coverage in production.
