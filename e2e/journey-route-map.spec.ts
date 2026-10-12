@@ -164,6 +164,18 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   await expect.poll(() => cheapestMode.evaluate(element => getComputedStyle(element).backgroundColor)).toBe('rgb(17, 24, 32)');
   await expect(resultCard.locator('[data-segment-mode="BUS"]')).toHaveCSS('background-color', 'rgb(22, 135, 255)');
   await page.screenshot({ path: `/tmp/marshgo-${browserName}-journey-results-dark.png` });
+  await page.setViewportSize({ width: 360, height: 844 });
+  const segmentScrollCue = resultCard.getByRole('button', { name: 'Прокрутити до наступних етапів маршруту' });
+  const segmentScroller = resultCard.locator('.journey-result-segments');
+  await expect(segmentScrollCue).toBeVisible();
+  await expect(segmentScrollCue.getByTestId('segment-scroll-cue-surface')).toHaveCSS('background-color', 'rgb(17, 24, 32)');
+  await segmentScrollCue.click();
+  await expect.poll(() => segmentScroller.evaluate(element => element.scrollLeft)).toBeGreaterThan(0);
+  const returnToSegmentStart = resultCard.getByRole('button', { name: 'Повернутися до початку етапів маршруту' });
+  await expect(returnToSegmentStart).toBeVisible();
+  await returnToSegmentStart.click();
+  await expect.poll(() => segmentScroller.evaluate(element => element.scrollLeft)).toBe(0);
+  await page.setViewportSize({ width: 390, height: 844 });
   await resultCard.getByRole('button', { name: /Відкрити маршрут:/ }).click();
 
   const routeMap = page.getByRole('main', { name: 'Побудований маршрут' });
