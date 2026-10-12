@@ -190,3 +190,24 @@
 **LIMITATIONS**
 - This returns suggestions only. It does not book replacements, search transit/taxi partners, or monitor an active multi-leg Journey.
 - Road geometry must exist and be trustworthy; deployments without a configured routing provider must not fabricate geometry.
+
+## 2026-10-12 — Canonical theme and door-to-door timetable accounting
+
+**DONE**
+- Preserved the supplied light and dark boards unchanged under `docs/design/canonical/` and documented their SHA-256 hashes and visual rules in `docs/design/CANONICAL_DESIGN.md`.
+- Kept the Home hierarchy and four square quick actions; the dark theme retains the canonical blue, green, purple and orange action colors. The mountain travel image remains the lead Home banner.
+- GTFS journey duration now starts at the requested departure time and includes access time, initial scheduled wait, transfers and egress. API results expose `requestedDepartureAt` and `waitingSeconds`; the web and app result cards show the same time basis.
+- Added a regression test that proves FASTEST ranking compares door-to-door arrival time rather than vehicle-only duration.
+
+**VERIFICATION**
+- Root `npm run check:production`: PASS — typecheck, lint, 228 unit tests passed, 1 opt-in integration test skipped, production build and 350 KB gzip bundle budget.
+- Site tests: PASS — 47/47, typecheck, lint, production build and bundle check.
+- Server unit tests: PASS — 120 passed, 1 opt-in integration test skipped; typecheck and lint passed.
+- Server integration suite on a newly created loopback-only database with the currently healthy Lviv GTFS source: PASS — Journey schema 2/2, booking/search 19/19, navigation 2/2, Redis realtime 1/1, restart 1/1, rate limit 1/1. Live source check returned 1,071 stops, 72 routes (62 bus, 8 tram and 2 city train), and 15,835 trips. The API returned three bus journeys, three tram journeys, and three mixed bus/tram alternatives for the tested Lviv corridor.
+- Mobile visual smoke review at 390×844 checked the square action grid, loaded mountain artwork, search entry, all 12 transport labels and light/dark palettes; no browser runtime errors occurred. This is a visual smoke check, not pixel-diff acceptance of every screen.
+
+**COVERAGE LIMITS**
+- The active route engine currently composes healthy configured GTFS schedules and direct MARSHGO Community rides. The tests do not establish nationwide feed coverage or live positions for every operator.
+- Separate verified supplies for marshrutkas, taxi, transfers, carsharing, bike and scooter rental are not active in this tested environment. Their categories remain visible and must report unavailable/unsupported instead of fabricating trips.
+- GTFS walking access/egress and inter-stop geometry remain straight-line estimates. Fares and seat availability are not verified for GTFS. Rescue currently suggests Community alternatives after a cancelled offer; it does not automatically rebook or monitor disruptions across a selected public-transport chain.
+- No load-test p95 was measured in this verification run; production readiness for the full 12-category engine is not claimed.

@@ -351,26 +351,35 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
   .home-v5-route-card { height: 4.5rem; }
 }
 
-/* Owner's canonical home tiles: real imagery under a strong semantic tint. */
-.home-v5-action-card { color: #fff; border-color: rgb(255 255 255 / .55); box-shadow: 0 6px 18px rgb(17 47 88 / .16); }
+/* Canonical MARSHGO home tiles: square, color-coded actions with quiet surfaces. */
+.home-v5-action-card {
+  color: #fff;
+  border-color: rgb(255 255 255 / .7);
+  box-shadow: 0 7px 18px rgb(17 47 88 / .13), inset 0 1px rgb(255 255 255 / .18);
+}
+.home-v5-action-card--navigation { background: linear-gradient(145deg, #1264ed, #0b54c5); }
+.home-v5-action-card--transport { background: linear-gradient(145deg, #08775c, #065a48); }
+.home-v5-action-card--search { background: linear-gradient(145deg, #7040d7, #5730b7); }
+.home-v5-action-card--publish { background: linear-gradient(145deg, #b64820, #923515); }
 .home-v5-banner-scrim { background: linear-gradient(90deg, rgba(255,255,255,.96), rgba(255,255,255,.86) 58%, rgba(255,255,255,.08)); }
-.home-v5-action-art { transition: transform .35s ease; }
-.home-v5-action-card:active .home-v5-action-art { transform: scale(1.04); }
-.home-v5-action-card--navigation .home-v5-action-tint { background: linear-gradient(145deg, rgb(0 99 255 / .86), rgb(0 79 220 / .8)); }
-.home-v5-action-card--transport .home-v5-action-tint { background: linear-gradient(145deg, rgb(0 185 132 / .86), rgb(0 132 103 / .82)); }
-.home-v5-action-card--search .home-v5-action-tint { background: linear-gradient(145deg, rgb(139 57 232 / .88), rgb(91 40 190 / .82)); }
-.home-v5-action-card--publish .home-v5-action-tint { background: linear-gradient(145deg, rgb(255 130 0 / .89), rgb(236 75 12 / .84)); }
-.home-v5-action-icon { border-radius: 1rem; background: #fff; color: var(--mg-brand-primary); box-shadow: 0 2px 8px rgb(0 0 0 / .12); }
-.home-v5-action-card--transport .home-v5-action-icon { color: #07876b; }
-.home-v5-action-card--search .home-v5-action-icon { color: #8545df; }
-.home-v5-action-card--publish .home-v5-action-icon { color: #e64d28; }
-.home-v5-action-arrow { color: #1769ed; }
-.home-v5-action-card .home-v5-action-card-title { text-shadow: 0 1px 4px rgb(0 0 0 / .25); }
-.home-v5-action-card > span.relative { text-shadow: 0 1px 3px rgb(0 0 0 / .25); }
-html.dark .home-v5-action-card--navigation .home-v5-action-tint { background: linear-gradient(145deg, rgb(9 38 95 / .85), rgb(6 31 78 / .8)); }
-html.dark .home-v5-action-card--transport .home-v5-action-tint { background: linear-gradient(145deg, rgb(7 89 67 / .88), rgb(5 66 54 / .83)); }
-html.dark .home-v5-action-card--search .home-v5-action-tint { background: linear-gradient(145deg, rgb(75 34 136 / .9), rgb(51 26 104 / .85)); }
-html.dark .home-v5-action-card--publish .home-v5-action-tint { background: linear-gradient(145deg, rgb(126 62 13 / .9), rgb(101 37 11 / .85)); }
+.home-v5-action-icon {
+  border: 1px solid rgb(255 255 255 / .4);
+  background: rgb(255 255 255 / .18);
+  color: #fff;
+  box-shadow: inset 0 1px rgb(255 255 255 / .15);
+}
+.home-v5-action-card .home-v5-action-card-title { text-shadow: none; }
+.home-v5-action-card > span.relative { text-shadow: none; }
+.home-v5-action-card:focus-visible { outline: 3px solid #0b6ef3; outline-offset: 3px; }
+html.dark .home-v5-action-card {
+  border-color: #30465c;
+  box-shadow: 0 8px 20px rgb(0 0 0 / .22), inset 0 1px rgb(255 255 255 / .04);
+}
+html.dark .home-v5-action-card--navigation { background: linear-gradient(145deg, #1264ed, #0b54c5); }
+html.dark .home-v5-action-card--transport { background: linear-gradient(145deg, #08775c, #065a48); }
+html.dark .home-v5-action-card--search { background: linear-gradient(145deg, #7040d7, #5730b7); }
+html.dark .home-v5-action-card--publish { background: linear-gradient(145deg, #b64820, #923515); }
+html.dark .home-v5-action-icon { background: rgb(255 255 255 / .18); border-color: rgb(255 255 255 / .42); color: #fff; }
 html.dark .home-v5-route-card img { filter: brightness(.82); }
 
 .app-header {
@@ -1144,7 +1153,7 @@ html.dark .home-v5-city { background: var(--mg-surface-primary) !important; }
 html.dark .home-v5-banner-scrim {
   background: linear-gradient(90deg, rgba(7, 28, 51, .97), rgba(7, 28, 51, .84) 58%, rgba(7, 28, 51, .16));
 }
-html.dark .home-v5-action-icon { background: #F5F9FF; }
+html.dark .home-v5-action-icon { background: rgb(255 255 255 / .18); border-color: rgb(255 255 255 / .42); color: #fff; }
 html.dark .home-v5-marshpass-card {
   color: var(--mg-ink-primary);
   border-color: rgba(83, 107, 134, .56);
@@ -1176,7 +1185,6 @@ html:not(.dark) .home-v5-marshpass-card {
     padding: .7rem;
   }
   .home-v5-action-icon { height: 2.6rem; width: 2.6rem; }
-  .home-v5-action-arrow { height: 2rem; width: 2rem; }
   .home-v5-route-card { min-height: 4.25rem; }
 }
 
@@ -1187,10 +1195,10 @@ html:not(.dark) .home-v5-marshpass-card {
 @media (max-width: 359px) {
   .home-v5-action-card-title { font-size: .77rem; }
   .home-v5-action-card > span.relative:last-child { align-items: flex-end; }
-  .home-v5-action-arrow { height: 1.75rem; width: 1.75rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .home-v5-banner img,
-  .home-v5-marshpass-card { transition: none !important; }
+  .home-v5-marshpass-card,
+  .home-v5-action-card { transition: none !important; }
 }

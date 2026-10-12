@@ -38,15 +38,15 @@ export interface HomeV5Props {
 }
 
 const homeActions = [
-  { title: 'Навігація', description: 'Побудувати маршрут', tone: 'navigation', image: '/images/card_navigation_car.jpg', icon: Navigation, action: 'navigation' },
-  { title: 'Карта транспорту', description: 'Зупинки, лінії, рух', tone: 'transport', image: '/images/hero_ukraine_mobility.jpg', icon: BusFront, action: 'map' },
-  { title: 'Знайти маршрут', description: 'Усі види транспорту', tone: 'search', image: '/images/lviv_stop_banner.jpg', icon: Search, action: 'search' },
-  { title: 'Опублікувати поїздку', description: 'Попутка / маршрут', tone: 'publish', image: '/images/welcome-road.jpg', icon: CirclePlus, action: 'publish' },
+  { title: 'Навігація', description: 'Побудувати маршрут', tone: 'navigation', icon: Navigation, action: 'navigation' },
+  { title: 'Карта транспорту', description: 'Зупинки, лінії, рух', tone: 'transport', icon: BusFront, action: 'map' },
+  { title: 'Знайти маршрут', description: 'Усі види транспорту', tone: 'search', icon: Search, action: 'search' },
+  { title: 'Опублікувати поїздку', description: 'Попутка / маршрут', tone: 'publish', icon: CirclePlus, action: 'publish' },
 ] as const;
 
-const popularRoutes = [
+const popularRoutes: ReadonlyArray<{ destination: string; image: string; imagePosition?: string }> = [
   { destination: 'Київ', image: '/images/welcome-kyiv-v1.jpg' },
-  { destination: 'Рівне', image: '/images/hero_mountain_bus.jpg' },
+  { destination: 'Рівне', image: '/images/welcome-road.jpg', imagePosition: 'center 84%' },
   { destination: 'Тернопіль', image: '/images/lviv_stop_banner.jpg' },
 ] as const;
 
@@ -55,8 +55,8 @@ const homeBanners = [
     eyebrow: 'MARSHGO · ПОПУТКИ',
     title: 'Попутчики знайдуться на твоєму маршруті',
     description: 'Опублікуй поїздку й розділи витрати на дорогу.',
-    image: '/images/hero_mountain_bus.jpg',
-    imagePosition: 'center 58%',
+    image: '/images/welcome-road.jpg',
+    imagePosition: 'center 84%',
     action: 'publish',
     actionLabel: 'Опублікувати поїздку',
   },
@@ -64,8 +64,8 @@ const homeBanners = [
     eyebrow: 'МІСТО ТА МІЖМІСТО',
     title: 'Усі способи доїхати в одному пошуку',
     description: 'Попутки, міський транспорт і подорожі Україною.',
-    image: '/images/card_navigation_car.jpg',
-    imagePosition: 'center 54%',
+    image: '/hero_car_route.png',
+    imagePosition: 'center',
     action: 'search',
     actionLabel: 'Знайти маршрут',
   },
@@ -173,7 +173,7 @@ export const HomeV5: React.FC<HomeV5Props> = ({
           <div className="relative z-10 max-w-[78%]">
             <p className="text-[9px] font-black uppercase tracking-[.16em] text-blue-700 dark:text-blue-300">{activeBanner.eyebrow}</p>
             <p className="mt-1 text-[16px] font-black leading-tight tracking-tight text-[#102344] dark:text-white">{activeBanner.title}</p>
-            <p className="mt-1 text-[10px] font-semibold leading-snug text-slate-600 dark:text-slate-200">{activeBanner.description}</p>
+            <p className="mt-1 text-[11px] font-semibold leading-snug text-slate-600 dark:text-slate-200">{activeBanner.description}</p>
           </div>
           <div className="relative z-10 flex items-center justify-between">
             <button type="button" onClick={activeBanner.action === 'publish' ? onPlanTrip : onSearchTrip} className="inline-flex min-h-9 items-center gap-2 rounded-full bg-blue-600 px-3.5 text-[11px] font-bold text-white shadow-md shadow-blue-900/20">
@@ -187,25 +187,20 @@ export const HomeV5: React.FC<HomeV5Props> = ({
       )}
 
       <div className="home-v5-actions grid grid-cols-2 gap-2.5" aria-label="Швидкі дії">
-        {homeActions.map(({ title, description, tone, image, icon: Icon, action }) => (
+        {homeActions.map(({ title, description, tone, icon: Icon, action }) => (
           <button
             key={action}
             type="button"
             onClick={() => runAction(action)}
-            className={`home-v5-action-card home-v5-action-card--${tone} relative flex min-h-[112px] flex-col items-start justify-between overflow-hidden rounded-[22px] border p-3 text-left transition duration-200 active:scale-[.98]`}
+            className={`home-v5-action-card home-v5-action-card--${tone} relative flex min-h-[112px] flex-col items-center justify-center gap-3 overflow-hidden rounded-[22px] border p-3 text-center transition duration-200 active:scale-[.98]`}
           >
-            <img src={image} alt="" loading="lazy" className="home-v5-action-art absolute inset-0 h-full w-full object-cover" />
-            <span aria-hidden="true" className="home-v5-action-tint absolute inset-0" />
             <span className="home-v5-action-icon relative z-10 grid h-10 w-10 place-items-center rounded-2xl">
               <Icon size={22} strokeWidth={2.35} />
             </span>
-            <span className="relative z-10 flex w-full items-end justify-between gap-1">
+            <span className="relative z-10 w-full">
               <span className="min-w-0">
                 <span className="home-v5-action-card-title block text-[14px] font-black leading-tight tracking-tight">{title}</span>
-                <span className="mt-1 block text-[10px] font-semibold leading-snug opacity-80">{description}</span>
-              </span>
-              <span aria-hidden="true" className="home-v5-action-arrow grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white/95 shadow-sm">
-                <ChevronRight size={18} />
+                <span className="mt-1 block text-[11px] font-semibold leading-snug">{description}</span>
               </span>
             </span>
           </button>
@@ -218,14 +213,14 @@ export const HomeV5: React.FC<HomeV5Props> = ({
           <button type="button" onClick={onSearchTrip} className="text-[10px] font-bold text-blue-600">Показати всі <ChevronRight className="inline" size={12}/></button>
         </div>
         <div className="no-scrollbar flex gap-2.5 overflow-x-auto pb-1">
-          {popularRoutes.map(({ destination, image }) => (
+          {popularRoutes.map(({ destination, image, imagePosition }) => (
             <button
               key={destination}
               type="button"
               onClick={() => onSearchDestination?.(destination)}
               className="home-v5-route-card relative h-[84px] min-w-[108px] flex-1 overflow-hidden rounded-2xl border border-white/70 bg-slate-200 text-left shadow-sm transition active:scale-[.98] dark:border-slate-700"
             >
-              <img src={image} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+              <img src={image} alt="" loading="lazy" style={{ objectPosition: imagePosition ?? 'center' }} className="absolute inset-0 h-full w-full object-cover" />
               <span className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/10 to-transparent" />
               <span className="absolute inset-x-2 bottom-2 flex items-end justify-between gap-1 text-[10px] font-extrabold leading-tight text-white">Львів → {destination}<ChevronRight size={13} className="shrink-0" /></span>
             </button>

@@ -116,7 +116,7 @@ function JourneyCard({
       ? `${journey.walkingMeters} м пішки`
       : 'Відстань не надана';
 
-  const departureTimeStr = time(firstLeg.departureAt);
+  const departureTimeStr = time(journey.requestedDepartureAt ?? firstLeg.departureAt);
   const arrivalTimeStr = time(lastLeg.arrivalAt);
 
   return (
@@ -190,6 +190,12 @@ function JourneyCard({
       {/* Subtitle Details: Transfers · Distance · Source */}
       <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12px] font-semibold text-[#526781] dark:text-slate-300">
         <span>{journey.transfers > 0 ? `${journey.transfers} ${journey.transfers === 1 ? 'пересадка' : 'пересадки'}` : 'Без пересадок'}</span>
+        {journey.waitingSeconds !== undefined && journey.waitingSeconds > 0 && (
+          <>
+            <span className="h-1 w-1 rounded-full bg-[#B5C4D8] dark:bg-slate-600 shrink-0" />
+            <span>{formatDuration(journey.waitingSeconds)} очікування</span>
+          </>
+        )}
         {distanceLabel && (
           <>
             <span className="h-1 w-1 rounded-full bg-[#B5C4D8] dark:bg-slate-600 shrink-0" />
