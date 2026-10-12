@@ -1386,13 +1386,12 @@ export function ProductionMarketplace() {
   const header = hideGlobalHeader ? null : <header className="app-header sticky top-0 z-40 border-b border-[#E3EBF4]/80 bg-white/95 px-4 pb-2.5 pt-[max(4.75rem,calc(env(safe-area-inset-top)+2rem))] backdrop-blur-xl dark:border-slate-800/80 dark:bg-[#0B1730]/95">
     <div className="mx-auto flex w-full max-w-xl items-center justify-between">
       <button type="button" onClick={() => { setTab('home'); setShowResults(false); setSelectedOffer(null); setSelectedJourney(null); }} className="flex items-center gap-2.5 text-left transition hover:opacity-90">
-        <BrandMark size="sm"/>
         <div>
           <div className="flex items-center gap-1.5 leading-none">
-            <strong className="text-[19px] font-black tracking-tight text-[#142642] dark:text-white">MARSH<span className="text-[#0066FF]">GO</span></strong>
+            <strong className="text-[21px] font-black italic tracking-[-.055em] text-[#102344] dark:text-white">MARSH<span className="text-[#0066FF] dark:text-[#1687FF]">GO</span></strong>
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" title="Мережа онлайн"/>
           </div>
-          <p className="-mt-0.5 text-[10px] font-semibold text-[#6A7F98] dark:text-slate-400">Розумні поїздки · Україна</p>
+          <p className="text-[10px] font-semibold tracking-[.035em] text-[#6A7F98] dark:text-slate-400">Розумні поїздки · Україна</p>
         </div>
       </button>
       <nav aria-label="Розділи MARSHGO" className="desktop-top-nav hidden items-center gap-1">
@@ -1972,6 +1971,9 @@ export function ProductionMarketplace() {
         departure_at: booking.departure_at,
         status: booking.status,
         priceLabel: formatMoney(booking.total_price_minor, booking.currency),
+        currentUserIsDriver: booking.current_user_is_driver,
+        driverName: booking.driver_name,
+        seatCount: booking.seat_count,
       })),
     ...journeys
       .filter((journey) => journey.state === 'ACTIVE'

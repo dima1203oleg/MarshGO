@@ -195,6 +195,14 @@ function journeySearchNotice(result: Awaited<ReturnType<typeof productionApi.sea
   return notices.length ? notices.join(' ') : null;
 }
 
+function journeySearchError(error: unknown, fallback: string): string {
+  const message = error instanceof Error ? error.message : '';
+  if (/authentication required|unauthorized/i.test(message)) {
+    return 'Щоб отримати реальні пропозиції, увійдіть за номером телефону та повторіть пошук.';
+  }
+  return message || fallback;
+}
+
 async function resolveCityPlace(city: string, contextLabel?: string): Promise<RoutePlace> {
   const query = city.trim();
   let matches = await productionApi.suggestPlaces(query).catch(() => []);
@@ -435,7 +443,7 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
       setResults([]);
       setSelectedItem(null);
       setSearchNotice(null);
-      setSearchError(error instanceof Error ? error.message : 'Не вдалося виконати пошук. Перевірте з’єднання та спробуйте ще раз.');
+      setSearchError(journeySearchError(error, 'Не вдалося виконати пошук. Перевірте з’єднання та спробуйте ще раз.'));
     } finally {
       setIsSearching(false);
     }
@@ -507,7 +515,7 @@ export const SearchExperienceV6: React.FC<SearchExperienceV6Props> = ({
     })();
     void restore.catch((error: unknown) => {
       if (active) {
-        setSearchError(error instanceof Error ? error.message : 'Не вдалося відновити результати пошуку.');
+        setSearchError(journeySearchError(error, 'Не вдалося відновити результати пошуку.'));
         setSubView('form');
       }
     }).finally(() => { if (active) setIsSearching(false); });

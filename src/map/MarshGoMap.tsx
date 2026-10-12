@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Coordinate } from '../../shared/navigation/contracts';
+import { themeService } from '../services/theme';
 import { mapTilesConfigured, resolveMapAssets } from './mapConfig';
 import type { MapAdapter, MapStatus, MapTheme } from './MapAdapter';
 import { getMapLayer, getMapMode, styleForLayer, subscribeMapLayer, subscribeMapMode, type MapLayer } from './mapMode';
@@ -29,14 +30,19 @@ export function MarshGoMap({ route, routeSegments, customMarkers, vehicle, headi
   const container = useRef<HTMLDivElement | null>(null);
   const adapter = useRef<MapAdapter | null>(null);
   const syncOverlays = useRef<() => void>(() => undefined);
+  const [isDark, setIsDark] = useState(() => themeService.isDark());
+  const mapTheme: MapTheme = isDark
+    ? theme.replace('_LIGHT', '_DARK') as MapTheme
+    : theme.replace('_DARK', '_LIGHT') as MapTheme;
+  useEffect(() => themeService.subscribe((_mode, dark) => setIsDark(dark)), []);
   useEffect(() => {
     if (!container.current) return;
     let cancelled = false;
-    void Promise.all([import('./MapLibreAdapter'), import('maplibre-gl/dist/maplibre-gl.css'), resolveMapAssets(theme)]).then(([{ MapLibreAdapter }, _css, assets]) => {
+    void Promise.all([import('./MapLibreAdapter'), import('maplibre-gl/dist/maplibre-gl.css'), resolveMapAssets(mapTheme)]).then(([{ MapLibreAdapter }, _css, assets]) => {
       if (cancelled || !container.current) return;
       const initialMode = getMapMode();
       const initialLayer = getMapLayer();
-      const instance = new MapLibreAdapter(container.current, styleForLayer(initialLayer, initialMode, configuredMapStyleUrl) ?? assets.style, onStatus, mapTilesConfigured(), assets.styles, theme, compactAttribution);
+      const instance = new MapLibreAdapter(container.current, styleForLayer(initialLayer, initialMode, configuredMapStyleUrl) ?? assets.style, onStatus, mapTilesConfigured(), assets.styles, mapTheme, compactAttribution);
       instance.setMode(initialMode);
       instance.setLayer(initialLayer);
       adapter.current = instance; onAdapter(instance);
@@ -63,7 +69,7 @@ export function MarshGoMap({ route, routeSegments, customMarkers, vehicle, headi
     if (vehicle) adapter.current?.setVehicle(vehicle, heading, speedMps, vehicleLabel);
     else adapter.current?.clearVehicle?.();
   }, [vehicle?.[0], vehicle?.[1], heading, speedMps, vehicleLabel]);
-  useEffect(() => { adapter.current?.setTheme(theme); }, [theme]);
+  useEffect(() => { adapter.current?.setTheme(mapTheme); }, [mapTheme]);
   useEffect(() => subscribeMapMode((mode) => adapter.current?.setMode(mode)), []);
   useEffect(() => subscribeMapLayer((layer) => adapter.current?.setLayer(layer)), []);
   // Information layers exist only on the 2D map and only while the user keeps them switched on.

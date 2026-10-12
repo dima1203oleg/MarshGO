@@ -12,9 +12,11 @@
   --font-family-display: 'Plus Jakarta Sans', system-ui, sans-serif;
 
   /* Brand Signature Accent (Signature MARSHGO V4 Blue) */
-  --mg-brand-primary: #1769ED;
-  --mg-brand-primary-hover: #1358CA;
-  --mg-brand-primary-pressed: #0F49AB;
+  --mg-brand-primary: #0B6EF3;
+  --mg-brand-primary-hover: #095ED0;
+  --mg-brand-primary-pressed: #064BA8;
+  --mg-electric: #1687FF;
+  --mg-action-primary: #0B6EF3;
   --mg-brand-secondary: #3B82F6;
   --mg-brand-light: #EAF2FF;
   --mg-brand-glow: rgba(23, 105, 237, 0.16);
@@ -30,10 +32,10 @@
   --mg-danger-bg: #FEF2F2;
 
   /* Light Theme Surfaces & Depths */
-  --mg-canvas: #F5F8FC;
+  --mg-canvas: #F5F8FD;
   --mg-canvas-ambient: transparent;
   --mg-surface-primary: #FFFFFF;
-  --mg-surface-secondary: #EFF4FA;
+  --mg-surface-secondary: #EEF3F9;
   --mg-surface-tertiary: #E3EBF4;
   --mg-surface-elevated: #FFFFFF;
   --mg-surface-glass: rgba(255, 255, 255, 0.94);
@@ -45,7 +47,7 @@
   --mg-border-glass: rgba(255, 255, 255, 0.9);
 
   /* Light Theme Typography */
-  --mg-ink-primary: #142642;
+  --mg-ink-primary: #102344;
   --mg-ink-secondary: #334155;
   --mg-ink-muted: #6A7F98;
   --mg-ink-tertiary: #94A3B8;
@@ -80,49 +82,51 @@
    DARK THEME (Deep Slate Calm Mobility System)
    ========================================================================== */
 html.dark {
-  --mg-brand-primary: #4285E8;
-  --mg-brand-primary-hover: #5896F0;
-  --mg-brand-primary-pressed: #2D70D6;
-  --mg-brand-secondary: #175CD3;
-  --mg-brand-light: #162B54;
-  --mg-brand-glow: rgba(66, 133, 232, 0.2);
-  --mg-brand-gradient: #4285E8;
-  --mg-brand-kinetic: #4285E8;
+  --mg-brand-primary: #1687FF;
+  --mg-brand-primary-hover: #0B6EF3;
+  --mg-brand-primary-pressed: #075ED0;
+  --mg-electric: #1687FF;
+  --mg-action-primary: #0B6EF3;
+  --mg-brand-secondary: #1687FF;
+  --mg-brand-light: #16202B;
+  --mg-brand-glow: rgba(22, 135, 255, 0.2);
+  --mg-brand-gradient: #0B6EF3;
+  --mg-brand-kinetic: #1687FF;
 
   /* Semantic Palettes in Dark Mode */
-  --mg-success: #22C55E;
-  --mg-success-bg: rgba(34, 197, 94, 0.1);
-  --mg-warning: #F59E0B;
-  --mg-warning-bg: rgba(245, 158, 11, 0.1);
-  --mg-danger: #EF4444;
-  --mg-danger-bg: rgba(239, 68, 68, 0.1);
+  --mg-success: #2CD67D;
+  --mg-success-bg: rgba(44, 214, 125, 0.12);
+  --mg-warning: #FFB020;
+  --mg-warning-bg: rgba(255, 176, 32, 0.12);
+  --mg-danger: #FF5A6A;
+  --mg-danger-bg: rgba(255, 90, 106, 0.12);
 
-  /* Layered Dark Graphite Surfaces (#0B1730 base) */
-  --mg-canvas: #0B1730;
+  /* Canonical Matte Graphite: the same MARSHGO hierarchy in dark surfaces. */
+  --mg-canvas: #0B0F14;
   --mg-canvas-ambient: transparent;
-  --mg-surface-primary: #101E38;
-  --mg-surface-secondary: #16284A;
-  --mg-surface-tertiary: #1E345D;
-  --mg-surface-elevated: #16284A;
-  --mg-surface-glass: rgba(16, 30, 56, 0.94);
+  --mg-surface-primary: #111820;
+  --mg-surface-secondary: #16202B;
+  --mg-surface-tertiary: #263648;
+  --mg-surface-elevated: #16202B;
+  --mg-surface-glass: rgba(11, 15, 20, 0.94);
 
   /* Dark Theme Lines & Micro-borders */
-  --mg-border-subtle: #1C3055;
-  --mg-border-medium: rgba(227, 234, 242, 0.14);
-  --mg-border-bold: rgba(227, 234, 242, 0.22);
-  --mg-border-glass: rgba(227, 234, 242, 0.1);
+  --mg-border-subtle: #263648;
+  --mg-border-medium: rgba(143, 160, 179, 0.32);
+  --mg-border-bold: rgba(143, 160, 179, 0.48);
+  --mg-border-glass: rgba(143, 160, 179, 0.16);
 
   /* Dark Theme Typography */
-  --mg-ink-primary: #F8FAFC;
-  --mg-ink-secondary: #CBD5E1;
-  --mg-ink-muted: #94A3B8;
-  --mg-ink-tertiary: #64748B;
+  --mg-ink-primary: #F5F9FF;
+  --mg-ink-secondary: #B6C2D0;
+  --mg-ink-muted: #8FA0B3;
+  --mg-ink-tertiary: #8FA0B3;
 
   /* Dark Shadows */
-  --mg-shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.25);
-  --mg-shadow-md: 0 10px 30px rgba(0, 0, 0, 0.35);
-  --mg-shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.45);
-  --mg-shadow-brand: 0 12px 34px -4px rgba(43, 130, 254, 0.4);
+  --mg-shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.28);
+  --mg-shadow-md: 0 10px 28px rgba(0, 0, 0, 0.32);
+  --mg-shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.4);
+  --mg-shadow-brand: 0 10px 30px -6px rgba(22, 135, 255, 0.28);
 
   /* Backwards compatibility */
   --mg-blue: var(--mg-brand-primary);
@@ -132,7 +136,7 @@ html.dark {
   --mg-muted: var(--mg-ink-muted);
   --mg-line: var(--mg-border-subtle);
   --mg-card-shadow: var(--mg-shadow-md);
-  --color-marshgo-navy: #0B1524;
+  --color-marshgo-navy: #071C33;
   --color-marshgo-blue: var(--mg-brand-primary);
   --color-marshgo-bg: var(--mg-canvas);
   --color-marshgo-card: var(--mg-surface-primary);
@@ -349,6 +353,7 @@ button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
 
 /* Owner's canonical home tiles: real imagery under a strong semantic tint. */
 .home-v5-action-card { color: #fff; border-color: rgb(255 255 255 / .55); box-shadow: 0 6px 18px rgb(17 47 88 / .16); }
+.home-v5-banner-scrim { background: linear-gradient(90deg, rgba(255,255,255,.96), rgba(255,255,255,.86) 58%, rgba(255,255,255,.08)); }
 .home-v5-action-art { transition: transform .35s ease; }
 .home-v5-action-card:active .home-v5-action-art { transform: scale(1.04); }
 .home-v5-action-card--navigation .home-v5-action-tint { background: linear-gradient(145deg, rgb(0 99 255 / .86), rgb(0 79 220 / .8)); }
@@ -990,7 +995,6 @@ html.dark ::placeholder { color: #7f93ad !important; }
 html.dark :is(.shadow-sm, .shadow-md) { box-shadow: 0 6px 18px rgba(0,0,0,.35) !important; }
 html.dark .app-tabbar, html.dark .app-header { background-color: rgba(11,22,38,.92) !important; }
 html.dark .journey-search-card { background: rgba(18,35,58,.88) !important; border-color: #223853 !important; }
-html.dark .maplibregl-canvas { filter: invert(1) hue-rotate(180deg) brightness(.92) contrast(.95); }
 html.dark .maplibregl-ctrl-group { background: #12233a; }
 html.dark .maplibregl-ctrl-group button .maplibregl-ctrl-icon { filter: invert(1); }
 html.dark .home-screen .home-intro { background: linear-gradient(145deg, #12233a, #0f1d31) !important; border-color: #223853 !important; box-shadow: none !important; }
@@ -1098,4 +1102,95 @@ html.dark .production-app > .app-tabbar {
 
 html.dark .flowline-container {
   box-shadow: 0 -16px 48px -12px rgba(0, 0, 0, 0.6);
+}
+
+/* Canonical owner-approved palette and mobile composition. */
+html.dark body,
+html.dark .production-app {
+  background-color: var(--mg-canvas);
+  color: var(--mg-ink-primary);
+}
+html.dark .production-app {
+  background-image: radial-gradient(ellipse at 50% -12%, rgba(22, 135, 255, .12), transparent 32rem);
+}
+html.dark :is(.bg-white, .bg-white\/95, .bg-white\/90, .bg-white\/80) {
+  background-color: var(--mg-surface-primary) !important;
+}
+html.dark :is(.bg-slate-50, .bg-\[\#f6f8fc\], .bg-\[\#F1F5F9\], .bg-\[\#f5f8fd\], .bg-\[\#F5F8FD\]) {
+  background-color: var(--mg-surface-primary) !important;
+}
+html.dark :is(.bg-slate-100, .bg-slate-200, .bg-\[\#EEF3F9\]) {
+  background-color: var(--mg-surface-secondary) !important;
+}
+html.dark :is(.text-slate-600, .text-slate-500, .text-\[\#62718A\], .text-\[\#6A7F98\]) {
+  color: var(--mg-ink-secondary) !important;
+}
+html.dark :is(.text-slate-400, .text-slate-300) {
+  color: var(--mg-ink-muted) !important;
+}
+html.dark :is(.border-slate-100, .border-slate-200, .border-\[\#E5EDF7\], .border-\[\#EEF3F9\], .border-\[\#DFE7F1\]) {
+  border-color: var(--mg-border-subtle) !important;
+}
+html.dark :is(.bg-blue-600, .bg-\[\#0066FF\]) {
+  background-color: var(--mg-action-primary) !important;
+}
+html.dark .app-header,
+html.dark .app-tabbar {
+  background-color: rgba(11, 15, 20, .94) !important;
+  border-color: var(--mg-border-subtle) !important;
+}
+html.dark .home-v5-screen { color: var(--mg-ink-primary); }
+html.dark .home-v5-city { background: var(--mg-surface-primary) !important; }
+html.dark .home-v5-banner-scrim {
+  background: linear-gradient(90deg, rgba(7, 28, 51, .97), rgba(7, 28, 51, .84) 58%, rgba(7, 28, 51, .16));
+}
+html.dark .home-v5-action-icon { background: #F5F9FF; }
+html.dark .home-v5-marshpass-card {
+  color: var(--mg-ink-primary);
+  border-color: rgba(83, 107, 134, .56);
+  background: linear-gradient(125deg, #101923 0%, #13263B 58%, #0F1A28 100%);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .3), inset 0 1px rgba(255, 255, 255, .05);
+}
+.home-v5-pass-slot--multiple .home-v5-marshpass-card { height: calc(100% - 2.5rem); }
+html:not(.dark) .home-v5-marshpass-card {
+  color: #102344;
+  border-color: #D4E2F1;
+  background: linear-gradient(125deg, #FFFFFF 0%, #F0F7FF 62%, #E3F0FF 100%);
+  box-shadow: 0 9px 24px rgba(23, 68, 126, .1), inset 0 1px #fff;
+}
+
+@media (max-width: 639px) {
+  .app-header { padding-top: max(.5rem, env(safe-area-inset-top, 0px)); }
+  .home-v5-hero,
+  .home-v5-pass-slot { height: clamp(8.75rem, 18svh, 9.5rem); min-height: 8.75rem; }
+  .home-v5-banner { padding: .7rem .8rem; }
+  .home-v5-screen > .home-v5-actions {
+    grid-template-rows: auto auto !important;
+    grid-auto-rows: auto;
+    gap: .55rem;
+  }
+  .home-v5-actions > .home-v5-action-card {
+    height: auto !important;
+    min-height: 0 !important;
+    aspect-ratio: 1 / 1;
+    padding: .7rem;
+  }
+  .home-v5-action-icon { height: 2.6rem; width: 2.6rem; }
+  .home-v5-action-arrow { height: 2rem; width: 2rem; }
+  .home-v5-route-card { min-height: 4.25rem; }
+}
+
+@media (max-width: 639px) and (max-height: 730px) {
+  .production-app.is-locked-viewport > .pt-1 > .home-v5-screen { overflow-y: auto !important; }
+}
+
+@media (max-width: 359px) {
+  .home-v5-action-card-title { font-size: .77rem; }
+  .home-v5-action-card > span.relative:last-child { align-items: flex-end; }
+  .home-v5-action-arrow { height: 1.75rem; width: 1.75rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-v5-banner img,
+  .home-v5-marshpass-card { transition: none !important; }
 }

@@ -1,11 +1,16 @@
 import React from 'react';
 import {
+  ArrowRight,
   BusFront,
+  CheckCircle2,
+  ChevronLeft,
   ChevronRight,
   CirclePlus,
   MapPin,
   Navigation,
+  QrCode,
   Search,
+  ShieldCheck,
   Ticket,
 } from 'lucide-react';
 
@@ -17,6 +22,9 @@ export interface HomeTrip {
   departure_at: string;
   status: string;
   priceLabel?: string;
+  currentUserIsDriver?: boolean;
+  driverName?: string;
+  seatCount?: number;
 }
 
 export interface HomeV5Props {
@@ -42,12 +50,39 @@ const popularRoutes = [
   { destination: 'Тернопіль', image: '/images/lviv_stop_banner.jpg' },
 ] as const;
 
+const homeBanners = [
+  {
+    eyebrow: 'MARSHGO · ПОПУТКИ',
+    title: 'Попутчики знайдуться на твоєму маршруті',
+    description: 'Опублікуй поїздку й розділи витрати на дорогу.',
+    image: '/images/hero_mountain_bus.jpg',
+    imagePosition: 'center 58%',
+    action: 'publish',
+    actionLabel: 'Опублікувати поїздку',
+  },
+  {
+    eyebrow: 'МІСТО ТА МІЖМІСТО',
+    title: 'Усі способи доїхати в одному пошуку',
+    description: 'Попутки, міський транспорт і подорожі Україною.',
+    image: '/images/card_navigation_car.jpg',
+    imagePosition: 'center 54%',
+    action: 'search',
+    actionLabel: 'Знайти маршрут',
+  },
+] as const;
+
 function formatDeparture(value: string): string {
   const departure = new Date(value);
   if (!Number.isFinite(departure.getTime())) return 'Час не вказано';
   return new Intl.DateTimeFormat('uk-UA', {
     day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Kyiv',
   }).format(departure);
+}
+
+export function selectActiveMarshPasses(trips: HomeTrip[]): HomeTrip[] {
+  return trips.filter((trip) => trip.kind === 'booking'
+    && !trip.currentUserIsDriver
+    && ['confirmed', 'boarding', 'in_progress'].includes(trip.status));
 }
 
 export const HomeV5: React.FC<HomeV5Props> = ({
@@ -59,6 +94,25 @@ export const HomeV5: React.FC<HomeV5Props> = ({
   trips = [],
   onOpenTrip,
 }) => {
+  const marshPasses = selectActiveMarshPasses(trips);
+  const [bannerIndex, setBannerIndex] = React.useState(0);
+  const [marshPassIndex, setMarshPassIndex] = React.useState(0);
+  const touchStartX = React.useRef<number | null>(null);
+  const activeBanner = homeBanners[bannerIndex] ?? homeBanners[0];
+  const activePass = marshPasses[marshPassIndex] ?? marshPasses[0];
+
+  React.useEffect(() => {
+    if (marshPasses.length > 0 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const timer = window.setInterval(() => {
+      setBannerIndex((current) => (current + 1) % homeBanners.length);
+    }, 5000);
+    return () => window.clearInterval(timer);
+  }, [marshPasses.length]);
+
+  React.useEffect(() => {
+    setMarshPassIndex((current) => Math.min(current, Math.max(0, marshPasses.length - 1)));
+  }, [marshPasses.length]);
+
   const runAction = (action: (typeof homeActions)[number]['action']) => {
     if (action === 'search') onSearchTrip();
     if (action === 'publish') onPlanTrip();
@@ -78,39 +132,57 @@ export const HomeV5: React.FC<HomeV5Props> = ({
         <ChevronRight size={15} className="rotate-90 text-slate-400" />
       </button>
 
-      <section className="home-v5-hero relative mb-3 flex shrink-0 flex-col justify-between overflow-hidden rounded-[26px] border border-white/80 p-4 shadow-[0_7px_22px_rgba(26,73,133,.10)] dark:border-slate-700" aria-label="Розумні поїздки">
-        <img src="/images/hero_mountain_bus.jpg" alt="" className="absolute inset-0 h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-r from-white via-white/90 to-white/10 dark:from-[#0B1730] dark:via-[#0B1730]/85 dark:to-[#0B1730]/15" />
-        <div className="relative z-10 max-w-[72%]">
-          <p className="text-[18px] font-black leading-tight tracking-tight text-[#102344] dark:text-white">Розумні поїздки</p>
-          <p className="mt-1 text-[11px] font-semibold leading-snug text-[#1769ED] dark:text-blue-300">для міста і міжміста</p>
-          <p className="mt-1 text-[10px] font-semibold text-slate-600 dark:text-slate-300">Люди · Транспорт · Можливості</p>
-        </div>
-
-        <button type="button" onClick={onSearchTrip} className="relative z-10 inline-flex min-h-9 w-fit items-center gap-2 rounded-full bg-white/95 px-3.5 text-[12px] font-bold text-[#142642] shadow-sm dark:bg-[#101E38]/95 dark:text-white">
-          <MapPin size={15} className="text-blue-600" /> Україна <ChevronRight size={15} />
-        </button>
-      </section>
-
-      {trips.length > 0 && (
-        <section className="home-v5-active-trips mb-3 space-y-2" aria-label="Ваші активні поїздки">
-          {trips.slice(0, 1).map((trip, index) => (
-            <button
-              key={`${trip.status}:${trip.id}`}
-              type="button"
-              aria-label={`${index === 0 ? 'Активна поїздка' : 'Поїздка'} ${trip.origin_name.split(',')[0]} → ${trip.destination_name.split(',')[0]}`}
-              onClick={() => onOpenTrip?.(trip)}
-              className="home-v5-trip-card flex min-h-[76px] w-full items-center gap-3 rounded-[24px] border border-emerald-200/80 bg-[#E8F8F0] px-3.5 py-3 text-left shadow-[0_4px_14px_rgba(16,132,92,.08)] transition active:scale-[.99] dark:border-emerald-900/60 dark:bg-[#0A261E]"
-            >
-              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-emerald-100 bg-white text-emerald-700 shadow-sm dark:border-emerald-900 dark:bg-[#101E38] dark:text-emerald-300"><Ticket size={21}/></span>
-              <span className="min-w-0 flex-1">
-                <span className="mb-1 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-[.12em] text-emerald-800 dark:text-emerald-300"><span className="h-2 w-2 rounded-full bg-emerald-500" />{index === 0 ? 'Активна поїздка' : 'Ваша поїздка'}</span>
-                <span className="block truncate text-[14px] font-black text-[#142642] dark:text-white">{trip.origin_name.split(',')[0]} → {trip.destination_name.split(',')[0]}</span>
-                <span className="mt-0.5 block truncate text-[10px] font-semibold text-emerald-900/70 dark:text-emerald-200/70">{formatDeparture(trip.departure_at)}{trip.priceLabel ? ` · ${trip.priceLabel}` : ''}</span>
-              </span>
-              <ChevronRight size={19} className="shrink-0 text-emerald-700 dark:text-emerald-300" />
+      {activePass ? (
+        <section className={`home-v5-pass-slot mb-3 ${marshPasses.length > 1 ? 'home-v5-pass-slot--multiple' : ''}`} aria-label="Активні MarshPass">
+          <button
+            key={activePass.id}
+            type="button"
+            aria-label={`Відкрити MarshPass: ${activePass.origin_name.split(',')[0]} — ${activePass.destination_name.split(',')[0]}`}
+            onClick={() => onOpenTrip?.(activePass)}
+            onTouchStart={(event) => { touchStartX.current = event.touches[0]?.clientX ?? null; }}
+            onTouchEnd={(event) => {
+              const endX = event.changedTouches[0]?.clientX;
+              if (touchStartX.current === null || endX === undefined || marshPasses.length < 2) return;
+              const delta = endX - touchStartX.current;
+              if (Math.abs(delta) > 40) setMarshPassIndex((index) => (index + (delta < 0 ? 1 : -1) + marshPasses.length) % marshPasses.length);
+              touchStartX.current = null;
+            }}
+            className="home-v5-marshpass-card flex h-full w-full flex-col justify-between overflow-hidden rounded-[24px] border p-3.5 text-left transition active:scale-[.99]"
+          >
+            <span className="flex items-center justify-between gap-2">
+              <span className="flex items-center gap-2"><span className="grid h-8 w-8 place-items-center rounded-xl bg-blue-600 text-white"><Ticket size={17}/></span><span className="text-[11px] font-black tracking-[.1em]">MARSHGO <span className="text-blue-600 dark:text-blue-300">MARSH PASS</span></span></span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[9px] font-bold text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300"><CheckCircle2 size={12}/>{activePass.status === 'boarding' || activePass.status === 'in_progress' ? 'У дорозі' : 'Підтверджено'}</span>
+            </span>
+            <span className="my-1 flex min-w-0 items-center gap-2">
+              <span className="min-w-0 flex-1"><span className="block truncate text-[18px] font-black leading-tight">{activePass.origin_name.split(',')[0]}</span><span className="block text-[10px] font-semibold text-slate-500 dark:text-slate-300">{formatDeparture(activePass.departure_at)}</span></span>
+              <ArrowRight size={19} className="shrink-0 text-blue-600 dark:text-blue-300"/>
+              <span className="min-w-0 flex-1 text-right"><span className="block truncate text-[18px] font-black leading-tight">{activePass.destination_name.split(',')[0]}</span><span className="block text-[10px] font-semibold text-slate-500 dark:text-slate-300">{activePass.priceLabel ?? 'Ціна уточнюється'}</span></span>
+            </span>
+            <span className="flex items-center justify-between gap-2 border-t border-slate-200/70 pt-2 dark:border-slate-700/80"><span className="flex min-w-0 items-center gap-1.5 text-[10px] font-semibold text-slate-600 dark:text-slate-300"><ShieldCheck size={13} className="shrink-0 text-emerald-600 dark:text-emerald-400"/><span className="truncate">{activePass.driverName ?? 'Приватна поїздка'}{activePass.seatCount ? ` · ${activePass.seatCount} ${activePass.seatCount === 1 ? 'місце' : 'місця'}` : ''}</span></span><span className="inline-flex shrink-0 items-center gap-1 text-[10px] font-bold text-blue-700 dark:text-blue-300"><QrCode size={14}/>Відкрити квиток</span></span>
+          </button>
+          {marshPasses.length > 1 && <div className="mt-1.5 flex items-center justify-center gap-3" aria-label={`MarshPass ${marshPassIndex + 1} з ${marshPasses.length}`}>
+            <button type="button" aria-label="Попередній MarshPass" onClick={() => setMarshPassIndex((index) => (index - 1 + marshPasses.length) % marshPasses.length)} className="grid h-8 w-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-[#16202B] dark:text-slate-100"><ChevronLeft size={16}/></button>
+            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-300">{marshPassIndex + 1} / {marshPasses.length}</span>
+            <button type="button" aria-label="Наступний MarshPass" onClick={() => setMarshPassIndex((index) => (index + 1) % marshPasses.length)} className="grid h-8 w-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-[#16202B] dark:text-slate-100"><ChevronRight size={16}/></button>
+          </div>}
+        </section>
+      ) : (
+        <section className="home-v5-hero home-v5-banner relative mb-3 flex shrink-0 flex-col justify-between overflow-hidden rounded-[26px] border border-white/80 p-4 shadow-[0_7px_22px_rgba(26,73,133,.10)] dark:border-slate-700" aria-label="MARSHGO: банер про поїздки">
+          <img src={activeBanner.image} alt="" style={{ objectPosition: activeBanner.imagePosition }} className="absolute inset-0 h-full w-full object-cover" />
+          <div className="home-v5-banner-scrim absolute inset-0" />
+          <div className="relative z-10 max-w-[78%]">
+            <p className="text-[9px] font-black uppercase tracking-[.16em] text-blue-700 dark:text-blue-300">{activeBanner.eyebrow}</p>
+            <p className="mt-1 text-[16px] font-black leading-tight tracking-tight text-[#102344] dark:text-white">{activeBanner.title}</p>
+            <p className="mt-1 text-[10px] font-semibold leading-snug text-slate-600 dark:text-slate-200">{activeBanner.description}</p>
+          </div>
+          <div className="relative z-10 flex items-center justify-between">
+            <button type="button" onClick={activeBanner.action === 'publish' ? onPlanTrip : onSearchTrip} className="inline-flex min-h-9 items-center gap-2 rounded-full bg-blue-600 px-3.5 text-[11px] font-bold text-white shadow-md shadow-blue-900/20">
+              {activeBanner.actionLabel} <ArrowRight size={14}/>
             </button>
-          ))}
+            <div className="flex items-center gap-1.5" role="group" aria-label="Банери MARSHGO">
+              {homeBanners.map((banner, index) => <button key={banner.eyebrow} type="button" aria-label={`Показати банер ${index + 1}: ${banner.eyebrow}`} aria-pressed={bannerIndex === index} onClick={() => setBannerIndex(index)} className={`h-2.5 rounded-full transition-all ${bannerIndex === index ? 'w-5 bg-blue-600' : 'w-2.5 bg-slate-400/60'}`} />)}
+            </div>
+          </div>
         </section>
       )}
 
