@@ -1193,7 +1193,7 @@ test('route search URL restores geocoded criteria after direct reload', async ({
   }
 });
 
-test('Journey Planner preserves a Community offer and does not claim CHEAPEST without public-transit fares', async ({ browser, baseURL }) => {
+test('Journey Planner preserves priced Community offers and consistent strategy metadata', async ({ browser, baseURL }) => {
   expect(baseURL).toBeTruthy();
   const context = await browser.newContext({ baseURL, timezoneId: 'Europe/Kyiv' });
   const page = await context.newPage();
@@ -1203,9 +1203,9 @@ test('Journey Planner preserves a Community offer and does not claim CHEAPEST wi
     await chooseRoutePlace(page, 'origin', 'Стрий', /Стрий, Львівська область, Україна/);
     await chooseRoutePlace(page, 'destination', 'Львів', /Львів, Львівська область, Україна/);
     await setTomorrowAtEightOnTimeWheel(page);
-    await page.getByRole('button', { name: /^Найдешевш/ }).click();
-
-    const searchResponse = page.waitForResponse(response => response.url().endsWith('/api/v1/journeys/search') && response.request().method() === 'POST' && response.status() === 200);
+    // Capture failures too; filtering for HTTP 200 here turns an API error into
+    // a misleading three-minute browser timeout with no response diagnostics.
+    const searchResponse = page.waitForResponse(response => response.url().endsWith('/api/v1/journeys/search') && response.request().method() === 'POST');
     await page.getByRole('button', { name: /^Знайти маршрут/ }).click();
     const response = await searchResponse;
     expect(response.status()).toBe(200);
@@ -1215,31 +1215,32 @@ test('Journey Planner preserves a Community offer and does not claim CHEAPEST wi
         strategy: string;
         offerId: string;
         source?: string;
+        recommendedStrategies?: string[];
+        strategyRanks?: Record<string, number>;
         legs?: Array<{ driver?: { averageRating: unknown } }>;
       }>;
       partial: boolean;
       providerErrors: string[];
+      availableStrategies: string[];
       unsupportedPreferences: string[];
     };
     expect(typeof payload.partial).toBe('boolean');
     const communityJourney = payload.journeys.find(item => item.offerId === offerId);
     expect(communityJourney).toBeDefined();
     if (!communityJourney) throw new Error('The persisted Community offer was missing from the journey results.');
-    const publicTransitFareUnavailable = payload.unsupportedPreferences.includes('CHEAPEST:public-transit-fares-unavailable');
-    expect(payload.journeys.some(item => item.strategy === 'CHEAPEST')).toBe(!publicTransitFareUnavailable);
-    if (publicTransitFareUnavailable) {
-      await expect(page.getByText(/Найдешевший маршрут не визначено/)).toBeVisible();
-    }
+    const cheapestAvailable = payload.availableStrategies.includes('CHEAPEST');
+    const cheapestResults = payload.journeys.filter(item => item.recommendedStrategies?.includes('CHEAPEST')
+      || typeof item.strategyRanks?.CHEAPEST === 'number');
+    expect(cheapestResults.length > 0).toBe(cheapestAvailable);
+    if (!cheapestAvailable) await expect(page.getByRole('button', { name: /^Найдешевші/ })).toBeDisabled();
     const journeyDriverRating = payload.journeys.find(item => item.offerId === offerId)?.legs?.[0]?.driver?.averageRating;
     expect(journeyDriverRating === null || typeof journeyDriverRating === 'number').toBe(true);
     await expect(page.getByRole('heading', { name: 'Результати пошуку' })).toBeVisible();
-    await expect(page.getByTestId('search-result-card')).toHaveCount(payload.journeys.length);
+    const journeyResults = page.getByRole('region', { name: 'План маршруту' }).getByRole('article');
+    await expect(journeyResults).toHaveCount(payload.journeys.length);
     await page.screenshot({ path: '/tmp/marshgo-search-results-list.png' });
-    const communityResult = page.getByTestId('search-result-card')
-      .filter({ hasText: 'Попутка' })
-      .filter({ hasText: 'Стрий' })
-      .filter({ hasText: 'Львів' })
-      .first();
+    const communityResult = page.locator(`[data-journey-id="${communityJourney.id}"]`);
+    await expect(communityResult).toContainText('Попутка');
     await expect(communityResult).toBeVisible();
     const saved = await pool.query<{ owner_id: string; offer_id: string; journey_leg_id: string }>(
       `SELECT j.user_id AS owner_id,l.offer_id,l.id AS journey_leg_id FROM journeys j JOIN journey_legs l ON l.journey_id=j.id WHERE j.id=$1`, [communityJourney.id],
@@ -1248,12 +1249,10 @@ test('Journey Planner preserves a Community offer and does not claim CHEAPEST wi
     expect(saved.rows).toHaveLength(1);
     expect(saved.rows[0]).toMatchObject({ owner_id: profile.data.id, offer_id: offerId });
 
-    const offerDetail = page.waitForResponse(response => response.url().endsWith(`/api/v1/offers/${offerId}`) && response.request().method() === 'GET');
-    await communityResult.click();
-    await expect(page.getByRole('heading', { name: 'Деталі маршруту' })).toBeVisible();
-    expect((await offerDetail).status()).toBe(200);
-    await page.getByRole('button', { name: 'Перейти до бронювання' }).click();
-    await expect(page.getByRole('heading', { name: /Стрий.*Львів/ })).toBeVisible();
+    // The selected offer is carried forward from the verified search response;
+    // opening its detail screen is a local view transition, not a second GET.
+    await communityResult.getByRole('button', { name: 'Поїздка', exact: true }).click();
+    await expect(page.getByText('Деталі поїздки', { exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Стрий → Львів' })).toBeVisible();
     await expect(page.getByText('Фото авто не додано')).toBeVisible();
     await page.screenshot({ path: '/tmp/marshgo-offer-detail-mobile.png', fullPage: true });
@@ -1268,13 +1267,13 @@ test('Journey Planner preserves a Community offer and does not claim CHEAPEST wi
     // may disappear while the booking and Journey refreshes complete.
     await expect(page.getByRole('heading', { name: 'Мої поїздки' })).toBeVisible();
     await expect(page.getByText('Маршрут готовий')).toBeVisible();
-    const linked = await pool.query<{ state: string; confirmed_price_minor: number; leg_state: string; price_status: string; booking_id: string }>(
-      `SELECT j.state,j.confirmed_price_minor,l.state AS leg_state,l.price_status,l.booking_id
+    const linked = await pool.query<{ id: string; state: string; confirmed_price_minor: number; leg_state: string; price_status: string; booking_id: string }>(
+      `SELECT j.id,j.state,j.confirmed_price_minor,l.state AS leg_state,l.price_status,l.booking_id
          FROM journeys j JOIN journey_legs l ON l.journey_id=j.id WHERE j.user_id=(SELECT id FROM users WHERE phone_e164=$1)`, [journeyPassengerPhone],
     );
     const bookedJourney = linked.rows.filter(row => row.state === 'READY' && row.booking_id === linkedBooking.data.id);
     expect(bookedJourney).toHaveLength(1);
-    expect(bookedJourney[0]).toMatchObject({ state: 'READY', confirmed_price_minor: 15000, leg_state: 'CONFIRMED', price_status: 'LOCKED' });
+    expect(bookedJourney[0]).toMatchObject({ id: communityJourney.id, state: 'READY', confirmed_price_minor: 15000, leg_state: 'CONFIRMED', price_status: 'LOCKED' });
 
     await expect(page.getByRole('button', { name: 'Скасувати', exact: true })).toBeVisible();
     const cancelResponse = page.waitForResponse(response => response.url().endsWith(`/api/v1/bookings/${linkedBooking.data.id}/cancel`));
@@ -1284,8 +1283,12 @@ test('Journey Planner preserves a Community offer and does not claim CHEAPEST wi
     await cancellationDialog.getByRole('button', { name: 'Так, скасувати' }).click();
     expect((await cancelResponse).status()).toBe(200);
     await expect(page.getByText('Потрібне перепланування')).toBeVisible();
-    await expect(page.getByText('Ціна не визначена')).toBeVisible();
+    await expect(page.getByText('Ціна оновиться після перепланування')).toBeVisible();
+    const replanned = await pool.query<{ state: string; total_price_minor: number | null; confirmed_price_minor: number | null }>(
+      `SELECT state,total_price_minor,confirmed_price_minor FROM journeys WHERE id=$1`, [communityJourney.id],
+    );
+    expect(replanned.rows).toEqual([{ state: 'REPLANNING', total_price_minor: null, confirmed_price_minor: null }]);
   } finally {
-    await context.close();
+    await context.close().catch(() => undefined);
   }
 });

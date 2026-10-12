@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('route results open a full-screen map with separate transport-colored shapes', async ({ page, browserName }) => {
+test('canonical route map synchronizes the sheet, stop details, map focus, and light/dark palettes', async ({ page, browserName }) => {
   const origin = { label: 'Львів, площа Ринок', latitude: 49.8419, longitude: 24.0315, providerId: 'e2e-lviv-origin' };
   const destination = { label: 'Львів, Сихів', latitude: 49.7915, longitude: 24.0628, providerId: 'e2e-lviv-destination' };
   const departure = new Date(Date.now() + 24 * 60 * 60_000);
@@ -25,6 +25,10 @@ test('route results open a full-screen map with separate transport-colored shape
           origin: { name: 'Площа Ринок', coordinates: [24.0315, 49.8419] }, destination: { name: 'Вул. Князя Романа', coordinates: [24.034, 49.838] },
           departureAt: busDeparture.toISOString(), arrivalAt: busArrival.toISOString(), durationSeconds: 18 * 60,
           priceMinor: null, priceStatus: 'UNKNOWN', availabilityStatus: 'UNKNOWN', lastUpdatedAt: departure.toISOString(),
+          stops: [
+            { id: 'market', name: 'Площа Ринок', coordinates: [24.0315, 49.8419], arrivalAt: busDeparture.toISOString(), departureAt: busDeparture.toISOString() },
+            { id: 'roman', name: 'Вул. Князя Романа', coordinates: [24.034, 49.838], arrivalAt: busArrival.toISOString(), departureAt: busArrival.toISOString() },
+          ],
           routeGeometry: [[24.0315, 49.8419], [24.033, 49.84], [24.034, 49.838]], driver: null, vehicle: null },
         { id: 'e2e-walk-transfer', mode: 'WALK', transportType: 'walk', source: 'walking-estimate',
           origin: { name: 'Вул. Князя Романа', coordinates: [24.034, 49.838] }, destination: { name: 'Університет', coordinates: [24.036, 49.837] },
@@ -34,6 +38,10 @@ test('route results open a full-screen map with separate transport-colored shape
           origin: { name: 'Університет', coordinates: [24.036, 49.837] }, destination: { name: 'Сихів', coordinates: [24.0628, 49.7915] },
           departureAt: tramDeparture.toISOString(), arrivalAt: tramArrival.toISOString(), durationSeconds: 22 * 60,
           priceMinor: null, priceStatus: 'UNKNOWN', availabilityStatus: 'UNKNOWN', lastUpdatedAt: departure.toISOString(),
+          stops: [
+            { id: 'university', name: 'Університет', coordinates: [24.036, 49.837], arrivalAt: tramDeparture.toISOString(), departureAt: tramDeparture.toISOString() },
+            { id: 'sykhiv', name: 'Сихів', coordinates: [24.0628, 49.7915], arrivalAt: tramArrival.toISOString(), departureAt: tramArrival.toISOString() },
+          ],
           routeGeometry: [[24.036, 49.837], [24.05, 49.82]], driver: null, vehicle: null },
       ],
     }],
@@ -93,15 +101,59 @@ test('route results open a full-screen map with separate transport-colored shape
   await page.screenshot({ path: `/tmp/marshgo-${browserName}-journey-results-dark.png` });
   await page.getByRole('button', { name: /На карті/ }).click();
 
-  const routeMap = page.getByRole('main', { name: 'Карта маршруту' });
+  const routeMap = page.getByRole('main', { name: 'Побудований маршрут' });
   await expect(routeMap).toBeVisible();
+  await expect(routeMap).toHaveAttribute('data-theme', 'light');
   await expect(routeMap.getByText('Автобус 21')).toBeVisible();
   await expect(routeMap.getByText('Трамвай 8')).toBeVisible();
-  await expect(routeMap.getByText('1 пересадка')).toBeVisible();
+  await expect(routeMap.getByText('Відстань не вказана')).toBeVisible();
+  await expect(routeMap.getByText(/NaN/)).toHaveCount(0);
+  const sheet = routeMap.getByTestId('route-bottom-sheet');
+  await expect(sheet).toHaveAttribute('data-sheet-state', 'half');
+  await sheet.getByRole('button', { name: 'Розгорнути деталі маршруту' }).click();
+  await expect(sheet).toHaveAttribute('data-sheet-state', 'expanded');
+  await sheet.getByRole('button', { name: 'Згорнути деталі маршруту' }).click();
+  await expect(sheet).toHaveAttribute('data-sheet-state', 'collapsed');
+  await sheet.getByRole('button', { name: 'Розгорнути деталі маршруту' }).click();
+  await expect(sheet).toHaveAttribute('data-sheet-state', 'half');
+  await expect(routeMap.getByRole('button', { name: /На карті/ })).toHaveCount(0);
+  await expect(routeMap.locator('img')).toHaveCount(0);
   const map = routeMap.locator('[data-marshgo-map-renderer="maplibre"]');
   await expect(map).toHaveAttribute('data-marshgo-route-segment-count', '2');
   await expect(map).toHaveAttribute('data-marshgo-route-point-count', '5');
+  const busTimeline = routeMap.getByRole('button', { name: 'Автобус 21, 18 хв' });
+  await busTimeline.click();
+  const busCard = routeMap.locator('[data-segment-id="e2e-bus-leg"]');
+  await expect(busCard).toHaveAttribute('data-active', 'true');
+  await expect(busCard.getByRole('button', { name: 'Згорнути зупинки: Автобус' })).toHaveAttribute('aria-expanded', 'true');
+  await expect(busCard.getByText('Площа Ринок').last()).toBeVisible();
+  await expect(busCard.getByText('Вул. Князя Романа').last()).toBeVisible();
+  await expect(map).toHaveAttribute('data-marshgo-active-route-segment-id', 'e2e-bus-leg');
+  await expect(map).toHaveAttribute('data-marshgo-focused-route-segment-id', 'e2e-bus-leg');
+  await busCard.getByRole('button', { name: 'Згорнути зупинки: Автобус' }).click();
+  await expect(busCard.getByRole('button', { name: 'Розгорнути зупинки: Автобус' })).toHaveAttribute('aria-expanded', 'false');
+  const tramCard = routeMap.locator('[data-segment-id="e2e-tram-leg"]');
+  await tramCard.getByRole('button', { name: /Вибрати сегмент: Трамвай 8/ }).click();
+  await expect(tramCard).toHaveAttribute('data-active', 'true');
+  await expect(tramCard.getByText('Університет').last()).toBeVisible();
+  await expect(tramCard.getByText('Сихів').last()).toBeVisible();
+  await expect(map).toHaveAttribute('data-marshgo-active-route-segment-id', 'e2e-tram-leg');
+  await expect(map).toHaveAttribute('data-marshgo-focused-route-segment-id', 'e2e-tram-leg');
   await page.screenshot({ path: `/tmp/marshgo-${browserName}-multimodal-route-map.png`, fullPage: true });
   await routeMap.getByRole('button', { name: 'Назад до результатів' }).click();
   await expect(page.getByRole('heading', { name: 'Результати пошуку' })).toBeVisible();
+  const navigation = page.getByRole('navigation', { name: 'Основна навігація' });
+  await navigation.getByRole('button', { name: 'Профіль', exact: true }).click();
+  await page.getByRole('button', { name: /Налаштування/ }).click();
+  await page.getByRole('button', { name: 'Темна (Ніч)' }).click();
+  await expect.poll(() => page.evaluate(() => document.documentElement.style.colorScheme)).toBe('dark');
+  await navigation.getByRole('button', { name: 'Пошук', exact: true }).click();
+  await page.getByRole('button', { name: /На карті/ }).click();
+  const darkRouteMap = page.getByRole('main', { name: 'Побудований маршрут' });
+  await expect(darkRouteMap).toHaveAttribute('data-theme', 'dark');
+  await expect(darkRouteMap.getByTestId('route-bottom-sheet')).toHaveAttribute('data-sheet-state', 'half');
+  await expect(darkRouteMap.locator('[data-segment-id="e2e-bus-leg"]')).toHaveCSS('background-color', 'rgb(16, 32, 46)');
+  await expect.poll(() => darkRouteMap.locator('[data-marshgo-map-renderer="maplibre"]').evaluate(element =>
+    getComputedStyle(element).backgroundImage.includes('rgb(19, 45, 71)'))).toBe(true);
+  await page.screenshot({ path: `/tmp/marshgo-${browserName}-multimodal-route-map-dark.png`, fullPage: true });
 });
