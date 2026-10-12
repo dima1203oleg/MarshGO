@@ -5,12 +5,12 @@
   "status": "NOT_RELEASED",
   "ready_for_server_deployment": false,
   "production_ready": false,
-  "server_sha": "7991b172d4a7365e4e3e07427f7fc6e6b8b5e9b3",
+  "server_sha": "b633e796a7e005fa7887134c437aea898a31d236",
   "site_sha": "6dfda7095392bc48d4151c48b9f2ec1288bc15d2",
   "ios_sha": "238231287c9b998de2a56fea36429f7e7de7ff70",
   "integration_sha": "fb4aa7f0ea003ea4775208a4510ae7fdc5cb73ad",
   "database_migration": "043 (release candidate only; no production database is configured)",
-  "candidate_scope": "The owner-provided light and dark canonical boards are retained byte-for-byte in Site docs/design/canonical. Static GTFS source shapes flow through the Server API to mode-colored map lines; missing shapes stay absent. The map camera keeps endpoints visible above the summary sheet, and Ukrainian transfer counts use correct plural forms. GTFS search enforces separate 900 m access, 1,000 m egress and 400 m transfer walk-sheds; straight-line walking distances are disclosed as estimates in the web UI. Server 7991b17 parses GTFS transfers.txt and pathways.txt, applies trip/route/parent-station transfer rules, rejects prohibited or impossible connections, uses station traversal time/distance/geometry when supplied, and preserves explicit in-seat transfers. Feeds without station topology still use explicitly estimated straight-line connectors. This candidate remains NOT_RELEASED: no pedestrian street-routing provider is configured, source coverage/live provider access/authoritative fares are limited, and production infrastructure/secrets, latency SLO and regional acceptance remain open. Search results now follow the canonical compact hierarchy: selected route/date header, three strategy tabs, transport filters and compact mode-colored segment durations; the full step-by-step route remains in map details. Light and graphite dark result states were checked in the browser. GTFS Fares v1 now prices journeys only when valid published fare files cover every boarded segment; Fares v2 stays unpriced until its transfer model is supported. The four currently reachable open GTFS feeds (Lviv, Stryi, Ukrainian rail and intercity bus) contain no fare files, so their fares remain explicitly unknown.",
+  "candidate_scope": "The owner-provided light and dark canonical boards are retained byte-for-byte in Site docs/design/canonical. Static GTFS source shapes flow through the Server API to mode-colored map lines; missing shapes stay absent. The map camera keeps endpoints visible above the summary sheet, and Ukrainian transfer counts use correct plural forms. GTFS search enforces separate 900 m access, 1,000 m egress and 400 m transfer walk-sheds; straight-line walking distances are disclosed as estimates in the web UI. Server b633e79 parses GTFS transfers.txt and pathways.txt, applies trip/route/parent-station transfer rules, rejects prohibited or impossible connections, uses station traversal time/distance/geometry when supplied, and preserves explicit in-seat transfers. Indexed candidates now connect distinct canonical platform IDs only when explicit station topology or a GTFS transfer rule exists; disconnected pathways and proximity-only joins remain rejected. Feeds without station topology still use explicitly estimated straight-line connectors. This candidate remains NOT_RELEASED: no pedestrian street-routing provider is configured, source coverage/live provider access/authoritative fares are limited, and production infrastructure/secrets, latency SLO and regional acceptance remain open. Search results now follow the canonical compact hierarchy: selected route/date header, three strategy tabs, transport filters and compact mode-colored segment durations; the full step-by-step route remains in map details. Light and graphite dark result states were checked in the browser. GTFS Fares v1 now prices journeys only when valid published fare files cover every boarded segment; Fares v2 stays unpriced until its transfer model is supported. The four currently reachable open GTFS feeds (Lviv, Stryi, Ukrainian rail and intercity bus) contain no fare files, so their fares remain explicitly unknown.",
   "api_version": "v1",
   "source_repositories": {
     "server": "dima1203oleg/MarshGO-Server@codex/sync-mobility-registry",
@@ -141,17 +141,17 @@
     ]
   },
   "latest_workspace_sync_2026_10_12": {
-    "server_sha": "7991b172d4a7365e4e3e07427f7fc6e6b8b5e9b3",
+    "server_sha": "b633e796a7e005fa7887134c437aea898a31d236",
     "site_sha": "6dfda7095392bc48d4151c48b9f2ec1288bc15d2",
     "ios_sha": "238231287c9b998de2a56fea36429f7e7de7ff70",
     "integration_code_sha": "fb4aa7f0ea003ea4775208a4510ae7fdc5cb73ad",
-    "server_checks": "Exact Server SHA 7991b172d4a7365e4e3e07427f7fc6e6b8b5e9b3: TypeScript PASS; ESLint PASS; 133 unit tests passed, 0 failed, 1 opt-in skip. Hosted Server CI run 38248641647 PASS, including isolated database integration checks. A separate local integration attempt hit Node 25.4 heap exhaustion and is not counted as a pass.",
-    "server_ci": "PASS: https://github.com/dima1203oleg/MarshGO-Server/actions/runs/38248641647 on exact SHA 7991b172d4a7365e4e3e07427f7fc6e6b8b5e9b3; lint, typecheck, 133 unit tests, migrations and isolated integration suite passed.",
+    "server_checks": "Exact Server SHA b633e796a7e005fa7887134c437aea898a31d236: local TypeScript PASS, ESLint PASS, 133 tests passed, 0 failed, 1 opt-in local integration skip. Hosted Server CI runs 38249746460 and 38249752772 PASS, including migrations and isolated database integration checks.",
+    "server_ci": "PASS: https://github.com/dima1203oleg/MarshGO-Server/actions/runs/38249746460 on exact SHA b633e796a7e005fa7887134c437aea898a31d236; lint, typecheck, unit tests, migrations and isolated integration suite passed. Duplicate hosted run 38249752772 also passed.",
     "site_checks": "TypeScript PASS; ESLint PASS; 55 tests passed; Vite build and gzip chunk budget PASS; hosted Site CI PASS.",
     "ios_sync": "PASS: hosted iOS Simulator CI run 38244348763 verified exact Site pin 6dfda7095392bc48d4151c48b9f2ec1288bc15d2 and compiled the exact iOS commit 238231287c9b998de2a56fea36429f7e7de7ff70.",
     "live_fare_coverage": "Four reachable public GTFS sources parsed; none currently publishes GTFS fares.",
     "production_status": "NOT RELEASED; provider coverage, authoritative fares, live data, production services and regional acceptance remain incomplete.",
     "route_map_e2e": "PASS: focused E2E 2/2 in Chromium and route UI 6/6 across Chromium/Firefox/WebKit; isolated fixtures.",
-    "gtfs_transfer_rules": "PASS locally and in hosted Server CI: prohibited/minimum-time rules, parent-station rules, in-seat transfers, station pathways traversal time/distance/geometry, disconnected pathway rejection and short-connection feasibility."
+    "gtfs_transfer_rules": "PASS locally and in hosted Server CI on b633e796a7e005fa7887134c437aea898a31d236: prohibited/minimum-time rules, parent-station rules, in-seat transfers, explicit transfer/pathway discovery across distinct canonical platform IDs, station pathway traversal time/distance/geometry, disconnected pathway rejection and short-connection feasibility."
   }
 }
