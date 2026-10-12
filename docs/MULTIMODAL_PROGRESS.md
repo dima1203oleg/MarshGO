@@ -1,5 +1,22 @@
 # MARSHGO Multimodal Progress
 
+## 2026-10-12 — Fresh GTFS GPS on selected journey map
+
+**Status:** IMPLEMENTED for providers with timestamped, trip-identifiable VehiclePositions; the overall Routing Engine remains partial.
+
+- Journey transit legs persist GTFS `routeId`, `tripId`, and service date. Migration `044_gtfs_vehicle_position_url.sql` links a timetable provider to its separate GTFS-Realtime VehiclePositions URL.
+- Authenticated `GET /api/v1/journeys/:id/live` enforces Journey ownership. It returns a vehicle only with a per-entity timestamp no older than 90 seconds, exact provider/trip/route identity, and an open scheduled service window. Feed-fetch time is never treated as a GPS timestamp.
+- The Site polls during the scheduled travel window and renders a separate live public-transport marker on the existing route map. It does not reuse the driver's own-location marker, rewrite scheduled ETA, or replan.
+- Current Lviv VehiclePositions probe returned 626 entities; 593 had fresh timestamps and 587 also had route/trip IDs. The source omits GTFS `startDate`, so the persisted schedule window disambiguates the service-date instance.
+- The owner's light route-map screenshots are canonical in the Site repository and hash-locked; this repo's design index links directly to those exact files.
+
+**VERIFICATION**
+- Server typecheck/lint passed; 142 tests passed, 1 opt-in local integration test skipped. GitHub Server CI passed migration, integration, lint, typecheck and tests.
+- Site typecheck/lint/build passed; 55 tests passed. GitHub Site CI passed, including the bundle check.
+
+**LIMITATION**
+- GPS is displayed only when the source supplies a fresh matching position. Position polling does not yet trigger ETA updates, transfer-rescue alternatives or automatic re-planning. Broad commercial modes and nationwide transit coverage remain incomplete.
+
 ## Phase A — Journey domain foundation
 
 **Status:** PARTIAL.
