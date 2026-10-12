@@ -4,7 +4,7 @@ import base from './playwright.config';
 export default defineConfig({
   ...base,
   testDir: './e2e',
-  testMatch: 'browser-compat.spec.ts',
+  testMatch: /(?:browser-compat|journey-route-map)\.spec\.ts/,
   reporter: [['list']],
   projects: [
     { name: 'chromium', use: { browserName: 'chromium' } },

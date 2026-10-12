@@ -16,5 +16,12 @@ npm run db:migrate
 node scripts/reset-e2e-otp.ts
 node scripts/build-pwa.mjs
 SITE_SHA="$(node -e 'process.stdout.write(JSON.parse(require("node:fs").readFileSync("RELEASE_MANIFEST.json","utf8")).site_sha)')"
+SERVER_SHA="$(node -e 'process.stdout.write(JSON.parse(require("node:fs").readFileSync("RELEASE_MANIFEST.json","utf8")).server_sha)')"
+SERVER_DIR="$PWD/.release/server-${SERVER_SHA}"
+export E2E_SERVER_DIR="$SERVER_DIR"
+export E2E_SERVER_PINNED_SHA="$SERVER_SHA"
+if [[ ! -f "$SERVER_DIR/node_modules/.package-lock.json" ]]; then
+  npm ci --prefix "$SERVER_DIR" --no-audit --no-fund
+fi
 export E2E_DIST_DIR="${E2E_DIST_DIR:-$PWD/.release/site-${SITE_SHA}/dist}"
 playwright test --config=playwright.compat.config.ts
