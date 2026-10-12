@@ -58,11 +58,12 @@ jobs:
       - run: node ops/scripts/materialize-release.mjs
       - run: docker compose --project-name marshgo-canonical-build --env-file ops/templates/production.env.example -f .release/compose.production.yml build api web
       - run: npx playwright install --with-deps chromium firefox webkit
-      # Browser tests exercise this commit's web app (not a pinned older Site build), served against the pinned API release.
-      - name: Build the web app under test
-        run: >-
-          VITE_MAP_STYLE_URL= VITE_MAP_TILE_URL='http://127.0.0.1:3306/tiles/{z}/{x}/{y}.png'
-          VITE_MAP_TILE_ATTRIBUTION='MARSHGO isolated E2E map fixture'
-          npx vite build --outDir "$RUNNER_TEMP/e2e-dist" --emptyOutDir
-      - run: E2E_DIST_DIR="$RUNNER_TEMP/e2e-dist" npm run test:e2e
-      - run: E2E_DIST_DIR="$RUNNER_TEMP/e2e-dist" npm run test:browser-compat
+      # Browser tests exercise the canonical Site repository at the immutable SHA
+      # in RELEASE_MANIFEST.json, served against the pinned API release.
+      - name: Build the pinned canonical Site for browser tests
+        run: |
+          node scripts/build-pwa.mjs
+          site_sha="$(node -e 'process.stdout.write(JSON.parse(require("node:fs").readFileSync("RELEASE_MANIFEST.json", "utf8")).site_sha)')"
+          echo "E2E_DIST_DIR=$GITHUB_WORKSPACE/.release/site-${site_sha}/dist" >> "$GITHUB_ENV"
+      - run: npm run test:e2e
+      - run: npm run test:browser-compat

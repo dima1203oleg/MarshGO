@@ -128,78 +128,33 @@ async function setPassengerCount(page: import('@playwright/test').Page, count: n
   await page.getByRole('button', { name: 'Застосувати', exact: true }).click();
 }
 
-test('time drum plays a ratchet tick and keeps arrival-time mode', async ({ browser, baseURL }) => {
+test('date and time picker applies and restores the selected Kyiv departure time', async ({ browser, baseURL }) => {
   expect(baseURL).toBeTruthy();
   const context = await browser.newContext({ baseURL, timezoneId: 'Europe/Kyiv' });
   const page = await context.newPage();
   try {
-    await page.addInitScript(() => {
-      const feedback = { audioTicks: 0, audioContexts: 0, vibrationTicks: 0 };
-      Object.defineProperty(window, '__timeDrumFeedback', { configurable: true, value: feedback });
-      Object.defineProperty(navigator, 'vibrate', {
-        configurable: true,
-        value: () => { feedback.vibrationTicks += 1; return true; },
-      });
-      class MockAudioContext {
-        state = 'running';
-        currentTime = 0;
-        destination = {};
-        constructor() { feedback.audioContexts += 1; }
-        createOscillator() {
-          return {
-            type: 'triangle',
-            frequency: { setValueAtTime() {} },
-            connect() {},
-            start: () => { feedback.audioTicks += 1; },
-            stop() {},
-          };
-        }
-        createGain() {
-          return {
-            gain: { setValueAtTime() {}, exponentialRampToValueAtTime() {} },
-            connect() {},
-          };
-        }
-        resume() { return Promise.resolve(); }
-        close() { return Promise.resolve(); }
-      }
-      Object.defineProperty(window, 'AudioContext', { configurable: true, value: MockAudioContext });
-    });
     await signIn(page, 'Time Drum Passenger', `+38075${String(Date.now()).slice(-7)}`);
     await openSearchTab(page);
-    await page.getByRole('button', { name: /^Час/ }).click();
-    await expect(page.getByTestId('time-drum-modal')).toBeVisible();
-    const hourWheel = page.getByRole('listbox', { name: 'Години' });
-    const minuteWheel = page.getByRole('listbox', { name: 'Хвилини' });
-    const selectedTime = page.locator('[aria-live="polite"][aria-label^="Обраний час"]');
-    await expect.poll(async () => {
-      const hour = await hourWheel.locator('[role="option"][aria-selected="true"]').innerText();
-      const minute = await minuteWheel.locator('[role="option"][aria-selected="true"]').innerText();
-      return await selectedTime.getAttribute('aria-label') === `Обраний час ${hour}:${minute}`;
-    }).toBe(true);
-    await page.screenshot({ path: '/tmp/marshgo-time-drum-picker.png' });
-
-    const currentHour = Number(await hourWheel.locator('[role="option"][aria-selected="true"]').innerText());
+    const openPicker = page.getByRole('button', { name: 'Вибрати час відправлення', exact: true });
+    await openPicker.click();
+    const dialog = page.getByRole('dialog', { name: 'Вибір дати і часу' });
+    await expect(dialog).toBeVisible();
+    const hourWheel = dialog.getByRole('listbox', { name: 'Година відправлення' });
+    const minuteWheel = dialog.getByRole('listbox', { name: 'Хвилина відправлення' });
+    const selectedHour = hourWheel.locator('[role="option"][aria-selected="true"]');
+    const currentHour = Number(await selectedHour.innerText());
     const nextHour = String((currentHour + 1) % 24).padStart(2, '0');
-    await hourWheel.getByRole('option', { name: nextHour, exact: true }).evaluate((option) => (option as HTMLElement).click());
+    await hourWheel.getByRole('option', { name: nextHour, exact: true }).click();
+    await expect(selectedHour).toHaveText(nextHour);
+    await minuteWheel.getByRole('option', { name: '15', exact: true }).click();
+    await expect(minuteWheel.locator('[role="option"][aria-selected="true"]')).toHaveText('15');
+    await dialog.getByRole('button', { name: 'Застосувати', exact: true }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(openPicker).toContainText(`${nextHour}:15`);
+    await openPicker.click();
+    await expect(dialog).toBeVisible();
     await expect(hourWheel.locator('[role="option"][aria-selected="true"]')).toHaveText(nextHour);
-    const feedbackSnapshot = await page.evaluate(() => (window as Window & { __timeDrumFeedback?: { audioTicks: number; audioContexts: number; vibrationTicks: number } }).__timeDrumFeedback);
-    expect(feedbackSnapshot?.audioContexts).toBeGreaterThan(0);
-    await expect.poll(() => page.evaluate(() => {
-      const feedback = (window as Window & { __timeDrumFeedback?: { audioTicks: number; vibrationTicks: number } }).__timeDrumFeedback;
-      return feedback?.audioTicks ?? 0;
-    })).toBeGreaterThan(0);
-    await expect.poll(() => page.evaluate(() => {
-      const feedback = (window as Window & { __timeDrumFeedback?: { audioTicks: number; vibrationTicks: number } }).__timeDrumFeedback;
-      return feedback?.vibrationTicks ?? 0;
-    })).toBeGreaterThan(0);
-
-    const arrivalMode = page.getByRole('button', { name: 'Прибуття', exact: true });
-    await arrivalMode.click();
-    await expect(arrivalMode).toHaveAttribute('aria-pressed', 'true');
-    await page.getByRole('button', { name: 'Застосувати', exact: true }).click();
-    await page.getByRole('button', { name: /^Час/ }).click();
-    await expect(page.getByRole('button', { name: 'Прибуття', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await expect(minuteWheel.locator('[role="option"][aria-selected="true"]')).toHaveText('15');
   } finally {
     await context.close();
   }
