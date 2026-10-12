@@ -49,7 +49,7 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
   ]);
   await expect(page.locator('.production-app')).toBeVisible();
   await expect(page.locator('.production-app')).toBeVisible();
-  await expect(page.getByRole('button', { name: /Запланована поїздка Львів → Стрий/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Відкрити MarshPass: Львів — Стрий' })).toBeVisible();
 
   for (const viewport of [
     { name: 'small-phone', width: 320, height: 568 },
@@ -62,14 +62,14 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     await page.waitForTimeout(100);
     const layout = await page.evaluate(() => {
-      const cta = document.querySelector<HTMLElement>('.home-action-card--navigation')?.getBoundingClientRect();
+      const cta = document.querySelector<HTMLElement>('.home-v5-action-card--navigation')?.getBoundingClientRect();
       const bounds = (selector: string) => {
         const element = document.querySelector<HTMLElement>(selector);
         if (!element) return null;
         const rect = element.getBoundingClientRect();
         return { top: rect.top, bottom: rect.bottom, height: rect.height };
       };
-      const homeCards = [...document.querySelectorAll<HTMLElement>('.home-action-card')].map(element => {
+      const homeCards = [...document.querySelectorAll<HTMLElement>('.home-v5-action-card')].map(element => {
         const rect = element.getBoundingClientRect();
         return { top: rect.top, bottom: rect.bottom };
       });
@@ -81,9 +81,9 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
         body: { width: document.body.scrollWidth, bounds: document.body.getBoundingClientRect().toJSON() },
         root: { width: document.documentElement.scrollWidth, bounds: document.documentElement.getBoundingClientRect().toJSON() },
         header: bounds('.production-app > .app-header'),
-        home: bounds('.home-hero--canonical'),
-        hero: bounds('.home-canonical-banner'),
-        actions: bounds('.home-action-grid'),
+        home: bounds('.home-v5-screen'),
+        hero: bounds('.home-v5-hero, .home-v5-pass-slot'),
+        actions: bounds('.home-v5-actions'),
         homeCards,
         tabbar: bounds('.production-app > .app-tabbar'),
         tabbarPosition: getComputedStyle(document.querySelector<HTMLElement>('.production-app > .app-tabbar')!).position,
@@ -106,7 +106,20 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
       expect(layout.home, `${viewport.name} must show the home screen`).not.toBeNull();
       expect(layout.hero!.top, `${viewport.name} hero starts below the app header`).toBeGreaterThanOrEqual(layout.header!.bottom - 1);
       expect(layout.homeCards, `${viewport.name} should render all four home actions`).toHaveLength(4);
-      expect(Math.max(...layout.homeCards.map(card => card.bottom)), `${viewport.name} home cards must fit above the fixed tab bar`).toBeLessThanOrEqual(layout.tabbar!.top + 1);
+      if (viewport.height <= 730) {
+        const home = page.locator('.home-v5-screen');
+        await home.evaluate(element => { element.scrollTop = element.scrollHeight; });
+        const publishCard = page.locator('.home-v5-action-card--publish');
+        await expect(publishCard).toBeInViewport();
+        const compactLayout = await page.evaluate(() => ({
+          publishBottom: document.querySelector<HTMLElement>('.home-v5-action-card--publish')?.getBoundingClientRect().bottom ?? Infinity,
+          tabbarTop: document.querySelector<HTMLElement>('.app-tabbar')?.getBoundingClientRect().top ?? 0,
+        }));
+        expect(compactLayout.publishBottom, `${viewport.name} publish action must be reachable above the fixed tab bar`).toBeLessThanOrEqual(compactLayout.tabbarTop + 1);
+        await home.evaluate(element => { element.scrollTop = 0; });
+      } else {
+        expect(Math.max(...layout.homeCards.map(card => card.bottom)), `${viewport.name} home cards must fit above the fixed tab bar`).toBeLessThanOrEqual(layout.tabbar!.top + 1);
+      }
       const minActionHeight = viewport.height <= 620 ? 65 : 95;
       expect(layout.homeCards.every(card => card.bottom > card.top + minActionHeight), `${viewport.name} action cards must retain readable height`).toBe(true);
       // WebKit's emulated small-phone viewport excludes its bottom safe-area inset.
@@ -121,9 +134,9 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
   await page.setViewportSize({ width: 390, height: 844 });
   const homeTabbarHeight = await page.locator('.app-tabbar').evaluate(element => element.getBoundingClientRect().height);
   await page.getByRole('navigation', { name: 'Основна навігація' }).getByRole('button', { name: 'Пошук', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Куди їдемо?' })).toBeVisible();
-  await expect(page.getByPlaceholder('Місто відправлення')).toBeVisible();
-  await expect(page.getByPlaceholder('Місто призначення')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Пошук маршруту' })).toBeVisible();
+  await expect(page.getByPlaceholder('Моє місцеперебування')).toBeVisible();
+  await expect(page.getByPlaceholder('Введіть адресу, місто або зупинку')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Знайти маршрут', exact: true })).toBeVisible();
   const searchTabbar = await page.locator('.app-tabbar').evaluate(element => ({
     position: getComputedStyle(element).position,

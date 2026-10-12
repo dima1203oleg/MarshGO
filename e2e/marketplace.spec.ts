@@ -211,14 +211,17 @@ test('route transport catalogue exposes the twelve canonical modes in order and 
   const page = await context.newPage();
   try {
     await signIn(page, 'Transport Catalogue Passenger', transportCatalogPhone);
+    const providerRefresh = page.waitForResponse(response => {
+      const url = new URL(response.url());
+      return url.pathname === '/api/v1/mobility/providers' && response.ok();
+    });
     await openSearchTab(page);
-    const providerRefresh = page.waitForResponse(response => response.url().includes('/api/v1/mobility/providers?lat=') && response.ok());
-    await chooseRoutePlace(page, 'origin', 'Стрий', /Стрий, Львівська область, Україна/);
     await providerRefresh;
+    await chooseRoutePlace(page, 'origin', 'Стрий', /Стрий, Львівська область, Україна/);
     const picker = page.getByRole('region', { name: 'Види транспорту' });
     const allModes = [
-      'Автобуси', 'Маршрутки', 'Тролейбуси', 'Трамваї', 'Метро', 'Попутки',
-      'Таксі', 'Поїзди', 'Велосипеди', 'Самокати', 'Каршеринг', 'Трансфери',
+      'Попутки', 'Маршрутки', 'Автобуси', 'Таксі', 'Тролейбуси', 'Метро',
+      'Трамваї', 'Поїзд', 'Велосипеди', 'Самокати', 'Каршеринг', 'Трансфери',
     ];
     const tiles = picker.locator('button[aria-label]');
     await expect(tiles).toHaveCount(12);
