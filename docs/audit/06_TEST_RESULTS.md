@@ -17,7 +17,7 @@ Pull request: [MarshGO #1](https://github.com/dima1203oleg/MarshGO/pull/1), SHA 
 
 Поточний повторний run завершив успішно такі етапи: встановлення залежностей, Bun audit, lint, typecheck, unit tests, міграція ізольованої CI БД, API integration, build, bundle check і матеріалізація release package. Перший запуск на тому самому SHA мав один `ECONNRESET` у DB/API integration test; повторний API integration suite пройшов. Це слід відстежувати як нестабільність.
 
-**Повний висновок run відкладений:** на останній перевірці виконувався `npx playwright install --with-deps chromium firefox webkit`; після нього workflow має зібрати pinned Site, виконати browser E2E та browser compatibility. До завершення run кількість актуальних E2E pass/fail і його фінальний висновок не встановлені.
+Повний висновок цього старого run відкладений: на останній перевірці виконувався `npm run test:e2e` із Site SHA `1745822…`, зафіксованим у manifest. Повторне попереднє CI на цьому SHA дало 5 pass / 7 fail; частина тестів перевіряла UI, який уже змінений у Site `570ea7b…`. Manifest зараз оновлюється на перевірений Site SHA, і саме наступний root CI буде основним актуальним E2E результатом. Browser compatibility для нового SHA теж має пройти окремо.
 
 ## Тестове покриття та межі
 
