@@ -70,6 +70,7 @@ test('route results open a full-screen map with separate transport-colored shape
   await page.getByRole('button', { name: destination.label, exact: true }).click();
   await page.getByRole('button', { name: 'Знайти маршрут', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Найкращі доступні варіанти' })).toBeVisible();
+  await expect(page.getByText('Пішохідну відстань оцінено по прямій; реальний шлях може бути довшим.')).toBeVisible();
   await page.getByRole('button', { name: 'Показати маршрут на карті' }).click();
 
   const routeMap = page.getByRole('main', { name: 'Карта маршруту' });
