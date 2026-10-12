@@ -14,6 +14,8 @@ The files are the original supplied references. Their SHA-256 digests are checke
 
 Both boards describe the same nine-screen product flow. The light board defines the white, blue, and green visual language; the dark board is its graphite and midnight-blue adaptation.
 
+The compact multimodal journey-results screen has an additional approved light/dark reference board and a light card-detail reference. See the [canonical results contract and locked references](https://github.com/dima1203oleg/MarshGO-Site/blob/11e72b4b79888985a35700a3d85f4b715023b19a/docs/design/canonical/journey-search-results/README.md). Their SHA-256 values and implementation source are recorded in [CANONICAL_DESIGN.md](../CANONICAL_DESIGN.md).
+
 For the light variant of the route-map/bottom-sheet screen, the owner's three supplied screenshots are canonical: [expanded details](https://github.com/dima1203oleg/MarshGO-Site/blob/codex/sync-journey-mobility-ui/docs/design/canonical/route-map-bottom-sheet/light/01-expanded-route-details.jpg), [half-open sheet](https://github.com/dima1203oleg/MarshGO-Site/blob/codex/sync-journey-mobility-ui/docs/design/canonical/route-map-bottom-sheet/light/02-half-sheet.jpg), and [collapsed map overview](https://github.com/dima1203oleg/MarshGO-Site/blob/codex/sync-journey-mobility-ui/docs/design/canonical/route-map-bottom-sheet/light/03-map-overview.jpg). They are preserved byte-for-byte and hash-locked in the Site repository. Apply their light palette and card treatment while retaining the same sheet geometry and segment interactions as the dark canonical screen.
 
 ## Invariants

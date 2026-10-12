@@ -8,6 +8,56 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   const busArrival = new Date(busDeparture.getTime() + 18 * 60_000);
   const tramDeparture = new Date(busArrival.getTime() + 8 * 60_000);
   const tramArrival = new Date(tramDeparture.getTime() + 22 * 60_000);
+  const makeAlternativeJourney = (
+    id: string,
+    departureOffsetMinutes: number,
+    legs: Array<{ mode: string; transportType: string; routeName?: string; minutes: number; fareMinor: number }>,
+    balancedRank: number,
+    cheapestRank: number,
+  ) => {
+    const requestedAt = new Date(departure.getTime() + departureOffsetMinutes * 60_000);
+    let cursor = requestedAt.getTime() + 2 * 60_000;
+    const mappedLegs = legs.map((leg, index) => {
+      const departureAt = new Date(cursor);
+      const arrivalAt = new Date(cursor + leg.minutes * 60_000);
+      const origin = index === 0
+        ? { name: 'Площа Ринок', coordinates: [24.0315, 49.8419] }
+        : { name: 'Університет', coordinates: [24.036, 49.837] };
+      const destinationPoint = index === legs.length - 1
+        ? { name: 'Сихів', coordinates: [24.0628, 49.7915] }
+        : { name: 'Університет', coordinates: [24.036, 49.837] };
+      cursor = arrivalAt.getTime() + (index < legs.length - 1 ? 3 * 60_000 : 0);
+      return {
+        id: `${id}-leg-${index + 1}`, mode: leg.mode, transportType: leg.transportType, routeName: leg.routeName,
+        source: leg.mode === 'COMMUNITY' ? 'marshgo-community' : 'gtfs-static',
+        origin, destination: destinationPoint, departureAt: departureAt.toISOString(), arrivalAt: arrivalAt.toISOString(),
+        durationSeconds: leg.minutes * 60, distanceMeters: 9200, priceMinor: leg.fareMinor, currency: 'UAH',
+        priceStatus: 'LOCKED', availabilityStatus: leg.mode === 'COMMUNITY' ? 'AVAILABLE' : 'SCHEDULED',
+        lastUpdatedAt: departure.toISOString(), routeGeometry: [origin.coordinates, destinationPoint.coordinates],
+        stops: [], driver: null, vehicle: null,
+      };
+    });
+    const durationSeconds = Math.round((cursor - requestedAt.getTime()) / 1000);
+    return {
+      id, offerId: null, source: 'gtfs-static', strategy: 'BALANCED',
+      recommendedStrategies: ['BALANCED', 'FASTEST', 'CHEAPEST'],
+      strategyRanks: { BALANCED: balancedRank, FASTEST: balancedRank, CHEAPEST: cheapestRank },
+      state: 'PLANNED', requestedDepartureAt: requestedAt.toISOString(), totalDurationSeconds: durationSeconds,
+      waitingSeconds: 2 * 60 + Math.max(0, legs.length - 1) * 3 * 60,
+      totalPriceMinor: legs.reduce((sum, leg) => sum + leg.fareMinor, 0), confirmedPriceMinor: null,
+      estimatedPriceMinMinor: null, estimatedPriceMaxMinor: null, currency: 'UAH', priceStatus: 'LOCKED',
+      walkingMeters: 0, transfers: Math.max(0, legs.length - 1), reliabilityScore: null, legs: mappedLegs,
+    };
+  };
+  const alternativeJourneys = [
+    makeAlternativeJourney('e2e-alt-tram', 5, [{ mode: 'TRAM', transportType: 'tram', routeName: '8', minutes: 68, fareMinor: 1500 }], 2, 2),
+    makeAlternativeJourney('e2e-alt-community', 8, [{ mode: 'COMMUNITY', transportType: 'carpool', minutes: 64, fareMinor: 3500 }], 3, 4),
+    makeAlternativeJourney('e2e-alt-bus', 11, [{ mode: 'BUS', transportType: 'bus', routeName: '21', minutes: 62, fareMinor: 2200 }], 4, 3),
+    makeAlternativeJourney('e2e-alt-bus-transfer', 14, [
+      { mode: 'BUS', transportType: 'bus', routeName: '7', minutes: 36, fareMinor: 800 },
+      { mode: 'TRAM', transportType: 'tram', routeName: '8', minutes: 35, fareMinor: 400 },
+    ], 5, 1),
+  ];
 
   await page.route('**/api/v1/places/suggest?*', route => {
     const query = new URL(route.request().url()).searchParams.get('q')?.toLocaleLowerCase('uk-UA') ?? '';
@@ -44,11 +94,12 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
           ],
           routeGeometry: [[24.036, 49.837], [24.05, 49.82]], driver: null, vehicle: null },
       ],
-    }],
-    requestedStrategy: 'BALANCED', availableStrategies: ['BALANCED', 'FASTEST'], partial: false,
-    candidateCount: 1, paretoCount: 1, returnedCount: 1, blockedProviders: [], unsupportedPreferences: [], providerErrors: [],
+    }, ...alternativeJourneys],
+    requestedStrategy: 'BALANCED', availableStrategies: ['BALANCED', 'FASTEST', 'CHEAPEST'], partial: false,
+    candidateCount: 5, paretoCount: 5, returnedCount: 5, blockedProviders: [], unsupportedPreferences: [], providerErrors: [],
   } } }));
 
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
   const loginHeading = page.getByRole('heading', { name: 'Вхід за номером телефону' });
   const welcome = page.getByRole('button', { name: /У мене вже є акаунт/i });
@@ -92,7 +143,13 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   await expect(strategySwitch.getByRole('button')).toHaveCount(3);
   expect(await strategySwitch.locator('button span').allTextContents()).toEqual(['Оптимальний', 'Найшвидший', 'Найдешевший']);
   expect(await strategySwitch.locator('button span').evaluateAll(spans => spans.map(span => span.scrollWidth > span.clientWidth))).toEqual([false, false, false]);
-  await expect(strategySwitch.getByRole('button', { name: /Найдешевший.*немає доступних маршрутів/ })).toBeDisabled();
+  const cheapestMode = strategySwitch.getByRole('button', { name: /Найдешевший, 4 маршрути/ });
+  await expect(cheapestMode).toBeEnabled();
+  await cheapestMode.click();
+  await expect(page.getByTestId('journey-result-card')).toHaveCount(4);
+  await expect(page.getByTestId('journey-result-card').first()).toHaveAttribute('data-journey-id', 'e2e-alt-bus-transfer');
+  await strategySwitch.getByRole('button', { name: /Оптимальний, 5 маршрутів/ }).click();
+  await expect(page.getByTestId('journey-result-card')).toHaveCount(5);
   const saveRoute = resultCard.getByRole('button', { name: 'Зберегти маршрут' });
   await expect(saveRoute).toHaveAttribute('aria-pressed', 'false');
   await saveRoute.click();
@@ -104,9 +161,7 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   await page.evaluate(() => document.documentElement.classList.add('dark'));
   await expect.poll(() => resultCard.evaluate(element => getComputedStyle(element).backgroundColor)).toBe('rgb(17, 24, 32)');
   await expect(resultCard.locator('p').first()).toHaveCSS('color', 'rgb(245, 249, 255)');
-  const unavailableStrategy = strategySwitch.getByRole('button', { name: /Найдешевший.*немає доступних маршрутів/ });
-  await expect.poll(() => unavailableStrategy.evaluate(element => getComputedStyle(element).opacity)).toBe('0.4');
-  await expect.poll(() => unavailableStrategy.evaluate(element => getComputedStyle(element).backgroundColor)).toBe('rgb(17, 24, 32)');
+  await expect.poll(() => cheapestMode.evaluate(element => getComputedStyle(element).backgroundColor)).toBe('rgb(17, 24, 32)');
   await expect(resultCard.locator('[data-segment-mode="BUS"]')).toHaveCSS('background-color', 'rgb(22, 135, 255)');
   await page.screenshot({ path: `/tmp/marshgo-${browserName}-journey-results-dark.png` });
   await resultCard.getByRole('button', { name: /Відкрити маршрут:/ }).click();
@@ -158,7 +213,7 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   await page.getByRole('button', { name: 'Темна (Ніч)' }).click();
   await expect.poll(() => page.evaluate(() => document.documentElement.style.colorScheme)).toBe('dark');
   await navigation.getByRole('button', { name: 'Пошук', exact: true }).click();
-  await page.getByTestId('journey-result-card').getByRole('button', { name: /Відкрити маршрут:/ }).click();
+  await page.getByTestId('journey-result-card').first().getByRole('button', { name: /Відкрити маршрут:/ }).click();
   const darkRouteMap = page.getByRole('main', { name: 'Побудований маршрут' });
   await expect(darkRouteMap).toHaveAttribute('data-theme', 'dark');
   await expect(darkRouteMap.getByTestId('route-bottom-sheet')).toHaveAttribute('data-sheet-state', 'half');

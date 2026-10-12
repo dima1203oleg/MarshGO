@@ -35,6 +35,17 @@ Apply both palettes to these same screens. Keep the four Home actions in a squar
 - Keep touch targets at least 44×44 logical points, support reduced motion and text scaling, and check layouts at 360–430 logical points wide.
 - Preserve the user's preferred mountain travel artwork in the Home campaign carousel, while avoiding embedded marketing text that conflicts with the app's live copy.
 
+## Canonical multimodal search results
+
+The journey-results screen has its own owner-approved light/dark reference board and a detailed light-theme card reference. The originals are stored and SHA-256 locked in `MarshGO-Site` at commit `11e72b4b79888985a35700a3d85f4b715023b19a`:
+
+| Reference | Canonical use | SHA-256 |
+|---|---|---|
+| [Light and dark results board](https://github.com/dima1203oleg/MarshGO-Site/blob/11e72b4b79888985a35700a3d85f4b715023b19a/docs/design/canonical/journey-search-results/01-results-light-dark-board.jpg) | Compact results composition, three ranking modes, and the exact 4×3 transport catalogue | `81ec8c9049a12a29b093faa0b6d0977f3102e16c4a90e9c8e696debf7d5862a5` |
+| [Light results detail](https://github.com/dima1203oleg/MarshGO-Site/blob/11e72b4b79888985a35700a3d85f4b715023b19a/docs/design/canonical/journey-search-results/02-results-light-detail.jpg) | Card hierarchy, proportional segment ribbon, sourced fares, and separate save/open actions | `2cd6bf47ad92f9ece3622a29803286148e1d2fbe21f76c6995fe3bffb7286259` |
+
+The locked screen contract and implementation live in [`MarshGO-Site/docs/design/canonical/journey-search-results/README.md`](https://github.com/dima1203oleg/MarshGO-Site/blob/11e72b4b79888985a35700a3d85f4b715023b19a/docs/design/canonical/journey-search-results/README.md) and `MarshGO-Site/src/views/JourneyResultsPanel.tsx`. The same Site build is the shared web/iOS UI. Preserve the one-time route header, the three modes in the approved order, compact cards, all itinerary segments, explicit unknown fares, and the existing route-map/details flow. The boards are visual references only; their demonstration routes, prices, and currencies must never be used as live data.
+
 ## Visual review
 
 For UI changes, capture the same screen in light and dark at 390×844 and at the narrow/wide ends of the supported mobile range. Compare screen hierarchy, spacing, card shape, color mapping, and bottom navigation against both canonical boards. Product data in captures must come from the app's real API or clearly identified test fixtures.
