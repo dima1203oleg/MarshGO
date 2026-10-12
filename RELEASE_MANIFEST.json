@@ -5,12 +5,12 @@
   "status": "NOT_RELEASED",
   "ready_for_server_deployment": false,
   "production_ready": false,
-  "server_sha": "0f410490c890e2f17368c17ae45e1a29559ea616",
+  "server_sha": "7991b172d4a7365e4e3e07427f7fc6e6b8b5e9b3",
   "site_sha": "6dfda7095392bc48d4151c48b9f2ec1288bc15d2",
   "ios_sha": "238231287c9b998de2a56fea36429f7e7de7ff70",
   "integration_sha": "fb4aa7f0ea003ea4775208a4510ae7fdc5cb73ad",
   "database_migration": "043 (release candidate only; no production database is configured)",
-  "candidate_scope": "The owner-provided light and dark canonical boards are retained byte-for-byte in Site docs/design/canonical. Static GTFS source shapes flow through the Server API to mode-colored map lines; missing shapes stay absent. The map camera keeps endpoints visible above the summary sheet, and Ukrainian transfer counts use correct plural forms. GTFS search enforces separate 900 m access, 1,000 m egress and 400 m transfer walk-sheds; straight-line walking distances are disclosed as estimates in the web UI. This candidate remains NOT_RELEASED: no pedestrian street-routing provider is configured, source coverage/live provider access/authoritative fares are limited, and production infrastructure/secrets, latency SLO and regional acceptance remain open. Search results now follow the canonical compact hierarchy: selected route/date header, three strategy tabs, transport filters and compact mode-colored segment durations; the full step-by-step route remains in map details. Light and graphite dark result states were checked in the browser. GTFS Fares v1 now prices journeys only when valid published fare files cover every boarded segment; Fares v2 stays unpriced until its transfer model is supported. The four currently reachable open GTFS feeds (Lviv, Stryi, Ukrainian rail and intercity bus) contain no fare files, so their fares remain explicitly unknown.",
+  "candidate_scope": "The owner-provided light and dark canonical boards are retained byte-for-byte in Site docs/design/canonical. Static GTFS source shapes flow through the Server API to mode-colored map lines; missing shapes stay absent. The map camera keeps endpoints visible above the summary sheet, and Ukrainian transfer counts use correct plural forms. GTFS search enforces separate 900 m access, 1,000 m egress and 400 m transfer walk-sheds; straight-line walking distances are disclosed as estimates in the web UI. Server 7991b17 parses GTFS transfers.txt and pathways.txt, applies trip/route/parent-station transfer rules, rejects prohibited or impossible connections, uses station traversal time/distance/geometry when supplied, and preserves explicit in-seat transfers. Feeds without station topology still use explicitly estimated straight-line connectors. This candidate remains NOT_RELEASED: no pedestrian street-routing provider is configured, source coverage/live provider access/authoritative fares are limited, and production infrastructure/secrets, latency SLO and regional acceptance remain open. Search results now follow the canonical compact hierarchy: selected route/date header, three strategy tabs, transport filters and compact mode-colored segment durations; the full step-by-step route remains in map details. Light and graphite dark result states were checked in the browser. GTFS Fares v1 now prices journeys only when valid published fare files cover every boarded segment; Fares v2 stays unpriced until its transfer model is supported. The four currently reachable open GTFS feeds (Lviv, Stryi, Ukrainian rail and intercity bus) contain no fare files, so their fares remain explicitly unknown.",
   "api_version": "v1",
   "source_repositories": {
     "server": "dima1203oleg/MarshGO-Server@codex/sync-mobility-registry",
@@ -30,7 +30,7 @@
     "production_bundle_demo_isolation": "PASS: check:bundle rejects 11 known demo identity/inventory markers; negative probe confirmed usr_drv_alex injection fails the gate, clean production build passes; Site PR #2 CI passed",
     "multi_passenger_stop_limit": "PASS locally: stop optimizer supports a 30-stop plan; 5 optimizer tests pass including 15 riders, pickup-before-dropoff, per-stop seat invariants and the overflow limit; integration suite exercises two accepted riders on one route",
     "ios_simulator_ci": "PASS: iOS Simulator CI run 38244348763 on exact iOS 238231287c9b998de2a56fea36429f7e7de7ff70; verified and built exact Site pin 6dfda7095392bc48d4151c48b9f2ec1288bc15d2, Capacitor sync and iOS Simulator compile succeeded. No physical-device/release archive claim.",
-    "umbrella_github_ci": "PENDING: root MarshGO integration branch commit containing the final immutable pins and browser test update will be pushed next; hosted Actions will be checked after push.",
+    "umbrella_github_ci": "FAIL: root MarshGO run 38244808347 on integration SHA 90281c2a06b4560bd6cf8cc6209d1144d3dc79bc passed setup, lint, typecheck, unit/integration tests, build, bundle checks, canonical Docker builds and the route-map E2E; its full browser suite failed 6 Marketplace scenarios (date picker retained 09:00 instead of 09:15; booking/chat and navigation flows timed out; mobile route heading and direct-search heading were absent). A fresh run will be checked after the updated Server pin is pushed.",
     "local_browser_matrix": "PASS 3/3 Chromium, Firefox and WebKit against release-pinned Site e5157d8274f100c98d8c5cb87baa098cb316db43 and Server 712d6806ff0f55a53e8cefdc11e25742e37ef1bc for responsive home/search, dark palette, estimated-walk disclosure and full-screen multimodal map behavior.",
     "canonical_design_2026_10_12": "PASS: owner-provided canonical light and dark route-detail/map references are byte-preserved and SHA-locked in Site docs/design/canonical/route-map-bottom-sheet. Focused E2E passes in both palettes and the map/sheet interactions pass across Chromium, Firefox and WebKit. This is structural/UI acceptance, not a pixel-diff claim.",
     "backup_restore_drill": "PASS: prior disposable local PostGIS backup and restore drill; no off-host/production restore proof",
@@ -141,15 +141,17 @@
     ]
   },
   "latest_workspace_sync_2026_10_12": {
-    "server_sha": "0f410490c890e2f17368c17ae45e1a29559ea616",
+    "server_sha": "7991b172d4a7365e4e3e07427f7fc6e6b8b5e9b3",
     "site_sha": "6dfda7095392bc48d4151c48b9f2ec1288bc15d2",
     "ios_sha": "238231287c9b998de2a56fea36429f7e7de7ff70",
     "integration_code_sha": "fb4aa7f0ea003ea4775208a4510ae7fdc5cb73ad",
-    "server_checks": "TypeScript PASS; ESLint PASS; 129 unit tests passed, 0 failed, 1 opt-in skip; hosted Server CI including integration checks PASS.",
+    "server_checks": "Exact Server SHA 7991b172d4a7365e4e3e07427f7fc6e6b8b5e9b3: TypeScript PASS; ESLint PASS; 133 unit tests passed, 0 failed, 1 opt-in skip. Hosted Server CI run 38248641647 PASS, including isolated database integration checks. A separate local integration attempt hit Node 25.4 heap exhaustion and is not counted as a pass.",
+    "server_ci": "PASS: https://github.com/dima1203oleg/MarshGO-Server/actions/runs/38248641647 on exact SHA 7991b172d4a7365e4e3e07427f7fc6e6b8b5e9b3; lint, typecheck, 133 unit tests, migrations and isolated integration suite passed.",
     "site_checks": "TypeScript PASS; ESLint PASS; 55 tests passed; Vite build and gzip chunk budget PASS; hosted Site CI PASS.",
     "ios_sync": "PASS: hosted iOS Simulator CI run 38244348763 verified exact Site pin 6dfda7095392bc48d4151c48b9f2ec1288bc15d2 and compiled the exact iOS commit 238231287c9b998de2a56fea36429f7e7de7ff70.",
     "live_fare_coverage": "Four reachable public GTFS sources parsed; none currently publishes GTFS fares.",
     "production_status": "NOT RELEASED; provider coverage, authoritative fares, live data, production services and regional acceptance remain incomplete.",
-    "route_map_e2e": "PASS: focused E2E 2/2 in Chromium and route UI 6/6 across Chromium/Firefox/WebKit; isolated fixtures."
+    "route_map_e2e": "PASS: focused E2E 2/2 in Chromium and route UI 6/6 across Chromium/Firefox/WebKit; isolated fixtures.",
+    "gtfs_transfer_rules": "PASS locally and in hosted Server CI: prohibited/minimum-time rules, parent-station rules, in-seat transfers, station pathways traversal time/distance/geometry, disconnected pathway rejection and short-connection feasibility."
   }
 }
