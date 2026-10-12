@@ -6,7 +6,7 @@
   "ready_for_server_deployment": false,
   "production_ready": false,
   "server_sha": "c556f55e41ab5a39417147bec9e74cd5bbdc69e5",
-  "site_sha": "2691ca61b9d917bfe5d1d963e9ca5f4526d30b99",
+  "site_sha": "8860eedf9293399c5fb8b03068ccb9edf5136469",
   "ios_sha": "1f08e73e351ed0e7e7d4c522b47c0ed5cb06e8a0",
   "integration_sha": "0f06beaa7fb95cbd6dbe7d7a3636e28fc2f12949",
   "database_migration": "043 (release candidate only; no production database is configured)",

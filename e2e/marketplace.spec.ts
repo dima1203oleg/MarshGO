@@ -211,22 +211,18 @@ test('route transport catalogue exposes the twelve canonical modes in order and 
   const page = await context.newPage();
   try {
     await signIn(page, 'Transport Catalogue Passenger', transportCatalogPhone);
-    const providerRefresh = page.waitForResponse(response => {
-      const url = new URL(response.url());
-      return url.pathname === '/api/v1/mobility/providers' && response.ok();
-    });
     await openSearchTab(page);
-    await providerRefresh;
-    await chooseRoutePlace(page, 'origin', 'Стрий', /Стрий, Львівська область, Україна/);
     const picker = page.getByRole('region', { name: 'Види транспорту' });
+    await expect(picker.locator('.transport-mode-grid > button[aria-label]')).toHaveCount(12);
+    await chooseRoutePlace(page, 'origin', 'Стрий', /Стрий, Львівська область, Україна/);
     const allModes = [
       'Попутки', 'Маршрутки', 'Автобуси', 'Таксі', 'Тролейбуси', 'Метро',
-      'Трамваї', 'Поїзд', 'Велосипеди', 'Самокати', 'Каршеринг', 'Трансфери',
+      'Трамваї', 'Поїзди', 'Велосипеди', 'Самокати', 'Каршеринг', 'Трансфери',
     ];
-    const tiles = picker.locator('button[aria-label]');
+    const tiles = picker.locator('.transport-mode-grid > button[aria-label]');
     await expect(tiles).toHaveCount(12);
     const visibleLabels = await tiles.evaluateAll((elements) => elements.map((element) =>
-      element.getAttribute('aria-label')?.split(' — ')[0] ?? '',
+      element.getAttribute('aria-label')?.split('. ')[0] ?? '',
     ));
     expect(visibleLabels).toEqual(allModes);
     for (const unsupported of ['Таксі', 'Велосипеди', 'Самокати', 'Каршеринг', 'Трансфери']) {

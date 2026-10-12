@@ -62,14 +62,14 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     await page.waitForTimeout(100);
     const layout = await page.evaluate(() => {
-      const cta = document.querySelector<HTMLElement>('.home-v5-action-card--navigation')?.getBoundingClientRect();
+      const cta = document.querySelector<HTMLElement>('.home-action-card--navigation')?.getBoundingClientRect();
       const bounds = (selector: string) => {
         const element = document.querySelector<HTMLElement>(selector);
         if (!element) return null;
         const rect = element.getBoundingClientRect();
         return { top: rect.top, bottom: rect.bottom, height: rect.height };
       };
-      const homeCards = [...document.querySelectorAll<HTMLElement>('.home-v5-action-card')].map(element => {
+      const homeCards = [...document.querySelectorAll<HTMLElement>('.home-action-card')].map(element => {
         const rect = element.getBoundingClientRect();
         return { top: rect.top, bottom: rect.bottom };
       });
@@ -81,9 +81,9 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
         body: { width: document.body.scrollWidth, bounds: document.body.getBoundingClientRect().toJSON() },
         root: { width: document.documentElement.scrollWidth, bounds: document.documentElement.getBoundingClientRect().toJSON() },
         header: bounds('.production-app > .app-header'),
-        home: bounds('.home-v5-screen'),
-        hero: bounds('.home-v5-hero, .home-v5-pass-slot'),
-        actions: bounds('.home-v5-actions'),
+        home: bounds('.home-hero--canonical'),
+        hero: bounds('.home-canonical-banner, .home-marshpass-slot'),
+        actions: bounds('.home-action-grid'),
         homeCards,
         tabbar: bounds('.production-app > .app-tabbar'),
         tabbarPosition: getComputedStyle(document.querySelector<HTMLElement>('.production-app > .app-tabbar')!).position,
@@ -107,12 +107,12 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
       expect(layout.hero!.top, `${viewport.name} hero starts below the app header`).toBeGreaterThanOrEqual(layout.header!.bottom - 1);
       expect(layout.homeCards, `${viewport.name} should render all four home actions`).toHaveLength(4);
       if (viewport.height <= 730) {
-        const home = page.locator('.home-v5-screen');
+        const home = page.locator('.home-hero--canonical');
         await home.evaluate(element => { element.scrollTop = element.scrollHeight; });
-        const publishCard = page.locator('.home-v5-action-card--publish');
+        const publishCard = page.locator('.home-action-card--publish');
         await expect(publishCard).toBeInViewport();
         const compactLayout = await page.evaluate(() => ({
-          publishBottom: document.querySelector<HTMLElement>('.home-v5-action-card--publish')?.getBoundingClientRect().bottom ?? Infinity,
+          publishBottom: document.querySelector<HTMLElement>('.home-action-card--publish')?.getBoundingClientRect().bottom ?? Infinity,
           tabbarTop: document.querySelector<HTMLElement>('.app-tabbar')?.getBoundingClientRect().top ?? 0,
         }));
         expect(compactLayout.publishBottom, `${viewport.name} publish action must be reachable above the fixed tab bar`).toBeLessThanOrEqual(compactLayout.tabbarTop + 1);
@@ -134,17 +134,55 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
   await page.setViewportSize({ width: 390, height: 844 });
   const homeTabbarHeight = await page.locator('.app-tabbar').evaluate(element => element.getBoundingClientRect().height);
   await page.getByRole('navigation', { name: 'Основна навігація' }).getByRole('button', { name: 'Пошук', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Пошук маршруту' })).toBeVisible();
-  await expect(page.getByPlaceholder('Моє місцеперебування')).toBeVisible();
-  await expect(page.getByPlaceholder('Введіть адресу, місто або зупинку')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Куди їдемо?' })).toBeVisible();
+  await expect(page.getByPlaceholder('Місто відправлення')).toBeVisible();
+  await expect(page.getByPlaceholder('Місто призначення')).toBeVisible();
+  const transportPanel = page.getByRole('region', { name: 'Види транспорту' });
+  await expect(transportPanel).toBeVisible();
+  const expectedModes = [
+    'Попутки', 'Маршрутки', 'Автобуси', 'Таксі', 'Тролейбуси', 'Метро',
+    'Трамваї', 'Поїзди', 'Велосипеди', 'Самокати', 'Каршеринг', 'Трансфери',
+  ];
+  const modeTiles = transportPanel.locator('.transport-mode-grid > button');
+  await expect(modeTiles).toHaveCount(12);
+  expect(await modeTiles.evaluateAll(elements => elements.map(element => element.getAttribute('aria-label')?.split('. ')[0] ?? ''))).toEqual(expectedModes);
+  await expect(transportPanel.getByRole('button', { name: /^Таксі\./ })).toBeDisabled();
+  const carpoolTile = transportPanel.getByRole('button', { name: /^Попутки/ });
+  await expect(carpoolTile).toHaveAttribute('aria-pressed', 'true');
+  await carpoolTile.click();
+  await expect(carpoolTile).toHaveAttribute('aria-pressed', 'false');
+  await carpoolTile.click();
+  await expect(carpoolTile).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByRole('button', { name: 'Знайти маршрут', exact: true })).toBeVisible();
+  await transportPanel.getByRole('button', { name: 'Фільтри провайдерів' }).click();
+  await expect(page.getByRole('dialog', { name: 'Фільтри маршруту' })).toBeVisible();
+  await page.getByRole('button', { name: 'Закрити вибір транспорту' }).click();
+  await expect(transportPanel).toBeVisible();
+  for (const width of [320, 390, 440]) {
+    await page.setViewportSize({ width, height: 844 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth), `search screen must not overflow at ${width}px`).toBeLessThanOrEqual(width);
+    const tileHeights = await modeTiles.evaluateAll(elements => elements.map(element => element.getBoundingClientRect().height));
+    expect(tileHeights.every(height => height >= 44), `transport controls must remain touchable at ${width}px`).toBe(true);
+  }
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: '/tmp/marshgo-site-search-canonical-light.png', fullPage: true });
+  await page.evaluate(() => localStorage.setItem('mg_theme', 'dark'));
+  await page.reload();
+  await expect(page.locator('.production-app')).toBeVisible();
+  await page.getByRole('navigation', { name: 'Основна навігація' }).getByRole('button', { name: 'Пошук', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Куди їдемо?' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Види транспорту' }).locator('.transport-mode-grid > button')).toHaveCount(12);
+  const darkSurface = await page.locator('.search-screen .journey-search-card').evaluate(element => getComputedStyle(element).backgroundColor);
+  expect(darkSurface, 'search form must use the canonical graphite surface in dark mode').toBe('rgb(17, 24, 32)');
+  await page.screenshot({ path: '/tmp/marshgo-site-search-canonical-dark.png', fullPage: true });
   const searchTabbar = await page.locator('.app-tabbar').evaluate(element => ({
     position: getComputedStyle(element).position,
     bottom: element.getBoundingClientRect().bottom,
     height: element.getBoundingClientRect().height,
   }));
   expect(searchTabbar.position, 'search must use the same fixed tab bar as Trips and Profile').toBe('fixed');
-  expect(searchTabbar.bottom, 'search tab bar must stay pinned to the viewport bottom').toBeCloseTo(844, 0);
+  // WebKit's emulated phone viewport excludes the bottom safe-area inset.
+  expect(searchTabbar.bottom, 'search tab bar must remain above only the WebKit safe-area inset').toBeGreaterThanOrEqual(836);
   expect(searchTabbar.height, 'bottom navigation must keep the same height across tabs').toBeCloseTo(homeTabbarHeight, 0);
   for (const destination of ['Мої поїздки', 'Профіль', 'Пошук']) {
     await page.getByRole('navigation', { name: 'Основна навігація' }).getByRole('button', { name: destination, exact: true }).click();
