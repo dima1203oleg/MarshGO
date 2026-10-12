@@ -63,3 +63,7 @@ An iOS Capacitor target now packages the same API-backed production UI. See [`do
 ## GitHub repositories
 
 The API, PWA website and native iOS wrapper are also published separately: [Server](https://github.com/dima1203oleg/MarshGO-Server), [Site](https://github.com/dima1203oleg/MarshGO-Site), and [iOS](https://github.com/dima1203oleg/MarshGO-iOS). The original repository remains the umbrella source and end-to-end test suite. See [`docs/REPOSITORIES.md`](docs/REPOSITORIES.md) for package boundaries and release notes.
+
+## Cross-repository audit
+
+The current migration baseline, module inventory, feature comparison, readiness scores, test evidence, release blockers and archive status are indexed in [`docs/audit/INDEX.md`](docs/audit/INDEX.md). This working branch remains the documentation owner during migration; it is not yet safe to archive.

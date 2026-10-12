@@ -51,3 +51,15 @@
 ## Короткий висновок
 
 Legacy branch — інтеграційний umbrella: в ньому одночасно присутні server, web і native wrapper, а release materializer вже збирає окремі Server/Site за pinned SHA. Основна цінність для міграції — не автоматично дубльовані UI/API-копії, а перевірка унікальних runtime шляхів (stop ETA/vehicle cache, lifecycle UI, navigation behavior), історії БД, cross-repo E2E/release orchestration і дизайн/архітектурна документація. Архівувати legacy зараз не можна.
+
+
+## Підтверджені зміни після початкового знімка
+
+Цей інвентар описує legacy дерево на SHA `a008749…`; рядки вище залишаються історичним знімком і не описують стан target branches після наступних комітів.
+
+* У MarshGO-Server `92d174e…` реалізовано corridor matching для попуток з геометрією PostGIS, перевіркою напрямку/місць і fallback `other_date`; DB/API CI пройшов у run [38302488026](https://github.com/dima1203oleg/MarshGO-Server/actions/runs/38302488026).
+* У Server `0b6f66e…` додано provider-scoped stop arrivals з GTFS Schedule та свіжими matching GTFS-RT TripUpdates. CI з PostGIS/Redis пройшов у run [38303659592](https://github.com/dima1203oleg/MarshGO-Server/actions/runs/38303659592).
+* Server `4e32ac3…` розділяє timestamp оновлення GTFS-RT від timestamp GPS-спостереження; exact-SHA CI пройшов у run [38305019352](https://github.com/dima1203oleg/MarshGO-Server/actions/runs/38305019352). Цей код написано як Server-native еквівалент, а не перенесено механічно разом із legacy cache/poller.
+* Legacy `vehiclePositionCache` і `realtimePoller`, які читають GPS vehicle positions, усе ще потребують окремого parity audit проти target `liveVehicles.ts`; stop-arrival ETA не є доказом паритету GPS polling.
+
+Актуальна цільова Server гілка на момент оновлення: `codex/sync-mobility-registry` / `4e32ac3ede97aff715d0604dcf02af7fedd00547`. Повний review інших legacy modules триває; наведені commits не означають, що вся міграція завершена.

@@ -11,7 +11,10 @@ export interface TransitArrival {
   predictedArrival?: string;
   arrivalSource: 'TRIP_UPDATE' | 'VEHICLE_PROJECTION' | 'SCHEDULE' | 'UNKNOWN';
   confidence: 'HIGH' | 'MEDIUM' | 'LOW' | 'UNKNOWN';
+  /** Timestamp of the source vehicle observation; only present for GPS-derived arrivals. */
   observedAt?: string;
+  /** Timestamp of a GTFS-RT feed update; it is not a vehicle GPS observation. */
+  realtimeUpdatedAt?: string;
   isRealtime: boolean;
   etaSeconds?: number;
   displayLabel: string;

@@ -9,6 +9,13 @@ const MODE_PRESENTATION: Record<string, { type: StopArrivalItem['type']; letter:
   metro: { type: 'metro', letter: 'М', color: '#7C3AED' },
 };
 
+export function arrivalSourceLabel(source: TransitArrival['arrivalSource']): string {
+  if (source === 'TRIP_UPDATE') return 'GTFS-RT';
+  if (source === 'VEHICLE_PROJECTION') return 'GPS';
+  if (source === 'SCHEDULE') return 'Розклад';
+  return 'Прогноз недоступний';
+}
+
 /** Map only source-provided facts; unavailable ETA, destination and vehicle attributes stay absent. */
 export function mapTransitArrivalToStopArrival(arrival: TransitArrival, index: number): StopArrivalItem {
   const mode = arrival.mode?.trim().toLowerCase() ?? '';
@@ -31,6 +38,7 @@ export function mapTransitArrivalToStopArrival(arrival: TransitArrival, index: n
     statusLabel: arrival.displayLabel,
     arrivalSource: arrival.arrivalSource,
     ...(arrival.observedAt ? { observedAt: arrival.observedAt } : {}),
+    ...(arrival.realtimeUpdatedAt ? { realtimeUpdatedAt: arrival.realtimeUpdatedAt } : {}),
     isRealtime,
     etaMinutes,
   };

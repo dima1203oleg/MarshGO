@@ -19,3 +19,19 @@
 ## Рішення
 
 Немає узгодженого RC. Не збирати production release із цього документа. Після міграції/паритету та повного тестування створити окремий manifest із точними SHA, contract version, migration ledger hash та CI URLs.
+
+
+## Перевірена актуалізація SHA
+
+Root `RELEASE_MANIFEST.json` оновлено після passing CI точними candidate pins:
+
+| Компонент | SHA | Перевірка |
+|---|---|---|
+| Server | `4e32ac3ede97aff715d0604dcf02af7fedd00547` | exact-SHA push/PR CI pass; corridors, stop arrivals, timestamp semantics |
+| Site | `570ea7b9faa3d55a7e24599657c86fb2903d4cce` | Site CI pass; shared web/PWA source |
+| iOS | `d9a9c4392031cb08b2ecbc31cb959d44e483ab72` | exact-SHA push/PR Simulator CI pass; pins Site above |
+| API contract | `v1` | version field in manifest; cross-repo E2E rerun pending |
+| Database | migration `048` in candidate Server tree | CI applied on clean PostGIS DB; no existing/staging-data rehearsal |
+| Release status | `NOT_RELEASED`; `production_ready=false` | unchanged |
+
+Manifest is a reproducible build pin, not evidence that the full release candidate or production service passed acceptance. Root browser E2E and browser-compat must pass on the exact combined release SHA before RC review.

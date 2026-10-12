@@ -107,6 +107,17 @@ describe('Live Transport Tracking — Vehicle GPS & Arrival Engine', () => {
     assert.equal(mapped.observedAt, '2026-10-10T12:00:00.000Z');
   });
 
+  it('keeps a GTFS-RT update timestamp distinct from a GPS observation', () => {
+    const mapped = mapTransitArrivalToStopArrival({
+      stopId: 'stop-1', routeId: '1', mode: 'bus', arrivalSource: 'TRIP_UPDATE',
+      confidence: 'HIGH', realtimeUpdatedAt: '2026-10-10T12:00:00.000Z', isRealtime: true,
+      etaSeconds: 75, displayLabel: 'Маршрут 1 — орієнтовно 2 хв · GTFS-RT',
+    }, 0);
+
+    assert.equal(mapped.realtimeUpdatedAt, '2026-10-10T12:00:00.000Z');
+    assert.equal(mapped.observedAt, undefined);
+  });
+
   it('does not project stale positions as a live ETA', () => {
     const now = new Date('2026-10-10T12:10:00Z');
     const staleVehicle: LiveVehiclePosition = {

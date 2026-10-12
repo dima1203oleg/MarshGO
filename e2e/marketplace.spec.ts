@@ -85,7 +85,7 @@ async function startNavigationFromHome(page: import('@playwright/test').Page) {
   const createSession = page.waitForResponse(response =>
     response.url().endsWith('/api/v1/navigation/sessions') && response.request().method() === 'POST',
   );
-  await page.getByRole('button', { name: /^Навігація Побудувати оптимальний маршрут/ }).click();
+  await page.getByRole('button', { name: /^Навігація Побудувати маршрут/ }).click();
   return createSession;
 }
 
@@ -685,8 +685,8 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     );
     expect(refreshedCorridorInventory.rows).toEqual([{ available_seats: 3 }]);
   } finally {
-    await passengerContext.close();
-    await driverContext.close();
+    await passengerContext.close().catch(() => undefined);
+    await driverContext.close().catch(() => undefined);
   }
 });
 
@@ -1060,7 +1060,7 @@ test('foreground road route renders on iPhone 15 Pro Max and 16 Pro Max viewport
       await page.screenshot({ path: `/tmp/marshgo-${modelFileName}-home.png`, fullPage: true });
       for (const tab of ['Пошук', 'Мої поїздки', 'Профіль'] as const) {
         await page.getByRole('button', { name: tab, exact: true }).click();
-        const expectedHeading = tab === 'Пошук' ? 'Знайти маршрут'
+        const expectedHeading = tab === 'Пошук' ? 'Куди їдемо?'
           : tab === 'Мої поїздки' ? 'Мої поїздки' : 'MARSHGO Driver';
         await expect(page.getByRole('heading', { name: expectedHeading, exact: true })).toBeVisible();
         const tabViewport = await page.evaluate(() => ({ width: window.innerWidth, documentWidth: document.documentElement.scrollWidth }));
@@ -1189,7 +1189,7 @@ test('route search URL restores geocoded criteria after direct reload', async ({
     await expect(page.getByPlaceholder(/Місто відправлення|Моє місцеперебування/)).toHaveValue('Стрий, Львівська область, Україна');
     await expect(page.getByPlaceholder(/Місто призначення|Введіть адресу, місто або зупинку/)).toHaveValue('Львів, Львівська область, Україна');
   } finally {
-    await context.close();
+    await context.close().catch(() => undefined);
   }
 });
 

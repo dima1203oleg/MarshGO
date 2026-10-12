@@ -38,3 +38,17 @@
 3. Конфлікт SQL migration IDs `041`, `043`, `044` — блокер будь-якого спільного релізу/перенесення до звірки `schema_migrations` і підготовки сумісного upgrade path.
 4. За release manifest Server/Site/iOS задекларовані як `NOT_RELEASED`; немає production deployment, production database або physical-device acceptance. Документований staging URL був offline під час останнього recheck у manifest.
 5. iOS workflow exact SHA check правильний, але pinned Site наразі відстає від актуального branch SHA `570ea7b…` і не містить чотири dark canonical reference images, додані пізнішим commit.
+
+
+## Актуалізація після baseline
+
+Порівняльна таблиця вище зафіксована на старих SHA; актуальні гілки тепер мають такі перевірені дельти:
+
+| Репозиторій / гілка | Поточний перевірений SHA | Новий доказ | Що лишається невирішеним |
+|---|---|---|---|
+| MarshGO legacy / `codex/marshgo-production` | `1e8fbca…` перед поточним набором E2E/manifest змін | Root CI на SHA `1e8fbca…` використовував Site `570ea7b…`, Server `cf82c68…`; пройшли build, typecheck, lint, unit, DB migrations та PostGIS/Redis API integration. Browser E2E: 6 pass / 6 fail. | Root rerun із актуальним Server pin і виправленими canonical-Site селекторами ще очікує CI. Не зливати гілку в `main`. |
+| MarshGO-Server / `codex/sync-mobility-registry` | `4e32ac3ede97aff715d0604dcf02af7fedd00547` | Corridor matching, schedule/realtime stop arrivals і правильне розділення GTFS-RT/GPS timestamps; exact-SHA push та PR CI пройшли. | Реальні feed credentials/coverage, production/staging і provider-specific API acceptance не підтверджені. |
+| MarshGO-Site / `codex/sync-journey-mobility-ui` | `570ea7b9faa3d55a7e24599657c86fb2903d4cce` | Site unit/typecheck/lint/build CI успішні; цей SHA є спільним source для Web/PWA та iOS wrapper. | PR #3 має `DIRTY` merge state; cross-repo E2E не пройшов; піксельне порівняння з канонічними скриншотами окремо не підтверджено. |
+| MarshGO-iOS / `codex/reliable-capacitor-sync` | `d9a9c4392031cb08b2ecbc31cb959d44e483ab72` | Обидва exact-SHA Simulator CI runs успішні; iOS workflow пінить Site `570ea7b…`. | Немає фізичного iPhone acceptance для GPS/APNs/background/deep links і підписаного TestFlight build. |
+
+Зміни Server виконані у target-native реалізації. Жоден результат не означає, що весь унікальний код або інфраструктура legacy вже перенесені; root лишається owner міжрепозиторного materializer/E2E, а план безпечного archive не готовий.

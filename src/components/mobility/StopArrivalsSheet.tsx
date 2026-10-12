@@ -9,6 +9,7 @@ import {
   Radio,
   RefreshCw,
 } from 'lucide-react';
+import { arrivalSourceLabel } from './stopArrivalMapping';
 
 export interface StopArrivalItem {
   id: string;
@@ -22,6 +23,7 @@ export interface StopArrivalItem {
   isAccessible?: boolean; // Wheelchair accessible
   arrivalSource: 'TRIP_UPDATE' | 'VEHICLE_PROJECTION' | 'SCHEDULE' | 'UNKNOWN';
   observedAt?: string;
+  realtimeUpdatedAt?: string;
   isRealtime: boolean;
   etaMinutes: number | null;
   nextEtaMinutes?: number;
@@ -215,7 +217,7 @@ export const StopArrivalsSheet: React.FC<StopArrivalsSheetProps> = ({
         {isLoading && arrivals.length === 0 ? (
           <div className="py-12 text-center text-xs text-slate-500 flex flex-col items-center gap-2">
             <RefreshCw size={24} className="animate-spin text-[#007AFF]" />
-            <span className="font-bold">Опитуємо GPS-трекери зупинки…</span>
+            <span className="font-bold">Завантажуємо розклад і live-оновлення…</span>
           </div>
         ) : error ? (
           <div className="rounded-2xl bg-rose-50 p-4 text-center text-xs font-bold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
@@ -280,7 +282,7 @@ export const StopArrivalsSheet: React.FC<StopArrivalsSheetProps> = ({
                   {/* Bottom: Pill status (GPS / Прогноз / Розклад) + ♿ */}
                   <div className="mt-1 flex items-center gap-1.5">
                     <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-                      {isRealtime ? 'GPS' : item.arrivalSource === 'SCHEDULE' ? 'Розклад' : 'Прогноз'}
+                      {arrivalSourceLabel(item.arrivalSource)}
                     </span>
                     {item.isAccessible && (
                       <Accessibility size={13} className="text-[#007AFF] shrink-0" />

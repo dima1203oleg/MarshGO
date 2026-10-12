@@ -29,3 +29,35 @@
 ## Поточний статус
 
 Поки run `38297112997` не завершив усі кроки, загальний E2E/релізний статус — **не підтверджено**. Код сканера або тести для отримання зеленого CI не вимикалися й не послаблювалися.
+
+## Розбір останнього завершеного старого E2E run
+
+Run [38295527273](https://github.com/dima1203oleg/MarshGO/actions/runs/38295527273) на root SHA `a008749…` зібрав Site pin `1745822…`: **5 passed, 7 failed за 21,1 хвилини**. Лише початкове невдале твердження в кожному тесті нижче відновлене з CI log; довші причини не домислюються.
+
+| Сценарій | Зафіксований результат | Висновок перед повтором на `570ea7b…` |
+|---|---|---|
+| `journey-route-map.spec.ts` — синхронізація карти й нижньої панелі | Очікувала відсутню навігацію (`count 0`), отримала одну `Основна навігація`. | UI невідповідність; current Site `570ea7b…` вже додає immersive results shell. Перевірити повторно. |
+| `marketplace.spec.ts` — два акаунти, пошук, бронювання, переговори, чат | Playwright timeout 300 s; stack завершився на cleanup контексту, тому точний крок збою з summary log не встановлено. | Нерозібрано. Не списувати лише на Site pin до нового run/trace. |
+| `marketplace.spec.ts` — водій, впорядковані зупинки й GPS reroute | Timeout 180 s; очікування завершилося під час `waitForResponse`, helper чекав POST навігаційної сесії. | Нерозібрано; перевірити чи викликається POST у актуальному UI та чи API повертає відповідь. |
+| `marketplace.spec.ts` — responsive маршрут на iPhone viewport | Не знайдено heading `Знайти маршрут` після переходу на вкладку «Пошук». | UI/тестова контрактна невідповідність на pinned Site; повторити на current Site і виправити продукт або тест лише з підтвердженою причиною. |
+| `marketplace.spec.ts` — відмова в доступі до GPS | Timeout 180 s; тест завершився під час click/перевірки шляху відмови дозволу. | Нерозібрано; новий прогін потрібен, щоб відокремити поведінку UI від test setup. |
+| `marketplace.spec.ts` — відновлення URL-параметрів пошуку | Timeout 180 s; точний останній асерт не був видимий у короткому reporter summary. | Нерозібрано; повторити на current Site, зберігаючи criteria після reload. |
+| `marketplace.spec.ts` — Journey Planner ціни й стратегія | Після відкриття `/` не з'явився ані heading входу, ані CTA «У мене вже є акаунт», які очікує sign-in helper. | UI/початковий стан не відповідав тестовому контракту в цьому браузерному run; причина ще не встановлена. |
+
+Всі сім сценаріїв виконувалися на одному старому pinned Site build, однак лише явні locator mismatches безпосередньо пов'язують конкретні провали з UI. Після завершення актуального root run ця таблиця повинна бути замінена новими точними результатами.
+
+
+## Актуальне повторне E2E та виправлення
+
+Root CI run [38301176574](https://github.com/dima1203oleg/MarshGO/actions/runs/38301176574), SHA `1e8fbca…`, використав Site `570ea7b…` і попередній Server `cf82c68…`. Результат: **6 passed / 6 failed**; browser-compat не стартував через stop-on-failure.
+
+1. Великий сценарій двох акаунтів завершився 300-секундним timeout; вихідний assertion прихований помилкою cleanup `browserContext.close`. У цьому CI run trace/error-context не збережені як artifact. Root CI тепер завантажуватиме Playwright diagnostics при невдачі.
+2. GPS reroute чекав POST navigation session після кліку на кнопку зі старою назвою accessibility label. Canonical Site називає її «Навігація · Побудувати маршрут». Селектор тесту виправлено під фактичну назву; бізнес-твердження не прибиралось.
+3. iPhone responsive сценарій очікував heading «Знайти маршрут», тоді як актуальний Site показує «Куди їдемо?». Перевірку оновлено на фактичний canonical heading, збережено перевірки вкладок і відсутності горизонтального overflow.
+4. Denied-GPS сценарій використовував той самий застарілий navigation selector; виправлення спільного helper покриває його.
+5. URL restore test завершився timeout, але `context.close` затулив первинний error. Cleanup тепер не маскує помилку сценарію; причина ще потребує trace.
+6. Journey Planner test не знайшов login/welcome heading у п'ятисекундному вікні; причина не доведена, потрібен повторний trace.
+
+Root release manifest оновлено на Server `4e32ac3…`, що містить підтверджене corridor matching; root rerun ще не завершений. До повторного run не вважати перший timeout виправленим лише через оновлення pin.
+
+Server arrival API більше не називає GTFS-RT update timestamp GPS `observedAt`; віддається окреме поле `realtimeUpdatedAt`. Server exact-SHA CI успішний.

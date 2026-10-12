@@ -30,3 +30,15 @@
 3. Портировать лише підтверджені, runtime-підключені відсутні модулі (найперше stop ETA/cache), або документувати, чому цільовий Server вже покриває ту саму поведінку.
 4. Перенести E2E/release orchestration у визначений цільовий власник до рішення про архівування legacy.
 5. Не робити merge у `main`, production deploy чи archive в межах аудиту без відповідного окремого етапу/підтвердження.
+
+
+## Фактичні міграційні дельти після baseline
+
+| Модуль | Legacy шлях | Target шлях | Причина/реалізація | Статус і тести | SHA |
+|---|---|---|---|---|---|
+| Збіг попутки вздовж маршруту | `server/index.ts`, corridor query | Server `server/index.ts`, `server/rescue/`; індекс `server/migrations/048_offer_route_geography_gix.sql` | Target-native PostGIS corridor matching з напрямком, pickup/drop-off order, місцями й позначенням fallback дати; не переносити весь legacy endpoint. | `INTEGRATION_VERIFIED`: CI PostGIS/Redis, run [38302488026](https://github.com/dima1203oleg/MarshGO-Server/actions/runs/38302488026). | `92d174e2bcd016d4e8c7c4ed6c1c2aaec0de4b23` |
+| Розклад arrivals на зупинці | `server/journey/arrivalEngine.ts`, `server/index.ts` | Server `server/journey/gtfsTimetable.ts`, сумісний stop-arrivals endpoint у `server/index.ts` | Реалізовано provider-scoped GTFS Schedule та matching свіжих GTFS-RT TripUpdates; stale/missing feed позначається окремо; не виводити GPS позицію з TripUpdate. | `INTEGRATION_VERIFIED`: Server exact-SHA PostGIS/Redis CI run [38303659592](https://github.com/dima1203oleg/MarshGO-Server/actions/runs/38303659592); локально 160 pass / 1 opt-in skip. | `0b6f66ed8fbdb97217d775ed913f9a020674f7ad` |
+| Семантика часу GTFS-RT | Legacy DTO `observedAt` | Server endpoint відповідає `realtimeUpdatedAt`; root compatibility type розділяє його з GPS `observedAt` | Усунуто помилкове трактування часу оновлення GTFS feed як GPS-спостереження. | `INTEGRATION_VERIFIED` на Server exact-SHA CI; root regression test проходить локально. | Server `4e32ac3ede97aff715d0604dcf02af7fedd00547`; root change ще не має коміту. |
+| iOS → shared Site pin | `ios/App/**` у legacy | iOS `.github/workflows/ios-ci.yml` → Site `570ea7b…` | Зафіксовано перевірений immutable Site SHA в simulator workflow. | Exact iOS push/PR Simulator CI успішний; device acceptance не виконаний. | iOS `d9a9c4392031cb08b2ecbc31cb959d44e483ab72` |
+
+Ці рядки документують кодування еквівалентної поведінки, не повне перенесення legacy-модулів. GPS polling/cache, повний Rescue Engine та cross-repo release orchestration мають окремі залишкові задачі.

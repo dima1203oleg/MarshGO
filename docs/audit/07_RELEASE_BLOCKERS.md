@@ -30,3 +30,16 @@
 - Механізм підтримки/спірних бронювань, фінансові reconciliation звіти, резервне відновлення й операційне чергування.
 
 Production readiness залишається **не підтвердженою** до зняття P0-блокерів. Це не є погодженням на deployment або App Store publication.
+
+
+## Актуальний стан блокерів після додаткових CI
+
+Залишаються чинними P0 блокери з першої таблиці, але pin та E2E статус змінені:
+
+* **Release candidate CI не повністю зелений.** Server exact SHA `4e32ac3…`, Site `570ea7b…` та iOS `d9a9c43…` мають passing CI; root CI з попереднім Server pin `cf82c68…` пройшов усі кроки до E2E, де було 6 pass / 6 fail. Root rerun із новим manifest ще очікує.
+* **SQL migration lineage не узгоджений.** Legacy й Server мають колізії `041`, `043`, `044`; migration `048` уже перевірена на чистій CI БД, але upgrade rehearsal на копії наявних даних і затверджена rollback policy відсутні.
+* **Немає підтвердженого staging/production середовища.** Не перевірено production deploy, provider credentials/contracts, payment flow, backup/restore, alerting, load/soak та recovery.
+* **Зовнішні транспортні інтеграції неповні.** Наявність registry/adapters не підтверджує реальні міські feed-и, міжміські тарифи, таксі/мікромобільність або права комерційного використання.
+* **iOS пройшов лише Simulator CI.** Немає фізичного iPhone приймання GPS, APNs, background location, мережевих режимів і TestFlight signing.
+
+Corridor matching попуток і Server stop-arrival Schedule/GTFS-RT тепер пройшли target CI; вони більше не є окремими відсутніми Server-функціями. Legacy GPS poller/cache parity лишається на аудиті.

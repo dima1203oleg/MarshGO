@@ -21,6 +21,7 @@ Pull request: [MarshGO #1](https://github.com/dima1203oleg/MarshGO/pull/1), SHA 
 
 ## Тестове покриття та межі
 
+- У Site branch `570ea7b…` всі канонічні результати та маршрутні референси з наданих вкладень перевірено за SHA-256: світло-темна дошка, світлі деталі й карта та чотири фінальні темні кадри побайтно збігаються з файлами `docs/design/canonical/**`. Site `npm test` включає перевірку цілісності цих reference assets. Це доводить правильність еталонних файлів; саме по собі не доводить pixel-diff готового UI. |
 - Локальні unit та окремі CI integration результати відтворювані для наведених SHA.
 - Server локальні integration тести за замовчуванням не запускаються без явного opt-in; green локальний `npm test` сам по собі не є доказом DB/Redis integration.
 - Legacy API integration у GitHub використовує ephemeral PostGIS/Redis service. Локальні persistent база й Redis не очищалися.
@@ -30,3 +31,15 @@ Pull request: [MarshGO #1](https://github.com/dima1203oleg/MarshGO/pull/1), SHA 
 ## Наступний крок
 
 Отримати фінальний стан run `38297112997`, записати браузерні E2E результати та причини кожного невдалого сценарію, якщо вони є. Після кожної зміни повторити відповідні тести на новому точному SHA та оновити цей звіт.
+
+
+## Оновлення після baseline
+
+| Репозиторій | SHA / середовище | Перевірки | Результат |
+|---|---|---|---|
+| MarshGO legacy | локальний робочий набір після змін E2E/GTFS timestamp; parent `1e8fbca…` | `npm run check:production`, `npm test` | exit 0: typecheck, lint, unit, build і bundle audit. Unit suite: **232 total, 231 pass, 0 fail, 1 opt-in integration skip**. Browser E2E на root SHA до цих змін: run [38301176574](https://github.com/dima1203oleg/MarshGO/actions/runs/38301176574), 6 pass / 6 fail. |
+| MarshGO-Server | `4e32ac3ede97aff715d0604dcf02af7fedd00547` | локально typecheck/lint/unit; GitHub push CI [38305019352](https://github.com/dima1203oleg/MarshGO-Server/actions/runs/38305019352) і PR CI [38305024597](https://github.com/dima1203oleg/MarshGO-Server/actions/runs/38305024597) | локально 160 pass / 1 opt-in integration skip; exact-SHA CI успішний, включно з DB/PostGIS/Redis integration. |
+| MarshGO-Site | `570ea7b9faa3d55a7e24599657c86fb2903d4cce` | Site CI [38295522056](https://github.com/dima1203oleg/MarshGO-Site/actions/runs/38295522056) | 60 тестів pass; typecheck/lint/build/bundle успішні. |
+| MarshGO-iOS | `d9a9c4392031cb08b2ecbc31cb959d44e483ab72` | exact-SHA push CI [38303892342](https://github.com/dima1203oleg/MarshGO-iOS/actions/runs/38303892342), PR CI [38303901032](https://github.com/dima1203oleg/MarshGO-iOS/actions/runs/38303901032) | обидві Simulator/Capacitor перевірки успішні; workflow пінить Site `570ea7b…`. Фізичний пристрій не тестувався. |
+
+Root unit-test count підтверджено локальним друкованим результатом вище. Точний root commit SHA буде додано після коміту; E2E після оновлення manifest/селекторів та browser-compat залишаються очікуваними; production/staging, physical iOS і навантажувальні перевірки не виконані.
