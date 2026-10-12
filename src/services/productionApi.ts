@@ -223,6 +223,8 @@ export type ApiJourney = {
     providerName?: string;
     routeName?: string;
     headsign?: string;
+    /** Concrete feed mode, e.g. suburban_train or marshrutka; mode remains the broad journey category. */
+    transportType?: string;
     coordinates?: [number, number][];
     geometrySource?: 'gtfs-shape' | 'gtfs-stop-sequence' | 'walking-estimate';
     driver: { id: string; name: string; averageRating: number | null; reviewCount: number } | null;

@@ -8,6 +8,7 @@ import { SearchMapForm } from './components/SearchMapForm';
 import { SearchMapDetails } from './components/SearchMapDetails';
 import { SearchFiltersModal } from './components/SearchFiltersModal';
 import { rankSearchResults } from './model/multimodalEngine';
+import { presentJourneyLeg } from './model/transportPresentation';
 import { buildSearchRoute, parseSearchRoute, type SearchRouteState } from '../../routing/searchRouteState';
 import { formatKyivDateTimeInput, kyivDateTimeInputToDate, kyivDateTimeInputToIso, todayKyivDate } from '../../domain/kyivTime';
 
@@ -78,17 +79,6 @@ function offersToSearchItems(
 }
 
 function journeyResultsToSearchItems(journeys: ApiJourney[]): RouteSearchResultItem[] {
-  const modeMeta: Record<string, { type: SearchTransportMode; label: string }> = {
-    WALK: { type: 'walk', label: 'Пішки' },
-    COMMUNITY: { type: 'carpool', label: 'Попутка' },
-    BUS: { type: 'bus', label: 'Автобус' },
-    MINIBUS: { type: 'minibus', label: 'Маршрутка' },
-    TRAM: { type: 'tram', label: 'Трамвай' },
-    TROLLEYBUS: { type: 'trolleybus', label: 'Тролейбус' },
-    METRO: { type: 'metro', label: 'Метро' },
-    RAIL: { type: 'train', label: 'Поїзд' },
-    TAXI: { type: 'taxi', label: 'Таксі' },
-  };
   const formatTime = (value: string) => new Intl.DateTimeFormat('uk-UA', {
     hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Kyiv',
   }).format(new Date(value));
@@ -104,14 +94,16 @@ function journeyResultsToSearchItems(journeys: ApiJourney[]): RouteSearchResultI
     const last = journey.legs.at(-1);
     if (!first || !last) return [];
     const visibleLegs = journey.legs.filter((leg) => leg.mode !== 'WALK');
-    const primaryMode = modeMeta[visibleLegs[0]?.mode ?? ''] ?? { type: 'other' as const, label: 'Маршрут' };
+    const primaryMode = visibleLegs[0]
+      ? presentJourneyLeg(visibleLegs[0].mode, visibleLegs[0].transportType)
+      : { type: 'other' as const, label: 'Маршрут' };
     const price = journey.confirmedPriceMinor ?? journey.totalPriceMinor;
     const distanceKnown = journey.legs.every((leg) => leg.mode === 'WALK' || leg.distanceMeters !== null);
     const distanceMeters = distanceKnown
       ? journey.legs.reduce((sum, leg) => sum + (leg.distanceMeters ?? 0), 0)
       : null;
     const legs: NonNullable<RouteSearchResultItem['legs']> = journey.legs.map((leg) => {
-      const meta = modeMeta[leg.mode] ?? { type: 'other' as const, label: leg.mode };
+      const meta = presentJourneyLeg(leg.mode, leg.transportType);
       return {
         id: leg.id,
         mode: meta.type,
