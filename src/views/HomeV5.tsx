@@ -56,7 +56,7 @@ const homeBanners = [
     title: 'Попутники знайдуться на твоєму маршруті',
     description: 'Опублікуй поїздку й розділи витрати на дорогу.',
     image: '/images/welcome-road.jpg',
-    imagePosition: 'center 84%',
+    imagePosition: 'center 68%',
     action: 'publish',
     actionLabel: 'Опублікувати поїздку',
   },
@@ -147,7 +147,7 @@ export const HomeV5: React.FC<HomeV5Props> = ({
               if (Math.abs(delta) > 40) setMarshPassIndex((index) => (index + (delta < 0 ? 1 : -1) + marshPasses.length) % marshPasses.length);
               touchStartX.current = null;
             }}
-            className="home-v5-marshpass-card flex h-full w-full flex-col justify-between overflow-hidden rounded-[24px] border p-3.5 text-left transition active:scale-[.99]"
+            className="home-v5-marshpass-card flex h-full w-full flex-col justify-between overflow-hidden rounded-[20px] border p-3.5 text-left transition active:scale-[.99]"
           >
             <span className="flex items-center justify-between gap-2">
               <span className="flex items-center gap-2"><span className="grid h-8 w-8 place-items-center rounded-xl bg-blue-600 text-white"><Ticket size={17}/></span><span className="text-[11px] font-black tracking-[.1em]">MARSHGO <span className="text-blue-600 dark:text-blue-300">MARSH PASS</span></span></span>
@@ -167,7 +167,7 @@ export const HomeV5: React.FC<HomeV5Props> = ({
           </div>}
         </section>
       ) : (
-        <section className="home-v5-hero home-v5-banner relative mb-3 flex shrink-0 flex-col justify-between overflow-hidden rounded-[26px] border border-white/80 p-4 shadow-[0_7px_22px_rgba(26,73,133,.10)] dark:border-slate-700" aria-label="MARSHGO: банер про поїздки">
+        <section className="home-v5-hero home-v5-banner relative mb-3 flex shrink-0 flex-col justify-between overflow-hidden rounded-[20px] border border-white/80 p-4 shadow-[0_7px_22px_rgba(26,73,133,.10)] dark:border-slate-700" aria-label="MARSHGO: банер про поїздки">
           <img src={activeBanner.image} alt="" style={{ objectPosition: activeBanner.imagePosition }} className="absolute inset-0 h-full w-full object-cover" />
           <div className="home-v5-banner-scrim absolute inset-0" />
           <div className="relative z-10 max-w-[78%]">
@@ -176,11 +176,11 @@ export const HomeV5: React.FC<HomeV5Props> = ({
             <p className="mt-1 text-[11px] font-semibold leading-snug text-slate-600 dark:text-slate-200">{activeBanner.description}</p>
           </div>
           <div className="relative z-10 flex items-center justify-between">
-            <button type="button" onClick={activeBanner.action === 'publish' ? onPlanTrip : onSearchTrip} className="inline-flex min-h-9 items-center gap-2 rounded-full bg-blue-600 px-3.5 text-[11px] font-bold text-white shadow-md shadow-blue-900/20">
+            <button type="button" onClick={activeBanner.action === 'publish' ? onPlanTrip : onSearchTrip} className="inline-flex min-h-11 items-center gap-2 rounded-full bg-blue-600 px-3.5 text-[11px] font-bold text-white shadow-md shadow-blue-900/20">
               {activeBanner.actionLabel} <ArrowRight size={14}/>
             </button>
             <div className="flex items-center gap-1.5" role="group" aria-label="Банери MARSHGO">
-              {homeBanners.map((banner, index) => <button key={banner.eyebrow} type="button" aria-label={`Показати банер ${index + 1}: ${banner.eyebrow}`} aria-pressed={bannerIndex === index} onClick={() => setBannerIndex(index)} className={`h-2.5 rounded-full transition-all ${bannerIndex === index ? 'w-5 bg-blue-600' : 'w-2.5 bg-slate-400/60'}`} />)}
+              {homeBanners.map((banner, index) => <button key={banner.eyebrow} type="button" aria-label={`Показати банер ${index + 1}: ${banner.eyebrow}`} aria-pressed={bannerIndex === index} onClick={() => setBannerIndex(index)} className="grid size-11 shrink-0 place-items-center" ><span aria-hidden="true" className={`h-2.5 rounded-full transition-all ${bannerIndex === index ? 'w-5 bg-blue-600' : 'w-2.5 bg-slate-400/60'}`} /></button>)}
             </div>
           </div>
         </section>

@@ -71,7 +71,7 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
       };
       const homeCards = [...document.querySelectorAll<HTMLElement>('.home-action-card')].map(element => {
         const rect = element.getBoundingClientRect();
-        return { top: rect.top, bottom: rect.bottom };
+        return { top: rect.top, bottom: rect.bottom, width: rect.width, height: rect.height };
       });
       return {
         viewportWidth: window.innerWidth,
@@ -106,6 +106,9 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
       expect(layout.home, `${viewport.name} must show the home screen`).not.toBeNull();
       expect(layout.hero!.top, `${viewport.name} hero starts below the app header`).toBeGreaterThanOrEqual(layout.header!.bottom - 1);
       expect(layout.homeCards, `${viewport.name} should render all four home actions`).toHaveLength(4);
+      if (viewport.width === 390 && viewport.height === 844) {
+        expect(layout.homeCards.every(card => Math.abs(card.width - card.height) <= 2), 'canonical phone Home actions must remain square').toBe(true);
+      }
       if (viewport.height <= 730) {
         const home = page.locator('.home-hero--canonical');
         await home.evaluate(element => { element.scrollTop = element.scrollHeight; });
@@ -174,6 +177,10 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
   await expect(page.getByRole('region', { name: 'Види транспорту' }).locator('.transport-mode-grid > button')).toHaveCount(12);
   const darkSurface = await page.locator('.search-screen .journey-search-card').evaluate(element => getComputedStyle(element).backgroundColor);
   expect(darkSurface, 'search form must use the canonical graphite surface in dark mode').toBe('rgb(17, 24, 32)');
+  const darkIntroBorder = await page.locator('.search-screen .home-intro').evaluate(element => getComputedStyle(element).borderColor);
+  expect(darkIntroBorder, 'search header must use a quiet graphite border in dark mode').toBe('rgb(38, 54, 72)');
+  const selectedModeBorder = await page.getByRole('region', { name: 'Види транспорту' }).getByRole('button', { name: /^Попутки/ }).evaluate(element => getComputedStyle(element).borderColor);
+  expect(selectedModeBorder, 'selected transport mode must keep the electric-blue state in dark mode').toBe('rgb(22, 135, 255)');
   await page.screenshot({ path: '/tmp/marshgo-site-search-canonical-dark.png', fullPage: true });
   const searchTabbar = await page.locator('.app-tabbar').evaluate(element => ({
     position: getComputedStyle(element).position,
