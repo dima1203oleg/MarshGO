@@ -53,7 +53,7 @@ const popularRoutes: ReadonlyArray<{ destination: string; image: string; imagePo
 const homeBanners = [
   {
     eyebrow: 'MARSHGO · ПОПУТКИ',
-    title: 'Попутчики знайдуться на твоєму маршруті',
+    title: 'Попутники знайдуться на твоєму маршруті',
     description: 'Опублікуй поїздку й розділи витрати на дорогу.',
     image: '/images/welcome-road.jpg',
     imagePosition: 'center 84%',
