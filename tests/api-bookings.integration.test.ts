@@ -274,7 +274,7 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
         ...body,
         origin: { name: 'Малоголосківська, Львів', coordinates: [24.0029933, 49.8681678] },
         destination: { name: 'Сихів, Львів', coordinates: [24.057585, 49.794117] },
-        departureAt: new Date(Date.now() + 60 * 60_000).toISOString(),
+        departureAt: nextKyivScheduleWindow(9, 15).toISOString(),
         strategy: 'BALANCED',
         preferences: { allowCommunity: true, allowedTransportTypes: ['bus','tram'] },
       }),
@@ -297,8 +297,14 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     });
     assert.equal(unauthorized.status, 401);
 
+    // Transit availability is exercised above. Keep this ten-day persistence/booking case focused on the real Community offer
+    // instead of querying unrelated live GTFS feeds across every transport type.
+    const persistenceSearchBody = {
+      ...body,
+      preferences: { ...body.preferences, allowedTransportTypes: ['carpool'] },
+    };
     const response = await fetch(`${apiUrl}/api/v1/journeys/search`, {
-      method: 'POST', headers: { 'content-type': 'application/json', 'x-dev-user-id': passengerA }, body: JSON.stringify(body),
+      method: 'POST', headers: { 'content-type': 'application/json', 'x-dev-user-id': passengerA }, body: JSON.stringify(persistenceSearchBody),
     });
     assert.equal(response.status, 200);
     const result = await response.json() as { data: { partial: boolean; blockedProviders: string[]; providerErrors: string[]; unsupportedPreferences: string[]; journeys: Array<{ id: string; offerId: string | null; strategy: string; confirmedPriceMinor: number | null; totalPriceMinor: number | null; legs: Array<{ id: string; mode: string; priceStatus: string; availabilityStatus: string }> }> } };
