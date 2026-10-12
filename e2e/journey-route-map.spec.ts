@@ -130,6 +130,8 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   await page.getByRole('button', { name: 'Знайти маршрут', exact: true }).click();
   await expect(page.locator('.journey-results').getByText('Маршрут: Львів, площа Ринок → Львів, Сихів')).toBeVisible();
   await expect(page.locator('.app-header')).toHaveCount(0);
+  await expect(page.getByRole('navigation', { name: 'Основна навігація' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Змінити маршрут пошуку' })).toBeVisible();
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
   await expect(page.locator('details.coverage-details')).toHaveCount(0);
   const resultCard = page.getByTestId('journey-result-card').first();
@@ -159,9 +161,9 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   await expect(resultCard.getByRole('button', { name: 'Зберегти маршрут' })).toHaveAttribute('aria-pressed', 'false');
   await page.screenshot({ path: `/tmp/marshgo-${browserName}-journey-results.png` });
   await page.evaluate(() => document.documentElement.classList.add('dark'));
-  await expect.poll(() => resultCard.evaluate(element => getComputedStyle(element).backgroundColor)).toBe('rgb(17, 24, 32)');
+  await expect.poll(() => resultCard.evaluate(element => getComputedStyle(element).backgroundColor)).toBe('rgb(11, 26, 39)');
   await expect(resultCard.locator('p').first()).toHaveCSS('color', 'rgb(245, 249, 255)');
-  await expect.poll(() => cheapestMode.evaluate(element => getComputedStyle(element).backgroundColor)).toBe('rgb(17, 24, 32)');
+  await expect.poll(() => cheapestMode.evaluate(element => getComputedStyle(element).backgroundColor)).toBe('rgb(13, 27, 40)');
   await expect(resultCard.locator('[data-segment-mode="BUS"]')).toHaveCSS('background-color', 'rgb(22, 135, 255)');
   await page.screenshot({ path: `/tmp/marshgo-${browserName}-journey-results-dark.png` });
   await page.setViewportSize({ width: 360, height: 844 });
@@ -181,9 +183,13 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   const routeMap = page.getByRole('main', { name: 'Побудований маршрут' });
   await expect(routeMap).toBeVisible();
   await expect(routeMap).toHaveAttribute('data-theme', 'light');
+  const routeSummaryTitle = routeMap.locator('.route-summary-title');
+  await expect(routeSummaryTitle).toContainText('Площа Ринок');
+  await expect(routeSummaryTitle).toContainText('Сихів');
+  await expect.poll(() => routeSummaryTitle.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
   await expect(routeMap.getByText('Автобус 21')).toBeVisible();
   await expect(routeMap.getByText('Трамвай 8')).toBeVisible();
-  await expect(routeMap.getByText('Відстань не вказана')).toBeVisible();
+  await expect(routeMap.getByText('Відстань не вказана', { exact: true })).toBeVisible();
   await expect(routeMap.getByText(/NaN/)).toHaveCount(0);
   const sheet = routeMap.getByTestId('route-bottom-sheet');
   await expect(sheet).toHaveAttribute('data-sheet-state', 'half');
@@ -219,17 +225,20 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   await page.screenshot({ path: `/tmp/marshgo-${browserName}-multimodal-route-map.png`, fullPage: true });
   await routeMap.getByRole('button', { name: 'Назад до результатів' }).click();
   await expect(page.locator('.journey-results').getByText('Маршрут: Львів, площа Ринок → Львів, Сихів')).toBeVisible();
+  await page.getByRole('button', { name: 'Назад до пошуку' }).click();
   const navigation = page.getByRole('navigation', { name: 'Основна навігація' });
   await navigation.getByRole('button', { name: 'Профіль', exact: true }).click();
   await page.getByRole('button', { name: /Налаштування/ }).click();
   await page.getByRole('button', { name: 'Темна (Ніч)' }).click();
   await expect.poll(() => page.evaluate(() => document.documentElement.style.colorScheme)).toBe('dark');
   await navigation.getByRole('button', { name: 'Пошук', exact: true }).click();
+  await page.getByRole('button', { name: 'Знайти маршрут', exact: true }).click();
+  await expect(page.locator('.journey-results')).toBeVisible();
   await page.getByTestId('journey-result-card').first().getByRole('button', { name: /Відкрити маршрут:/ }).click();
   const darkRouteMap = page.getByRole('main', { name: 'Побудований маршрут' });
   await expect(darkRouteMap).toHaveAttribute('data-theme', 'dark');
   await expect(darkRouteMap.getByTestId('route-bottom-sheet')).toHaveAttribute('data-sheet-state', 'half');
-  await expect(darkRouteMap.locator('[data-segment-id="e2e-bus-leg"]')).toHaveCSS('background-color', 'rgb(16, 32, 46)');
+  await expect(darkRouteMap.locator('[data-segment-id="e2e-bus-leg"]')).toHaveCSS('background-color', 'rgb(11, 28, 43)');
   await expect.poll(() => darkRouteMap.locator('[data-marshgo-map-renderer="maplibre"]').evaluate(element =>
     getComputedStyle(element).backgroundImage.includes('rgb(19, 45, 71)'))).toBe(true);
   await page.screenshot({ path: `/tmp/marshgo-${browserName}-multimodal-route-map-dark.png`, fullPage: true });
