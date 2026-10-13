@@ -1203,7 +1203,10 @@ test('route search URL restores geocoded criteria after direct reload', async ({
     await page.getByRole('button', { name: /^Знайти маршрут/ }).click();
     const initialSearch = await searchResponse;
     expect(initialSearch.status()).toBe(200);
-    const initialPayload = (await initialSearch.json()).data as { journeys: Array<{ id: string }> };
+    const initialPayload = (await initialSearch.json()).data as {
+      journeys: Array<{ id: string }>;
+      candidateGenerationTruncated?: boolean;
+    };
     await expect(page).toHaveURL(/\/journeys\/search\?mode=planner&/);
     await expect.poll(() => page.evaluate(() => new URLSearchParams(window.location.search).get('origin')))
       .toBe('Стрий, Львівська область, Україна');
@@ -1212,7 +1215,12 @@ test('route search URL restores geocoded criteria after direct reload', async ({
     expect(initialPayload.journeys.length).toBeGreaterThan(0);
     const plan = page.getByRole('region', { name: 'Результати мультимодального пошуку' });
     await expect(plan).toBeVisible();
-    await expect(plan.getByText(/Пошук досяг ліміту/)).toBeVisible();
+    const truncationNotice = plan.getByText(/Пошук досяг ліміту/);
+    if (initialPayload.candidateGenerationTruncated) {
+      await expect(truncationNotice).toBeVisible();
+    } else {
+      await expect(truncationNotice).toHaveCount(0);
+    }
     await expect(plan.getByRole('article').first()).toBeVisible();
 
     await page.reload();
