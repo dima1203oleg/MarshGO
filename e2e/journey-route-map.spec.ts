@@ -27,6 +27,42 @@ async function routeSheetGeometry(routeMap: Locator) {
   });
 }
 
+async function waitForSheetSnap(sheet: Locator) {
+  await expect.poll(() => sheet.evaluate(element => {
+    const targetHeight = Number.parseFloat((element as HTMLElement).style.height);
+    return Math.abs(element.getBoundingClientRect().height - targetHeight);
+  }), {
+    message: 'route sheet should finish moving to its requested snap point',
+    timeout: 5_000,
+    intervals: [50, 100, 200],
+  }).toBeLessThan(1.5);
+}
+
+async function waitForCameraSettled(map: Locator, previousRequestId?: string | null) {
+  let lastRequestId = '';
+  let stableReads = 0;
+  await expect.poll(async () => {
+    const [requested, settled, moving] = await Promise.all([
+      map.getAttribute('data-marshgo-camera-request-id'),
+      map.getAttribute('data-marshgo-camera-settled-id'),
+      map.getAttribute('data-marshgo-camera-moving'),
+    ]);
+    if (!requested || Number(requested) < 1 || requested !== settled || moving !== 'false'
+      || (previousRequestId !== undefined && requested === previousRequestId)) {
+      lastRequestId = requested ?? '';
+      stableReads = 0;
+      return false;
+    }
+    stableReads = requested === lastRequestId ? stableReads + 1 : 1;
+    lastRequestId = requested;
+    return stableReads >= 2;
+  }, {
+    message: 'map camera should finish the latest route-fit animation',
+    timeout: 5_000,
+    intervals: [100, 150, 200],
+  }).toBe(true);
+}
+
 async function journeyResultsGeometry(results: Locator) {
   return results.evaluate((root) => {
     const bounds = (element: Element | null) => {
@@ -464,10 +500,12 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
     .toBe(true);
   const map = routeMap.locator('[data-marshgo-map-renderer="maplibre"]');
   await expect(sheet).toHaveAttribute('data-sheet-state', 'half');
-  await expect(map).toHaveAttribute('data-marshgo-map-idle', 'true');
+  await expect(map).toHaveAttribute('data-marshgo-map-ready', 'true');
+  await waitForCameraSettled(map);
   await expect(map).toHaveAttribute('data-marshgo-camera-zoom', /\d/);
   const routeOverviewZoom = Number(await map.getAttribute('data-marshgo-camera-zoom'));
   const dragSheet = async (deltaY: number, steps = 8) => {
+    const previousCameraRequestId = await map.getAttribute('data-marshgo-camera-request-id');
     const handle = sheet.locator('.route-sheet-grabber');
     const bounds = await handle.boundingBox();
     expect(bounds, 'bottom sheet drag handle should be visible').not.toBeNull();
@@ -486,20 +524,15 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
     // Wait for the rendered height to reach the inline snap target. Checking
     // animation counts is flaky on slow CI runners, which may keep transitions
     // alive longer than their nominal CSS duration.
-    await expect.poll(() => sheet.evaluate(element => {
-      const targetHeight = Number.parseFloat((element as HTMLElement).style.height);
-      return Math.abs(element.getBoundingClientRect().height - targetHeight);
-    }), {
-      message: 'bottom sheet should finish its snap animation before the next gesture',
-      timeout: 5_000,
-      intervals: [50, 100, 200],
-    }).toBeLessThan(1.5);
+    await waitForSheetSnap(sheet);
+    await waitForCameraSettled(map, previousCameraRequestId);
   };
   await expectCanonicalScreenshot(page, 'journey-route-map-light-half.png');
   const lightHalfGeometry = await routeSheetGeometry(routeMap);
   await dragSheet(-260);
   await expect(sheet).toHaveAttribute('data-sheet-state', 'expanded');
-  await expect(map).toHaveAttribute('data-marshgo-map-idle', 'true');
+  await waitForSheetSnap(sheet);
+  await waitForCameraSettled(map);
   const expandedGeometry = await routeSheetGeometry(routeMap);
   expect(expandedGeometry.sheet?.[1], 'expanded sheet must leave a visible map band').toBeGreaterThanOrEqual(96);
   const requestedBearing = Number(await routeMap.getAttribute('data-route-camera-bearing'));
@@ -521,9 +554,11 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   await expect(sheet.getByTestId('route-segment-list')).toBeHidden();
   await dragSheet(-180);
   await expect(sheet).toHaveAttribute('data-sheet-state', 'half');
+  const cameraBeforeExpandDetails = await map.getAttribute('data-marshgo-camera-request-id');
   await sheet.getByRole('button', { name: 'Розгорнути деталі маршруту' }).click();
   await expect(sheet).toHaveAttribute('data-sheet-state', 'expanded');
-  await expect(map).toHaveAttribute('data-marshgo-map-idle', 'true');
+  await waitForSheetSnap(sheet);
+  await waitForCameraSettled(map, cameraBeforeExpandDetails);
   const scooterCard = routeMap.locator('[data-segment-id="e2e-scooter-leg"]');
   await expect(scooterCard).toBeVisible();
   await expect(scooterCard.getByRole('button', { name: /зупинки:/i })).toHaveCount(0);
@@ -531,18 +566,24 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   await expect(scooterCard).toContainText('вул. Городоцька, 55');
   await expectCanonicalScreenshot(page, 'journey-route-details-light-expanded.png');
   const lightExpandedGeometry = await routeSheetGeometry(routeMap);
+  const cameraBeforeCollapseDetails = await map.getAttribute('data-marshgo-camera-request-id');
   await sheet.getByRole('button', { name: 'Згорнути деталі маршруту' }).click();
   await expect(sheet).toHaveAttribute('data-sheet-state', 'collapsed');
-  await expect(map).toHaveAttribute('data-marshgo-map-idle', 'true');
+  await waitForSheetSnap(sheet);
+  await waitForCameraSettled(map, cameraBeforeCollapseDetails);
   await expectCanonicalScreenshot(page, 'journey-route-map-light-collapsed.png');
   const lightCollapsedGeometry = await routeSheetGeometry(routeMap);
+  const cameraBeforeReturnToHalf = await map.getAttribute('data-marshgo-camera-request-id');
   await sheet.getByRole('button', { name: 'Розгорнути деталі маршруту' }).click();
   await expect(sheet).toHaveAttribute('data-sheet-state', 'half');
+  await waitForSheetSnap(sheet);
+  await waitForCameraSettled(map, cameraBeforeReturnToHalf);
   await expect(routeMap.getByRole('button', { name: /На карті/ })).toHaveCount(0);
   await expect(routeMap.locator('img')).toHaveCount(0);
   await expect(map).toHaveAttribute('data-marshgo-route-segment-count', '4');
   await expect(map).toHaveAttribute('data-marshgo-route-point-count', '11');
   const busSummaryTile = summaryStrip.getByRole('button', { name: 'Вибрати сегмент: Автобус A20' });
+  const cameraBeforeBusFocus = await map.getAttribute('data-marshgo-camera-request-id');
   await busSummaryTile.click();
   const busCard = routeMap.locator('[data-segment-id="e2e-bus-leg"]');
   await expect(busCard).toHaveAttribute('data-active', 'true');
@@ -553,13 +594,14 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   await expect(map).toHaveAttribute('data-marshgo-active-route-segment-id', 'e2e-bus-leg');
   await expect(map).toHaveAttribute('data-marshgo-focused-route-segment-id', 'e2e-bus-leg');
   await expect(map).toHaveAttribute('data-marshgo-active-route-segment-color', '#1687FF');
-  await expect(map).toHaveAttribute('data-marshgo-map-idle', 'true');
+  await waitForCameraSettled(map, cameraBeforeBusFocus);
   const focusedBusZoom = Number(await map.getAttribute('data-marshgo-camera-zoom'));
   expect(focusedBusZoom).toBeGreaterThan(routeOverviewZoom + 0.05);
   await expectRouteCenteredInVisibleMap(map, sheet, [[24.03, 49.825], [24.044, 49.81], [24.0576, 49.7941]]);
   await busCard.getByRole('button', { name: 'Згорнути зупинки: Автобус' }).click();
   await expect(busCard.getByRole('button', { name: 'Розгорнути зупинки: Автобус' })).toHaveAttribute('aria-expanded', 'false');
   const tramCard = routeMap.locator('[data-segment-id="e2e-tram-leg"]');
+  const cameraBeforeTramFocus = await map.getAttribute('data-marshgo-camera-request-id');
   await tramCard.getByRole('button', { name: /Вибрати сегмент: Трамвай T09/ }).click();
   await expect(tramCard).toHaveAttribute('data-active', 'true');
   await expect(tramCard.getByText('Університет').last()).toBeVisible();
@@ -567,7 +609,7 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   await expect(map).toHaveAttribute('data-marshgo-active-route-segment-id', 'e2e-tram-leg');
   await expect(map).toHaveAttribute('data-marshgo-focused-route-segment-id', 'e2e-tram-leg');
   await expect(map).toHaveAttribute('data-marshgo-active-route-segment-color', '#F43F7B');
-  await expect(map).toHaveAttribute('data-marshgo-map-idle', 'true');
+  await waitForCameraSettled(map, cameraBeforeTramFocus);
   await expectRouteCenteredInVisibleMap(map, sheet, [[24.005, 49.867], [24.012, 49.855], [24.018, 49.846]]);
   await page.screenshot({ path: `/tmp/marshgo-${browserName}-multimodal-route-map.png`, fullPage: true });
   await routeMap.getByRole('button', { name: 'Назад до результатів' }).click();
@@ -598,7 +640,8 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   await metroResult.getByRole('button', { name: /Відкрити маршрут:/ }).click();
   const metroRouteMap = page.getByRole('main', { name: 'Побудований маршрут' });
   const metroMap = metroRouteMap.locator('[data-marshgo-map-renderer="maplibre"]');
-  await expect(metroMap).toHaveAttribute('data-marshgo-map-idle', 'true');
+  await expect(metroMap).toHaveAttribute('data-marshgo-map-ready', 'true');
+  await waitForCameraSettled(metroMap);
   const metroOverviewZoom = Number(await metroMap.getAttribute('data-marshgo-camera-zoom'));
   const metroCard = metroRouteMap.locator('[data-segment-id="e2e-alt-metro-leg-2"]');
   await expect(metroCard).toBeVisible();
@@ -607,6 +650,7 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   await expect(metroStrip.locator('[data-segment-mode="METRO"]')).toHaveCSS('background-color', 'rgb(228, 63, 134)');
   const metroSegmentCount = Number(await metroMap.getAttribute('data-marshgo-route-segment-count'));
   expect(metroSegmentCount).toBeGreaterThan(1);
+  const cameraBeforeMetroFocus = await metroMap.getAttribute('data-marshgo-camera-request-id');
   await metroTile.click();
   await expect(metroTile).toHaveAttribute('aria-pressed', 'true');
   await expect(metroStrip.locator('.journey-segment-tile.is-active')).toHaveCount(1);
@@ -622,8 +666,8 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   await expect(metroMap).toHaveAttribute('data-marshgo-active-route-segment-color', '#E43F86');
   await expect(metroMap).toHaveAttribute('data-marshgo-selected-route-segment-count', '1');
   await expect(metroMap).toHaveAttribute('data-marshgo-dimmed-route-segment-count', String(metroSegmentCount - 1));
+  await waitForCameraSettled(metroMap, cameraBeforeMetroFocus);
   await expect.poll(async () => Number(await metroMap.getAttribute('data-marshgo-camera-zoom'))).toBeGreaterThan(metroOverviewZoom + 0.5);
-  await expect(metroMap).toHaveAttribute('data-marshgo-map-idle', 'true');
   await expectRouteCenteredInVisibleMap(
     metroMap,
     metroRouteMap.getByTestId('route-bottom-sheet'),
@@ -649,25 +693,34 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   await expect.poll(() => darkRouteMap.locator('[data-marshgo-map-renderer="maplibre"]').evaluate(element =>
     getComputedStyle(element).backgroundImage.includes('rgb(19, 45, 71)'))).toBe(true);
   const darkMap = darkRouteMap.locator('[data-marshgo-map-renderer="maplibre"]');
-  await expect(darkMap).toHaveAttribute('data-marshgo-map-idle', 'true');
+  await expect(darkMap).toHaveAttribute('data-marshgo-map-ready', 'true');
+  await waitForCameraSettled(darkMap);
   expect(await routeSheetGeometry(darkRouteMap)).toEqual(lightHalfGeometry);
   await page.screenshot({ path: `/tmp/marshgo-${browserName}-multimodal-route-map-dark.png`, fullPage: true });
   await expectCanonicalScreenshot(page, 'journey-route-map-dark-half.png');
   const darkSheet = darkRouteMap.getByTestId('route-bottom-sheet');
+  const cameraBeforeDarkExpand = await darkMap.getAttribute('data-marshgo-camera-request-id');
   await darkSheet.getByRole('button', { name: 'Розгорнути деталі маршруту' }).click();
   await expect(darkSheet).toHaveAttribute('data-sheet-state', 'expanded');
-  await expect(darkMap).toHaveAttribute('data-marshgo-map-idle', 'true');
+  await waitForSheetSnap(darkSheet);
+  await waitForCameraSettled(darkMap, cameraBeforeDarkExpand);
+  const cameraBeforeDarkCollapse = await darkMap.getAttribute('data-marshgo-camera-request-id');
   await darkSheet.getByRole('button', { name: 'Згорнути деталі маршруту' }).click();
   await expect(darkSheet).toHaveAttribute('data-sheet-state', 'collapsed');
-  await expect(darkMap).toHaveAttribute('data-marshgo-map-idle', 'true');
+  await waitForSheetSnap(darkSheet);
+  await waitForCameraSettled(darkMap, cameraBeforeDarkCollapse);
   await expect.poll(async () => routeSheetGeometry(darkRouteMap)).toEqual(lightCollapsedGeometry);
   await expectCanonicalScreenshot(page, 'journey-route-map-dark-collapsed.png');
+  const cameraBeforeDarkHalf = await darkMap.getAttribute('data-marshgo-camera-request-id');
   await darkSheet.getByRole('button', { name: 'Розгорнути деталі маршруту' }).click();
   await expect(darkSheet).toHaveAttribute('data-sheet-state', 'half');
-  await expect(darkMap).toHaveAttribute('data-marshgo-map-idle', 'true');
+  await waitForSheetSnap(darkSheet);
+  await waitForCameraSettled(darkMap, cameraBeforeDarkHalf);
+  const cameraBeforeDarkExpanded = await darkMap.getAttribute('data-marshgo-camera-request-id');
   await darkSheet.getByRole('button', { name: 'Розгорнути деталі маршруту' }).click();
   await expect(darkSheet).toHaveAttribute('data-sheet-state', 'expanded');
-  await expect(darkMap).toHaveAttribute('data-marshgo-map-idle', 'true');
+  await waitForSheetSnap(darkSheet);
+  await waitForCameraSettled(darkMap, cameraBeforeDarkExpanded);
   await expect.poll(async () => routeSheetGeometry(darkRouteMap)).toEqual(lightExpandedGeometry);
   await expectCanonicalScreenshot(page, 'journey-route-details-dark-expanded.png');
 
@@ -708,7 +761,6 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   const navigationMapData = await navigationCanvas.evaluate((element) => ({ ...element.dataset }));
   expect(navigationMapData).toHaveProperty('marshgoRoutePointCount');
   expect(Number(navigationMapData.marshgoRoutePointCount)).toBeGreaterThan(1);
-  await expect(navigationCanvas).toHaveAttribute('data-marshgo-map-idle', 'true');
   await expect(page.getByTestId('navigation-live-progress')).toContainText(/^\d+ хв/);
   await expect(page.getByRole('button', { name: 'Розгорнути панель' })).toBeVisible();
   // Freeze the pulsing location halo only for the screenshot; keep production motion unchanged.
