@@ -751,16 +751,19 @@ test('driver safely matches two independent riders, inserts ordered stops, and r
     await driverPage.getByRole('button', { name: 'Керування картою' }).click();
     await expect(driverPage.getByRole('group', { name: 'Додаткове керування навігацією' })).toBeVisible();
     await expect(driverPage.getByRole('button', { name: 'Увімкнути голос' })).toHaveAttribute('aria-pressed', 'false');
-    await expect(driverPage.getByRole('button', { name: 'Завершити навігацію' })).toBeVisible();
+    await expect(driverPage.getByRole('button', { name: 'Завершити навігацію' })).toHaveCount(0);
     await driverPage.getByRole('button', { name: 'Сховати керування картою' }).click();
     await expect(driverPage.getByRole('group', { name: 'Додаткове керування навігацією' })).toHaveCount(0);
     await driverPage.getByRole('button', { name: 'Розгорнути панель' }).click();
+    await expect(driverPage.getByRole('button', { name: 'Завершити навігацію' })).toBeVisible();
     await expect(driverPage.getByRole('switch', { name: 'Пошук попутників уздовж маршруту' })).toHaveAttribute('aria-checked', 'true');
     // The bottom sheet folds away to give the map room, and comes back.
     await driverPage.getByRole('button', { name: 'Згорнути панель' }).click();
     await expect(driverPage.getByRole('switch', { name: 'Пошук попутників уздовж маршруту' })).toHaveCount(0);
+    await expect(driverPage.getByRole('button', { name: 'Завершити навігацію' })).toHaveCount(0);
     await expect(driverPage.locator('section[aria-label="Панель навігації"]')).toHaveCount(0);
     await driverPage.getByRole('button', { name: 'Розгорнути панель' }).click();
+    await expect(driverPage.getByRole('button', { name: 'Завершити навігацію' })).toBeVisible();
     await expect(driverPage.getByRole('switch', { name: 'Пошук попутників уздовж маршруту' })).toBeVisible();
     // "My location" brings back the Apple-Maps-like follow camera (close, tilted, heading-up).
     await driverPage.getByRole('button', { name: 'Показати моє місце' }).click();
