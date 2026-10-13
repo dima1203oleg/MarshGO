@@ -358,10 +358,20 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   await expect(transportChain.getByRole('listitem').nth(2)).toContainText('Самокат');
   await expect(transportChain.getByRole('listitem').nth(3)).toContainText('Автобус');
   await expect(transportChain.getByRole('listitem').nth(3)).toHaveAttribute('aria-label', /маршрут A20/);
-  await expect.poll(() => transportChain.locator('.journey-segment-tile-label').evaluateAll(items => items.every(item => item.scrollWidth <= item.clientWidth))).toBe(true);
+  const segmentLabelsAreReadable = (items: Element[]) => items.every((item) => {
+    const label = item as HTMLElement;
+    const fullLabel = label.textContent?.trim() ?? '';
+    const style = getComputedStyle(label);
+    const fits = label.scrollWidth <= label.clientWidth;
+    return label.clientWidth > 0
+      && fullLabel.length > 0
+      && label.title === fullLabel
+      && (fits || style.textOverflow === 'ellipsis');
+  });
+  await expect.poll(() => transportChain.locator('.journey-segment-tile-label').evaluateAll(segmentLabelsAreReadable)).toBe(true);
   const allResultTileLabels = page.locator('.journey-result-card .journey-segment-tile-label');
   const allResultTileMeta = page.locator('.journey-result-card .journey-segment-tile-meta');
-  await expect.poll(() => allResultTileLabels.evaluateAll(items => items.every(item => item.scrollWidth <= item.clientWidth))).toBe(true);
+  await expect.poll(() => allResultTileLabels.evaluateAll(segmentLabelsAreReadable)).toBe(true);
   await expect.poll(() => allResultTileMeta.evaluateAll(items => items.every(item => item.scrollWidth <= item.clientWidth))).toBe(true);
   const strategySwitch = page.getByRole('group', { name: 'Режим пошуку маршрутів' });
   await expect(strategySwitch.getByRole('button')).toHaveCount(3);
@@ -394,7 +404,7 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   await expectCanonicalScreenshot(page, 'journey-results-dark.png');
   expect(await journeyResultsGeometry(resultsScreen)).toEqual(lightResultsGeometry);
   await page.setViewportSize({ width: 360, height: 844 });
-  await expect.poll(() => allResultTileLabels.evaluateAll(items => items.every(item => item.scrollWidth <= item.clientWidth))).toBe(true);
+  await expect.poll(() => allResultTileLabels.evaluateAll(segmentLabelsAreReadable)).toBe(true);
   await expect.poll(() => allResultTileMeta.evaluateAll(items => items.every(item => item.scrollWidth <= item.clientWidth))).toBe(true);
   const multiLegCard = page.getByTestId('journey-result-card').nth(6);
   await multiLegCard.scrollIntoViewIfNeeded();
