@@ -15,7 +15,10 @@ export default defineConfig({
       use: {
         browserName: 'firefox',
         hasTouch: false,
-        launchOptions: { firefoxUserPrefs: { 'webgl.force-enabled': true } },
+        launchOptions: {
+          ...(process.env.MARSHGO_FIREFOX_XVFB === '1' ? { headless: false } : {}),
+          firefoxUserPrefs: { 'webgl.force-enabled': true },
+        },
       },
     },
     { name: 'webkit', use: { browserName: 'webkit' } },
