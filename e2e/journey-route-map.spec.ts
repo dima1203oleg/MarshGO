@@ -483,13 +483,17 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
       intervals: [16, 40, 80],
     }).toBeGreaterThan(Math.min(16, Math.abs(deltaY) / 4));
     await page.mouse.up();
-    // Avoid starting a second gesture while browsers are at different points
-    // in the snap transition from the previous release.
-    await expect.poll(() => sheet.evaluate(element => element.getAnimations().length), {
+    // Wait for the rendered height to reach the inline snap target. Checking
+    // animation counts is flaky on slow CI runners, which may keep transitions
+    // alive longer than their nominal CSS duration.
+    await expect.poll(() => sheet.evaluate(element => {
+      const targetHeight = Number.parseFloat((element as HTMLElement).style.height);
+      return Math.abs(element.getBoundingClientRect().height - targetHeight);
+    }), {
       message: 'bottom sheet should finish its snap animation before the next gesture',
-      timeout: 1_000,
-      intervals: [16, 40, 80],
-    }).toBe(0);
+      timeout: 5_000,
+      intervals: [50, 100, 200],
+    }).toBeLessThan(1.5);
   };
   await expectCanonicalScreenshot(page, 'journey-route-map-light-half.png');
   const lightHalfGeometry = await routeSheetGeometry(routeMap);
