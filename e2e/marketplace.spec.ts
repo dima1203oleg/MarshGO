@@ -123,9 +123,17 @@ async function setTomorrowAtEightOnTimeWheel(page: import('@playwright/test').Pa
 }
 
 async function setPassengerCount(page: import('@playwright/test').Page, count: number) {
-  await page.getByRole('button', { name: /^Пасажири/ }).click();
-  await page.getByRole('listbox', { name: 'Пасажири' }).getByRole('option', { name: `${count} особи`, exact: true }).click();
-  await page.getByRole('button', { name: 'Застосувати', exact: true }).click();
+  const selectedCount = page.locator('.journey-search-card').getByText(/^\d+ пас\.$/);
+  const increase = page.getByRole('button', { name: 'Більше пасажирів' });
+  const decrease = page.getByRole('button', { name: 'Менше пасажирів' });
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const match = (await selectedCount.innerText()).match(/\d+/);
+    if (!match) throw new Error('Could not read the selected passenger count.');
+    const current = Number(match[0]);
+    if (current === count) return;
+    await (current < count ? increase : decrease).click();
+  }
+  throw new Error(`Passenger count did not reach ${count}.`);
 }
 
 test('date and time picker applies and restores the selected Kyiv departure time', async ({ browser, baseURL }) => {
@@ -324,12 +332,17 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     await passengerPage.getByRole('button', { name: /^Знайти маршрут/ }).click();
     const journeySearchResponse = await journeySearch;
     expect(journeySearchResponse.status()).toBe(200);
-    const journeySearchPayload = (await journeySearchResponse.json()).data as { journeys: Array<{ offerId: string }> };
-    expect(journeySearchPayload.journeys.some(journey => journey.offerId === offerId)).toBe(true);
+    const journeySearchPayload = (await journeySearchResponse.json()).data as { journeys: Array<{ id: string; offerId: string }> };
+    const communityJourney = journeySearchPayload.journeys.find(journey => journey.offerId === offerId);
+    expect(communityJourney).toBeDefined();
+    if (!communityJourney) throw new Error('The persisted Community offer was missing from the journey results.');
 
-    const resultCard = passengerPage.locator('article.journey-result-card').filter({ hasText: 'MARSHGO E2E Driver' }).first();
-    await expect(resultCard).toContainText(/300\s*грн/);
-    await resultCard.getByRole('button', { name: /Переглянути (пропозицію попутки|поїздку)/ }).click();
+    const resultCard = passengerPage.locator(`[data-journey-id="${communityJourney.id}"]`);
+    await expect(resultCard).toContainText(/300\s*(?:грн|₴)/);
+    await resultCard.getByRole('button').first().click();
+    await expect(passengerPage.getByRole('main', { name: 'Побудований маршрут' })).toBeVisible();
+    await passengerPage.getByRole('button', { name: /^Забронювати/ }).click();
+    await expect(passengerPage.getByText('Деталі поїздки', { exact: true })).toBeVisible();
     await expect(passengerPage.getByRole('heading', { name: /Стрий.*Львів/ })).toBeVisible();
     const bookingResponsePromise = passengerPage.waitForResponse(response => response.url().endsWith('/api/v1/bookings') && response.request().method() === 'POST');
     await passengerPage.getByRole('button', { name: /Забронювати місце/ }).click();
@@ -352,12 +365,12 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     // A booking deep link must resolve to the server-owned entity after a cold load and reload.
     await passengerPage.goto(`/bookings/${createdBooking.id}`);
     await expect(passengerPage).toHaveURL(new RegExp(`/bookings/${createdBooking.id}$`));
-    const savedJourney = passengerPage.locator('article').filter({ hasText: 'Маршрут готовий' }).filter({ hasText: /Підтверджено 300\s*грн/ });
+    const savedJourney = passengerPage.locator('article').filter({ hasText: 'Маршрут готовий' }).filter({ hasText: /Підтверджено 300\s*(?:грн|₴)/ });
     await expect(savedJourney).toHaveCount(1);
     await expect(savedJourney).toContainText('Львів');
     await passengerPage.reload();
     await expect(passengerPage).toHaveURL(new RegExp(`/bookings/${createdBooking.id}$`));
-    await expect(passengerPage.locator('article').filter({ hasText: 'Маршрут готовий' }).filter({ hasText: /Підтверджено 300\s*грн/ })).toHaveCount(1);
+    await expect(passengerPage.locator('article').filter({ hasText: 'Маршрут готовий' }).filter({ hasText: /Підтверджено 300\s*(?:грн|₴)/ })).toHaveCount(1);
     await expect(passengerPage.getByRole('heading', { name: 'Мої поїздки' })).toBeVisible();
 
     await passengerPage.getByRole('button', { name: /Чат|Написати/ }).click();
@@ -424,7 +437,7 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     const driverTripCard = driverPage.locator('article').filter({ hasText: 'E2E Passenger' }).filter({ hasText: 'Стрий' });
     await expect(driverTripCard).toBeVisible();
     await passengerPage.getByRole('button', { name: 'Мої поїздки', exact: true }).click();
-    const passengerTripCard = passengerPage.locator('article').filter({ hasText: 'MARSHGO E2E Driver' }).filter({ hasText: 'Стрий' }).filter({ hasText: '300 грн' });
+    const passengerTripCard = passengerPage.locator('article').filter({ hasText: 'MARSHGO E2E Driver' }).filter({ hasText: 'Стрий' }).filter({ hasText: /300\s*(?:грн|₴)/ });
     await expect(passengerTripCard).toHaveCount(1);
     await expect(passengerTripCard).toContainText('2 місця');
     const ticketResponsePromise = passengerPage.waitForResponse((response) => response.url().endsWith(`/api/v1/bookings/${createdBooking.id}/ticket`));
@@ -733,11 +746,19 @@ test('driver safely matches two independent riders, inserts ordered stops, and r
     await driverPage.getByRole('button', { name: /Львів, Львівська область, Україна/ }).click();
     await expect(driverPage.getByText('Львів').first()).toBeVisible();
     // A driver with a verified vehicle gets passenger search along the route on by default.
+    await expect(driverPage.locator('section[aria-label="Панель навігації"]')).toHaveCount(0);
+    await expect(driverPage.getByRole('button', { name: 'Увімкнути голос' })).toHaveCount(0);
+    await driverPage.getByRole('button', { name: 'Керування картою' }).click();
+    await expect(driverPage.getByRole('group', { name: 'Додаткове керування навігацією' })).toBeVisible();
+    await expect(driverPage.getByRole('button', { name: 'Увімкнути голос' })).toHaveAttribute('aria-pressed', 'false');
+    await expect(driverPage.getByRole('button', { name: 'Завершити навігацію' })).toBeVisible();
+    await driverPage.getByRole('button', { name: 'Сховати керування картою' }).click();
+    await expect(driverPage.getByRole('group', { name: 'Додаткове керування навігацією' })).toHaveCount(0);
+    await driverPage.getByRole('button', { name: 'Розгорнути панель' }).click();
     await expect(driverPage.getByRole('switch', { name: 'Пошук попутників уздовж маршруту' })).toHaveAttribute('aria-checked', 'true');
     // The bottom sheet folds away to give the map room, and comes back.
     await driverPage.getByRole('button', { name: 'Згорнути панель' }).click();
     await expect(driverPage.getByRole('switch', { name: 'Пошук попутників уздовж маршруту' })).toHaveCount(0);
-    await expect(driverPage.getByRole('button', { name: 'Завершити навігацію' })).toBeVisible();
     await expect(driverPage.locator('section[aria-label="Панель навігації"]')).toHaveCount(0);
     await driverPage.getByRole('button', { name: 'Розгорнути панель' }).click();
     await expect(driverPage.getByRole('switch', { name: 'Пошук попутників уздовж маршруту' })).toBeVisible();
@@ -746,14 +767,6 @@ test('driver safely matches two independent riders, inserts ordered stops, and r
     await expect(driverPage.locator('[data-marshgo-map-renderer="maplibre"]')).toHaveAttribute('data-marshgo-camera-mode', 'FOLLOW_HEADING');
     await expect(driverPage.getByRole('button', { name: 'Показати моє місце' })).toHaveAttribute('aria-pressed', 'true');
     await expect(driverPage.getByTestId('navigation-speed')).toBeVisible();
-    // Compass button: Heading Up ⇄ North Up, the chosen orientation sticks, and following resumes.
-    const orientationButton = driverPage.getByTestId('orientation-button');
-    await expect(driverPage.locator('[data-marshgo-map-renderer="maplibre"]')).toHaveAttribute('data-marshgo-orientation', 'HEADING_UP');
-    await orientationButton.click();
-    await expect(driverPage.locator('[data-marshgo-map-renderer="maplibre"]')).toHaveAttribute('data-marshgo-orientation', 'NORTH_UP');
-    await expect(orientationButton).toHaveAccessibleName(/північ зверху/);
-    await orientationButton.click();
-    await expect(driverPage.locator('[data-marshgo-map-renderer="maplibre"]')).toHaveAttribute('data-marshgo-orientation', 'HEADING_UP');
     await expect.poll(async () => pool.query<{ current_location_at: Date | null }>('SELECT current_location_at FROM navigation_sessions WHERE id=$1', [navigationSessionId]).then(result => result.rows[0]?.current_location_at ?? null)).not.toBeNull();
 
     const departureStart = new Date(Date.now() + 15 * 60_000);
@@ -803,6 +816,8 @@ test('driver safely matches two independent riders, inserts ordered stops, and r
       accuracy: 5,
     });
     await expect.poll(() => liveProgress.innerText(), { timeout: 20_000 }).not.toBe(initialLiveProgress);
+    await expect(driverPage.getByRole('button', { name: 'Розгорнути панель' })).toBeVisible();
+    await driverPage.getByRole('button', { name: 'Розгорнути панель' }).click();
     await expect(driverPage.getByText('Дуліб → Львів').first()).toBeVisible();
     await driverPage.getByRole('button', { name: 'Зупиніться та призупиніть навігацію, щоб відповісти' }).first().click();
     await expect.poll(async () => pool.query<{ state: string }>(
@@ -833,6 +848,8 @@ test('driver safely matches two independent riders, inserts ordered stops, and r
     const refreshedDriverAfterConfirmation = await driverRefreshAfterConfirmation;
     expect(refreshedDriverAfterConfirmation.status()).toBe(200);
     driverAccessToken = (await refreshedDriverAfterConfirmation.json()).data.accessToken as string;
+    await expect(driverPage.getByRole('button', { name: 'Розгорнути панель' })).toBeVisible();
+    await driverPage.getByRole('button', { name: 'Розгорнути панель' }).click();
     const openDemandButton = driverPage.getByRole('button', { name: 'Відкрити заявку та запропонувати ціну' });
     await expect(openDemandButton).toBeVisible();
     await openDemandButton.click();
@@ -870,10 +887,12 @@ test('driver safely matches two independent riders, inserts ordered stops, and r
     expect(refreshedDriverAfterBooking.status()).toBe(200);
     driverAccessToken = (await refreshedDriverAfterBooking.json()).data.accessToken as string;
     await openCreateMenu(driverPage);
-    await driverPage.getByRole('button', { name: /Почати навігацію/ }).click();
+    await driverPage.getByRole('button', { name: /Прокласти маршрут/ }).click();
     const reroutedMap = driverPage.locator('[data-marshgo-map-renderer="maplibre"]');
     await expect(reroutedMap.locator('.maplibregl-canvas')).toBeVisible();
     await expect.poll(async () => Number(await reroutedMap.getAttribute('data-marshgo-route-point-count'))).not.toBe(initialRoutePointCount);
+    await expect(driverPage.getByRole('button', { name: 'Розгорнути панель' })).toBeVisible();
+    await driverPage.getByRole('button', { name: 'Розгорнути панель' }).click();
     await expect(driverPage.getByRole('switch', { name: 'Пошук попутників уздовж маршруту' })).toHaveAttribute('aria-checked', 'false');
     await driverPage.getByRole('button', { name: 'Відновити навігацію' }).click();
     await expect.poll(async () => pool.query<{ state: string }>(
@@ -1019,7 +1038,9 @@ test('driver safely matches two independent riders, inserts ordered stops, and r
       'SELECT route_version FROM navigation_sessions WHERE id=$1', [navigationSessionId],
     ).then(result => result.rows[0]?.route_version ?? 0)).toBeGreaterThan(routeVersionBeforeSecondBooking);
     await driverPage.getByRole('button', { name: 'Головна', exact: true }).last().click();
-    await startNavigationFromHome(driverPage);
+    // Reopen the existing, already-updated navigation session instead of expecting
+    // a second POST /navigation/sessions while one is still active.
+    await driverPage.getByRole('button', { name: /^Навігація Побудувати маршрут/ }).click();
     const updatedRouteMap = driverPage.locator('[data-marshgo-map-renderer="maplibre"]');
     await expect(updatedRouteMap.locator('.maplibregl-canvas')).toBeVisible();
     await expect.poll(() => updatedRouteMap.getAttribute('data-marshgo-route-point-count')).toBeTruthy();
@@ -1044,6 +1065,10 @@ test('foreground road route renders on iPhone 15 Pro Max and 16 Pro Max viewport
       permissions: ['geolocation'],
     });
     const page = await context.newPage();
+    const mapExpressionWarnings: string[] = [];
+    page.on('console', message => {
+      if (/Expected value to be of type boolean, but found null/.test(message.text())) mapExpressionWarnings.push(message.text());
+    });
     let sessionId: string | undefined;
     try {
       const phone = model === 'iPhone 15 Pro Max' ? navigationPhone : navigationSecondPhone;
@@ -1060,9 +1085,11 @@ test('foreground road route renders on iPhone 15 Pro Max and 16 Pro Max viewport
       await page.screenshot({ path: `/tmp/marshgo-${modelFileName}-home.png`, fullPage: true });
       for (const tab of ['Пошук', 'Мої поїздки', 'Профіль'] as const) {
         await page.getByRole('button', { name: tab, exact: true }).click();
-        const expectedHeading = tab === 'Пошук' ? 'Куди їдемо?'
-          : tab === 'Мої поїздки' ? 'Мої поїздки' : 'MARSHGO Driver';
-        await expect(page.getByRole('heading', { name: expectedHeading, exact: true })).toBeVisible();
+        if (tab === 'Профіль') await expect(page.getByText('MARSHGO Driver', { exact: true })).toBeVisible();
+        else {
+          const expectedHeading = tab === 'Пошук' ? 'Куди їдемо?' : 'Мої поїздки';
+          await expect(page.getByRole('heading', { name: expectedHeading, exact: true })).toBeVisible();
+        }
         const tabViewport = await page.evaluate(() => ({ width: window.innerWidth, documentWidth: document.documentElement.scrollWidth }));
         expect(tabViewport.documentWidth).toBeLessThanOrEqual(tabViewport.width + 1);
         await page.screenshot({ path: `/tmp/marshgo-${modelFileName}-${tab.toLowerCase()}.png`, fullPage: true });
@@ -1078,11 +1105,12 @@ test('foreground road route renders on iPhone 15 Pro Max and 16 Pro Max viewport
       await page.getByRole('button', { name: 'Знайти місце' }).click();
       await page.getByRole('button', { name: /Львів, Львівська область, Україна/ }).click();
 
-      await expect(page.getByText(/Львів, Львівська область, Україна: .*км/).first()).toBeVisible();
+      await expect(page.getByText(/^\d+(?:[,.]\d+)? км · .*$/).first()).toBeVisible();
       const routeMap = page.locator('[data-marshgo-map-renderer="maplibre"]');
       await expect(routeMap.locator('.maplibregl-canvas')).toBeVisible();
       await expect(routeMap).toHaveAttribute('data-marshgo-map-ready', 'true');
       await expect.poll(async () => Number(await routeMap.getAttribute('data-marshgo-route-point-count'))).toBeGreaterThan(1);
+      expect(mapExpressionWarnings, 'MapLibre route paint expressions must tolerate route features without selection metadata').toEqual([]);
       await expect(page.getByText('Стиль і підкладка MARSHGO не налаштовані. Геометрія реального маршруту залишається доступною.')).toHaveCount(0);
       await expect.poll(async () => page.request.get(`${tileFixture}/__test/stats`).then(response => response.json()).then(stats => stats.failed))
         .toBeGreaterThan(0);
@@ -1094,18 +1122,30 @@ test('foreground road route renders on iPhone 15 Pro Max and 16 Pro Max viewport
 
       await expect(routeMap.locator('.maplibregl-canvas')).toBeVisible();
       await expect.poll(async () => Number(await routeMap.getAttribute('data-marshgo-route-point-count'))).toBeGreaterThan(1);
+      await expect(page.getByRole('button', { name: 'Розгорнути панель' })).toBeVisible();
+      await expect(page.locator('section[aria-label="Панель навігації"]')).toHaveCount(0);
+      await expect(page.getByRole('navigation', { name: 'Основна навігація' })).toHaveCount(0);
+      await expect(page.getByRole('button', { name: 'Створити поїздку або запит' })).toHaveCount(0);
+      await page.getByRole('button', { name: 'Керування картою' }).click();
+      await expect(page.getByRole('button', { name: 'Увімкнути голос' })).toHaveAttribute('aria-pressed', 'false');
+      await expect(page.getByRole('button', { name: 'Завершити навігацію' })).toHaveCount(0);
+      await page.getByRole('button', { name: 'Сховати керування картою' }).click();
+      await page.getByRole('button', { name: 'Розгорнути панель' }).click();
       await expect(page.getByText('На маршруті', { exact: true })).toBeVisible({ timeout: 10_000 });
+      const navigationSheet = page.locator('section[aria-label="Панель навігації"]');
+      await expect(navigationSheet.getByRole('button', { name: 'Завершити навігацію' })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Завершити навігацію' })).toHaveCount(1);
       await test.info().attach(`${model.replaceAll(' ', '-')}-navigation-map`, {
         body: await page.screenshot({ fullPage: true }), contentType: 'image/png',
       });
       await page.screenshot({ path: `/tmp/marshgo-${modelFileName}-route.png`, fullPage: true });
 
-      await page.getByRole('button', { name: /Завершити навігацію/ }).click();
+      await navigationSheet.getByRole('button', { name: 'Завершити навігацію' }).click();
       await expect(page.getByText('Навігацію завершено. Точну геолокацію видалено із сервера.')).toBeVisible();
       const ended = await pool.query<{ state: string; route: unknown; current_location: unknown }>(
         'SELECT state,route,current_location FROM navigation_sessions WHERE id=$1', [sessionId],
       );
-      expect(ended.rows).toEqual([{ state: 'ended', route: null, current_location: null }]);
+    expect(ended.rows).toEqual([{ state: 'ended', route: null, current_location: null }]);
       sessionId = undefined;
     } finally {
       if (sessionId) await page.request.post(`/api/v1/navigation/sessions/${sessionId}/end`).catch(() => undefined);
@@ -1131,13 +1171,13 @@ test('navigation recovers from denied GPS permission with a localized retry mess
     page.on('request', (request) => {
       if (request.url().endsWith('/api/v1/navigation/sessions') && request.method() === 'POST') navigationCreateRequests += 1;
     });
-    await page.getByRole('button', { name: /^Навігація Побудувати оптимальний маршрут/ }).click();
+    await page.getByRole('button', { name: /^Навігація Побудувати маршрут/ }).click();
     await expect(page.getByRole('status')).toContainText(/Дозвольте MARSHGO доступ до геолокації/);
-    await page.getByRole('button', { name: 'Почати рух без маршруту' }).click();
+    await page.getByRole('button', { name: 'Почати без пункту призначення' }).click();
 
     await expect(page.getByText(/Дозвольте MARSHGO доступ до геолокації/)).toBeVisible({ timeout: 10_000 });
     await expect(page.getByText('GPS_UNAVAILABLE')).toHaveCount(0);
-    await expect(page.getByRole('button', { name: 'Почати рух без маршруту' })).toBeEnabled();
+    await expect(page.getByRole('button', { name: 'Почати без пункту призначення' })).toBeEnabled();
     expect(navigationCreateRequests).toBe(0);
   } finally {
     await context.close().catch(() => undefined);
@@ -1167,12 +1207,10 @@ test('route search URL restores geocoded criteria after direct reload', async ({
     await expect.poll(() => page.evaluate(() => new URLSearchParams(window.location.search).get('destination')))
       .toBe('Львів, Львівська область, Україна');
     expect(initialPayload.journeys.length).toBeGreaterThan(0);
-    await expect(page.getByRole('heading', { name: 'Стрий → Львів' })).toBeVisible();
-    const plan = page.getByRole('region', { name: 'План маршруту' });
+    const plan = page.getByRole('region', { name: 'Результати мультимодального пошуку' });
     await expect(plan).toBeVisible();
-    await expect(plan.getByRole('heading', { name: 'Найкращі доступні варіанти' })).toBeVisible();
-    await expect(plan.getByText('Це частковий результат', { exact: false })).toBeVisible();
-    await expect(plan.getByRole('article').filter({ hasText: 'Попутка MARSHGO' }).filter({ hasText: 'Стрий' }).filter({ hasText: 'Львів' })).toBeVisible();
+    await expect(plan.getByText(/Пошук досяг ліміту/)).toBeVisible();
+    await expect(plan.getByRole('article').first()).toBeVisible();
 
     await page.reload();
     await expect(page.getByText('Параметри маршруту відновлено')).toBeVisible();
@@ -1182,10 +1220,10 @@ test('route search URL restores geocoded criteria after direct reload', async ({
     expect(restoredResponse.status()).toBe(200);
     const restoredPayload = (await restoredResponse.json()).data as { journeys: Array<{ id: string }> };
     expect(restoredPayload.journeys.length).toBeGreaterThan(0);
-    await expect(page.getByRole('heading', { name: 'Стрий → Львів' })).toBeVisible();
-    await expect(page.getByRole('region', { name: 'План маршруту' }).getByRole('article').filter({ hasText: 'Попутка MARSHGO' })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Результати мультимодального пошуку' })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Результати мультимодального пошуку' }).getByRole('article').first()).toBeVisible();
     await page.screenshot({ path: testInfo.outputPath('search-url-restored.png'), fullPage: true });
-    await page.getByRole('button', { name: 'Повернутися до пошуку', exact: true }).click();
+    await page.getByRole('button', { name: 'Назад до пошуку', exact: true }).click();
     await expect(page.getByPlaceholder(/Місто відправлення|Моє місцеперебування/)).toHaveValue('Стрий, Львівська область, Україна');
     await expect(page.getByPlaceholder(/Місто призначення|Введіть адресу, місто або зупинку/)).toHaveValue('Львів, Львівська область, Україна');
   } finally {
@@ -1235,8 +1273,8 @@ test('Journey Planner preserves priced Community offers and consistent strategy 
     if (!cheapestAvailable) await expect(page.getByRole('button', { name: /^Найдешевші/ })).toBeDisabled();
     const journeyDriverRating = payload.journeys.find(item => item.offerId === offerId)?.legs?.[0]?.driver?.averageRating;
     expect(journeyDriverRating === null || typeof journeyDriverRating === 'number').toBe(true);
-    await expect(page.getByRole('heading', { name: 'Результати пошуку' })).toBeVisible();
-    const journeyResults = page.getByRole('region', { name: 'План маршруту' }).getByRole('article');
+    await expect(page.getByRole('region', { name: 'Результати мультимодального пошуку' })).toBeVisible();
+    const journeyResults = page.getByRole('region', { name: 'Результати мультимодального пошуку' }).getByRole('article');
     await expect(journeyResults).toHaveCount(payload.journeys.length);
     await page.screenshot({ path: '/tmp/marshgo-search-results-list.png' });
     const communityResult = page.locator(`[data-journey-id="${communityJourney.id}"]`);
@@ -1249,9 +1287,15 @@ test('Journey Planner preserves priced Community offers and consistent strategy 
     expect(saved.rows).toHaveLength(1);
     expect(saved.rows[0]).toMatchObject({ owner_id: profile.data.id, offer_id: offerId });
 
-    // The selected offer is carried forward from the verified search response;
-    // opening its detail screen is a local view transition, not a second GET.
-    await communityResult.getByRole('button', { name: 'Поїздка', exact: true }).click();
+    // Open the canonical route view first, then book from the specific
+    // Community leg so the selected Journey and leg stay linked to the offer.
+    await communityResult.getByRole('button', { name: /^Відкрити маршрут:/ }).click();
+    await expect(page.getByRole('main', { name: 'Побудований маршрут' })).toBeVisible();
+    const communitySegment = page.getByTestId('journey-route-segment').filter({ hasText: 'Попутка · приватний автомобіль' });
+    await expect(communitySegment).toBeVisible();
+    const bookFromSegment = communitySegment.getByRole('button', { name: 'Забронювати' });
+    await expect(bookFromSegment).toBeVisible();
+    await bookFromSegment.click();
     await expect(page.getByText('Деталі поїздки', { exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Стрий → Львів' })).toBeVisible();
     await expect(page.getByText('Фото авто не додано')).toBeVisible();

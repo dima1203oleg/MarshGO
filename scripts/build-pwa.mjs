@@ -8,13 +8,14 @@ import { fileURLToPath } from 'node:url';
 const env = { ...process.env };
 delete env.CAPACITOR_BUILD;
 delete env.VITE_API_BASE_URL;
-// A developer's .env may configure a hosted style or manifest. Those sources
-// take precedence over VITE_MAP_TILE_URL, so remove them to keep E2E isolated.
+// A developer's .env may configure a hosted style or manifest. Replace those
+// sources with the isolated fixture manifest, which serves deterministic light
+// and dark styles as well as local test tiles.
 env.VITE_MAP_STYLE_URL = '';
-env.VITE_MAP_STYLE_MANIFEST_URL = '';
-// The tile provider used by Playwright is an isolated local fixture. Keep it in
-// the test build only; production/site/native release builds use provider config.
-env.VITE_MAP_TILE_URL = 'http://127.0.0.1:3306/tiles/{z}/{x}/{y}.png';
+env.VITE_MAP_STYLE_MANIFEST_URL = 'http://127.0.0.1:3306/maps/v1.0.0/manifest.json';
+// These are test-only map assets; production/site/native release builds use
+// their configured, licensed provider manifest.
+env.VITE_MAP_TILE_URL = '';
 env.VITE_MAP_TILE_ATTRIBUTION = 'MARSHGO isolated E2E map fixture';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');

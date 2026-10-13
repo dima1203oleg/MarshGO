@@ -8,11 +8,16 @@ const root = process.env.E2E_DIST_DIR
   ? resolve(process.env.E2E_DIST_DIR)
   : normalize(join(process.cwd(), 'dist'));
 const bundles = await readdir(join(root, 'assets'));
+let hasIsolatedMapManifest = false;
 for (const bundle of bundles.filter((file) => file.endsWith('.js'))) {
   const contents = await readFile(join(root, 'assets', bundle), 'utf8');
   if (contents.includes('http://localhost:3002')) {
     throw new Error('E2E must serve a PWA build without the iOS simulator API origin; run npm run test:e2e to rebuild it.');
   }
+  if (contents.includes('http://127.0.0.1:3306/maps/v1.0.0/manifest.json')) hasIsolatedMapManifest = true;
+}
+if (!hasIsolatedMapManifest) {
+  throw new Error('E2E_DIST_DIR must use the isolated map fixture manifest at 127.0.0.1:3306; run node scripts/build-pwa.mjs or rebuild the active Site with the E2E map manifest.');
 }
 const contentTypes = {
   '.css': 'text/css; charset=utf-8',
