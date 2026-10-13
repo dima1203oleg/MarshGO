@@ -159,6 +159,11 @@ async function expectRouteHorizontal(map: Locator, route: Array<[number, number]
 }
 
 test('canonical route map synchronizes the sheet, stop details, map focus, and light/dark palettes', async ({ page, browserName }) => {
+  const browserErrors: string[] = [];
+  page.on('pageerror', (error) => browserErrors.push(`${error.name}: ${error.message}`));
+  page.on('console', (message) => {
+    if (message.type() === 'error') browserErrors.push(message.text());
+  });
   const origin = { label: 'вул. Мало-Голосківська, 24', latitude: 49.8682, longitude: 24.0030, providerId: 'e2e-lviv-origin' };
   const destination = { label: 'вул. Стрийська, 32', latitude: 49.7941, longitude: 24.0576, providerId: 'e2e-lviv-destination' };
   const departure = new Date('2026-10-14T08:00:00+03:00');
@@ -500,7 +505,25 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
     .toBe(true);
   const map = routeMap.locator('[data-marshgo-map-renderer="maplibre"]');
   await expect(sheet).toHaveAttribute('data-sheet-state', 'half');
-  await expect(map).toHaveAttribute('data-marshgo-map-ready', 'true');
+  try {
+    await expect(map).toHaveAttribute('data-marshgo-map-ready', 'true');
+  } catch (error) {
+    const diagnostics = await map.evaluate((element) => ({
+      attributes: Array.from(element.attributes).reduce<Record<string, string>>((result, attribute) => {
+        result[attribute.name] = attribute.value;
+        return result;
+      }, {}),
+      canvasCount: element.querySelectorAll('canvas').length,
+      canvasSize: Array.from(element.querySelectorAll('canvas')).map((canvas) => ({ width: canvas.width, height: canvas.height })),
+      webgl: (() => {
+        const canvas = element.querySelector('canvas');
+        if (!canvas) return 'no-canvas';
+        try { return canvas.getContext('webgl2') ? 'webgl2' : canvas.getContext('webgl') ? 'webgl' : 'unavailable'; }
+        catch { return 'context-query-failed'; }
+      })(),
+    }));
+    throw new Error(`Map initialization diagnostics: ${JSON.stringify({ diagnostics, browserErrors })}`, { cause: error });
+  }
   await waitForCameraSettled(map);
   await expect(map).toHaveAttribute('data-marshgo-camera-zoom', /\d/);
   const routeOverviewZoom = Number(await map.getAttribute('data-marshgo-camera-zoom'));
