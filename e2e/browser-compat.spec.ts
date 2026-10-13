@@ -130,8 +130,10 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
       expect(layout.tabbarPosition, `${viewport.name} must use the same fixed tab bar as Trips and Profile`).toBe('fixed');
       expect(layout.scrollY, `${viewport.name} home must not be vertically scrolled`).toBe(0);
     }
-    const screenshot = await page.screenshot({ path: `/tmp/marshgo-${browserName}-${viewport.name}.png`, fullPage: true });
-    await test.info().attach(`${browserName}-${viewport.name}`, { body: screenshot, contentType: 'image/png' });
+    if (viewport.name === 'phone') {
+      const screenshot = await page.screenshot({ path: `/tmp/marshgo-${browserName}-${viewport.name}.png` });
+      await test.info().attach(`${browserName}-${viewport.name}`, { body: screenshot, contentType: 'image/png' });
+    }
   }
 
   await page.setViewportSize({ width: 390, height: 844 });

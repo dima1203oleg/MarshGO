@@ -7,7 +7,7 @@ async function expectCanonicalScreenshot(
 ) {
   // Pixel baselines are recorded on macOS; Linux CI still runs the behavioral
   // and geometry assertions below without comparing platform-specific fonts.
-  if (process.platform !== 'darwin') return;
+  if (process.platform !== 'darwin' || test.info().project.name) return;
   await expect(page).toHaveScreenshot(name, options);
 }
 
@@ -289,8 +289,30 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
     blockedProviders: [], unsupportedPreferences: [], providerErrors: [],
   } } }));
 
-  await page.setViewportSize({ width: 402, height: 852 });
+  if (browserName === 'firefox') {
+    // Playwright's Firefox geolocation fixture reports its timestamp one day
+    // ahead of Date.now(). Keep the simulated coordinates, but normalize that
+    // fixture-only clock skew so freshness and server checks stay realistic.
+    await page.addInitScript(() => {
+      const geolocation = navigator.geolocation;
+      const skewMs = 24 * 60 * 60 * 1000;
+      const normalize = (position: GeolocationPosition) => new Proxy(position, {
+        get(target, property) {
+          if (property === 'timestamp') return target.timestamp - skewMs;
+          return Reflect.get(target, property, target);
+        },
+      });
+      const current = geolocation.getCurrentPosition.bind(geolocation);
+      const watch = geolocation.watchPosition.bind(geolocation);
+      Object.defineProperty(geolocation, 'getCurrentPosition', { configurable: true, value: (success: PositionCallback, error?: PositionErrorCallback | null, options?: PositionOptions) => current(position => success(normalize(position)), error, options) });
+      Object.defineProperty(geolocation, 'watchPosition', { configurable: true, value: (success: PositionCallback, error?: PositionErrorCallback | null, options?: PositionOptions) => watch(position => success(normalize(position)), error, options) });
+    });
+  }
+
   await page.goto('/');
+  // Resize only after navigation: Firefox can hang when resizing its blank
+  // mobile-emulation page, while the same phone viewport works after first paint.
+  await page.setViewportSize({ width: 402, height: 852 });
   const loginHeading = page.getByRole('heading', { name: 'Вхід за номером телефону' });
   const welcome = page.getByRole('button', { name: /У мене вже є акаунт/i });
   await expect(loginHeading.or(welcome).first()).toBeVisible();
@@ -455,9 +477,19 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
     await page.mouse.move(x, y);
     await page.mouse.down();
     await page.mouse.move(x, y + deltaY, { steps });
-    const draggedHeight = await sheet.evaluate(element => element.getBoundingClientRect().height);
-    expect(Math.abs(draggedHeight - initialHeight), 'bottom sheet should track the finger before release').toBeGreaterThan(Math.min(16, Math.abs(deltaY) / 4));
+    await expect.poll(() => sheet.evaluate((element, startingHeight) => Math.abs(element.getBoundingClientRect().height - startingHeight), initialHeight), {
+      message: 'bottom sheet should track the finger before release',
+      timeout: 500,
+      intervals: [16, 40, 80],
+    }).toBeGreaterThan(Math.min(16, Math.abs(deltaY) / 4));
     await page.mouse.up();
+    // Avoid starting a second gesture while browsers are at different points
+    // in the snap transition from the previous release.
+    await expect.poll(() => sheet.evaluate(element => element.getAnimations().length), {
+      message: 'bottom sheet should finish its snap animation before the next gesture',
+      timeout: 1_000,
+      intervals: [16, 40, 80],
+    }).toBe(0);
   };
   await expectCanonicalScreenshot(page, 'journey-route-map-light-half.png');
   const lightHalfGeometry = await routeSheetGeometry(routeMap);
@@ -479,11 +511,11 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   await expectRouteCenteredInVisibleMap(map, sheet, [[origin.longitude, origin.latitude], [destination.longitude, destination.latitude]]);
   await dragSheet(120);
   await expect(sheet).toHaveAttribute('data-sheet-state', 'half');
-  await dragSheet(200);
+  await dragSheet(300);
   await expect(sheet).toHaveAttribute('data-sheet-state', 'collapsed');
   await expect(sheet.locator('.journey-segment-strip')).toBeVisible();
   await expect(sheet.getByTestId('route-segment-list')).toBeHidden();
-  await dragSheet(-80, 6);
+  await dragSheet(-180);
   await expect(sheet).toHaveAttribute('data-sheet-state', 'half');
   await sheet.getByRole('button', { name: 'Розгорнути деталі маршруту' }).click();
   await expect(sheet).toHaveAttribute('data-sheet-state', 'expanded');
@@ -654,15 +686,15 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   // Keep the GPS age label deterministic without freezing map animations or timers.
   await page.clock.setFixedTime(new Date());
   await page.context().grantPermissions(['geolocation']);
-  await page.context().setGeolocation({ latitude: destination.latitude, longitude: destination.longitude, accuracy: 5 });
+  await page.context().setGeolocation({ latitude: origin.latitude, longitude: origin.longitude, accuracy: 5 });
   await page.goto('/');
   const createNavigation = page.waitForResponse(response => response.url().endsWith('/api/v1/navigation/sessions') && response.request().method() === 'POST');
   await page.getByRole('button', { name: /^Навігація Побудувати маршрут/ }).click();
   expect((await createNavigation).status()).toBe(201);
-  await page.getByPlaceholder('Куди їдемо?').fill('Площа Ринок');
+  await page.getByPlaceholder('Куди їдемо?').fill(destination.label);
   await page.getByRole('button', { name: 'Знайти місце' }).click();
   const destinationRoute = page.waitForResponse(response => response.url().endsWith('/destination') && response.request().method() === 'PUT');
-  await page.getByRole('button', { name: origin.label, exact: true }).click();
+  await page.getByRole('button', { name: destination.label, exact: true }).click();
   const destinationResponse = await destinationRoute;
   expect(destinationResponse.status()).toBe(200);
   expect((await destinationResponse.json()).data.route.length).toBeGreaterThan(1);

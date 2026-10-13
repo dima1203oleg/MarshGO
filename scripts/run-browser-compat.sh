@@ -24,4 +24,4 @@ if [[ ! -f "$SERVER_DIR/node_modules/.package-lock.json" ]]; then
   npm ci --prefix "$SERVER_DIR" --no-audit --no-fund
 fi
 export E2E_DIST_DIR="${E2E_DIST_DIR:-$PWD/.release/site-${SITE_SHA}/dist}"
-playwright test --config=playwright.compat.config.ts
+playwright test --config=playwright.compat.config.ts "$@"

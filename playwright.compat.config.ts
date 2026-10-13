@@ -8,7 +8,9 @@ export default defineConfig({
   reporter: [['list']],
   projects: [
     { name: 'chromium', use: { browserName: 'chromium' } },
-    { name: 'firefox', use: { browserName: 'firefox' } },
+    // Playwright's Firefox build does not emulate iPhone touch input reliably;
+    // keep its phone-sized viewport but exercise the standards-based mouse pointer.
+    { name: 'firefox', use: { browserName: 'firefox', hasTouch: false } },
     { name: 'webkit', use: { browserName: 'webkit' } },
   ],
 });
