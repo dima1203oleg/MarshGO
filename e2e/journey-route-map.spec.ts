@@ -162,7 +162,8 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   const browserErrors: string[] = [];
   page.on('pageerror', (error) => browserErrors.push(`${error.name}: ${error.message}`));
   page.on('console', (message) => {
-    if (message.type() === 'error') browserErrors.push(message.text());
+    const text = message.text();
+    if (message.type() === 'error' || /webgl|maplibre.*(?:failed|error)/i.test(text)) browserErrors.push(text);
   });
   const origin = { label: 'вул. Мало-Голосківська, 24', latitude: 49.8682, longitude: 24.0030, providerId: 'e2e-lviv-origin' };
   const destination = { label: 'вул. Стрийська, 32', latitude: 49.7941, longitude: 24.0576, providerId: 'e2e-lviv-destination' };
