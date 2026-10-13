@@ -1,3 +1,6 @@
-# Reviewed documentation false positives only. See docs/audit/05_CRITICAL_BUGS.md.
+# Reviewed documentation and immutable image-digest false positives only.
+# Image digests below identify local build outputs; they are not credentials.
 a07d877090eeab9062d756fb762676c569274f02:CURRENT_REPOSITORY_STATE.md:generic-api-key:19
 ec7f8a30e7241e7a4c1f6871fc585ba9eb8821e4:docs/PRODUCTION_INTEGRATION_PLAN.md:generic-api-key:51
+4d8c776b04fc95a7be909622d3da00ef66a8829b:RELEASE_MANIFEST.json:generic-api-key:83
+4d8c776b04fc95a7be909622d3da00ef66a8829b:RELEASE_MANIFEST.json:generic-api-key:110
