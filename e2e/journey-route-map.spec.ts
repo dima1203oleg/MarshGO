@@ -396,6 +396,10 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
   await expect(page.locator('details.coverage-details')).toHaveCount(0);
   const resultCard = page.getByTestId('journey-result-card').first();
+  const canonicalJourneyId = await resultCard.getAttribute('data-journey-id');
+  expect(canonicalJourneyId).toBeTruthy();
+  if (!canonicalJourneyId) throw new Error('The first route result must have a stable Journey ID.');
+  await expect(resultCard.locator('[data-canonical-route-lip]')).toHaveAttribute('data-canonical-route-lip', canonicalJourneyId);
   const metricGap = await resultCard.locator('.journey-result-key-metrics').evaluate((group) => {
     const duration = group.querySelector('.journey-result-duration');
     const price = group.querySelector('.journey-result-total-price');
@@ -407,7 +411,15 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   expect(metricGap, 'duration and price should read as one compact metric group').toBeGreaterThanOrEqual(0);
   expect(metricGap, 'price should stay visually close to duration').toBeLessThanOrEqual(24);
   await expect(resultCard.locator('.journey-result-total-price')).toHaveCSS('font-weight', '900');
-  await expect(resultCard.locator('.journey-segment-ribbon')).toHaveCSS('height', '10px');
+  await expect(resultCard.locator('.journey-segment-ribbon')).toHaveCSS('height', '11px');
+  await expect(resultCard.locator('.journey-segment-strip')).toHaveAttribute('data-layout', 'horizontal');
+  const firstSegmentLayout = await resultCard.locator('.journey-segment-tile-horizontal').first().evaluate((tile) => {
+    const icon = tile.querySelector('.journey-segment-tile-icon');
+    const label = tile.querySelector('.journey-segment-tile-label');
+    if (!icon || !label) return false;
+    return icon.getBoundingClientRect().left < label.getBoundingClientRect().left;
+  });
+  expect(firstSegmentLayout, 'transport icon should sit to the left of its segment details').toBe(true);
   await expect(resultCard.locator('.journey-segment-tile-meta-value').first()).toHaveCSS('font-weight', '700');
   await expect(resultCard.getByLabel('Оптимальний')).toBeVisible();
   await expect(page.locator('[data-testid="journey-result-card"][data-journey-id="e2e-alt-train"]').getByLabel('Найшвидший')).toBeVisible();
@@ -461,7 +473,7 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   const lightResultsGeometry = await journeyResultsGeometry(resultsScreen);
   await page.evaluate(() => document.documentElement.classList.add('dark'));
   await expect.poll(() => resultCard.evaluate(element => getComputedStyle(element).backgroundColor)).toBe('rgb(9, 27, 42)');
-  await expect(resultCard.locator('p').first()).toHaveCSS('color', 'rgb(245, 249, 255)');
+  await expect(resultCard.locator('[data-testid="canonical-route-duration"]')).toHaveCSS('color', 'rgb(245, 249, 255)');
   await expect.poll(() => cheapestMode.evaluate(element => getComputedStyle(element).backgroundColor)).toBe('rgb(10, 29, 45)');
   await expect(resultCard.locator('[data-segment-mode="BUS"]')).toHaveCSS('background-color', 'rgb(22, 135, 255)');
   await page.screenshot({ path: `/tmp/marshgo-${browserName}-journey-results-dark.png` });
@@ -489,6 +501,7 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
 
   const routeMap = page.getByRole('main', { name: 'Побудований маршрут' });
   await expect(routeMap).toBeVisible();
+  await expect(routeMap.locator('[data-canonical-route-lip]')).toHaveCount(1);
   await expect(routeMap).toHaveAttribute('data-theme', 'light');
   const routeSummaryTitle = routeMap.locator('.route-summary-title');
   await expect(routeSummaryTitle).toContainText('Мало-Голосківська, 24');
