@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/dima1203oleg/MarshGO/schemas/release-manifest.schema.json",
+  "title": "MARSHGO Unified Release Manifest",
+  "type": "object",
+  "required": [
+    "release_id",
+    "release_status",
+    "api_contract_version",
+    "database_migration_version",
+    "components",
+    "docker_image_digests",
+    "test_results",
+    "deployment_target",
+    "build_timestamp_utc",
+    "rollback_references"
+  ],
+  "properties": {
+    "release_id": { "type": "string", "minLength": 1 },
+    "release_status": { "enum": ["CANDIDATE", "BLOCKED", "APPROVED_FOR_STAGING", "APPROVED_FOR_PRODUCTION", "DEPLOYED", "ROLLED_BACK"] },
+    "api_contract_version": { "type": "string", "minLength": 1 },
+    "database_migration_version": { "type": "string", "minLength": 1 },
+    "build_timestamp_utc": { "type": ["string", "null"], "format": "date-time" },
+    "deployment_target": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "object", "required": ["environment", "identifier"], "properties": {
+          "environment": { "enum": ["staging", "production"] },
+          "identifier": { "type": "string", "minLength": 1 }
+        }, "additionalProperties": false }
+      ]
+    },
+    "components": {
+      "type": "object",
+      "required": ["server", "site", "ios", "admin", "partner"],
+      "properties": {
+        "server": { "$ref": "#/$defs/component" },
+        "site": { "$ref": "#/$defs/component" },
+        "ios": { "$ref": "#/$defs/component", "required": ["repository", "commit_sha", "ref", "status", "site_sha"] },
+        "admin": { "$ref": "#/$defs/component" },
+        "partner": { "$ref": "#/$defs/component" }
+      },
+      "additionalProperties": false
+    },
+    "docker_image_digests": {
+      "type": "object",
+      "required": ["server", "site", "admin", "partner"],
+      "properties": {
+        "server": { "$ref": "#/$defs/digestOrNull" },
+        "site": { "$ref": "#/$defs/digestOrNull" },
+        "admin": { "$ref": "#/$defs/digestOrNull" },
+        "partner": { "$ref": "#/$defs/digestOrNull" }
+      },
+      "additionalProperties": false
+    },
+    "test_results": { "type": "object" },
+    "rollback_references": { "type": "object", "required": ["release_id", "server_image", "site_image", "admin_image", "partner_image", "database_backup"], "additionalProperties": { "type": ["string", "null"] } }
+  },
+  "$defs": {
+    "component": {
+      "type": "object",
+      "required": ["repository", "commit_sha", "ref", "status"],
+      "properties": {
+        "repository": { "type": "string", "minLength": 1 },
+        "commit_sha": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+        "ref": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["PINNED", "VERIFIED", "BLOCKED"] },
+        "site_sha": { "type": "string", "pattern": "^[a-f0-9]{40}$" }
+      },
+      "additionalProperties": false
+    },
+    "digestOrNull": { "type": ["string", "null"], "pattern": "^sha256:[a-f0-9]{64}$" }
+  },
+  "additionalProperties": true
+}

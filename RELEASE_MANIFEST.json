@@ -253,5 +253,101 @@
     "production": "NOT_RELEASED; no accessible production project/deployment target, domain or required service credentials. CI is candidate validation only.",
     "no_merge_or_deploy": true,
     "status": "All four PRs are open and mergeable; exact Site, iOS and umbrella PR checks pass. The umbrella full run validates the new stale/live rendezvous road-approach E2E. Production remains NOT_RELEASED because target access, domain and operational credentials are unavailable."
+  },
+  "release_id": "RC-2026-10-14-navigation.6",
+  "release_status": "BLOCKED",
+  "api_contract_version": "v1",
+  "database_migration_version": "050",
+  "build_timestamp_utc": null,
+  "deployment_target": null,
+  "components": {
+    "server": {
+      "repository": "dima1203oleg/MarshGO-Server",
+      "commit_sha": "64ed70c72fec06cb9418dc7feee67ae0acee3826",
+      "ref": "codex/redis-smart-cache",
+      "status": "VERIFIED"
+    },
+    "site": {
+      "repository": "dima1203oleg/MarshGO-Site",
+      "commit_sha": "22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730",
+      "ref": "codex/journey-rendezvous-map",
+      "status": "VERIFIED"
+    },
+    "ios": {
+      "repository": "dima1203oleg/MarshGO-iOS",
+      "commit_sha": "c304ae30b19bdaca57931baedeec4ffde02bca2d",
+      "ref": "codex/pin-rendezvous-site",
+      "status": "VERIFIED",
+      "site_sha": "22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730"
+    },
+    "admin": {
+      "repository": "dima1203oleg/MarshGO-Admin",
+      "commit_sha": "9263befb9b8e8d1eecb2a6c492a9e39a33794d76",
+      "ref": "codex/p0-admin",
+      "status": "VERIFIED"
+    },
+    "partner": {
+      "repository": "dima1203oleg/MarshGO-Partner",
+      "commit_sha": "4293510ab1b8a64a30dc4db2b432595fef1a51ec",
+      "ref": "codex/p0-partner",
+      "status": "VERIFIED"
+    }
+  },
+  "docker_image_digests": {
+    "server": null,
+    "site": null,
+    "admin": null,
+    "partner": null
+  },
+  "test_results": {
+    "component_ci": {
+      "status": "PASS",
+      "evidence": {
+        "server": "Server PR #5 on pinned SHA",
+        "site": "Site PR #6 on pinned SHA",
+        "ios": "iOS PR #5 on pinned SHA",
+        "admin": "Admin PR #1 hosted Verify passed",
+        "partner": "Partner PR #1 hosted Verify passed"
+      },
+      "note": "These are independent component checks; they do not demonstrate a five-component release build.",
+      "source_shas": {
+        "server": "64ed70c72fec06cb9418dc7feee67ae0acee3826",
+        "site": "22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730",
+        "ios": "c304ae30b19bdaca57931baedeec4ffde02bca2d",
+        "admin": "9263befb9b8e8d1eecb2a6c492a9e39a33794d76",
+        "partner": "4293510ab1b8a64a30dc4db2b432595fef1a51ec"
+      }
+    },
+    "cross_repository_acceptance": {
+      "status": "BLOCKED",
+      "source_shas": {
+        "server": "64ed70c72fec06cb9418dc7feee67ae0acee3826",
+        "site": "22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730",
+        "ios": "c304ae30b19bdaca57931baedeec4ffde02bca2d",
+        "admin": "9263befb9b8e8d1eecb2a6c492a9e39a33794d76",
+        "partner": "4293510ab1b8a64a30dc4db2b432595fef1a51ec"
+      },
+      "note": "No integrated five-component run. Admin/Partner require Server partner foundation API/migration 051, absent from the pinned Server 64ed70c."
+    },
+    "staging_acceptance": {
+      "status": "BLOCKED",
+      "note": "No configured staging target or credentials."
+    },
+    "backup_restore": {
+      "status": "NOT_RUN",
+      "note": "No staging environment available for a rehearsal."
+    },
+    "rollback": {
+      "status": "NOT_RUN",
+      "note": "No staging environment or immutable production image references."
+    }
+  },
+  "rollback_references": {
+    "release_id": null,
+    "server_image": null,
+    "site_image": null,
+    "admin_image": null,
+    "partner_image": null,
+    "database_backup": null
   }
 }
