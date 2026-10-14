@@ -1,7 +1,7 @@
 # Navigation Experience 6.0 — implementation audit
 
 **Review branch:** `codex/navigation-experience-6`
-**Candidate pins:** umbrella source `e34b5c6e547f19155486176d3eca2129ba3d17db`, Server `64ed70c72fec06cb9418dc7feee67ae0acee3826`, Site `52ec4f7c888d9ca9a671b0e858a9f018406034b1`, iOS `7b9e631a99b025cb2f421dabc666360135c966fc` (pins that exact Site SHA).
+**Candidate pins:** umbrella source `43781af113d954ccada8c516cf3d227f56754654`, Server `64ed70c72fec06cb9418dc7feee67ae0acee3826`, Site `52ec4f7c888d9ca9a671b0e858a9f018406034b1`, iOS `7b9e631a99b025cb2f421dabc666360135c966fc` (pins that exact Site SHA).
 **Release status:** `NOT_RELEASED`; no production deployment or staging SLO claim.
 
 ## Implemented in this change
@@ -42,12 +42,21 @@ Site checks on the current feature worktree:
 - `npm test` — PASS, 84 tests, 0 failures.
 - `npm run build` — PASS.
 - `npm run check:bundle` — PASS, 17 JavaScript chunks and each under the 350 KB gzip budget.
-- Journey route-map Playwright E2E — PASS 1/1 on the production bundle and isolated PostGIS/Redis fixture, including results, segment focus, stop details, map sheet positions and both themes. The full browser run passed 11/12; its only failure was an outdated test selector that picked the favorite action. Replacing it with the explicit accessible Open Route selector made that previously failing scenario pass 1/1 on a focused rerun. Combined evidence covers all 12 scenarios, but the full suite was not rerun after the selector fix.
+- Journey route-map Playwright E2E — PASS 1/1 on the production bundle and isolated PostGIS/Redis fixture, including results, segment focus, stop details, map sheet positions and both themes. The local full browser run passed 11/12; its only failure was an outdated test selector that picked the favorite action. The explicit accessible Open Route selector passed in a focused rerun. The complete hosted `npm run test:e2e` then passed on umbrella CI run `38504346078`, followed by the Chromium/Firefox/WebKit compatibility step. Thus hosted full-suite acceptance is green on this candidate.
 - Site PR #5 hosted verification — PASS on exact SHA `52ec4f7c888d9ca9a671b0e858a9f018406034b1`, both jobs.
 - iOS PR #4 hosted simulator checks — PASS on exact iOS SHA `7b9e631a99b025cb2f421dabc666360135c966fc`, pinning the exact Site SHA above. A local iPhone 15 Pro Max simulator build/install/launch also passed and rendered the Welcome screen (`/tmp/marshgo-nav6-iphone15-simulator.png`); the API was not running, so this does not verify authenticated Journey UI or GPS.
-- Local umbrella commands used Node 25.4.0, outside its declared `>=24.21.0 <25` range. Umbrella local production check passes, but the new candidate’s exact-runtime hosted CI is pending. Site PR #5 and iOS PR #4 hosted checks pass on their exact pinned SHAs. Rerun exact-runtime integration CI before release.
+- Local umbrella commands used Node 25.4.0, outside its declared `>=24.21.0 <25` range. The candidate hosted CI run `38504346078` passed on the configured CI runtime, and Security run `38504346071` passed. Site PR #5 and iOS PR #4 hosted checks pass on their exact pinned SHAs. Before release, retain the supported runtime pin in release operations.
 
 The production bundle size and passing fixture E2E are not production latency or feed-availability measurements. No OSRM/provider request reduction is claimed.
+
+## Hosted integration candidate CI
+
+- Umbrella PR #3 CI run `38504346078` — PASS: lint, typecheck, unit tests, migration, integration, production build, bundle check, container build, full Playwright E2E, and Chromium/Firefox/WebKit compatibility.
+- Umbrella PR #3 Security run `38504346071` — PASS.
+- Site PR #5 exact SHA `52ec4f7c888d9ca9a671b0e858a9f018406034b1` — both hosted verification jobs pass.
+- iOS PR #4 exact SHA `7b9e631a99b025cb2f421dabc666360135c966fc`, pinned to the exact Site SHA — both hosted simulator jobs pass.
+
+These checks validate this review candidate and fixtures; they do not establish provider availability, production load SLOs, physical iPhone behavior, or production readiness.
 
 ## Readiness estimate
 
