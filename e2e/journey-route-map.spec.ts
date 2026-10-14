@@ -347,6 +347,7 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
           distanceMeters: 1500, priceMinor: 2100, currency: 'UAH', priceStatus: 'LOCKED', availabilityStatus: 'AVAILABLE', lastUpdatedAt: departure.toISOString(),
           routeGeometry: [[24.018, 49.846], [24.03, 49.825]], driver: null, vehicle: null },
         { id: 'e2e-bus-leg', mode: 'BUS', transportType: 'bus', routeName: 'A20', source: 'gtfs-static',
+          providerId: '00000000-0000-4000-8000-000000000123', routeId: 'lviv:route-a20', headsign: 'Сихів',
           origin: { name: 'вул. Городоцька, 55', coordinates: [24.03, 49.825] }, destination: { name: 'вул. Стрийська, 32', coordinates: [24.0576, 49.7941] },
           departureAt: busDeparture.toISOString(), arrivalAt: busArrival.toISOString(), durationSeconds: 13 * 60,
           distanceMeters: 7100, priceMinor: 0, currency: 'UAH', priceStatus: 'LOCKED', availabilityStatus: 'SCHEDULED', lastUpdatedAt: departure.toISOString(),
@@ -364,6 +365,22 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
     returnedCount: includeExtendedScheduledModes ? 9 : 7,
     blockedProviders: [], unsupportedPreferences: [], providerErrors: [],
   } } }));
+  let stopArrivalRequests = 0;
+  await page.route(url => url.pathname.startsWith('/api/v1/transit/stops/') && url.pathname.endsWith('/arrivals'), async route => {
+    stopArrivalRequests += 1;
+    await route.fulfill({ json: { data: {
+      stopId: '00000000-0000-4000-8000-000000000123:horodotska', lat: 49.825, lon: 24.03,
+      arrivals: [{
+        stopId: '00000000-0000-4000-8000-000000000123:horodotska', routeId: 'lviv:route-a20', routeName: 'A20',
+        headsign: 'Сихів', mode: 'BUS', tripId: 'e2e-bus-trip', scheduledArrival: new Date(Date.now() + 10 * 60_000).toISOString(),
+        predictedArrival: new Date(Date.now() + 10 * 60_000).toISOString(), arrivalSource: 'SCHEDULE', confidence: 'LOW',
+        isRealtime: false, etaSeconds: 600, displayLabel: 'A20 — 10 хв за розкладом',
+      }],
+    }, meta: {
+      availability: 'AVAILABLE', scheduleUpdatedAt: new Date(Date.now() - 60_000).toISOString(),
+      realtimeStatus: 'STALE', realtimeFeedTimestamp: new Date(Date.now() - 8 * 60_000).toISOString(),
+    } } });
+  });
 
   if (browserName === 'firefox') {
     // Playwright's Firefox geolocation fixture reports its timestamp one day
@@ -659,6 +676,10 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   const busCard = routeMap.locator('[data-segment-id="e2e-bus-leg"]');
   await expect(busCard).toHaveAttribute('data-active', 'true');
   await expect(busCard.getByRole('button', { name: 'Згорнути зупинки: Автобус' })).toHaveAttribute('aria-expanded', 'true');
+  await expect(busCard.getByTestId('stop-arrival-freshness')).toContainText('Онлайн-дані застаріли');
+  await expect(busCard.getByTestId('stop-arrival-freshness')).toContainText('Показано розклад');
+  await expect(busCard.locator('li').filter({ hasText: 'A20' }).filter({ hasText: 'за розкладом' })).toContainText('10 хв');
+  expect(stopArrivalRequests).toBeGreaterThan(0);
   await expect(busCard.getByText('вул. Городоцька, 55').last()).toBeVisible();
   await expect(busCard.getByText('Наукова', { exact: true })).toBeVisible();
   await expect(busCard.getByText('вул. Стрийська, 32').last()).toBeVisible();
