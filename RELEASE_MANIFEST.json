@@ -10,7 +10,7 @@
   "ios_sha": "25630b202bef5be90be57a0147cfe69059729916",
   "integration_sha": "c93178e87f56725f3a90160473265b478a638fd3",
   "database_migration": "050 (additive mobility registry/rental migrations; local upgrade and integration checks pass; production/staging upgrade rehearsal and rollback are not run)",
-  "candidate_scope": "Navigation Experience 6 candidate with scoped GTFS-RT freshness support: Server 6307bfcd3f7c76616280fb886e3a2d4cbab199b2 (PR #6) preserves the stale source feed timestamp; Site 02c01a609cad41f1551c1861a44122242534e37a (PR #7) displays explicit freshness/schedule fallback and rejects successful API responses without a data envelope; iOS 25630b202bef5be90be57a0147cfe69059729916 (PR #5) pins that exact Site SHA. Server CI passed on runs 38597029563 and 38597025754; Site passed hosted CI on 38602030648 and 38602038038 and local 98/98 tests; iOS run 38602492704 verified the Site pin, built Site, synced Capacitor, and compiled the Simulator target. The earlier central run found a WebKit runtime exception on the old Site pin; exact-SHA acceptance for the fixed Site pin is pending. Production remains NOT_RELEASED; no external provider availability, production performance, physical-device behavior, or deployment is implied.",
+  "candidate_scope": "Navigation Experience 6 candidate with scoped GTFS-RT freshness support: Server 6307bfcd3f7c76616280fb886e3a2d4cbab199b2 (PR #6) preserves the stale source feed timestamp; Site 02c01a609cad41f1551c1861a44122242534e37a (PR #7) displays explicit freshness/schedule fallback and rejects successful API responses without a data envelope; iOS 25630b202bef5be90be57a0147cfe69059729916 (PR #5) pins that exact Site SHA. Server CI passed on runs 38597029563 and 38597025754; Site passed hosted CI on 38602030648 and 38602038038 and local 98/98 tests; iOS run 38602492704 verified the Site pin, built Site, synced Capacitor, and compiled the Simulator target. Exact-manifest central run 38603092516 passed 12/12 E2E and browser compatibility 6/6 on the corrected Site pin. Production remains NOT_RELEASED; no external provider availability, production performance, physical-device behavior, or deployment is implied.",
   "api_version": "v1",
   "source_repositories": {
     "server": "dima1203oleg/MarshGO-Server@feature/gtfs-stop-arrivals",
@@ -98,9 +98,9 @@
     "stop_arrival_server_ci": "PASS: exact Server SHA 6307bfcd3f7c76616280fb886e3a2d4cbab199b2, PR #6; hosted runs 38597029563 and 38597025754 passed dependency audit, lint, typecheck, 201 tests with 3 opt-in skips, migration, and integration checks.",
     "stop_arrival_site_ci": "PASS: exact Site SHA 02c01a609cad41f1551c1861a44122242534e37a, PR #7; hosted runs 38602030648 and 38602038038 passed lint, typecheck, production build and bundle gate. Local full suite passed 98/98, including the missing-envelope regression test.",
     "stop_arrival_ios_simulator_ci": "PASS: exact iOS SHA 25630b202bef5be90be57a0147cfe69059729916 pins Site 02c01a609cad41f1551c1861a44122242534e37a; run 38602492704 verified the pin, built Site, synced Capacitor and compiled the iOS Simulator target. No physical-device claim.",
-    "stop_arrival_candidate_e2e": "PENDING: central integration source c93178e87f56725f3a90160473265b478a638fd3, Server 6307bfcd3f7c76616280fb886e3a2d4cbab199b2, Site 02c01a609cad41f1551c1861a44122242534e37a, and iOS 25630b202bef5be90be57a0147cfe69059729916; the prior exact-SHA run exposed a WebKit render error on the previous Site SHA. Re-run the umbrella browser suite against these corrected pins."
+    "stop_arrival_candidate_e2e": "PASS: central PR #4 run 38603092516 on central head 030be55bfb5da953c8978fb1701f57b871da3a47, integration source c93178e87f56725f3a90160473265b478a638fd3, Server 6307bfcd3f7c76616280fb886e3a2d4cbab199b2, Site 02c01a609cad41f1551c1861a44122242534e37a and iOS 25630b202bef5be90be57a0147cfe69059729916. Hosted checks passed 12/12 Playwright E2E, including stale-feed disclosure with scheduled ETA retained, and 6/6 browser checks across Chromium, Firefox and WebKit. Exact source materialization, API/Web Docker build, database/API integration and security runs 38603086054/38603092541 passed. The prior Site pin's WebKit error is fixed by rejecting successful responses without an API data envelope."
   },
-  "note": "Navigation Experience 6 remains NOT_RELEASED. Current immutable component pins: Server 6307bfcd3f7c76616280fb886e3a2d4cbab199b2, Site 02c01a609cad41f1551c1861a44122242534e37a, iOS 25630b202bef5be90be57a0147cfe69059729916 (which pins the exact Site SHA); Admin 9263befb9b8e8d1eecb2a6c492a9e39a33794d76; Partner 4293510ab1b8a64a30dc4db2b432595fef1a51ec. Server/Site component CI passes; updated iOS CI and exact central E2E are pending. The new stale stop-arrival path preserves schedule ETA and labels stale realtime. Admin/Partner API compatibility and tenant/RBAC integration remain blocked on Server partner foundation migration 051. No configured staging or production target, image digests, production credentials, backup/rollback rehearsal, provider acceptance, or physical-device GPS evidence exists.",
+  "note": "Navigation Experience 6 remains NOT_RELEASED. Current immutable component pins: Server 6307bfcd3f7c76616280fb886e3a2d4cbab199b2, Site 02c01a609cad41f1551c1861a44122242534e37a, iOS 25630b202bef5be90be57a0147cfe69059729916 (which pins the exact Site SHA); Admin 9263befb9b8e8d1eecb2a6c492a9e39a33794d76; Partner 4293510ab1b8a64a30dc4db2b432595fef1a51ec. Server/Site/iOS component CI and the Server/Site stop-arrival cross-repository E2E/browser checks pass. Admin/Partner API compatibility and tenant/RBAC integration remain blocked on Server partner foundation migration 051. No configured staging or production target, image digests, production credentials, backup/rollback rehearsal, provider acceptance, or physical-device GPS evidence exists.",
   "staging": {
     "url": null,
     "provider": null,
@@ -346,13 +346,13 @@
       "note": "No staging environment or immutable production image references."
     },
     "stop_arrival_pair_acceptance": {
-      "status": "PENDING_CENTRAL_E2E",
+      "status": "PASS",
       "source_shas": {
         "server": "6307bfcd3f7c76616280fb886e3a2d4cbab199b2",
         "site": "02c01a609cad41f1551c1861a44122242534e37a",
         "integration": "c93178e87f56725f3a90160473265b478a638fd3"
       },
-      "note": "The central Playwright test source is pinned at the integration SHA above. One exact-SHA run on the previous Site pin failed WebKit after an empty successful API body flowed into passengerNavigationMatches; Site now rejects malformed envelopes. Rerun central browser/E2E checks on the corrected pins."
+      "note": "Central PR #4 run 38603092516 used the exact Server/Site pins above and integration source c93178e87f56725f3a90160473265b478a638fd3. All 12 E2E tests and all 6 Chromium/Firefox/WebKit compatibility tests passed, including the stale-feed/scheduled-ETA assertion. The previous Site pin failed WebKit because a 200 response without a captured body could leave passengerNavigationMatches undefined; the API client now rejects missing data envelopes."
     }
   },
   "rollback_references": {
