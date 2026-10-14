@@ -34,6 +34,8 @@ Branch protection was absent at audit start. During this audit, classic protecti
 
 - The active central checkout contains pre-existing edits in `RELEASE_MANIFEST.json` and several E2E specs, plus local screenshots, temporary scripts, and nested product checkouts. They were not edited or staged by this work.
 - A local iOS checkout has a modified workflow, and its nested Site checkout has two modified source files. These were preserved.
+- The dirty iOS workflow pin (`52ec4f7`) matches an open iOS navigation candidate but differs from the central-approved candidate pin (`22fe4f1`). The nested Site edits (`recommendedStrategies` typing and the four-transfer notice) are already present in the `22fe4f1` tree; they are superseded, but remain untouched in their older checkout.
+- The central `.release` directory contains 69 pinned-source clones (42 Site and 27 Server). Most have generated Docker/deploy files; one Site snapshot `site-ac15b3b2cf202b12f202af24252276623527731f` has 98 staged deletions. No release clone was cleaned or repaired.
 - Local `MarshGO2` has 26 dirty entries (22 tracked modifications and 4 untracked files), including a significant UI/API redesign. It has not been tested or migrated; it is not safe to archive based on the remote default branch alone.
 - The two named Codex conversations were inspected. Both point to the same central checkout in the accessible history; this does not prove that no other inaccessible or unrecorded worktree exists.
 
