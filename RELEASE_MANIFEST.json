@@ -5,24 +5,24 @@
   "status": "NOT_RELEASED",
   "ready_for_server_deployment": false,
   "production_ready": false,
-  "server_sha": "64ed70c72fec06cb9418dc7feee67ae0acee3826",
-  "site_sha": "22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730",
-  "ios_sha": "c304ae30b19bdaca57931baedeec4ffde02bca2d",
-  "integration_sha": "6c4be052eb639224ed0ac4d04bd050355f4be6f5",
+  "server_sha": "6307bfcd3f7c76616280fb886e3a2d4cbab199b2",
+  "site_sha": "63110ca7afd62e8a21c8404c4c3cd2fbbcbcfb28",
+  "ios_sha": "2ab6b11b82ea07145f7c68f05d44f3bc95e99b72",
+  "integration_sha": "c93178e87f56725f3a90160473265b478a638fd3",
   "database_migration": "050 (additive mobility registry/rental migrations; local upgrade and integration checks pass; production/staging upgrade rehearsal and rollback are not run)",
-  "candidate_scope": "Navigation Experience 6 candidate: Server 64ed70c72fec06cb9418dc7feee67ae0acee3826 (Redis Smart Cache/routing gateway, unchanged); Site 22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730 (confirmed Community rendezvous now shows a fresh OSRM baseline road approach; PR #6); iOS c304ae30b19bdaca57931baedeec4ffde02bca2d pins that exact Site SHA (PR #5); integration E2E source 6c4be052eb639224ed0ac4d04bd050355f4be6f5 covers stale and live rendezvous GPS, authenticated OSRM response and duplicate-booking guard (umbrella PR #3). Exact-manifest hosted run 38553693818 passed all verification and 12/12 E2E plus 6/6 Chromium/Firefox/WebKit checks; security run 38553693919 passed. Server, Site and iOS PR checks pass. Eight visual golden states remain; live bus stop approach is partial/external. No production OSRM request reduction, latency or capacity is measured. Production remains NOT_RELEASED.",
+  "candidate_scope": "Navigation Experience 6 candidate with scoped GTFS-RT freshness support: Server 6307bfcd3f7c76616280fb886e3a2d4cbab199b2 (PR #6) now preserves a stale source feed timestamp in stop-arrival metadata; Site 63110ca7afd62e8a21c8404c4c3cd2fbbcbcfb28 (PR #7) displays explicit stale/unavailable schedule-only status and retains scheduled ETA; iOS 2ab6b11b82ea07145f7c68f05d44f3bc95e99b72 (PR #5) pins and successfully simulator-builds exactly Site 63110ca7afd62e8a21c8404c4c3cd2fbbcbcfb28. Server hosted CI runs 38597029563 and 38597025754 passed; Site hosted CI runs 38597032593 and 38597025434 passed; iOS simulator run 38597493104 passed. Central exact-SHA E2E for the new stale-arrival UI is pending. Production remains NOT_RELEASED; no external provider availability, production performance, physical-device behavior, or deployment is implied.",
   "api_version": "v1",
   "source_repositories": {
-    "server": "dima1203oleg/MarshGO-Server@codex/redis-smart-cache",
-    "site": "dima1203oleg/MarshGO-Site@codex/journey-rendezvous-map",
+    "server": "dima1203oleg/MarshGO-Server@feature/gtfs-stop-arrivals",
+    "site": "dima1203oleg/MarshGO-Site@feature/gtfs-stop-arrivals",
     "ios": "dima1203oleg/MarshGO-iOS@codex/pin-rendezvous-site",
-    "integration": "dima1203oleg/MarshGO@codex/navigation-experience-6"
+    "integration": "dima1203oleg/MarshGO@feature/unified-repository-governance"
   },
-  "ios_simulator_site_sha": "22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730",
+  "ios_simulator_site_sha": "63110ca7afd62e8a21c8404c4c3cd2fbbcbcfb28",
   "verification": {
     "umbrella_unit_tests": "PASS: exact-manifest hosted run 38553693818 on Node 24.21.0 passed 231 unit tests plus 1 opt-in skip (232 total). Local run on Node 25.4.0 also passed; host runtime is outside the declared >=24.21.0 <25 range.",
-    "umbrella_production_check": "PASS: exact-manifest umbrella PR #3 run 38553693818 on root SHA c8aa46052e4b60b1ded708907e81e2e51a162584 passed lint, typecheck, 231 unit tests plus one opt-in skip, migrations, PostGIS/Redis integration, production build, 51-chunk bundle budget, release materialization, API/web Docker builds, E2E 12/12 and browser compatibility 6/6. Security run 38553693919 passed CodeQL and Gitleaks. Full CI does not constitute a production deployment.",
-    "umbrella_browser_e2e": "PASS: exact-manifest run 38553693818 on root SHA c8aa46052e4b60b1ded708907e81e2e51a162584 completed all 12 Playwright E2E tests and all 6 Chromium/Firefox/WebKit checks against Server 64ed70c72fec06cb9418dc7feee67ae0acee3826 / Site 22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730 / iOS c304ae30b19bdaca57931baedeec4ffde02bca2d / integration test source 6c4be052eb639224ed0ac4d04bd050355f4be6f5. Saved confirmed Community Journey validates participant-scoped stale GPS with no route/ETA and fresh GPS with a single OSRM baseline response and road geometry, plus no duplicate booking action.",
+    "umbrella_production_check": "HISTORICAL PASS: exact-manifest umbrella run 38553693818 on root SHA c8aa46052e4b60b1ded708907e81e2e51a162584 tested prior Server/Site/iOS pins (64ed70c/22fe4f1/c304ae3); lint, typecheck, unit, migration, PostGIS/Redis integration, production build, bundle budget, materialization, Docker, E2E 12/12 and browser compatibility 6/6 passed. Security run 38553693919 passed. This does not cover the current stop-arrival freshness changes and is not a production deployment.",
+    "umbrella_browser_e2e": "HISTORICAL PASS: run 38553693818 on root SHA c8aa46052e4b60b1ded708907e81e2e51a162584 completed 12 Playwright tests and 6 Chromium/Firefox/WebKit checks against the prior Server/Site/iOS pins 64ed70c/22fe4f1/c304ae3 and integration source 6c4be052eb639224ed0ac4d04bd050355f4be6f5. It covered confirmed Community Journey stale/fresh GPS and duplicate-booking behavior, not the new stop-arrival freshness UI.",
     "server_unit": "PASS locally on Node 25.4.0 for Server SHA 64ed70c72fec06cb9418dc7feee67ae0acee3826: 200 passed, 0 failed, 3 opt-in skips (203 total); both Server PR #5 hosted checks passed on the declared Node 24.21.0 runtime.",
     "server_integration": "PASS locally for feature SHA 64ed70c72fec06cb9418dc7feee67ae0acee3826: 28/28 checks on disposable loopback PostGIS, critical Redis, and isolated cache Redis.",
     "server_typecheck_lint": "PASS locally on Node 25.4.0 and in both Server PR #5 hosted CI checks on the declared Node 24.21.0 runtime for feature SHA 64ed70c72fec06cb9418dc7feee67ae0acee3826.",
@@ -30,7 +30,7 @@
     "production_bundle_demo_isolation": "PASS: check:bundle rejects 11 known demo identity/inventory markers; negative probe confirmed usr_drv_alex injection fails the gate, clean production build passes; Site PR #2 CI passed",
     "multi_passenger_stop_limit": "PASS locally: stop optimizer supports a 30-stop plan; 5 optimizer tests pass including 15 riders, pickup-before-dropoff, per-stop seat invariants and the overflow limit; integration suite exercises two accepted riders on one route",
     "ios_simulator_ci": "PASS on exact iOS SHA c304ae30b19bdaca57931baedeec4ffde02bca2d, pinning exact Site SHA 22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730, PR #5; simulator jobs 38540734198 and 38540742501 pass. Physical-device, GPS, background and signed-archive acceptance are not claimed.",
-    "umbrella_github_ci": "PASS: exact-manifest umbrella PR #3 run 38553693818 on root SHA c8aa46052e4b60b1ded708907e81e2e51a162584 passed lint, typecheck, 231 unit tests plus one opt-in skip, migrations, API integration, production build, bundle gate, release materialization, API/web Docker builds, all 12 Playwright E2E tests, and browser compatibility 6/6. Security run 38553693919 (CodeQL and Gitleaks) passed.",
+    "umbrella_github_ci": "HISTORICAL PASS: run 38553693818 and security run 38553693919 covered a previous exact-manifest candidate. Current stop-arrival acceptance is tracked separately under stop_arrival_candidate_e2e.",
     "saved_journey_rendezvous_e2e": "PASS hosted: exact-manifest run 38553693818 completed 12/12 production-bundle Playwright tests on integration source 6c4be052eb639224ed0ac4d04bd050355f4be6f5 and exact pinned Server/Site/iOS SHAs. Saved confirmed Community Journey verifies participant-scoped stale GPS, no marker/route/ETA when stale, one OSRM baseline route on fresh GPS, route metadata/geometry, no duplicate booking action, and expected anonymous refresh-cookie classification. Local browser E2E remains unavailable because isolated PostGIS at 127.0.0.1:5434 does not respond.",
     "software_webgl_browser_matrix": "PASS: 6/6 run 38534486384 across Chromium, Firefox and WebKit. Under Xvfb/software Mesa, only known GPU-stall and context-lost console diagnostics are filtered; the E2E asserts that the final MapLibre canvas context is live or restored. Browser UI/route checks and console/page errors remain gates.",
     "local_browser_matrix": "PASS 6/6 on exact candidate Site SHA 5a12c6fbf0b18ca479e92c93d6d9597d567734d3 using the production bundle and isolated loopback API/PostGIS fixtures. Chromium, Firefox and WebKit passed responsive sign-in/home/search and canonical journey map checks including sheet states, segment focus, equal light/dark geometry and foreground GPS navigation. This validates the WebKit return-action overlap fix, not public-provider acceptance.",
@@ -92,11 +92,15 @@
     "navigation_experience_6_full_browser_suite": "Combined evidence: full Chromium run 11/12, then the only failed booking/chat case passed 1/1 after replacing a stale positional selector with the explicit accessible Open Route action. The other 11 full-run cases passed; the entire 12-case suite was not rerun after that selector-only correction. The route-map scenario passed 1/1.",
     "navigation_experience_6_osrm_provider_measurements": "NOT_TESTED: this delta does not change the Server routing gateway; no before/after upstream request count, latency distribution or load limit was measured.",
     "navigation_experience_6_ios_local_simulator": "Previous simulator baseline only: Site 52ec4f7c888d9ca9a671b0e858a9f018406034b1 built, Capacitor-synced, installed and launched on iPhone 15 Pro Max Simulator. Screenshot /tmp/marshgo-nav6-iphone15-simulator.png shows Welcome. API was not running; no authenticated Journey, GPS or background behavior was exercised. The updated exact pin is covered by iOS PR #5 CI; local authenticated simulator acceptance remains absent.",
-    "umbrella_navigation_candidate_ci": "PASS: exact-manifest PR #3 run 38553693818 on root SHA c8aa46052e4b60b1ded708907e81e2e51a162584. All code checks, integration, Docker builds, E2E 12/12 and browser compatibility 6/6 pass on the current Server/Site/iOS pins. Security run 38553693919 passes CodeQL and Gitleaks.",
+    "umbrella_navigation_candidate_ci": "HISTORICAL PASS: exact-manifest PR #3 run 38553693818 on root SHA c8aa46052e4b60b1ded708907e81e2e51a162584 passed all recorded gates on earlier Server/Site/iOS pins 64ed70c/22fe4f1/c304ae3; it does not test the current stop-arrival SHAs.",
     "rideshare_approach_map": "PASS locally: only participant-scoped confirmed Community rendezvous with LIVE GPS at <=100 m accuracy and <=90 s age requests /routing/calculate; only a fresh OSRM result is drawn. UI labels baseline duration/distance as OSRM without live traffic. Stale GPS, low-confidence accuracy, stale route, non-OSRM, invalid geometry and provider failure do not display a route or ETA. Site unit/build checks pass; production provider availability is not established.",
-    "umbrella_rideshare_approach_e2e": "PASS hosted: exact-manifest run 38553693818; 12/12 E2E. Previous attempt 38541127027 exposed a text assertion typo, fixed in integration source 6c4be052eb639224ed0ac4d04bd050355f4be6f5. The fresh-route scenario renders the authenticated OSRM fixture route and clearly labels its duration/distance as a baseline without live traffic; stale source GPS yields no ETA/route."
+    "umbrella_rideshare_approach_e2e": "HISTORICAL PASS: exact-manifest run 38553693818 (12/12 E2E) covered the authenticated OSRM fixture route and fresh/stale rendezvous GPS on the prior integration source 6c4be052eb639224ed0ac4d04bd050355f4be6f5. It does not cover the stop-arrival freshness change.",
+    "stop_arrival_server_ci": "PASS: exact Server SHA 6307bfcd3f7c76616280fb886e3a2d4cbab199b2, PR #6; hosted runs 38597029563 and 38597025754 passed dependency audit, lint, typecheck, 201 tests with 3 opt-in skips, migration, and integration checks.",
+    "stop_arrival_site_ci": "PASS: exact Site SHA 63110ca7afd62e8a21c8404c4c3cd2fbbcbcfb28, PR #7; hosted runs 38597032593 and 38597025434 passed lint, typecheck, production build and bundle gate. Local full test suite passed 97/97.",
+    "stop_arrival_ios_simulator_ci": "PASS: exact iOS SHA 2ab6b11b82ea07145f7c68f05d44f3bc95e99b72 pins Site 63110ca7afd62e8a21c8404c4c3cd2fbbcbcfb28; simulator run 38597493104 verified the pin, built the Site, synced Capacitor and compiled the iOS Simulator target. No physical-device claim.",
+    "stop_arrival_candidate_e2e": "PENDING: central integration source c93178e87f56725f3a90160473265b478a638fd3, Server 6307bfcd3f7c76616280fb886e3a2d4cbab199b2, Site 63110ca7afd62e8a21c8404c4c3cd2fbbcbcfb28, and iOS 2ab6b11b82ea07145f7c68f05d44f3bc95e99b72; exact-SHA Playwright acceptance is not yet run."
   },
-  "note": "Navigation Experience 6 remains an unreleased review candidate. Exact-manifest umbrella run 38553693818 passed on root SHA c8aa46052e4b60b1ded708907e81e2e51a162584; pins: Server 64ed70c72fec06cb9418dc7feee67ae0acee3826, Site 22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730, iOS c304ae30b19bdaca57931baedeec4ffde02bca2d, integration E2E source 6c4be052eb639224ed0ac4d04bd050355f4be6f5. Run 38553693818 passed the full hosted verification, 12/12 E2E and 6/6 browser compatibility; security 38553693919 passed. The rideshare map shows only a fresh participant-authorized OSRM baseline approach without live traffic. Eight current visual golden states do not cover all six requested scenarios. Bus stop approach, production OSRM/provider availability, production latency/load, physical-device GPS and deployment remain unverified or externally blocked. Keep status NOT_RELEASED until remaining acceptance criteria and external operations are closed.",
+  "note": "Navigation Experience 6 remains NOT_RELEASED. Current immutable component pins: Server 6307bfcd3f7c76616280fb886e3a2d4cbab199b2, Site 63110ca7afd62e8a21c8404c4c3cd2fbbcbcfb28, iOS 2ab6b11b82ea07145f7c68f05d44f3bc95e99b72 (which pins the exact Site SHA); Admin 9263befb9b8e8d1eecb2a6c492a9e39a33794d76; Partner 4293510ab1b8a64a30dc4db2b432595fef1a51ec. Server/Site/iOS component CI passes for these pins. The new stale stop-arrival path preserves schedule ETA and labels stale realtime; exact central E2E is pending. Admin/Partner API compatibility and tenant/RBAC integration remain blocked on Server partner foundation migration 051. No configured staging or production target, image digests, production credentials, backup/rollback rehearsal, provider acceptance, or physical-device GPS evidence exists.",
   "staging": {
     "url": null,
     "provider": null,
@@ -263,22 +267,22 @@
   "components": {
     "server": {
       "repository": "dima1203oleg/MarshGO-Server",
-      "commit_sha": "64ed70c72fec06cb9418dc7feee67ae0acee3826",
-      "ref": "codex/redis-smart-cache",
+      "commit_sha": "6307bfcd3f7c76616280fb886e3a2d4cbab199b2",
+      "ref": "feature/gtfs-stop-arrivals",
       "status": "VERIFIED"
     },
     "site": {
       "repository": "dima1203oleg/MarshGO-Site",
-      "commit_sha": "22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730",
-      "ref": "codex/journey-rendezvous-map",
+      "commit_sha": "63110ca7afd62e8a21c8404c4c3cd2fbbcbcfb28",
+      "ref": "feature/gtfs-stop-arrivals",
       "status": "VERIFIED"
     },
     "ios": {
       "repository": "dima1203oleg/MarshGO-iOS",
-      "commit_sha": "c304ae30b19bdaca57931baedeec4ffde02bca2d",
+      "commit_sha": "2ab6b11b82ea07145f7c68f05d44f3bc95e99b72",
       "ref": "codex/pin-rendezvous-site",
       "status": "VERIFIED",
-      "site_sha": "22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730"
+      "site_sha": "63110ca7afd62e8a21c8404c4c3cd2fbbcbcfb28"
     },
     "admin": {
       "repository": "dima1203oleg/MarshGO-Admin",
@@ -303,17 +307,17 @@
     "component_ci": {
       "status": "PASS",
       "evidence": {
-        "server": "Server PR #5 on pinned SHA",
-        "site": "Site PR #6 on pinned SHA",
-        "ios": "iOS PR #5 on pinned SHA",
+        "server": "Server PR #6 exact SHA; hosted runs 38597029563 and 38597025754 passed npm audit, lint, typecheck, 201 unit tests plus 3 opt-in skips, migrations, and integration tests.",
+        "site": "Site PR #7 exact SHA; hosted runs 38597032593 and 38597025434 passed lint, typecheck, production build, and bundle budget; local full suite 97/97 passed.",
+        "ios": "iOS PR #5 exact SHA pins this Site SHA; simulator run 38597493104 passed checkout verification, Site build/Capacitor sync, and iOS Simulator compile.",
         "admin": "Admin PR #1 hosted Verify passed",
         "partner": "Partner PR #1 hosted Verify passed"
       },
-      "note": "These are independent component checks; they do not demonstrate a five-component release build.",
+      "note": "These are independent component checks; they do not demonstrate a five-component release build or staging acceptance.",
       "source_shas": {
-        "server": "64ed70c72fec06cb9418dc7feee67ae0acee3826",
-        "site": "22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730",
-        "ios": "c304ae30b19bdaca57931baedeec4ffde02bca2d",
+        "server": "6307bfcd3f7c76616280fb886e3a2d4cbab199b2",
+        "site": "63110ca7afd62e8a21c8404c4c3cd2fbbcbcfb28",
+        "ios": "2ab6b11b82ea07145f7c68f05d44f3bc95e99b72",
         "admin": "9263befb9b8e8d1eecb2a6c492a9e39a33794d76",
         "partner": "4293510ab1b8a64a30dc4db2b432595fef1a51ec"
       }
@@ -321,9 +325,9 @@
     "cross_repository_acceptance": {
       "status": "BLOCKED",
       "source_shas": {
-        "server": "64ed70c72fec06cb9418dc7feee67ae0acee3826",
-        "site": "22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730",
-        "ios": "c304ae30b19bdaca57931baedeec4ffde02bca2d",
+        "server": "6307bfcd3f7c76616280fb886e3a2d4cbab199b2",
+        "site": "63110ca7afd62e8a21c8404c4c3cd2fbbcbcfb28",
+        "ios": "2ab6b11b82ea07145f7c68f05d44f3bc95e99b72",
         "admin": "9263befb9b8e8d1eecb2a6c492a9e39a33794d76",
         "partner": "4293510ab1b8a64a30dc4db2b432595fef1a51ec"
       },
@@ -340,6 +344,15 @@
     "rollback": {
       "status": "NOT_RUN",
       "note": "No staging environment or immutable production image references."
+    },
+    "stop_arrival_pair_acceptance": {
+      "status": "PENDING_CENTRAL_E2E",
+      "source_shas": {
+        "server": "6307bfcd3f7c76616280fb886e3a2d4cbab199b2",
+        "site": "63110ca7afd62e8a21c8404c4c3cd2fbbcbcfb28",
+        "integration": "c93178e87f56725f3a90160473265b478a638fd3"
+      },
+      "note": "The central Playwright test source is pinned at the integration SHA above. Exact-SHA umbrella E2E must confirm stale realtime status is visible while scheduled ETA remains available."
     }
   },
   "rollback_references": {
