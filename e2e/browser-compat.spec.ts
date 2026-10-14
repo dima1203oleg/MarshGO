@@ -193,7 +193,7 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
   // WebKit's emulated phone viewport excludes the bottom safe-area inset.
   expect(searchTabbar.bottom, 'search tab bar must remain above only the WebKit safe-area inset').toBeGreaterThanOrEqual(836);
   expect(searchTabbar.height, 'bottom navigation must keep the same height across tabs').toBeCloseTo(homeTabbarHeight, 0);
-  for (const destination of ['Мої поїздки', 'Профіль', 'Пошук']) {
+  for (const destination of ['Поїздки', 'Профіль', 'Пошук']) {
     await page.getByRole('navigation', { name: 'Основна навігація' }).getByRole('button', { name: destination, exact: true }).click();
     await expect(page.locator('.app-tabbar')).toBeVisible();
     const nav = await page.locator('.app-tabbar').evaluate(element => ({
