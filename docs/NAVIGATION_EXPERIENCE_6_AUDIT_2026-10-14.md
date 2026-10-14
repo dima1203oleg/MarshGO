@@ -1,7 +1,7 @@
 # Navigation Experience 6.0 — implementation audit
 
 **Review branch:** `codex/navigation-experience-6`
-**Candidate pins:** integration E2E source `142d20529c0a33006e0e9c1cd34877cc85c45865`, Server `64ed70c72fec06cb9418dc7feee67ae0acee3826`, Site `07644b0b91af777ede77edd51cca01e1d5bcff13`, iOS `375c2a34cf47a554e22b6319ba2a5f3e99c15029` (pins that exact Site SHA). Manifest/audit reconciliation is pending final umbrella CI.
+**Candidate pins:** integration E2E source `bc32abc710a4e3e7c27e77207ee0671f82621598`, Server `64ed70c72fec06cb9418dc7feee67ae0acee3826`, Site `07644b0b91af777ede77edd51cca01e1d5bcff13`, iOS `375c2a34cf47a554e22b6319ba2a5f3e99c15029` (pins that exact Site SHA). Manifest/audit reconciliation is pending the exact-pin rerun after the software-renderer WebGL test correction.
 **Release status:** `NOT_RELEASED`; no production deployment or staging SLO claim.
 
 ## Implemented in this change
@@ -43,21 +43,22 @@ Site checks on the current feature worktree:
 - `npm test` — PASS, 91 tests, 0 failures.
 - `npm run build` — PASS.
 - `npm run check:bundle` — PASS, 17 JavaScript chunks and each under the 350 KB gzip budget.
-- Journey route-map Playwright E2E — prior hosted run `38529588348` passed 11/12; its only failure was the expected anonymous `/auth/refresh` 401 logged as a generic console error. The test now classifies only that first anonymous probe as expected, while retaining failures for any later 401. Final exact-pin execution is pending. Local runner stopped before tests because `127.0.0.1:5434` had no isolated PostGIS service.
+- Journey route-map Playwright E2E — hosted run `38531935261` passed 12/12 on Site `07644b0b91af777ede77edd51cca01e1d5bcff13` and iOS `375c2a34cf47a554e22b6319ba2a5f3e99c15029`. It covers the saved confirmed Community Journey, participant-scoped stale GPS, no fabricated ETA, and no repeat booking. The first anonymous `/auth/refresh` 401 is endpoint-classified; later 401s still fail.
+- The same run's browser compatibility step failed the final console assertion in Chromium and Firefox on software-renderer diagnostics (`GPU stall due to ReadPixels` and `WebGL context was lost`); all route interaction assertions reached completion, and WebKit passed. The test correction on source `bc32abc710a4e3e7c27e77207ee0671f82621598` filters only those exact diagnostics under the Xvfb software-renderer flag and asserts the final canvas WebGL context is live or restored. Its hosted exact-pin rerun is pending. Local browser E2E could not start because isolated PostGIS at `127.0.0.1:5434` is unavailable.
 - Site PR #6 hosted verification — PASS on exact SHA `07644b0b91af777ede77edd51cca01e1d5bcff13`; jobs `38530585543` and `38530591699` pass. Local lint, typecheck, 91/91 tests, production build and 17-chunk gzip budget pass.
 - iOS PR #5 exact simulator pin — iOS SHA `375c2a34cf47a554e22b6319ba2a5f3e99c15029` pins Site `07644b0b91af777ede77edd51cca01e1d5bcff13`; simulator runs `38530627859` and `38530633018` pass. Physical-device GPS, background behavior and authenticated Journey UI are not covered by simulator build checks.
-- Local umbrella lint, typecheck, 231/231 unit tests, production build and 51-chunk bundle gate pass on Node 25.4.0, outside its declared `>=24.21.0 <25` range. Hosted root CI on a supported runtime is validating earlier Site/iOS pins; the final exact-pin run is pending.
+- Local umbrella lint, typecheck, 231 unit tests (0 failures, 1 opt-in skip), production build and 51-chunk bundle gate pass on Node 25.4.0, outside its declared `>=24.21.0 <25` range. After the final CI exposed software-renderer warnings, the revised E2E source also passes local lint, typecheck and unit tests. Exact-pin hosted CI is rerunning.
 
 The production bundle size and passing fixture E2E are not production latency or feed-availability measurements. No OSRM/provider request reduction is claimed.
 
 ## Hosted integration candidate CI
 
-- Umbrella PR #3 run `38529588348` — IN PROGRESS on the earlier Site `a9859ba` / iOS `a33e78c` pins; checks through Docker image build passed, Playwright and browser compatibility are not complete. Security run `38529588183` — PASS (Gitleaks and CodeQL).
-- Final umbrella PR #3 run for Site `07644b0`, iOS `375c2a3` and E2E source `142d205` — pending manifest push. Run `38530975014` is still validating the same Site/iOS pins with the previous E2E classifier.
+- Umbrella PR #3 run `38531935261` on Site `07644b0`, iOS `375c2a3` and E2E source `142d205` — unit, integration, production build/container build and Playwright E2E (12/12) passed. Browser compatibility failed 2/6 cases only at the console-error assertion because Xvfb software WebGL emitted GPU/context diagnostics; route-map interactions completed in all three engines and WebKit passed. Security runs `38531935256` and `38531930116` — PASS (Gitleaks and CodeQL).
+- Follow-up E2E correction is committed at `bc32abc710a4e3e7c27e77207ee0671f82621598`: filters only the documented software Mesa diagnostics when the Xvfb flag is active, and explicitly fails if the final canvas WebGL context remains lost. The exact-manifest rerun is pending.
 - Site PR #6 exact SHA `07644b0b91af777ede77edd51cca01e1d5bcff13` — both hosted verification jobs pass.
 - iOS PR #5 exact SHA `375c2a34cf47a554e22b6319ba2a5f3e99c15029`, pinned to the exact Site SHA — both simulator jobs pass.
 
-These checks validate this review candidate and fixtures; they do not establish provider availability, production load SLOs, physical iPhone behavior, or production readiness.
+The rerun must confirm that the software-WebGL context assertion passes in Chromium and Firefox. These checks validate this review candidate and fixtures; they do not establish provider availability, production load SLOs, physical iPhone behavior, or production readiness.
 
 ## Readiness estimate
 
