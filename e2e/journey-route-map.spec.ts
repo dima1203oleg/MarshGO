@@ -910,6 +910,7 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   const savedMapCanvas = savedJourneyMap.locator('[data-marshgo-map-renderer="maplibre"]');
   await expect(savedMapCanvas).toHaveAttribute('data-marshgo-map-ready', 'true');
   await expect(savedMapCanvas).toHaveAttribute('data-marshgo-rideshare-count', '0');
+  await expect(savedJourneyMap.locator(`[data-segment-id="${savedLegId}"]`).getByRole('button', { name: 'Забронювати' })).toHaveCount(0);
   await savedJourneyMap.locator(`[data-segment-id="${savedLegId}"] button[aria-label^="Вибрати сегмент:"]`).click();
   await expect(savedMapCanvas).toHaveAttribute('data-marshgo-rideshare-count', '1');
   await expect(savedMapCanvas.locator('.marshgo-rideshare-marker')).toHaveAttribute('data-freshness', 'stale');
