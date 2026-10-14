@@ -1,6 +1,6 @@
 # Navigation Experience 6.0 — implementation audit
 
-**Review branch:** `codex/navigation-experience-6`  
+**Review branch:** `codex/navigation-experience-6`
 **Candidate pins:** umbrella source `e34b5c6e547f19155486176d3eca2129ba3d17db`, Server `64ed70c72fec06cb9418dc7feee67ae0acee3826`, Site `52ec4f7c888d9ca9a671b0e858a9f018406034b1`, iOS `7b9e631a99b025cb2f421dabc666360135c966fc` (pins that exact Site SHA).
 **Release status:** `NOT_RELEASED`; no production deployment or staging SLO claim.
 
