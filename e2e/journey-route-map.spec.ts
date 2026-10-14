@@ -11,6 +11,18 @@ async function expectCanonicalScreenshot(
   await expect(page).toHaveScreenshot(name, options);
 }
 
+async function expectMapWebGlContextHealthy(map: Locator) {
+  await expect.poll(async () => map.locator('canvas.maplibregl-canvas').first().evaluate((canvas) => {
+    const element = canvas as HTMLCanvasElement;
+    const context = element.getContext('webgl2') ?? element.getContext('webgl');
+    return context !== null && !context.isContextLost();
+  }), {
+    message: 'MapLibre should retain or restore a usable WebGL context',
+    timeout: 5_000,
+    intervals: [100, 200, 400],
+  }).toBe(true);
+}
+
 async function routeSheetGeometry(routeMap: Locator) {
   return routeMap.getByTestId('route-bottom-sheet').evaluate((sheet) => {
     const bounds = (element: Element | null) => {
@@ -178,6 +190,12 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
     // The response listener above classifies 401s by endpoint so the browser's
     // generic resource-failure message does not lose that request context.
     if (/^Failed to load resource: the server responded with a status of 401 \(Unauthorized\)$/.test(text)) return;
+    // GitHub's Xvfb + software Mesa matrix emits these renderer diagnostics
+    // during repeated MapLibre mounts. Keep checking the actual canvas below;
+    // a context that was lost and not restored still fails the browser test.
+    const softwareWebGlDiagnostic = process.env.MARSHGO_FIREFOX_XVFB === '1'
+      && (/GL Driver Message .*GPU stall due to ReadPixels/i.test(text) || /WebGL context was lost\./i.test(text));
+    if (softwareWebGlDiagnostic) return;
     if (message.type() === 'error' || /webgl|maplibre.*(?:failed|error)/i.test(text)) browserErrors.push(text);
   });
   const origin = { label: 'вул. Мало-Голосківська, 24', latitude: 49.8682, longitude: 24.0030, providerId: 'e2e-lviv-origin' };
@@ -931,5 +949,6 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   await expect(savedMapCanvas.locator('.marshgo-rideshare-marker')).toHaveAttribute('data-freshness', 'stale');
   await expect(savedMapCanvas.locator('.marshgo-rideshare-marker')).toHaveAttribute('aria-label', 'Попутка: остання відома позиція, GPS застаріло');
   await expect(savedJourneyMap).not.toContainText(/\d+\s*хв до вас/);
+  await expectMapWebGlContextHealthy(savedMapCanvas);
   expect(browserErrors).toEqual([]);
 });
