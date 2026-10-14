@@ -11,8 +11,8 @@ if [[ ! -f "$ENV_FILE" ]]; then
 fi
 
 compose() {
-  local compose_file="$ROOT_DIR/compose.production.yml"
-  if [[ -f "$ROOT_DIR/.release/compose.production.yml" ]]; then compose_file="$ROOT_DIR/.release/compose.production.yml"; fi
+  local compose_file="$ROOT_DIR/.release/compose.production.yml"
+  node "$ROOT_DIR/ops/scripts/verify-materialized-release.mjs"
   docker compose --project-name "$PROJECT_NAME" --env-file "$ENV_FILE" -f "$compose_file" "$@"
 }
 
@@ -54,6 +54,7 @@ validate_production_env() {
 
 validate_release_ref() {
   local release_tag tag_commit head_commit
+  node "$ROOT_DIR/ops/scripts/validate-release-manifest.mjs" --production
   release_tag="$(env_value MARSHGO_RELEASE_TAG)"
   if [[ ! "$release_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9.-]+)?$ ]]; then
     echo "MARSHGO_RELEASE_TAG must be an immutable semantic version tag (for example v1.2.3)." >&2
