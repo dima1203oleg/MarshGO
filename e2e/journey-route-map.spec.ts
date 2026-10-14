@@ -160,9 +160,24 @@ async function expectRouteHorizontal(map: Locator, route: Array<[number, number]
 
 test('canonical route map synchronizes the sheet, stop details, map focus, and light/dark palettes', async ({ page, browserName }) => {
   const browserErrors: string[] = [];
+  let allowInitialAnonymousSessionProbe = true;
   page.on('pageerror', (error) => browserErrors.push(`${error.name}: ${error.message}`));
+  page.on('response', (response) => {
+    if (response.status() !== 401) return;
+    const url = new URL(response.url());
+    // A fresh browser context probes its HttpOnly refresh cookie before OTP login.
+    // That one expected anonymous response is not an app error; any later 401 is.
+    if (allowInitialAnonymousSessionProbe && url.pathname === '/api/v1/auth/refresh') {
+      allowInitialAnonymousSessionProbe = false;
+      return;
+    }
+    browserErrors.push(`HTTP ${response.status()} ${url.pathname}`);
+  });
   page.on('console', (message) => {
     const text = message.text();
+    // The response listener above classifies 401s by endpoint so the browser's
+    // generic resource-failure message does not lose that request context.
+    if (/^Failed to load resource: the server responded with a status of 401 \(Unauthorized\)$/.test(text)) return;
     if (message.type() === 'error' || /webgl|maplibre.*(?:failed|error)/i.test(text)) browserErrors.push(text);
   });
   const origin = { label: 'вул. Мало-Голосківська, 24', latitude: 49.8682, longitude: 24.0030, providerId: 'e2e-lviv-origin' };
