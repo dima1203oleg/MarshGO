@@ -1,7 +1,7 @@
 # Navigation Experience 6.0 — implementation audit
 
 **Review branch:** `codex/navigation-experience-6`
-**Candidate pins:** integration E2E source `946a88bdf5c671b3895515777a00d1e3474811c7`, Server `64ed70c72fec06cb9418dc7feee67ae0acee3826`, Site `07644b0b91af777ede77edd51cca01e1d5bcff13`, iOS `375c2a34cf47a554e22b6319ba2a5f3e99c15029` (pins that exact Site SHA). Manifest/audit reconciliation is pending final umbrella CI.
+**Candidate pins:** integration E2E source `142d20529c0a33006e0e9c1cd34877cc85c45865`, Server `64ed70c72fec06cb9418dc7feee67ae0acee3826`, Site `07644b0b91af777ede77edd51cca01e1d5bcff13`, iOS `375c2a34cf47a554e22b6319ba2a5f3e99c15029` (pins that exact Site SHA). Manifest/audit reconciliation is pending final umbrella CI.
 **Release status:** `NOT_RELEASED`; no production deployment or staging SLO claim.
 
 ## Implemented in this change
@@ -43,7 +43,7 @@ Site checks on the current feature worktree:
 - `npm test` — PASS, 91 tests, 0 failures.
 - `npm run build` — PASS.
 - `npm run check:bundle` — PASS, 17 JavaScript chunks and each under the 350 KB gzip budget.
-- Journey route-map Playwright E2E — the earlier hosted umbrella run `38529588348` is in progress on the prior Site/iOS pins; final exact-pin run will include the duplicate-booking assertion. Local runner stopped before tests because `127.0.0.1:5434` had no isolated PostGIS service.
+- Journey route-map Playwright E2E — prior hosted run `38529588348` passed 11/12; its only failure was the expected anonymous `/auth/refresh` 401 logged as a generic console error. The test now classifies only that first anonymous probe as expected, while retaining failures for any later 401. Final exact-pin execution is pending. Local runner stopped before tests because `127.0.0.1:5434` had no isolated PostGIS service.
 - Site PR #6 hosted verification — PASS on exact SHA `07644b0b91af777ede77edd51cca01e1d5bcff13`; jobs `38530585543` and `38530591699` pass. Local lint, typecheck, 91/91 tests, production build and 17-chunk gzip budget pass.
 - iOS PR #5 exact simulator pin — iOS SHA `375c2a34cf47a554e22b6319ba2a5f3e99c15029` pins Site `07644b0b91af777ede77edd51cca01e1d5bcff13`; simulator runs `38530627859` and `38530633018` pass. Physical-device GPS, background behavior and authenticated Journey UI are not covered by simulator build checks.
 - Local umbrella lint, typecheck, 231/231 unit tests, production build and 51-chunk bundle gate pass on Node 25.4.0, outside its declared `>=24.21.0 <25` range. Hosted root CI on a supported runtime is validating earlier Site/iOS pins; the final exact-pin run is pending.
@@ -53,7 +53,7 @@ The production bundle size and passing fixture E2E are not production latency or
 ## Hosted integration candidate CI
 
 - Umbrella PR #3 run `38529588348` — IN PROGRESS on the earlier Site `a9859ba` / iOS `a33e78c` pins; checks through Docker image build passed, Playwright and browser compatibility are not complete. Security run `38529588183` — PASS (Gitleaks and CodeQL).
-- Final umbrella PR #3 run for Site `07644b0`, iOS `375c2a3` and E2E source `946a88b` — pending manifest push.
+- Final umbrella PR #3 run for Site `07644b0`, iOS `375c2a3` and E2E source `142d205` — pending manifest push. Run `38530975014` is still validating the same Site/iOS pins with the previous E2E classifier.
 - Site PR #6 exact SHA `07644b0b91af777ede77edd51cca01e1d5bcff13` — both hosted verification jobs pass.
 - iOS PR #5 exact SHA `375c2a34cf47a554e22b6319ba2a5f3e99c15029`, pinned to the exact Site SHA — both simulator jobs pass.
 
