@@ -786,14 +786,12 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   expect(navigationMapData).toHaveProperty('marshgoRoutePointCount');
   expect(Number(navigationMapData.marshgoRoutePointCount)).toBeGreaterThan(1);
   await expect(page.getByTestId('navigation-live-progress')).toContainText(/^\d+ хв/);
-  await expect(page.getByRole('button', { name: 'Розгорнути панель' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Розгорнути панель навігації' })).toBeVisible();
   // Freeze the pulsing location halo only for the screenshot; keep production motion unchanged.
   const staticLocationHalo = await page.addStyleTag({ content: '.marshgo-puck__halo { animation: none !important; }' });
   // MapLibre rasterizes the location puck edge with a stable, localized 20px variance on this host.
   await expectCanonicalScreenshot(page, 'navigation-light-route.png', { animations: 'disabled', maxDiffPixels: 24 });
   await staticLocationHalo.evaluate(style => style.parentNode?.removeChild(style));
-  await page.getByRole('button', { name: 'Керування картою' }).click();
-  await expect(page.getByRole('group', { name: 'Додаткове керування навігацією' })).toBeVisible();
   await page.getByRole('button', { name: 'Шари карти' }).click();
   await expect(page.getByRole('dialog', { name: 'Шари карти' })).toBeVisible();
   await expectCanonicalScreenshot(page, 'navigation-light-layers.png');
