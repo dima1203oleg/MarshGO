@@ -15,10 +15,10 @@ These are the exact pins in the current central Navigation Experience 6 manifest
 | Server | `MarshGO-Server` / `codex/redis-smart-cache`, PR #5 | `64ed70c72fec06cb9418dc7feee67ae0acee3826` | CI passed. Does not include pending partner foundation migration 051. |
 | Site | `MarshGO-Site` / `codex/journey-rendezvous-map`, PR #6 | `22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730` | CI/build checks passed. |
 | iOS | `MarshGO-iOS` / `codex/pin-rendezvous-site`, PR #5 | `c304ae30b19bdaca57931baedeec4ffde02bca2d` | Pins the Site SHA above; simulator CI only. |
-| Admin | `MarshGO-Admin` / `codex/p0-admin`, PR #1 | `9263befb` (abbreviated in this audit record) | Verify the full SHA at PR head before release; UI CI passed. |
-| Partner | `MarshGO-Partner` / `codex/p0-partner`, PR #1 | `4293510a` (abbreviated in this audit record) | Verify the full SHA at PR head before release; UI CI passed. |
+| Admin | `MarshGO-Admin` / `codex/p0-admin`, PR #1 | `9263befb9b8e8d1eecb2a6c492a9e39a33794d76` | UI CI passed; requires Server partner foundation API/migration 051. |
+| Partner | `MarshGO-Partner` / `codex/p0-partner`, PR #1 | `4293510ab1b8a64a30dc4db2b432595fef1a51ec` | UI CI passed; organization routes are not in the current Server pin. |
 
-The current `RELEASE_MANIFEST.json` pins Server/Site/iOS and central integration test code. It does not yet represent a verified five-product release: Admin/Partner pins, image digests, target, build timestamp, rollback refs, and cross-product compatibility evidence are incomplete. Status remains `NOT_RELEASED`.
+The current `RELEASE_MANIFEST.json` pins exact SHAs for all five product repositories and records central integration test code. It does not yet represent a verified five-product release: image digests, target, build timestamp, rollback refs, and cross-product compatibility evidence are incomplete. Status remains `BLOCKED` / `NOT_RELEASED`.
 
 ## Relevant open changes (observed at audit)
 
@@ -43,17 +43,17 @@ Branch protection was absent at audit start. During this audit, classic protecti
 
 - Server stop-arrival filter commit `9fe8cbd2774793f73a0f32ef5265a9de3a035315`, draft PR [#6](https://github.com/dima1203oleg/MarshGO-Server/pull/6). Local typecheck/lint passed; 201 tests passed and 3 opt-in integration tests were skipped.
 - Site stop-arrival UI commit `1565e65ceb6896289fd64c783c11dac0ee45c7a2`, draft PR [#7](https://github.com/dima1203oleg/MarshGO-Site/pull/7). Local typecheck/lint, 94 tests, production build and bundle budget passed.
-- Server transport-layer availability commit `ecc5a03e1405bbb5f0678a1b489388fad584d9d0`, draft PR [#7](https://github.com/dima1203oleg/MarshGO-Server/pull/7). Local typecheck/lint and targeted test passed.
+- Server transport-layer availability commit `636a3eb5035b77461f806d5fe242963c34fab839`, draft PR [#7](https://github.com/dima1203oleg/MarshGO-Server/pull/7). The first hosted run exposed a stale expected layer list in an integration test; that expectation was updated, then the latest hosted CI passed.
 
-These changes are separate PRs and have not been integrated into a common five-product candidate. Security scan and cross-repository tests for these deltas remain pending.
+These changes are separate PRs and have not been integrated into a common five-product candidate. Their component CI passes, but the central exact-SHA release candidate does not consume the new Server/Site stop-arrival SHAs; cross-repository acceptance for these deltas remains pending.
 
 ## Known release blockers
 
 1. No configured staging URL/provider, production deployment target, production credentials, or verified production deployment is present in the current workspace. Never infer deployment from local/Docker/GitHub build success.
 2. Admin/Partner are private; central CI needs approved least-privilege access before it can fetch/build their exact SHAs. Do not place tokens in Git.
 3. Server partner foundation migration/API and Smart Cache work need a reviewed integrated Server SHA; current Admin/Partner endpoint compatibility is not proven against current Server `64ed70c`.
-4. The central release pipeline materializes Server and Site today; five-component build/test, Admin/Partner images, iOS artifact/digest, full immutable manifest and rollback rehearsal remain incomplete.
-5. Published branches were observed without protection; current account could not configure/read all required settings. Reviewers, required checks, no-force-push policy, and rulesets need a verified repository-settings pass.
+4. The central release pipeline materializes Server and Site today; five-component build/test, Admin/Partner images, iOS artifact/digest, image digests in the manifest, and rollback rehearsal remain incomplete.
+5. Branch governance remains incomplete: only one collaborator is available, so public `main` rules require zero independent approvals; Admin/Partner protection is unavailable on the current GitHub plan, and feature branches are unprotected.
 6. Full exact-SHA regression/security/integration acceptance and staging backup/restore/rollback rehearsal remain release gates.
 
 See `docs/CONSOLIDATION_AUDIT_2026-10-14.md`, `docs/REDIS_CACHE_AND_PRODUCTION_GAP_AUDIT_2026-10-14.md`, and the central `RELEASE_MANIFEST.json` for additional recorded evidence.
