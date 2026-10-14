@@ -825,4 +825,95 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   await expect(page.locator('[data-testid="journey-result-card"][data-journey-id="e2e-alt-funicular"]')).toBeVisible();
   await verifyIntermediateStop('e2e-alt-ferry', 'e2e-alt-ferry-leg-2', 'F1', 'Проміжна зупинка · F1', '#0891B2');
   await verifyIntermediateStop('e2e-alt-funicular', 'e2e-alt-funicular-leg-2', 'Київський', 'Проміжна зупинка · Київський', '#64748B');
+
+  // A saved confirmed Community leg must bind only its participant-scoped
+  // rendezvous location, and must keep an old GPS fix visibly stale.
+  const savedJourneyId = 'e2e-saved-rendezvous-journey';
+  const savedBookingId = 'e2e-confirmed-booking';
+  const savedLegId = 'e2e-saved-community-leg';
+  const rendezvousCapturedAt = new Date(Date.now() - 120_000).toISOString();
+  const savedDepartureAt = new Date().toISOString();
+  const savedArrivalAt = new Date(Date.now() + 20 * 60_000).toISOString();
+  await page.route(url => url.pathname === `/api/v1/journeys/${savedJourneyId}`, route => route.fulfill({ json: { data: {
+    id: savedJourneyId,
+    origin_name: 'вул. Мало-Голосківська, 12',
+    destination_name: 'вул. Сихівська, 30',
+    origin_coordinates: [24.003, 49.8682],
+    destination_coordinates: [24.0576, 49.7941],
+    requested_departure_at: savedDepartureAt,
+    requested_arrival_at: savedArrivalAt,
+    strategy: 'BALANCED',
+    state: 'PARTIALLY_RESERVED',
+    passenger_count: 1,
+    total_price_minor: 5500,
+    confirmed_price_minor: 5500,
+    total_duration_s: 1200,
+    walking_distance_m: 0,
+    transfer_count: 0,
+    reliability_score: null,
+    waitingSeconds: 0,
+    legs: [{
+      id: savedLegId,
+      ordinal: 0,
+      mode: 'COMMUNITY',
+      originName: 'вул. Мало-Голосківська, 12',
+      originCoordinates: [24.003, 49.8682],
+      destinationName: 'вул. Сихівська, 30',
+      destinationCoordinates: [24.0576, 49.7941],
+      departureAt: savedDepartureAt,
+      arrivalAt: savedArrivalAt,
+      durationSeconds: 1200,
+      distanceMeters: 7800,
+      priceMinor: 5500,
+      currency: 'UAH',
+      priceStatus: 'LOCKED',
+      availabilityStatus: 'CONFIRMED',
+      providerType: 'COMMUNITY',
+      offerId: 'e2e-confirmed-offer',
+      bookingId: savedBookingId,
+      state: 'CONFIRMED',
+      dataSource: 'e2e-confirmed-booking',
+      source: 'marshgo-community',
+      lastUpdatedAt: savedDepartureAt,
+      metadata: {},
+      routeGeometry: [[24.003, 49.8682], [24.019, 49.846], [24.038, 49.82], [24.0576, 49.7941]],
+      stops: [],
+    }],
+  } } }));
+  await page.route(url => url.pathname === `/api/v1/bookings/${savedBookingId}/rendezvous`, route => route.fulfill({ json: { data: {
+    id: 'e2e-rendezvous-session',
+    bookingId: savedBookingId,
+    journeyLegId: savedLegId,
+    state: 'ACTIVE',
+    pickup: { label: 'вул. Мало-Голосківська, 12', coordinates: [24.003, 49.8682] },
+    plannedPickupAt: savedDepartureAt,
+    predictedPickupAt: null,
+    activationAt: savedDepartureAt,
+    locationSharingEnabled: true,
+    driverArrivedAt: null,
+    passengerArrivedAt: null,
+    boardingStartedAt: null,
+    completedAt: null,
+    cancelledAt: null,
+    currentParticipant: 'passenger',
+    locations: {
+      driver: { coordinates: [24.010, 49.861], accuracyMeters: 11, capturedAt: rendezvousCapturedAt, freshness: 'STALE' },
+      passenger: null,
+    },
+  } } }));
+  await page.goto(`/journeys/${savedJourneyId}`);
+  await expect(page.getByText('Збережений Journey · PARTIALLY_RESERVED')).toBeVisible();
+  await page.getByTestId('saved-journey-map-button').click();
+  const savedJourneyMap = page.getByRole('main', { name: 'Побудований маршрут' });
+  await expect(savedJourneyMap.locator('[data-testid="journey-rendezvous-status"]')).toContainText('Остання відома позиція водія застаріла.');
+  await expect(savedJourneyMap.locator('[data-testid="journey-rendezvous-status"]')).toContainText('ETA за дорожнім маршрутом недоступний.');
+  const savedMapCanvas = savedJourneyMap.locator('[data-marshgo-map-renderer="maplibre"]');
+  await expect(savedMapCanvas).toHaveAttribute('data-marshgo-map-ready', 'true');
+  await expect(savedMapCanvas).toHaveAttribute('data-marshgo-rideshare-count', '0');
+  await savedJourneyMap.locator(`[data-segment-id="${savedLegId}"] button[aria-label^="Вибрати сегмент:"]`).click();
+  await expect(savedMapCanvas).toHaveAttribute('data-marshgo-rideshare-count', '1');
+  await expect(savedMapCanvas.locator('.marshgo-rideshare-marker')).toHaveAttribute('data-freshness', 'stale');
+  await expect(savedMapCanvas.locator('.marshgo-rideshare-marker')).toHaveAttribute('aria-label', 'Попутка: остання відома позиція, GPS застаріло');
+  await expect(savedJourneyMap).not.toContainText(/\d+\s*хв до вас/);
+  expect(browserErrors).toEqual([]);
 });
