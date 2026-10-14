@@ -20,4 +20,4 @@ Do not add or copy product source into this repository to work around a branch, 
 4. Run the checks required by the changed paths and record exact commit SHAs and results. Cross-repository acceptance is required for release candidates and integration-affecting changes.
 5. Keep `RELEASE_MANIFEST.json` status `NOT_RELEASED` until all production gates are evidenced. Missing credentials, unbuilt image digests, absent staging, or unverified API compatibility are blockers, not passes.
 
-See `docs/PROJECT_ARCHITECTURE.md`, `docs/REPOSITORY_OWNERSHIP.md`, `docs/CODEX_WORKFLOW.md`, and `docs/RELEASE_PROCESS.md` for the current operating model.
+See `docs/PROJECT_ARCHITECTURE.md`, `docs/REPOSITORY_OWNERSHIP.md`, `docs/CONSOLIDATION_AUDIT_2026-10-14.md`, `docs/CODEX_WORKFLOW.md`, and `docs/RELEASE_PROCESS.md` for the current operating model.

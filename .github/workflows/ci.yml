@@ -4,24 +4,6 @@ on:
   push:
     branches: [main]
   pull_request:
-    paths:
-      - '.github/workflows/**'
-      - 'ops/**'
-      - 'server/**'
-      - 'src/**'
-      - 'shared/**'
-      - 'tests/**'
-      - 'e2e/**'
-      - 'scripts/**'
-      - 'Dockerfile.*'
-      - 'compose.production.yml'
-      - 'RELEASE_MANIFEST.json'
-      - 'bun.lock*'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'vite.config.*'
-      - 'playwright*.config.*'
-      - 'schemas/**'
 
 concurrency:
   group: central-ci-${{ github.workflow }}-${{ github.event.pull_request.head.ref || github.ref }}
@@ -31,7 +13,24 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      integration: ${{ steps.scope.outputs.integration }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: scope
+        run: node ops/scripts/detect-ci-scope.mjs
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+
   verify:
+    needs: changes
+    if: needs.changes.outputs.integration == 'true'
     runs-on: ubuntu-latest
     services:
       postgres:
