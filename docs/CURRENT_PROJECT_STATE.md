@@ -56,4 +56,4 @@ These changes are separate PRs and have not been integrated into a common five-p
 5. Published branches were observed without protection; current account could not configure/read all required settings. Reviewers, required checks, no-force-push policy, and rulesets need a verified repository-settings pass.
 6. Full exact-SHA regression/security/integration acceptance and staging backup/restore/rollback rehearsal remain release gates.
 
-See `docs/CONSOLIDATION_AUDIT_2026-10-14.md`, `docs/PRODUCTION_GAP_ANALYSIS.md`, and the central `RELEASE_MANIFEST.json` for additional recorded evidence.
+See `docs/CONSOLIDATION_AUDIT_2026-10-14.md`, `docs/REDIS_CACHE_AND_PRODUCTION_GAP_AUDIT_2026-10-14.md`, and the central `RELEASE_MANIFEST.json` for additional recorded evidence.
