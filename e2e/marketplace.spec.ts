@@ -350,7 +350,7 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
 
     const resultCard = passengerPage.locator(`[data-journey-id="${communityJourney.id}"]`);
     await expect(resultCard).toContainText(/300\s*(?:грн|₴)/);
-    await resultCard.getByRole('button').first().click();
+    await resultCard.getByRole('button', { name: /^Відкрити маршрут:/ }).click();
     await expect(passengerPage.getByRole('main', { name: 'Побудований маршрут' })).toBeVisible();
     await passengerPage.getByRole('button', { name: /^Забронювати/ }).click();
     await expect(passengerPage.getByText('Деталі поїздки', { exact: true })).toBeVisible();

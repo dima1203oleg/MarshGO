@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { encodePolyline6 } from '../shared/navigation/geometry';
 
 async function expectCanonicalScreenshot(
   page: Page,
@@ -9,6 +10,18 @@ async function expectCanonicalScreenshot(
   // and geometry assertions below without comparing platform-specific fonts.
   if (process.platform !== 'darwin' || test.info().project.name) return;
   await expect(page).toHaveScreenshot(name, options);
+}
+
+async function expectMapWebGlContextHealthy(map: Locator) {
+  await expect.poll(async () => map.locator('canvas.maplibregl-canvas').first().evaluate((canvas) => {
+    const element = canvas as HTMLCanvasElement;
+    const context = element.getContext('webgl2') ?? element.getContext('webgl');
+    return context !== null && !context.isContextLost();
+  }), {
+    message: 'MapLibre should retain or restore a usable WebGL context',
+    timeout: 5_000,
+    intervals: [100, 200, 400],
+  }).toBe(true);
 }
 
 async function routeSheetGeometry(routeMap: Locator) {
@@ -160,9 +173,30 @@ async function expectRouteHorizontal(map: Locator, route: Array<[number, number]
 
 test('canonical route map synchronizes the sheet, stop details, map focus, and light/dark palettes', async ({ page, browserName }) => {
   const browserErrors: string[] = [];
+  let allowInitialAnonymousSessionProbe = true;
   page.on('pageerror', (error) => browserErrors.push(`${error.name}: ${error.message}`));
+  page.on('response', (response) => {
+    if (response.status() !== 401) return;
+    const url = new URL(response.url());
+    // A fresh browser context probes its HttpOnly refresh cookie before OTP login.
+    // That one expected anonymous response is not an app error; any later 401 is.
+    if (allowInitialAnonymousSessionProbe && url.pathname === '/api/v1/auth/refresh') {
+      allowInitialAnonymousSessionProbe = false;
+      return;
+    }
+    browserErrors.push(`HTTP ${response.status()} ${url.pathname}`);
+  });
   page.on('console', (message) => {
     const text = message.text();
+    // The response listener above classifies 401s by endpoint so the browser's
+    // generic resource-failure message does not lose that request context.
+    if (/^Failed to load resource: the server responded with a status of 401 \(Unauthorized\)$/.test(text)) return;
+    // GitHub's Xvfb + software Mesa matrix emits these renderer diagnostics
+    // during repeated MapLibre mounts. Keep checking the actual canvas below;
+    // a context that was lost and not restored still fails the browser test.
+    const softwareWebGlDiagnostic = process.env.MARSHGO_FIREFOX_XVFB === '1'
+      && (/GL Driver Message .*GPU stall due to ReadPixels/i.test(text) || /WebGL context was lost\./i.test(text));
+    if (softwareWebGlDiagnostic) return;
     if (message.type() === 'error' || /webgl|maplibre.*(?:failed|error)/i.test(text)) browserErrors.push(text);
   });
   const origin = { label: 'вул. Мало-Голосківська, 24', latitude: 49.8682, longitude: 24.0030, providerId: 'e2e-lviv-origin' };
@@ -396,6 +430,10 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
   await expect(page.locator('details.coverage-details')).toHaveCount(0);
   const resultCard = page.getByTestId('journey-result-card').first();
+  const canonicalJourneyId = await resultCard.getAttribute('data-journey-id');
+  expect(canonicalJourneyId).toBeTruthy();
+  if (!canonicalJourneyId) throw new Error('The first route result must have a stable Journey ID.');
+  await expect(resultCard.locator('[data-canonical-route-lip]')).toHaveAttribute('data-canonical-route-lip', canonicalJourneyId);
   const metricGap = await resultCard.locator('.journey-result-key-metrics').evaluate((group) => {
     const duration = group.querySelector('.journey-result-duration');
     const price = group.querySelector('.journey-result-total-price');
@@ -407,7 +445,15 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   expect(metricGap, 'duration and price should read as one compact metric group').toBeGreaterThanOrEqual(0);
   expect(metricGap, 'price should stay visually close to duration').toBeLessThanOrEqual(24);
   await expect(resultCard.locator('.journey-result-total-price')).toHaveCSS('font-weight', '900');
-  await expect(resultCard.locator('.journey-segment-ribbon')).toHaveCSS('height', '10px');
+  await expect(resultCard.locator('.journey-segment-ribbon')).toHaveCSS('height', '11px');
+  await expect(resultCard.locator('.journey-segment-strip')).toHaveAttribute('data-layout', 'horizontal');
+  const firstSegmentLayout = await resultCard.locator('.journey-segment-tile-horizontal').first().evaluate((tile) => {
+    const icon = tile.querySelector('.journey-segment-tile-icon');
+    const label = tile.querySelector('.journey-segment-tile-label');
+    if (!icon || !label) return false;
+    return icon.getBoundingClientRect().left < label.getBoundingClientRect().left;
+  });
+  expect(firstSegmentLayout, 'transport icon should sit to the left of its segment details').toBe(true);
   await expect(resultCard.locator('.journey-segment-tile-meta-value').first()).toHaveCSS('font-weight', '700');
   await expect(resultCard.getByLabel('Оптимальний')).toBeVisible();
   await expect(page.locator('[data-testid="journey-result-card"][data-journey-id="e2e-alt-train"]').getByLabel('Найшвидший')).toBeVisible();
@@ -461,7 +507,7 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   const lightResultsGeometry = await journeyResultsGeometry(resultsScreen);
   await page.evaluate(() => document.documentElement.classList.add('dark'));
   await expect.poll(() => resultCard.evaluate(element => getComputedStyle(element).backgroundColor)).toBe('rgb(9, 27, 42)');
-  await expect(resultCard.locator('p').first()).toHaveCSS('color', 'rgb(245, 249, 255)');
+  await expect(resultCard.locator('[data-testid="canonical-route-duration"]')).toHaveCSS('color', 'rgb(245, 249, 255)');
   await expect.poll(() => cheapestMode.evaluate(element => getComputedStyle(element).backgroundColor)).toBe('rgb(10, 29, 45)');
   await expect(resultCard.locator('[data-segment-mode="BUS"]')).toHaveCSS('background-color', 'rgb(22, 135, 255)');
   await page.screenshot({ path: `/tmp/marshgo-${browserName}-journey-results-dark.png` });
@@ -489,6 +535,7 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
 
   const routeMap = page.getByRole('main', { name: 'Побудований маршрут' });
   await expect(routeMap).toBeVisible();
+  await expect(routeMap.locator('[data-canonical-route-lip]')).toHaveCount(1);
   await expect(routeMap).toHaveAttribute('data-theme', 'light');
   const routeSummaryTitle = routeMap.locator('.route-summary-title');
   await expect(routeSummaryTitle).toContainText('Мало-Голосківська, 24');
@@ -812,4 +859,141 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   await expect(page.locator('[data-testid="journey-result-card"][data-journey-id="e2e-alt-funicular"]')).toBeVisible();
   await verifyIntermediateStop('e2e-alt-ferry', 'e2e-alt-ferry-leg-2', 'F1', 'Проміжна зупинка · F1', '#0891B2');
   await verifyIntermediateStop('e2e-alt-funicular', 'e2e-alt-funicular-leg-2', 'Київський', 'Проміжна зупинка · Київський', '#64748B');
+
+  // A saved confirmed Community leg must bind only its participant-scoped
+  // rendezvous location, and must keep an old GPS fix visibly stale.
+  const savedJourneyId = 'e2e-saved-rendezvous-journey';
+  const savedBookingId = 'e2e-confirmed-booking';
+  const savedLegId = 'e2e-saved-community-leg';
+  let rendezvousCapturedAt = new Date(Date.now() - 120_000).toISOString();
+  let rendezvousFreshness: 'LIVE' | 'STALE' = 'STALE';
+  const savedDepartureAt = new Date().toISOString();
+  const savedArrivalAt = new Date(Date.now() + 20 * 60_000).toISOString();
+  await page.route(url => url.pathname === `/api/v1/journeys/${savedJourneyId}`, route => route.fulfill({ json: { data: {
+    id: savedJourneyId,
+    origin_name: 'вул. Мало-Голосківська, 12',
+    destination_name: 'вул. Сихівська, 30',
+    origin_coordinates: [24.003, 49.8682],
+    destination_coordinates: [24.0576, 49.7941],
+    requested_departure_at: savedDepartureAt,
+    requested_arrival_at: savedArrivalAt,
+    strategy: 'BALANCED',
+    state: 'PARTIALLY_RESERVED',
+    passenger_count: 1,
+    total_price_minor: 5500,
+    confirmed_price_minor: 5500,
+    total_duration_s: 1200,
+    walking_distance_m: 0,
+    transfer_count: 0,
+    reliability_score: null,
+    waitingSeconds: 0,
+    legs: [{
+      id: savedLegId,
+      ordinal: 0,
+      mode: 'COMMUNITY',
+      originName: 'вул. Мало-Голосківська, 12',
+      originCoordinates: [24.003, 49.8682],
+      destinationName: 'вул. Сихівська, 30',
+      destinationCoordinates: [24.0576, 49.7941],
+      departureAt: savedDepartureAt,
+      arrivalAt: savedArrivalAt,
+      durationSeconds: 1200,
+      distanceMeters: 7800,
+      priceMinor: 5500,
+      currency: 'UAH',
+      priceStatus: 'LOCKED',
+      availabilityStatus: 'CONFIRMED',
+      providerType: 'COMMUNITY',
+      offerId: 'e2e-confirmed-offer',
+      bookingId: savedBookingId,
+      state: 'CONFIRMED',
+      dataSource: 'e2e-confirmed-booking',
+      source: 'marshgo-community',
+      lastUpdatedAt: savedDepartureAt,
+      metadata: {},
+      routeGeometry: [[24.003, 49.8682], [24.019, 49.846], [24.038, 49.82], [24.0576, 49.7941]],
+      stops: [],
+    }],
+  } } }));
+  await page.route(url => url.pathname === `/api/v1/bookings/${savedBookingId}/rendezvous`, route => route.fulfill({ json: { data: {
+    id: 'e2e-rendezvous-session',
+    bookingId: savedBookingId,
+    journeyLegId: savedLegId,
+    state: 'ACTIVE',
+    pickup: { label: 'вул. Мало-Голосківська, 12', coordinates: [24.003, 49.8682] },
+    plannedPickupAt: savedDepartureAt,
+    predictedPickupAt: null,
+    activationAt: savedDepartureAt,
+    locationSharingEnabled: true,
+    driverArrivedAt: null,
+    passengerArrivedAt: null,
+    boardingStartedAt: null,
+    completedAt: null,
+    cancelledAt: null,
+    currentParticipant: 'passenger',
+    locations: {
+      driver: { coordinates: [24.010, 49.861], accuracyMeters: 11, capturedAt: rendezvousCapturedAt, freshness: rendezvousFreshness },
+      passenger: null,
+    },
+  } } }));
+  let approachRequests = 0;
+  await page.route(url => url.pathname === '/api/v1/routing/calculate', async route => {
+    approachRequests += 1;
+    const request = route.request().postDataJSON();
+    expect(request.origin).toEqual([24.010, 49.861]);
+    expect(request.destination).toEqual([24.003, 49.8682]);
+    expect(request.profile.mode).toBe('CAR');
+    const geometry: Array<[number, number]> = [[24.010, 49.861], [24.007, 49.864], [24.003, 49.8682]];
+    await route.fulfill({ json: { data: {
+      id: request.requestId,
+      provider: 'osrm',
+      geometry: { encoding: 'polyline6', value: encodePolyline6(geometry) },
+      bounds: [[24.003, 49.861], [24.010, 49.8682]],
+      distanceMeters: 1400,
+      durationSeconds: 240,
+      durationWithoutTrafficSeconds: 240,
+      trafficAware: false,
+      legs: [{ distanceMeters: 1400, durationSeconds: 240 }],
+      maneuvers: [],
+      confidence: 'BASELINE',
+      calculatedAt: new Date().toISOString(),
+      routeVersion: 1,
+    } } });
+  });
+  await page.goto(`/journeys/${savedJourneyId}`);
+  await expect(page.getByText('Збережений Journey · PARTIALLY_RESERVED')).toBeVisible();
+  await page.getByTestId('saved-journey-map-button').click();
+  const savedJourneyMap = page.getByRole('main', { name: 'Побудований маршрут' });
+  await expect(savedJourneyMap.locator('[data-testid="journey-rendezvous-status"]')).toContainText('Остання відома позиція водія застаріла.');
+  await expect(savedJourneyMap.locator('[data-testid="journey-rendezvous-status"]')).toContainText('ETA за дорожнім маршрутом недоступний.');
+  const savedMapCanvas = savedJourneyMap.locator('[data-marshgo-map-renderer="maplibre"]');
+  await expect(savedMapCanvas).toHaveAttribute('data-marshgo-map-ready', 'true');
+  await expect(savedMapCanvas).toHaveAttribute('data-marshgo-rideshare-count', '0');
+  await expect(savedJourneyMap.locator(`[data-segment-id="${savedLegId}"]`).getByRole('button', { name: 'Забронювати' })).toHaveCount(0);
+  await savedJourneyMap.locator(`[data-segment-id="${savedLegId}"] button[aria-label^="Вибрати сегмент:"]`).click();
+  await expect(savedMapCanvas).toHaveAttribute('data-marshgo-rideshare-count', '1');
+  await expect(savedMapCanvas.locator('.marshgo-rideshare-marker')).toHaveAttribute('data-freshness', 'stale');
+  await expect(savedMapCanvas.locator('.marshgo-rideshare-marker')).toHaveAttribute('aria-label', 'Попутка: остання відома позиція, GPS застаріло');
+  await expect(savedJourneyMap).not.toContainText(/\d+\s*хв до вас/);
+  await expectMapWebGlContextHealthy(savedMapCanvas);
+
+  // The same authorized booking may show a baseline road estimate only after
+  // a fresh GPS fix and an authenticated OSRM response are both available.
+  rendezvousCapturedAt = new Date().toISOString();
+  rendezvousFreshness = 'LIVE';
+  await page.reload();
+  await expect(page.getByText('Збережений Journey · PARTIALLY_RESERVED')).toBeVisible();
+  await page.getByTestId('saved-journey-map-button').click();
+  const liveJourneyMap = page.getByRole('main', { name: 'Побудований маршрут' });
+  const liveMapCanvas = liveJourneyMap.locator('[data-marshgo-map-renderer="maplibre"]');
+  await expect(liveMapCanvas).toHaveAttribute('data-marshgo-map-ready', 'true');
+  await liveJourneyMap.locator(`[data-segment-id="${savedLegId}"] button[aria-label^="Вибрати сегмент:"]`).click();
+  await expect(liveJourneyMap.locator('[data-testid="journey-rendezvous-status"]')).toContainText('OSRM, без live-трафіку');
+  await expect(liveMapCanvas).toHaveAttribute('data-marshgo-rideshare-approach-route-count', '1');
+  await expect(liveMapCanvas).toHaveAttribute('data-marshgo-rideshare-approach-provider', 'osrm');
+  await expect(liveMapCanvas).toHaveAttribute('data-marshgo-rideshare-approach-distance-meters', '1400');
+  await expect(liveMapCanvas).toHaveAttribute('data-marshgo-rideshare-approach-duration-seconds', '240');
+  expect(approachRequests).toBe(1);
+  await expectMapWebGlContextHealthy(liveMapCanvas);
+  expect(browserErrors).toEqual([]);
 });
