@@ -8,9 +8,9 @@
   "server_sha": "64ed70c72fec06cb9418dc7feee67ae0acee3826",
   "site_sha": "22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730",
   "ios_sha": "c304ae30b19bdaca57931baedeec4ffde02bca2d",
-  "integration_sha": "95b23252d834e09ae1feda84a38e6d8da4489b52",
+  "integration_sha": "6c4be052eb639224ed0ac4d04bd050355f4be6f5",
   "database_migration": "050 (additive mobility registry/rental migrations; local upgrade and integration checks pass; production/staging upgrade rehearsal and rollback are not run)",
-  "candidate_scope": "Navigation Experience 6 candidate: Server 64ed70c72fec06cb9418dc7feee67ae0acee3826 (Redis Smart Cache/routing gateway, unchanged); Site 22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730 (confirmed Community rendezvous now shows a fresh OSRM baseline road approach; PR #6); iOS c304ae30b19bdaca57931baedeec4ffde02bca2d pins that exact Site SHA (PR #5); integration E2E source 95b23252d834e09ae1feda84a38e6d8da4489b52 tests stale and fresh rendezvous GPS, authenticated OSRM route response and no repeated booking action (umbrella PR #3). Site checks pass; exact-pin iOS and umbrella CI are pending. Existing eight Light/Dark visual states do not cover all requested scenarios; bus stop-approach matching remains partial/external. No production OSRM request reduction, latency or load capacity is measured. Production remains NOT_RELEASED.",
+  "candidate_scope": "Navigation Experience 6 candidate: Server 64ed70c72fec06cb9418dc7feee67ae0acee3826 (Redis Smart Cache/routing gateway, unchanged); Site 22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730 (confirmed Community rendezvous now shows a fresh OSRM baseline road approach; PR #6); iOS c304ae30b19bdaca57931baedeec4ffde02bca2d pins that exact Site SHA (PR #5); integration E2E source 6c4be052eb639224ed0ac4d04bd050355f4be6f5 tests stale and fresh rendezvous GPS, authenticated OSRM route response and no repeated booking action (umbrella PR #3). Site checks pass; exact-pin iOS CI passed; umbrella CI is being rerun after fixing one overly strict text assertion. Existing eight Light/Dark visual states do not cover all requested scenarios; bus stop-approach matching remains partial/external. No production OSRM request reduction, latency or load capacity is measured. Production remains NOT_RELEASED.",
   "api_version": "v1",
   "source_repositories": {
     "server": "dima1203oleg/MarshGO-Server@codex/redis-smart-cache",
@@ -94,9 +94,9 @@
     "navigation_experience_6_ios_local_simulator": "Previous simulator baseline only: Site 52ec4f7c888d9ca9a671b0e858a9f018406034b1 built, Capacitor-synced, installed and launched on iPhone 15 Pro Max Simulator. Screenshot /tmp/marshgo-nav6-iphone15-simulator.png shows Welcome. API was not running; no authenticated Journey, GPS or background behavior was exercised. The updated exact pin is covered by iOS PR #5 CI; local authenticated simulator acceptance remains absent.",
     "umbrella_navigation_candidate_ci": "PENDING final exact-pin validation on PR #3 after E2E source SHA 142d20529c0a33006e0e9c1cd34877cc85c45865. Run 38530975014 is in progress on the same Site/iOS pins with the previous E2E classifier; its checks through Docker image build passed, and its browser run is still active. Security run 38530975340 passed before this E2E-only follow-up.",
     "rideshare_approach_map": "PASS locally: only participant-scoped confirmed Community rendezvous with LIVE GPS at <=100 m accuracy and <=90 s age requests /routing/calculate; only a fresh OSRM result is drawn. UI labels baseline duration/distance as OSRM without live traffic. Stale GPS, low-confidence accuracy, stale route, non-OSRM, invalid geometry and provider failure do not display a route or ETA. Site unit/build checks pass; production provider availability is not established.",
-    "umbrella_rideshare_approach_e2e": "PENDING exact-pin hosted E2E and cross-browser CI for integration source 95b23252d834e09ae1feda84a38e6d8da4489b52 with Site 22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730 and iOS c304ae30b19bdaca57931baedeec4ffde02bca2d."
+    "umbrella_rideshare_approach_e2e": "PENDING exact-pin hosted rerun after integration test-only fix on source 6c4be052eb639224ed0ac4d04bd050355f4be6f5; previous run 38541127027 passed lint, typecheck, 231 unit tests, migrations, database integrations, production build, bundle gate and Docker builds, then passed 11/12 Playwright tests. The only failure was an expected string omitting a closing parenthesis present in the correct UI text; the assertion now matches the stable OSRM label."
   },
-  "note": "Navigation Experience 6 remains an unreleased review candidate. Current candidate pins Server 64ed70c72fec06cb9418dc7feee67ae0acee3826, Site 22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730, iOS c304ae30b19bdaca57931baedeec4ffde02bca2d and integration E2E source 95b23252d834e09ae1feda84a38e6d8da4489b52. Site adds participant-scoped, fresh-GPS OSRM baseline road approach visualization for a confirmed rideshare rendezvous; exact-pin iOS and umbrella CI are pending. The eight current golden states cover results and route sheet positions in Light/Dark, not all six requested scenarios. Bus stop approach, production OSRM/provider availability, production latency/load, physical-device GPS and production deployment remain unverified or externally blocked. Keep status NOT_RELEASED until remaining acceptance criteria and external operations are closed.",
+  "note": "Navigation Experience 6 remains an unreleased review candidate. Current candidate pins Server 64ed70c72fec06cb9418dc7feee67ae0acee3826, Site 22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730, iOS c304ae30b19bdaca57931baedeec4ffde02bca2d and integration E2E source 6c4be052eb639224ed0ac4d04bd050355f4be6f5. Site adds participant-scoped, fresh-GPS OSRM baseline road approach visualization for a confirmed rideshare rendezvous; exact-pin iOS CI is green; umbrella CI is rerunning after correcting one E2E text expectation. The eight current golden states cover results and route sheet positions in Light/Dark, not all six requested scenarios. Bus stop approach, production OSRM/provider availability, production latency/load, physical-device GPS and production deployment remain unverified or externally blocked. Keep status NOT_RELEASED until remaining acceptance criteria and external operations are closed.",
   "staging": {
     "url": null,
     "provider": null,
@@ -234,7 +234,7 @@
   },
   "latest_workspace_sync_2026_10_14_rideshare_approach": {
     "checked_at": "2026-10-14",
-    "integration_code_sha": "95b23252d834e09ae1feda84a38e6d8da4489b52",
+    "integration_code_sha": "6c4be052eb639224ed0ac4d04bd050355f4be6f5",
     "server_sha": "64ed70c72fec06cb9418dc7feee67ae0acee3826",
     "site_sha": "22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730",
     "ios_sha": "c304ae30b19bdaca57931baedeec4ffde02bca2d",
@@ -246,8 +246,8 @@
       "ios": "https://github.com/dima1203oleg/MarshGO-iOS/pull/5"
     },
     "site_checks": "PASS: Site commit 22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730; local 92 unit tests, lint, typecheck, build, gzip budget, hosted PR CI 38540584371.",
-    "ios_checks": "PENDING: commit c304ae30b19bdaca57931baedeec4ffde02bca2d pins Site 22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730.",
-    "umbrella_checks": "PENDING: exact-pin full CI and E2E after manifest reconciliation.",
+    "ios_checks": "PASS: commit c304ae30b19bdaca57931baedeec4ffde02bca2d pins Site 22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730; iOS Simulator CI run 38540742501 passed.",
+    "umbrella_checks": "RERUN PENDING after one assertion-only E2E correction; previous run 38541127027 passed all checks except the newly added journey route-map E2E label assertion.",
     "local_browser_e2e": "NOT_TESTED: loopback PostGIS at 127.0.0.1:5434 is unavailable; hosted workflow provisions isolated services.",
     "production": "NOT_RELEASED; production target, domain, service access and credentials remain unavailable.",
     "no_merge_or_deploy": true

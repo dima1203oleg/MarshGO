@@ -1,7 +1,7 @@
 # Navigation Experience 6.0 — implementation audit
 
 **Review branch:** `codex/navigation-experience-6`
-**Candidate pins:** integration E2E source `95b23252d834e09ae1feda84a38e6d8da4489b52`, Server `64ed70c72fec06cb9418dc7feee67ae0acee3826`, Site `22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730`, iOS `c304ae30b19bdaca57931baedeec4ffde02bca2d` (pins that exact Site SHA). Site CI is green; exact-pin iOS and umbrella validation are pending.
+**Candidate pins:** integration E2E source `6c4be052eb639224ed0ac4d04bd050355f4be6f5`, Server `64ed70c72fec06cb9418dc7feee67ae0acee3826`, Site `22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730`, iOS `c304ae30b19bdaca57931baedeec4ffde02bca2d` (pins that exact Site SHA). Site and iOS simulator CI are green; umbrella validation is rerunning after an assertion-only E2E correction.
 **Release status:** `NOT_RELEASED`; no production deployment or staging SLO claim.
 
 ## Implemented in this change
@@ -44,20 +44,20 @@ Site checks on the current feature worktree:
 - `npm test` — PASS, 92 tests, 0 failures.
 - `npm run build` — PASS.
 - `npm run check:bundle` — PASS, 17 JavaScript chunks and each under the 350 KB gzip budget.
-- Journey route-map Playwright E2E — previous exact-manifest run `38534486384` passed 12/12 on the previous pins. Updated source `95b23252d834e09ae1feda84a38e6d8da4489b52` adds fresh OSRM-route/stale-GPS assertions; exact-pin hosted run is pending. Local run is unavailable because loopback PostGIS at `127.0.0.1:5434` does not respond.
+- Journey route-map Playwright E2E — previous exact-manifest run `38534486384` passed 12/12 on the previous pins. Updated source `6c4be052eb639224ed0ac4d04bd050355f4be6f5` adds fresh OSRM-route/stale-GPS assertions. First exact-pin run `38541127027` passed 11/12; the new scenario reached the correct OSRM estimate and route metadata but its text assertion omitted a closing parenthesis, now corrected. Hosted rerun is pending. Local run is unavailable because loopback PostGIS at `127.0.0.1:5434` does not respond.
 - Browser compatibility — exact-manifest run `38534486384` passed 6/6 across Chromium, Firefox and WebKit. It covers responsive sign-in/home/search and the canonical route map. In Xvfb/software Mesa only the renderer's exact GPU-stall/context-loss console diagnostics are filtered; the route test now separately asserts the final MapLibre canvas has a usable WebGL context. Local browser E2E could not start because isolated PostGIS at `127.0.0.1:5434` is unavailable.
 - Site PR #6 hosted verification — PASS on exact SHA `22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730`; run `38540584371` passes. Local lint, typecheck, 92/92 tests, production build and 17-chunk gzip budget pass.
-- iOS PR #5 now pins Site `22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730` on iOS SHA `c304ae30b19bdaca57931baedeec4ffde02bca2d`; simulator CI is pending. Physical-device GPS, background behavior and authenticated Journey UI are not covered by simulator build checks.
+- iOS PR #5 pins Site `22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730` on iOS SHA `c304ae30b19bdaca57931baedeec4ffde02bca2d`; simulator run `38540742501` passes. Physical-device GPS, background behavior and authenticated Journey UI are not covered by simulator build checks.
 - Local umbrella lint, typecheck, 231 unit tests (0 failures, 1 opt-in skip), production build and 51-chunk bundle gate pass on Node 25.4.0, outside its declared `>=24.21.0 <25` range. The revised test source passes local lint, typecheck and unit tests. Exact-pin hosted CI on the supported runtime passed all verification steps.
 
 The production bundle size and passing fixture E2E are not production latency or feed-availability measurements. No OSRM/provider request reduction is claimed.
 
 ## Hosted integration candidate CI
 
-- Previous exact-pin run `38534486384` on the previous pins passed the full pipeline. The updated candidate uses Site `22fe4f1`, iOS `c304ae3`, and E2E source `95b2325`; current exact-manifest CI result is pending.
+- Previous exact-pin run `38534486384` on the previous pins passed the full pipeline. Updated run `38541127027` passed the code checks through Docker builds and 11/12 E2E; only the new route-label assertion failed. It now uses Site `22fe4f1`, iOS `c304ae3`, and E2E source `6c4be05`; exact-manifest rerun is pending.
 - The previous run `38531935261` exposed software Mesa GPU/context diagnostics. Follow-up source `bc32abc710a4e3e7c27e77207ee0671f82621598` filters only those exact diagnostics under Xvfb and asserts that the final canvas WebGL context is usable; it passed in the exact-manifest rerun.
 - Site PR #6 exact SHA `22fe4f1089f3acfb342e8a8399ca8e9fe4cd1730` — hosted verification run `38540584371` passes.
-- iOS PR #5 exact SHA `c304ae30b19bdaca57931baedeec4ffde02bca2d` pins the exact Site SHA; simulator validation is pending.
+- iOS PR #5 exact SHA `c304ae30b19bdaca57931baedeec4ffde02bca2d` pins the exact Site SHA; simulator run `38540742501` passes.
 
 The checks validate this review candidate and fixtures; they do not establish provider availability, production load SLOs, physical iPhone behavior, or production readiness.
 
