@@ -1,7 +1,7 @@
 # Navigation Experience 6.0 — implementation audit
 
 **Review branch:** `codex/navigation-experience-6`  
-**Baseline:** umbrella `55a8f1384e55249b90c543d656ac94800f9165ef`, Server `64ed70c72fec06cb9418dc7feee67ae0acee3826`, Site `5a12c6fbf0b18ca479e92c93d6d9597d567734d3`, iOS `268fc48fbd8ed9dc278bb9f0b142e341bcfc5652`.  
+**Candidate pins:** umbrella source `e34b5c6e547f19155486176d3eca2129ba3d17db`, Server `64ed70c72fec06cb9418dc7feee67ae0acee3826`, Site `52ec4f7c888d9ca9a671b0e858a9f018406034b1`, iOS `7b9e631a99b025cb2f421dabc666360135c966fc` (pins that exact Site SHA).
 **Release status:** `NOT_RELEASED`; no production deployment or staging SLO claim.
 
 ## Implemented in this change
@@ -42,10 +42,10 @@ Site checks on the current feature worktree:
 - `npm test` — PASS, 84 tests, 0 failures.
 - `npm run build` — PASS.
 - `npm run check:bundle` — PASS, 17 JavaScript chunks and each under the 350 KB gzip budget.
-- Journey route-map Playwright E2E — PASS 1/1 on the production bundle and isolated PostGIS/Redis fixture, including results, segment focus, stop details, map sheet positions and both themes. The complete browser run passed 11/12; its only failure was an outdated test selector that picked the favorite action. Replacing it with the explicit accessible Open Route selector made that previously failing booking/chat scenario pass 1/1 on a focused rerun. The other 11 scenarios passed in the full run.
+- Journey route-map Playwright E2E — PASS 1/1 on the production bundle and isolated PostGIS/Redis fixture, including results, segment focus, stop details, map sheet positions and both themes. The full browser run passed 11/12; its only failure was an outdated test selector that picked the favorite action. Replacing it with the explicit accessible Open Route selector made that previously failing scenario pass 1/1 on a focused rerun. Combined evidence covers all 12 scenarios, but the full suite was not rerun after the selector fix.
 - Site PR #5 hosted verification — PASS on exact SHA `52ec4f7c888d9ca9a671b0e858a9f018406034b1`, both jobs.
 - iOS PR #4 hosted simulator checks — PASS on exact iOS SHA `7b9e631a99b025cb2f421dabc666360135c966fc`, pinning the exact Site SHA above. A local iPhone 15 Pro Max simulator build/install/launch also passed and rendered the Welcome screen (`/tmp/marshgo-nav6-iphone15-simulator.png`); the API was not running, so this does not verify authenticated Journey UI or GPS.
-- Local commands used Node 25.4.0 although the repositories pin Node 24.21.0; rerun exact-runtime integration CI before release.
+- Local umbrella commands used Node 25.4.0, outside its declared `>=24.21.0 <25` range. Umbrella local production check passes, but the new candidate’s exact-runtime hosted CI is pending. Site PR #5 and iOS PR #4 hosted checks pass on their exact pinned SHAs. Rerun exact-runtime integration CI before release.
 
 The production bundle size and passing fixture E2E are not production latency or feed-availability measurements. No OSRM/provider request reduction is claimed.
 
@@ -69,4 +69,4 @@ These percentages are milestone coverage estimates, not an SLO or release approv
 3. Bind confirmed rideshare booking and rendezvous events to a privacy-scoped Journey tracking view.
 4. Build the exact Site SHA in iOS simulator CI and obtain physical-device acceptance for GPS and lifecycle behavior.
 5. Run multi-instance/provider load tests and report actual latency and upstream call counts before defining achieved SLOs.
-6. Reconcile the release manifest with the final exact repository SHAs. Keep `NOT_RELEASED` until the remaining release criteria pass.
+6. The manifest pins the tested integration source commit; the final manifest-only reconciliation commit may advance the branch without changing the tested code SHA. Keep `NOT_RELEASED` until the remaining release criteria pass.
