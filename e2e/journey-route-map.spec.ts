@@ -988,7 +988,7 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   const liveMapCanvas = liveJourneyMap.locator('[data-marshgo-map-renderer="maplibre"]');
   await expect(liveMapCanvas).toHaveAttribute('data-marshgo-map-ready', 'true');
   await liveJourneyMap.locator(`[data-segment-id="${savedLegId}"] button[aria-label^="Вибрати сегмент:"]`).click();
-  await expect(liveJourneyMap.locator('[data-testid="journey-rendezvous-status"]')).toContainText('OSRM, без live-трафіку.');
+  await expect(liveJourneyMap.locator('[data-testid="journey-rendezvous-status"]')).toContainText('OSRM, без live-трафіку');
   await expect(liveMapCanvas).toHaveAttribute('data-marshgo-rideshare-approach-route-count', '1');
   await expect(liveMapCanvas).toHaveAttribute('data-marshgo-rideshare-approach-provider', 'osrm');
   await expect(liveMapCanvas).toHaveAttribute('data-marshgo-rideshare-approach-distance-meters', '1400');
