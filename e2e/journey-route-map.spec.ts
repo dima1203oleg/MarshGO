@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { encodePolyline6 } from '../shared/navigation/geometry';
 
 async function expectCanonicalScreenshot(
   page: Page,
@@ -864,7 +865,8 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   const savedJourneyId = 'e2e-saved-rendezvous-journey';
   const savedBookingId = 'e2e-confirmed-booking';
   const savedLegId = 'e2e-saved-community-leg';
-  const rendezvousCapturedAt = new Date(Date.now() - 120_000).toISOString();
+  let rendezvousCapturedAt = new Date(Date.now() - 120_000).toISOString();
+  let rendezvousFreshness: 'LIVE' | 'STALE' = 'STALE';
   const savedDepartureAt = new Date().toISOString();
   const savedArrivalAt = new Date(Date.now() + 20 * 60_000).toISOString();
   await page.route(url => url.pathname === `/api/v1/journeys/${savedJourneyId}`, route => route.fulfill({ json: { data: {
@@ -930,10 +932,34 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
     cancelledAt: null,
     currentParticipant: 'passenger',
     locations: {
-      driver: { coordinates: [24.010, 49.861], accuracyMeters: 11, capturedAt: rendezvousCapturedAt, freshness: 'STALE' },
+      driver: { coordinates: [24.010, 49.861], accuracyMeters: 11, capturedAt: rendezvousCapturedAt, freshness: rendezvousFreshness },
       passenger: null,
     },
   } } }));
+  let approachRequests = 0;
+  await page.route(url => url.pathname === '/api/v1/routing/calculate', async route => {
+    approachRequests += 1;
+    const request = route.request().postDataJSON();
+    expect(request.origin).toEqual([24.010, 49.861]);
+    expect(request.destination).toEqual([24.003, 49.8682]);
+    expect(request.profile.mode).toBe('CAR');
+    const geometry: Array<[number, number]> = [[24.010, 49.861], [24.007, 49.864], [24.003, 49.8682]];
+    await route.fulfill({ json: { data: {
+      id: request.requestId,
+      provider: 'osrm',
+      geometry: { encoding: 'polyline6', value: encodePolyline6(geometry) },
+      bounds: [[24.003, 49.861], [24.010, 49.8682]],
+      distanceMeters: 1400,
+      durationSeconds: 240,
+      durationWithoutTrafficSeconds: 240,
+      trafficAware: false,
+      legs: [{ distanceMeters: 1400, durationSeconds: 240 }],
+      maneuvers: [],
+      confidence: 'BASELINE',
+      calculatedAt: new Date().toISOString(),
+      routeVersion: 1,
+    } } });
+  });
   await page.goto(`/journeys/${savedJourneyId}`);
   await expect(page.getByText('Збережений Journey · PARTIALLY_RESERVED')).toBeVisible();
   await page.getByTestId('saved-journey-map-button').click();
@@ -950,5 +976,24 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   await expect(savedMapCanvas.locator('.marshgo-rideshare-marker')).toHaveAttribute('aria-label', 'Попутка: остання відома позиція, GPS застаріло');
   await expect(savedJourneyMap).not.toContainText(/\d+\s*хв до вас/);
   await expectMapWebGlContextHealthy(savedMapCanvas);
+
+  // The same authorized booking may show a baseline road estimate only after
+  // a fresh GPS fix and an authenticated OSRM response are both available.
+  rendezvousCapturedAt = new Date().toISOString();
+  rendezvousFreshness = 'LIVE';
+  await page.reload();
+  await expect(page.getByText('Збережений Journey · PARTIALLY_RESERVED')).toBeVisible();
+  await page.getByTestId('saved-journey-map-button').click();
+  const liveJourneyMap = page.getByRole('main', { name: 'Побудований маршрут' });
+  const liveMapCanvas = liveJourneyMap.locator('[data-marshgo-map-renderer="maplibre"]');
+  await expect(liveMapCanvas).toHaveAttribute('data-marshgo-map-ready', 'true');
+  await liveJourneyMap.locator(`[data-segment-id="${savedLegId}"] button[aria-label^="Вибрати сегмент:"]`).click();
+  await expect(liveJourneyMap.locator('[data-testid="journey-rendezvous-status"]')).toContainText('OSRM, без live-трафіку.');
+  await expect(liveMapCanvas).toHaveAttribute('data-marshgo-rideshare-approach-route-count', '1');
+  await expect(liveMapCanvas).toHaveAttribute('data-marshgo-rideshare-approach-provider', 'osrm');
+  await expect(liveMapCanvas).toHaveAttribute('data-marshgo-rideshare-approach-distance-meters', '1400');
+  await expect(liveMapCanvas).toHaveAttribute('data-marshgo-rideshare-approach-duration-seconds', '240');
+  expect(approachRequests).toBe(1);
+  await expectMapWebGlContextHealthy(liveMapCanvas);
   expect(browserErrors).toEqual([]);
 });
