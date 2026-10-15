@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { requestDevelopmentOtp } from './support/developmentOtp';
 
 async function expectCanonicalScreenshot(
   page: Page,
@@ -361,11 +362,7 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   if (await welcome.isVisible()) await welcome.click();
   await page.getByPlaceholder('Ваше ім’я').fill(`Map ${browserName}`);
   await page.getByPlaceholder('+380 номер телефону').fill(`+38092${String(Date.now()).slice(-7)}`);
-  await page.getByRole('button', { name: 'Почати', exact: true }).click();
-  const otpNotice = page.getByText(/Тестовий OTP локального середовища:/);
-  await expect(otpNotice).toBeVisible();
-  const otp = (await otpNotice.innerText()).match(/\b\d{6}\b/)?.[0];
-  expect(otp).toMatch(/^\d{6}$/);
+  const otp = await requestDevelopmentOtp(page);
   await page.locator('input[autocomplete="one-time-code"]').fill(otp!);
   const [verifyResponse] = await Promise.all([
     page.waitForResponse(response => response.url().endsWith('/api/v1/auth/otp/verify') && response.status() === 200),
@@ -490,10 +487,10 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   const routeMap = page.getByRole('main', { name: 'Побудований маршрут' });
   await expect(routeMap).toBeVisible();
   await expect(routeMap).toHaveAttribute('data-theme', 'light');
-  const routeSummaryTitle = routeMap.locator('.route-summary-title');
-  await expect(routeSummaryTitle).toContainText('Мало-Голосківська, 24');
-  await expect(routeSummaryTitle).toContainText('Стрийська, 32');
-  await expect.poll(() => routeSummaryTitle.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
+  const routeEndpoints = routeMap.getByRole('group', { name: /Звідки: .+Куди:/ });
+  await expect(routeEndpoints).toContainText('Мало-Голосківська, 24');
+  await expect(routeEndpoints).toContainText('Стрийська, 32');
+  await expect.poll(() => routeEndpoints.evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
   await expect(routeMap.getByText('Автобус A20')).toBeVisible();
   await expect(routeMap.getByText('Трамвай T09')).toBeVisible();
   await expect(routeMap.getByText('Відстань не вказана', { exact: true })).toHaveCount(0);

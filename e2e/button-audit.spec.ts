@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { requestDevelopmentOtp } from './support/developmentOtp';
 
 /**
  * Clicks every visible button, tab and link on each screen of the signed-in web app and checks that the click
@@ -18,10 +19,7 @@ async function signIn(page: Page, name: string) {
   await expect(loginHeading).toBeVisible();
   await page.getByPlaceholder('Ваше ім’я').fill(name);
   await page.getByPlaceholder('+380 номер телефону').fill(`+38092${String(Date.now()).slice(-7)}`);
-  await page.getByRole('button', { name: 'Почати', exact: true }).click();
-  const notice = page.getByText(/Тестовий OTP локального середовища:/);
-  await expect(notice).toBeVisible();
-  const otp = (await notice.innerText()).match(/\b\d{6}\b/)?.[0];
+  const otp = await requestDevelopmentOtp(page);
   await page.locator('input[autocomplete="one-time-code"]').fill(otp!);
   await Promise.all([page.waitForResponse((r) => r.url().endsWith('/api/v1/auth/otp/verify') && r.status() === 200), page.getByRole('button', { name: 'Підтвердити номер' }).click()]);
   await expect(page.locator('.production-app')).toBeVisible();

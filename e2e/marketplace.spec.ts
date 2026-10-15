@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { devices, expect, test } from '@playwright/test';
 import { Pool } from 'pg';
+import { requestDevelopmentOtp } from './support/developmentOtp';
 
 const databaseUrl = process.env.E2E_DATABASE_URL;
 if (!databaseUrl) throw new Error('E2E_DATABASE_URL must point to the isolated local PostGIS test database');
@@ -45,11 +46,7 @@ async function signIn(page: import('@playwright/test').Page, name: string, phone
   await expect(loginHeading).toBeVisible();
   await page.getByPlaceholder('Ваше ім’я').fill(name);
   await page.getByPlaceholder('+380 номер телефону').fill(phone);
-  await page.getByRole('button', { name: 'Почати', exact: true }).click();
-  const otpNotice = page.getByText(/Тестовий OTP локального середовища:/);
-  await expect(otpNotice).toBeVisible();
-  const code = (await otpNotice.innerText()).match(/\b\d{6}\b/)?.[0];
-  expect(code, 'development OTP should be visible only in this isolated local E2E environment').toMatch(/^\d{6}$/);
+  const code = await requestDevelopmentOtp(page);
   await page.locator('input[autocomplete="one-time-code"]').fill(code!);
   const [authResponse] = await Promise.all([
     page.waitForResponse(response => response.url().endsWith('/api/v1/auth/otp/verify')),
@@ -534,7 +531,7 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     await expect(driverPage.getByRole('heading', { name: 'Заявки пасажирів' })).toBeVisible();
     const openDemand = driverPage.getByTestId(`open-demand-${createdDemandId}`);
     await openDemand.getByRole('button', { name: /Запропонувати ціну/ }).click();
-    await driverPage.getByLabel('Перевірене авто').selectOption(vehicleId);
+    await driverPage.getByLabel('Авто для пропозиції').selectOption(vehicleId);
     await driverPage.getByLabel('Ціна, грн').fill('350');
     await driverPage.getByRole('button', { name: 'Надіслати пропозицію' }).click();
     await expect(driverPage.getByText('350 грн')).toBeVisible();

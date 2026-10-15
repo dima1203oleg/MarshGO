@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import type { ApiBooking } from '../src/services/productionApi';
+import { requestDevelopmentOtp } from './support/developmentOtp';
 
 test('production sign-in, home and search stay usable across screen sizes', async ({ page, browserName }) => {
   const activeBooking: ApiBooking = {
@@ -37,11 +38,7 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
   await expect(loginHeading).toBeVisible();
   await page.getByPlaceholder('Ваше ім’я').fill(`Compat ${browserName}`);
   await page.getByPlaceholder('+380 номер телефону').fill(`+38091${String(Date.now()).slice(-7)}`);
-  await page.getByRole('button', { name: 'Почати', exact: true }).click();
-  const otpNotice = page.getByText(/Тестовий OTP локального середовища:/);
-  await expect(otpNotice).toBeVisible();
-  const otp = (await otpNotice.innerText()).match(/\b\d{6}\b/)?.[0];
-  expect(otp, 'only the isolated local E2E API may expose the test OTP').toMatch(/^\d{6}$/);
+  const otp = await requestDevelopmentOtp(page);
   await page.locator('input[autocomplete="one-time-code"]').fill(otp!);
   await Promise.all([
     page.waitForResponse(response => response.url().endsWith('/api/v1/auth/otp/verify') && response.status() === 200),
@@ -151,7 +148,7 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
   const modeTiles = transportPanel.locator('.transport-mode-grid > button');
   await expect(modeTiles).toHaveCount(12);
   expect(await modeTiles.evaluateAll(elements => elements.map(element => element.getAttribute('aria-label')?.split('. ')[0] ?? ''))).toEqual(expectedModes);
-  await expect(transportPanel.getByRole('button', { name: /^Таксі\./ })).toBeDisabled();
+  await expect(transportPanel.getByRole('button', { name: /^Таксі/ })).toBeDisabled();
   const carpoolTile = transportPanel.getByRole('button', { name: /^Попутки/ });
   await expect(carpoolTile).toHaveAttribute('aria-pressed', 'true');
   await carpoolTile.click();
