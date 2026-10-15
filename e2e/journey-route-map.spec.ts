@@ -407,7 +407,7 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   expect(metricGap, 'duration and price should read as one compact metric group').toBeGreaterThanOrEqual(0);
   expect(metricGap, 'price should stay visually close to duration').toBeLessThanOrEqual(24);
   await expect(resultCard.locator('.journey-result-total-price')).toHaveCSS('font-weight', '900');
-  await expect(resultCard.locator('.journey-segment-ribbon')).toHaveCSS('height', '10px');
+  await expect(resultCard.locator('.journey-segment-ribbon')).toHaveCSS('height', '11px');
   await expect(resultCard.locator('.journey-segment-tile-meta-value').first()).toHaveCSS('font-weight', '700');
   await expect(resultCard.getByLabel('Оптимальний')).toBeVisible();
   await expect(page.locator('[data-testid="journey-result-card"][data-journey-id="e2e-alt-train"]').getByLabel('Найшвидший')).toBeVisible();
@@ -461,7 +461,7 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   const lightResultsGeometry = await journeyResultsGeometry(resultsScreen);
   await page.evaluate(() => document.documentElement.classList.add('dark'));
   await expect.poll(() => resultCard.evaluate(element => getComputedStyle(element).backgroundColor)).toBe('rgb(9, 27, 42)');
-  await expect(resultCard.locator('p').first()).toHaveCSS('color', 'rgb(245, 249, 255)');
+  await expect(resultCard.getByTestId('canonical-route-duration')).toHaveCSS('color', 'rgb(245, 249, 255)');
   await expect.poll(() => cheapestMode.evaluate(element => getComputedStyle(element).backgroundColor)).toBe('rgb(10, 29, 45)');
   await expect(resultCard.locator('[data-segment-mode="BUS"]')).toHaveCSS('background-color', 'rgb(22, 135, 255)');
   await page.screenshot({ path: `/tmp/marshgo-${browserName}-journey-results-dark.png` });
@@ -779,21 +779,22 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   const destinationResponse = await destinationRoute;
   expect(destinationResponse.status()).toBe(200);
   expect((await destinationResponse.json()).data.route.length).toBeGreaterThan(1);
+  await expect(page.getByTestId('navigation-guidance')).toContainText('800 м');
   const navigationMap = page.getByRole('main');
   const navigationCanvas = navigationMap.locator('[data-marshgo-map-renderer="maplibre"]');
   await expect(navigationCanvas).toHaveAttribute('data-marshgo-map-ready', 'true');
   const navigationMapData = await navigationCanvas.evaluate((element) => ({ ...element.dataset }));
   expect(navigationMapData).toHaveProperty('marshgoRoutePointCount');
   expect(Number(navigationMapData.marshgoRoutePointCount)).toBeGreaterThan(1);
-  await expect(page.getByTestId('navigation-live-progress')).toContainText(/^\d+ хв/);
+  await expect(page.getByTestId('navigation-guidance')).toContainText('800 м');
+  await expect(page.getByTestId('navigation-guidance')).toContainText('Набережне шосе');
+  await expect(page.getByTestId('navigation-live-progress')).toContainText(/\d+ хв/);
   await expect(page.getByRole('button', { name: 'Розгорнути панель' })).toBeVisible();
   // Freeze the pulsing location halo only for the screenshot; keep production motion unchanged.
   const staticLocationHalo = await page.addStyleTag({ content: '.marshgo-puck__halo { animation: none !important; }' });
   // MapLibre rasterizes the location puck edge with a stable, localized 20px variance on this host.
   await expectCanonicalScreenshot(page, 'navigation-light-route.png', { animations: 'disabled', maxDiffPixels: 24 });
   await staticLocationHalo.evaluate(style => style.parentNode?.removeChild(style));
-  await page.getByRole('button', { name: 'Керування картою' }).click();
-  await expect(page.getByRole('group', { name: 'Додаткове керування навігацією' })).toBeVisible();
   await page.getByRole('button', { name: 'Шари карти' }).click();
   await expect(page.getByRole('dialog', { name: 'Шари карти' })).toBeVisible();
   await expectCanonicalScreenshot(page, 'navigation-light-layers.png');

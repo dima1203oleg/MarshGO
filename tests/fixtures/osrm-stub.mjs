@@ -28,14 +28,36 @@ const server = http.createServer((request, response) => {
       Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2,
     ));
     const distance = haversine * 1.1;
-    return { distance, duration: distance / 12 };
+    const duration = distance / 12;
+    if (waypoints.length !== 2) return { distance, duration };
+
+    // Give the two-point navigation fixture one real OSRM-style turn. Keeping
+    // the turn on the route geometry lets the client measure its distance
+    // along the road instead of relying on a straight-line estimate.
+    const turnDistance = Math.min(800, haversine * 0.6);
+    const fraction = turnDistance / haversine;
+    const turnLocation = [
+      from[0] + (point[0] - from[0]) * fraction,
+      from[1] + (point[1] - from[1]) * fraction,
+    ];
+    return {
+      distance,
+      duration,
+      steps: [
+        { distance: turnDistance, duration: turnDistance / 12, name: '', maneuver: { type: 'depart', location: from, bearing_before: 0, bearing_after: 0 } },
+        { distance: distance - turnDistance, duration: (distance - turnDistance) / 12, name: 'Набережне шосе', maneuver: { type: 'turn', modifier: 'right', location: turnLocation, bearing_before: 0, bearing_after: 90 } },
+        { distance: 0, duration: 0, name: '', maneuver: { type: 'arrive', location: point, bearing_before: 90, bearing_after: 90 } },
+      ],
+    };
   });
   const distance = legs.reduce((total, leg) => total + leg.distance, 0);
   const duration = legs.reduce((total, leg) => total + leg.duration, 0);
   response.writeHead(200, { 'content-type': 'application/json' });
   response.end(JSON.stringify({
     code: 'Ok',
-    routes: [{ distance, duration, legs, geometry: { coordinates: waypoints } }],
+    routes: [{ distance, duration, legs, geometry: { coordinates: waypoints.length === 2 && legs[0].steps
+      ? [waypoints[0], legs[0].steps[1].maneuver.location, waypoints[1]]
+      : waypoints } }],
   }));
 });
 server.on('connection', (socket) => socket.on('error', () => {}));
