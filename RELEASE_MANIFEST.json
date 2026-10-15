@@ -8,7 +8,7 @@
   "server_sha": "cf51f5293631a26f74766c241de163b6873b2747",
   "site_sha": "1fafdca4f17983506d80d14a231ee35afc91b3f3",
   "ios_sha": "200f7fc4c67ee8df2f9a0f511a74bf93d0e29349",
-  "integration_sha": "56c23aa779bfe10d9400aab4eb4a4c9035f6a9c0",
+  "integration_sha": "fc3f4c34fc4f9311d404db205ef1415226dcb5cc",
   "database_migration": "053 (additive mobility registry, return-rule and micromobility journey-mode migrations; Server PR #7 CI passes migration/integration checks; production/staging upgrade and rollback rehearsal required)",
   "candidate_scope": "Exact candidate pins: Server PR #7 cf51f5293631a26f74766c241de163b6873b2747; Site PR #5 1fafdca4f17983506d80d14a231ee35afc91b3f3; iOS PR #5 200f7fc4c67ee8df2f9a0f511a74bf93d0e29349 (iOS CI pins the exact Site SHA). Exact-pinned isolated browser E2E passes 12/12; Server unit/integration/type/lint and Site type/lint/unit/build/bundle gates pass; iOS simulator build CI passes. Bicycle and scooter journeys are estimates with approximate straight-line geometry; inventory, price and booking are unknown, so rental availability is not guaranteed and this is not production map/routing acceptance. Production remains NOT_RELEASED: no staging/production host, managed services, approved production map/routing provider, real SMS, partner access or physical-device release acceptance is configured.",
   "api_version": "v1",
@@ -24,13 +24,13 @@
     "umbrella_production_check": "PASS locally: typecheck, ESLint, unit tests, Vite production build and bundle budget (51 JavaScript chunks, all <=350 KB gzip). Hosted umbrella CI uses exact Node 24.21.0.",
     "umbrella_browser_e2e": "PASS: 12/12 Playwright scenarios on exact Server cf51f5293631a26f74766c241de163b6873b2747 and Site 1fafdca4f17983506d80d14a231ee35afc91b3f3, using isolated loopback PostGIS/Redis and the root E2E harness at 56c23aa779bfe10d9400aab4eb4a4c9035f6a9c0; 8.3 minutes. Covers route map/sheet/segment focus and light/dark display, two-account booking/proposals/chat, multi-rider matching and reroute, GPS denied flow, route search reload, transport catalogue, onboarding and Journey Planner. Local isolated acceptance only.",
     "server_unit": "PASS on Node 24.21.0 for Server cf51f5293631a26f74766c241de163b6873b2747: 199 passed, 0 failed, 1 opt-in local DB skip (200 total).",
-    "server_integration": "PASS for Server cf51f5293631a26f74766c241de163b6873b2747: full npm run test:integration completed successfully against an isolated loopback PostGIS/Redis database, covering bookings/trip edits, Journey schema, navigation, realtime cluster, restart durability and rate limits.",
+    "server_integration": "PASS for Server cf51f5293631a26f74766c241de163b6873b2747: full npm run test:integration completed successfully against an isolated loopback PostGIS/Redis database, covering bookings/trip edits, Journey schema, navigation, realtime cluster, restart durability and rate limits. Root umbrella integration harness was additionally rerun after the navigation waypoint assertion fix; 30 configured checks passed across Journey schema, bookings/trip edits, navigation, realtime, restart and rate limit.",
     "server_typecheck_lint": "PASS on exact Server cf51f5293631a26f74766c241de163b6873b2747: typecheck and lint.",
     "site_ci": "PASS on exact Site PR #5 SHA 1fafdca4f17983506d80d14a231ee35afc91b3f3: hosted verify checks green; local typecheck, lint, 84/84 unit tests, Vite production build and gzip bundle budget pass.",
     "production_bundle_demo_isolation": "PASS: check:bundle rejects 11 known demo identity/inventory markers; negative probe confirmed usr_drv_alex injection fails the gate, clean production build passes; Site PR #2 CI passed",
     "multi_passenger_stop_limit": "PASS locally: stop optimizer supports a 30-stop plan; 5 optimizer tests pass including 15 riders, pickup-before-dropoff, per-stop seat invariants and the overflow limit; integration suite exercises two accepted riders on one route",
     "ios_simulator_ci": "PASS on exact iOS PR #5 SHA 200f7fc4c67ee8df2f9a0f511a74bf93d0e29349, pinning Site 1fafdca4f17983506d80d14a231ee35afc91b3f3: hosted simulator build CI green. No physical-device or signed release archive acceptance.",
-    "umbrella_github_ci": "PENDING: root PR #1 checks will run against the newly pushed exact candidate manifest.",
+    "umbrella_github_ci": "PENDING for root PR #1 commit fc3f4c34fc4f9311d404db205ef1415226dcb5cc: the prior run on 652ad6d failed because the integration assertion expected a two-point line after the OSRM fixture began emitting a turn waypoint. The assertion now checks preserved route endpoints and the maneuver point; live transit polling is disabled in the integration harness. Full local integration and lint pass after the fix.",
     "local_browser_matrix": "PASS 6/6 on exact Site 68bae61bfbf3a3721ba11c4a7cc325f9d014a9ab with isolated local API/map fixtures: responsive sign-in/home/search and canonical journey map in Chromium, Firefox and WebKit; all three sheet snap states, segment focus, equal light/dark geometry and foreground GPS navigation. Firefox uses software WebGL for the GPU-less CI runner. Not public-provider acceptance.",
     "canonical_design_2026_10_12": "PASS: supplied light/dark results board and light detail image preserved byte-for-byte and SHA-locked in Site e9bb47a7d895f25e8fe8fc16317622f3fb99100c: board 81ec8c9049a12a29b093faa0b6d0977f3102e16c4a90e9c8e696debf7d5862a5; detail 2cd6bf47ad92f9ece3622a29803286148e1d2fbe21f76c6995fe3bffb7286259. Chromium screenshots of the implemented results screen are /tmp/marshgo-chromium-journey-results.png (light) and /tmp/marshgo-chromium-journey-results-dark.png (dark); current deterministic E2E returns one eligible route and an unknown public-transit fare, shown honestly as —.",
     "backup_restore_drill": "PASS: prior disposable local PostGIS backup and restore drill; no off-host/production restore proof",
@@ -104,10 +104,10 @@
     "server_ci": "PASS: Server PR #7 exact SHA cf51f5293631a26f74766c241de163b6873b2747; both hosted verification checks green. Local unit, integration, typecheck and lint checks pass.",
     "site_ci": "PASS: Site PR #5 exact SHA 1fafdca4f17983506d80d14a231ee35afc91b3f3; both hosted verification checks green. Local typecheck, lint, 84 unit tests, production build and bundle budget pass.",
     "ios_simulator": "PASS: iOS PR #5 exact SHA 200f7fc4c67ee8df2f9a0f511a74bf93d0e29349, pinning Site 1fafdca4f17983506d80d14a231ee35afc91b3f3; simulator build CI green. No physical device or signed archive acceptance.",
-    "playwright_e2e": "PASS 12/12 on exact Server cf51f5293631a26f74766c241de163b6873b2747 / Site 1fafdca4f17983506d80d14a231ee35afc91b3f3, root integration code 56c23aa779bfe10d9400aab4eb4a4c9035f6a9c0, isolated loopback services; 8.3 minutes.",
+    "playwright_e2e": "PASS 12/12 on exact Server cf51f5293631a26f74766c241de163b6873b2747 / Site 1fafdca4f17983506d80d14a231ee35afc91b3f3, root E2E source commit 56c23aa779bfe10d9400aab4eb4a4c9035f6a9c0, isolated loopback services; 8.3 minutes. Later root integration-only changes do not alter those E2E scenarios.",
     "runtime_dependency_audit": "PASS: zero production dependency vulnerabilities in current Server and Site pins; dev dependencies were not included.",
     "production_images": "PASS: local exact-candidate Docker image builds only; API and web images were not started/deployed. Web image has an empty map manifest URL.",
-    "root_umbrella_ci": "PENDING after pushing the exact candidate manifest and E2E baseline commit.",
+    "root_umbrella_ci": "PENDING on latest root PR #1 commit fc3f4c34fc4f9311d404db205ef1415226dcb5cc; previous root CI failure on 652ad6d was traced to a brittle exact route-geometry assertion and has been fixed, with local full integration and lint green.",
     "current_candidate_cross_browser_matrix": "NOT RUN separately on the current Site pin; older six-run evidence is retained as historical only.",
     "public_paired_user_lifecycle": "NOT_ACCEPTED: no configured public staging environment.",
     "production_deployment": "BLOCKED_EXTERNAL: no production host/domain, managed database/secrets, deployment target, approved production map/routing provider or configured release environment. No deployment performed."
@@ -199,7 +199,7 @@
   },
   "latest_workspace_sync_2026_10_15": {
     "checked_at": "2026-10-15",
-    "integration_sha": "56c23aa779bfe10d9400aab4eb4a4c9035f6a9c0",
+    "integration_sha": "fc3f4c34fc4f9311d404db205ef1415226dcb5cc",
     "server_sha": "cf51f5293631a26f74766c241de163b6873b2747",
     "site_sha": "1fafdca4f17983506d80d14a231ee35afc91b3f3",
     "ios_sha": "200f7fc4c67ee8df2f9a0f511a74bf93d0e29349",
@@ -210,6 +210,6 @@
       "site": "https://github.com/dima1203oleg/MarshGO-Site/pull/5",
       "ios": "https://github.com/dima1203oleg/MarshGO-iOS/pull/5"
     },
-    "status": "Exact pinned Server, Site and iOS revisions are verified by local server tests, isolated 12/12 browser E2E, hosted Server/Site checks and iOS simulator CI. No staging or production deployment is configured. Bicycle and scooter route geometry is approximate, availability/fare/booking are unknown, production map manifest is absent, and physical-device/release acceptance remains open. Production remains NOT_RELEASED."
+    "status": "Exact pinned Server, Site and iOS revisions pass local server tests, isolated 12/12 browser E2E, hosted Server/Site checks and iOS simulator CI. Root CI on 652ad6d exposed a stale exact-geometry assertion after the OSRM fixture added a turn point; the integration test now checks route endpoints and turn geometry. The full integration suite and lint pass locally after this fix; root PR CI is rerunning. No staging or production deployment is configured. Bicycle and scooter route geometry is approximate, availability/fare/booking are unknown, production map manifest is absent, and physical-device/release acceptance remains open. Production remains NOT_RELEASED."
   }
 }
