@@ -76,7 +76,9 @@ describe('foreground navigation session API (opt-in local integration test)', { 
     const createdBody = await created.json() as { data: { id: string; state: string; route: [number, number][]; route_distance_m: number; matching_vehicle_available: boolean } };
     sessionId = createdBody.data.id;
     assert.equal(createdBody.data.state, 'active');
-    assert.deepEqual(createdBody.data.route, [[24, 49], [25, 50]]);
+    assert.deepEqual(createdBody.data.route[0], [24, 49]);
+    assert.deepEqual(createdBody.data.route.at(-1), [25, 50]);
+    assert.ok(createdBody.data.route.length > 2, 'road geometry preserves the OSRM turn waypoint');
     assert.ok(createdBody.data.route_distance_m > 0);
     assert.equal(createdBody.data.matching_vehicle_available, true);
     const active = await fetch(`${apiUrl}/api/v1/navigation/sessions/active`, { headers: headers(driver) });
@@ -296,7 +298,9 @@ describe('foreground navigation session API (opt-in local integration test)', { 
     const rerouted = (await reroute.json() as { data: { route_version: number; opt_in: boolean; route: [number, number][] } }).data;
     assert.equal(rerouted.route_version, Number(versionBeforeReroute.rows[0].route_version) + 1);
     assert.equal(rerouted.opt_in, false, 'route changes require a fresh passenger-matching opt-in');
-    assert.deepEqual(rerouted.route, [[24, 49], [25, 50]]);
+    assert.deepEqual(rerouted.route[0], [24, 49]);
+    assert.deepEqual(rerouted.route.at(-1), [25, 50]);
+    assert.ok(rerouted.route.length > 2, 'rerouted geometry preserves the OSRM turn waypoint');
 
     const ended = await fetch(`${apiUrl}/api/v1/navigation/sessions/${sessionId}/end`, { method: 'POST', headers: headers(driver) });
     assert.equal(ended.status, 200);
