@@ -1,36 +1,36 @@
 {
   "schema_version": 1,
   "product": "MARSHGO",
-  "release_candidate": "RC-2026-10-13-mobility-ui.1",
+  "release_candidate": "RC-2026-10-15-multimodal-mobility.1",
   "status": "NOT_RELEASED",
   "ready_for_server_deployment": false,
   "production_ready": false,
-  "server_sha": "7dda315fa5a60b3e78ba284da98a94e129cbff1b",
-  "site_sha": "91a0501bca0770733ddd3bb51eb96e1f446931ec",
-  "ios_sha": "a282d3efa169626f803d87c54f22fceeb24a563b",
-  "integration_sha": "d325b44278a300f401b2bcc9e00f3ff0c38227f9",
-  "database_migration": "050 (additive mobility registry/rental migrations; local upgrade and integration checks pass; production/staging upgrade rehearsal and rollback are not run)",
-  "candidate_scope": "Reviewed candidate includes provider-aware mobility models and Navigation 3.0 P1 shared UI: two basemaps with independent 3D camera, persistent map-layer preferences, active navigation overlays, turn guidance, three-state navigation sheet, route actions, destination-only sharing, and persisted focus mode. Site PR #3 exact SHA 91a0501bca0770733ddd3bb51eb96e1f446931ec passes both hosted checks and local typecheck, lint, 80/80 unit tests, Vite build, bundle budget and diff check. iOS PR #2 exact SHA a282d3efa169626f803d87c54f22fceeb24a563b passes both simulator checks and pins Site 91a0501bca0770733ddd3bb51eb96e1f446931ec. Umbrella verification is running. No authenticated visual/device acceptance or production deployment is claimed. Production remains NOT_RELEASED: no production host, staging, secrets, licensed satellite provider, traffic service or partner credentials are configured.",
+  "server_sha": "cf51f5293631a26f74766c241de163b6873b2747",
+  "site_sha": "1fafdca4f17983506d80d14a231ee35afc91b3f3",
+  "ios_sha": "200f7fc4c67ee8df2f9a0f511a74bf93d0e29349",
+  "integration_sha": "56c23aa779bfe10d9400aab4eb4a4c9035f6a9c0",
+  "database_migration": "053 (additive mobility registry, return-rule and micromobility journey-mode migrations; Server PR #7 CI passes migration/integration checks; production/staging upgrade and rollback rehearsal required)",
+  "candidate_scope": "Exact candidate pins: Server PR #7 cf51f5293631a26f74766c241de163b6873b2747; Site PR #5 1fafdca4f17983506d80d14a231ee35afc91b3f3; iOS PR #5 200f7fc4c67ee8df2f9a0f511a74bf93d0e29349 (iOS CI pins the exact Site SHA). Exact-pinned isolated browser E2E passes 12/12; Server unit/integration/type/lint and Site type/lint/unit/build/bundle gates pass; iOS simulator build CI passes. Bicycle and scooter journeys are estimates with approximate straight-line geometry; inventory, price and booking are unknown, so rental availability is not guaranteed and this is not production map/routing acceptance. Production remains NOT_RELEASED: no staging/production host, managed services, approved production map/routing provider, real SMS, partner access or physical-device release acceptance is configured.",
   "api_version": "v1",
   "source_repositories": {
-    "server": "dima1203oleg/MarshGO-Server@codex/sync-mobility-registry",
-    "site": "dima1203oleg/MarshGO-Site@codex/sync-journey-mobility-ui",
-    "ios": "dima1203oleg/MarshGO-iOS@codex/reliable-capacitor-sync",
+    "server": "dima1203oleg/MarshGO-Server@feature/transport-layer-availability",
+    "site": "dima1203oleg/MarshGO-Site@codex/navigation-experience-6",
+    "ios": "dima1203oleg/MarshGO-iOS@codex/pin-rendezvous-site",
     "integration": "dima1203oleg/MarshGO@codex/marshgo-production"
   },
-  "ios_simulator_site_sha": "91a0501bca0770733ddd3bb51eb96e1f446931ec",
+  "ios_simulator_site_sha": "1fafdca4f17983506d80d14a231ee35afc91b3f3",
   "verification": {
-    "umbrella_unit_tests": "PASS locally on Node 26.7.0: npm run check:production reports 231 passed, 0 failed, 1 opt-in skip (232 total). Node exceeds the repository minimum 24.21.0; exact 24.21.0 runtime is checked by current GitHub CI.",
-    "umbrella_production_check": "PASS locally on Node 26.7.0: typecheck, ESLint, unit tests, Vite production build and bundle budget (51 JavaScript chunks, all <=350 KB gzip). Node exceeds the repository minimum 24.21.0; GitHub CI separately uses exact Node 24.21.0.",
-    "umbrella_browser_e2e": "PASS locally: 12/12 full Playwright scenarios in 8.4 minutes against isolated PostGIS/Redis, Server 7dda315fa5a60b3e78ba284da98a94e129cbff1b, and Site a19a2280c50644038253f474afd64be9170b6944 production-style dist. Covers route sheet/segment focus, light/dark, bookings/chat, GPS reroute, direct URL restore, pricing/strategy metadata. Latest Site adds only compact-page safe-area clearance; full exact-SHA CI for 68bae61bfbf3a3721ba11c4a7cc325f9d014a9ab is running separately.",
-    "server_unit": "PASS on Node 24.21.0 for Server SHA 7dda315fa5a60b3e78ba284da98a94e129cbff1b: 193 passed, 0 failed, 1 opt-in DB integration skip (194 tests total).",
-    "server_integration": "PASS on Node 24.21.0 for Server SHA 7dda315fa5a60b3e78ba284da98a94e129cbff1b: 28/28 local PostGIS/Redis integration checks.",
-    "server_typecheck_lint": "PASS on Node 24.21.0 for Server SHA 7dda315fa5a60b3e78ba284da98a94e129cbff1b.",
-    "site_ci": "PASS on final Site PR #3 SHA 91a0501bca0770733ddd3bb51eb96e1f446931ec: both hosted verify checks passed. Local exact worktree checks pass: typecheck, lint, 80/80 unit tests, Vite production build, gzip bundle budget and diff check. Authenticated navigation screenshot, physical-device acceptance and full cross-browser matrix were not run.",
+    "umbrella_unit_tests": "PASS locally: npm run check:production reports 231 passed, 0 failed, 1 opt-in skip (232 total). Hosted umbrella CI uses exact Node 24.21.0.",
+    "umbrella_production_check": "PASS locally: typecheck, ESLint, unit tests, Vite production build and bundle budget (51 JavaScript chunks, all <=350 KB gzip). Hosted umbrella CI uses exact Node 24.21.0.",
+    "umbrella_browser_e2e": "PASS: 12/12 Playwright scenarios on exact Server cf51f5293631a26f74766c241de163b6873b2747 and Site 1fafdca4f17983506d80d14a231ee35afc91b3f3, using isolated loopback PostGIS/Redis and the root E2E harness at 56c23aa779bfe10d9400aab4eb4a4c9035f6a9c0; 8.3 minutes. Covers route map/sheet/segment focus and light/dark display, two-account booking/proposals/chat, multi-rider matching and reroute, GPS denied flow, route search reload, transport catalogue, onboarding and Journey Planner. Local isolated acceptance only.",
+    "server_unit": "PASS on Node 24.21.0 for Server cf51f5293631a26f74766c241de163b6873b2747: 199 passed, 0 failed, 1 opt-in local DB skip (200 total).",
+    "server_integration": "PASS for Server cf51f5293631a26f74766c241de163b6873b2747: full npm run test:integration completed successfully against an isolated loopback PostGIS/Redis database, covering bookings/trip edits, Journey schema, navigation, realtime cluster, restart durability and rate limits.",
+    "server_typecheck_lint": "PASS on exact Server cf51f5293631a26f74766c241de163b6873b2747: typecheck and lint.",
+    "site_ci": "PASS on exact Site PR #5 SHA 1fafdca4f17983506d80d14a231ee35afc91b3f3: hosted verify checks green; local typecheck, lint, 84/84 unit tests, Vite production build and gzip bundle budget pass.",
     "production_bundle_demo_isolation": "PASS: check:bundle rejects 11 known demo identity/inventory markers; negative probe confirmed usr_drv_alex injection fails the gate, clean production build passes; Site PR #2 CI passed",
     "multi_passenger_stop_limit": "PASS locally: stop optimizer supports a 30-stop plan; 5 optimizer tests pass including 15 riders, pickup-before-dropoff, per-stop seat invariants and the overflow limit; integration suite exercises two accepted riders on one route",
-    "ios_simulator_ci": "PASS on latest iOS PR #2 SHA a282d3efa169626f803d87c54f22fceeb24a563b, pinning exact Site SHA 91a0501bca0770733ddd3bb51eb96e1f446931ec; both simulator-build checks passed. No physical-device or signed archive acceptance.",
-    "umbrella_github_ci": "PENDING for the current umbrella manifest revision; CodeQL and secret-scan checks pass or are running independently. The umbrella verify result will be recorded from the final exact-pin run.",
+    "ios_simulator_ci": "PASS on exact iOS PR #5 SHA 200f7fc4c67ee8df2f9a0f511a74bf93d0e29349, pinning Site 1fafdca4f17983506d80d14a231ee35afc91b3f3: hosted simulator build CI green. No physical-device or signed release archive acceptance.",
+    "umbrella_github_ci": "PENDING: root PR #1 checks will run against the newly pushed exact candidate manifest.",
     "local_browser_matrix": "PASS 6/6 on exact Site 68bae61bfbf3a3721ba11c4a7cc325f9d014a9ab with isolated local API/map fixtures: responsive sign-in/home/search and canonical journey map in Chromium, Firefox and WebKit; all three sheet snap states, segment focus, equal light/dark geometry and foreground GPS navigation. Firefox uses software WebGL for the GPU-less CI runner. Not public-provider acceptance.",
     "canonical_design_2026_10_12": "PASS: supplied light/dark results board and light detail image preserved byte-for-byte and SHA-locked in Site e9bb47a7d895f25e8fe8fc16317622f3fb99100c: board 81ec8c9049a12a29b093faa0b6d0977f3102e16c4a90e9c8e696debf7d5862a5; detail 2cd6bf47ad92f9ece3622a29803286148e1d2fbe21f76c6995fe3bffb7286259. Chromium screenshots of the implemented results screen are /tmp/marshgo-chromium-journey-results.png (light) and /tmp/marshgo-chromium-journey-results-dark.png (dark); current deterministic E2E returns one eligible route and an unknown public-transit fare, shown honestly as —.",
     "backup_restore_drill": "PASS: prior disposable local PostGIS backup and restore drill; no off-host/production restore proof",
@@ -83,7 +83,10 @@
     "local_production_container_build": "PASS: exact-pinned API and web production images built locally from Server 7dda315fa5a60b3e78ba284da98a94e129cbff1b and Site dc937069e16ebb5bec5b66c674f664497c079207 using Node 24.21.0 Alpine build images. API image sha256:0792af87ec020cafabff68b4d385299b70726f1c44de505111f54dee173dc750; web image sha256:bb3682920686a0929144c8e3e2884c0e8928a636bad7f291d7da6d31c8bc5a51. Images built only; no containers/services started and no deployment.",
     "visual_reference_limit": "Behavioral map/sheet E2E and local macOS screenshot regressions pass. Pixel-by-pixel overlay against the supplied image crops has not been performed; exact one-to-one photo parity is not certified.",
     "route_sheet_cross_browser": "PASS: route sheet pointer tracking and snap completion passed in Chromium, Firefox and WebKit after the Firefox project uses standards-based mouse pointer input; the other two projects exercise the mobile touch-capable viewport. Full browser compatibility run: 6/6 on 2026-10-13.",
-    "site_production_build_2026_10_13": "PASS: Site 68bae61bfbf3a3721ba11c4a7cc325f9d014a9ab built without VITE_MAP_STYLE_URL or VITE_MAP_STYLE_MANIFEST_URL; 18 JavaScript chunks pass the <=350 KB gzip gate and the emitted bundle contains no isolated E2E map URL. Production map provider remains unconfigured, so this is a build check, not deployed map acceptance."
+    "site_production_build_2026_10_13": "PASS: Site 68bae61bfbf3a3721ba11c4a7cc325f9d014a9ab built without VITE_MAP_STYLE_URL or VITE_MAP_STYLE_MANIFEST_URL; 18 JavaScript chunks pass the <=350 KB gzip gate and the emitted bundle contains no isolated E2E map URL. Production map provider remains unconfigured, so this is a build check, not deployed map acceptance.",
+    "current_candidate_browser_compatibility": "NOT RUN on this exact Site SHA in Chromium/Firefox/WebKit as a separate matrix. A previous 6/6 matrix passed on Site 68bae61bfbf3a3721ba11c4a7cc325f9d014a9ab with isolated fixtures; that is historical evidence, not current candidate acceptance.",
+    "current_candidate_production_images": "PASS: exact candidate API and web production Docker images built locally only. API manifest digest sha256:50d1cd7e9c523b12443683d8e09c4087838aad58a3355d33788dec279e95dc64; web manifest digest sha256:bd9c9fc7f12674ad9ebe78c9a5cd38e605ed27e313b30aaed7642b75ec2896ab. Web image has no production map manifest configured. Images were not deployed or started.",
+    "current_candidate_runtime_dependency_audit": "PASS: npm audit --omit=dev reports zero production dependency vulnerabilities for Server cf51f5293631a26f74766c241de163b6873b2747 and Site 1fafdca4f17983506d80d14a231ee35afc91b3f3; development dependencies are outside this audit."
   },
   "note": "Current source revisions are feature-branch PR heads for candidate verification, not a production release. Exact local E2E/browser evidence is recorded above. No public staging or production environment is configured; this manifest is not a deployment authorization. Partner credentials/contracts, licensed production map/routing/geocoding/SMS/storage/push services, and real-device release acceptance remain external dependencies.",
   "staging": {
@@ -95,21 +98,19 @@
     "previous_temporary_staging": "https://superblessed-herlinda-epiphragmal.ngrok-free.dev",
     "previous_temporary_staging_status": "OFFLINE on 2026-10-09 (HTTP 404 ERR_NGROK_3200)."
   },
-  "candidate_database_migration": "050 on Server PR #3; production/staging migration rehearsal remains outstanding",
+  "candidate_database_migration": "053 on Server PR #7; production/staging migration rehearsal and rollback remain outstanding",
   "deployed_site_sha": null,
   "latest_verification": {
-    "server_ci": "PASS: Server CI runs 38406128575 and 38406136045 on exact SHA 7dda315fa5a60b3e78ba284da98a94e129cbff1b; typecheck, lint, unit, migration and PostGIS/Redis integration steps pass.",
-    "site_ci": "PASS: GitHub Site CI run 38418881869 on exact Site SHA dc937069e16ebb5bec5b66c674f664497c079207. Local typecheck, lint, 68/68 unit tests and production build also pass on Node 24.19.0; the package declares exact Node 24.21.0.",
-    "playwright_e2e": "PASS 12/12 locally in 6.4 minutes on a new loopback PostGIS database, pinned Server 7dda315fa5a60b3e78ba284da98a94e129cbff1b / Site dc937069e16ebb5bec5b66c674f664497c079207 / integration E2E commit 2293217250097cdf5c10a6dd9a41b3775c1f05f0. Includes two-account booking/chat, multi-rider navigation and GPS reroute, route search/reload, route-map/sheet/segment focus, light/dark UI, denied-GPS recovery, and fare/Community offer checks. Host Node 24.19.0; exact runtime CI pending.",
-    "journey_rating_regression": "FIX COMMITTED; Server API now returns averageRating as number|null. Full E2E retest pending recovery of writable local Postgres/Redis. Trace evidence: /Volumes/500/MarshGO-rating-dto-e2e/marketplace-Journey-Planne-b8988-ns-its-current-offer-detail/trace.zip",
-    "browser_compatibility": "PASS 6/6 exact Site e9bb47a7d895f25e8fe8fc16317622f3fb99100c / Server 2dc360531c5a3961a0a789322394d9416a192b48: Chromium, Firefox, WebKit; responsive sign-in/home/search and canonical results/map scenarios.",
-    "public_browser": "PASS scoped: current served asset hash, staging banner, direct search URL reload, honest empty inventory state",
-    "public_paired_user_lifecycle": "NOT_ACCEPTED",
-    "ios_simulator": "PASS: iOS Simulator Build runs 38420813107 (push) and 38420819395 (PR) on exact iOS SHA 6a59bcf24d063f096893582322af9849469897bd, pinning exact Site SHA dc937069e16ebb5bec5b66c674f664497c079207. Simulator CI only; no authenticated flow, physical-device acceptance or signed archive.",
-    "ci_after_current_push": "PENDING: root PR #1 CI will validate the exact-pinned candidate on Node 24.21.0 after the current report/test-baseline push. Current local exact-pinned full E2E is 12/12; prior failures were on an earlier PR head.",
-    "ci": "PASS: umbrella PR CI 36925456845; Security 36925456827 and 36925449186",
-    "site_dependency_audit": "WARN: npm audit --omit=dev on exact Site 0c7b808da8220010477a85c8a528c3200b770f24 reports 4 high findings in the Firebase Firestore dependency path to @grpc/grpc-js 1.9.16; no dependency change was included in this design update.",
-    "production_images": "PASS: exact-pinned API and web production images built locally from Server 7dda315fa5a60b3e78ba284da98a94e129cbff1b and Site dc937069e16ebb5bec5b66c674f664497c079207 using Node 24.21.0 Alpine build images. API image sha256:0792af87ec020cafabff68b4d385299b70726f1c44de505111f54dee173dc750; web image sha256:bb3682920686a0929144c8e3e2884c0e8928a636bad7f291d7da6d31c8bc5a51. Images built only; no containers/services started and no deployment."
+    "server_ci": "PASS: Server PR #7 exact SHA cf51f5293631a26f74766c241de163b6873b2747; both hosted verification checks green. Local unit, integration, typecheck and lint checks pass.",
+    "site_ci": "PASS: Site PR #5 exact SHA 1fafdca4f17983506d80d14a231ee35afc91b3f3; both hosted verification checks green. Local typecheck, lint, 84 unit tests, production build and bundle budget pass.",
+    "ios_simulator": "PASS: iOS PR #5 exact SHA 200f7fc4c67ee8df2f9a0f511a74bf93d0e29349, pinning Site 1fafdca4f17983506d80d14a231ee35afc91b3f3; simulator build CI green. No physical device or signed archive acceptance.",
+    "playwright_e2e": "PASS 12/12 on exact Server cf51f5293631a26f74766c241de163b6873b2747 / Site 1fafdca4f17983506d80d14a231ee35afc91b3f3, root integration code 56c23aa779bfe10d9400aab4eb4a4c9035f6a9c0, isolated loopback services; 8.3 minutes.",
+    "runtime_dependency_audit": "PASS: zero production dependency vulnerabilities in current Server and Site pins; dev dependencies were not included.",
+    "production_images": "PASS: local exact-candidate Docker image builds only; API and web images were not started/deployed. Web image has an empty map manifest URL.",
+    "root_umbrella_ci": "PENDING after pushing the exact candidate manifest and E2E baseline commit.",
+    "current_candidate_cross_browser_matrix": "NOT RUN separately on the current Site pin; older six-run evidence is retained as historical only.",
+    "public_paired_user_lifecycle": "NOT_ACCEPTED: no configured public staging environment.",
+    "production_deployment": "BLOCKED_EXTERNAL: no production host/domain, managed database/secrets, deployment target, approved production map/routing provider or configured release environment. No deployment performed."
   },
   "latest_workspace_sync_2026_10_07": {
     "server_sha": "954b1105db73d76e482831ece70c0f1d48de0482",
@@ -195,5 +196,20 @@
       "ios": "https://github.com/dima1203oleg/MarshGO-iOS/pull/2"
     },
     "status": "Site local verification passes: 80/80 unit tests, typecheck, lint, build, gzip bundle check, diff check; both hosted Site checks pass. Both iOS simulator builds pass on the exact Site SHA. Root umbrella exact-pin verify is pending. No production deployment, authenticated visual acceptance, physical-device GPS/background acceptance, or performance certification has been performed; production_ready=false."
+  },
+  "latest_workspace_sync_2026_10_15": {
+    "checked_at": "2026-10-15",
+    "integration_sha": "56c23aa779bfe10d9400aab4eb4a4c9035f6a9c0",
+    "server_sha": "cf51f5293631a26f74766c241de163b6873b2747",
+    "site_sha": "1fafdca4f17983506d80d14a231ee35afc91b3f3",
+    "ios_sha": "200f7fc4c67ee8df2f9a0f511a74bf93d0e29349",
+    "ios_site_sha": "1fafdca4f17983506d80d14a231ee35afc91b3f3",
+    "pull_requests": {
+      "integration": "https://github.com/dima1203oleg/MarshGO/pull/1",
+      "server": "https://github.com/dima1203oleg/MarshGO-Server/pull/7",
+      "site": "https://github.com/dima1203oleg/MarshGO-Site/pull/5",
+      "ios": "https://github.com/dima1203oleg/MarshGO-iOS/pull/5"
+    },
+    "status": "Exact pinned Server, Site and iOS revisions are verified by local server tests, isolated 12/12 browser E2E, hosted Server/Site checks and iOS simulator CI. No staging or production deployment is configured. Bicycle and scooter route geometry is approximate, availability/fare/booking are unknown, production map manifest is absent, and physical-device/release acceptance remains open. Production remains NOT_RELEASED."
   }
 }
