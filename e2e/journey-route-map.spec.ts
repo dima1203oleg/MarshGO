@@ -526,6 +526,7 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   await expect(map).toHaveAttribute('data-marshgo-camera-zoom', /\d/);
   const routeOverviewZoom = Number(await map.getAttribute('data-marshgo-camera-zoom'));
   const dragSheet = async (deltaY: number, steps = 8) => {
+    await expect(map).toHaveAttribute('data-marshgo-map-idle', 'true', { timeout: 5_000 });
     const previousCameraRequestId = await map.getAttribute('data-marshgo-camera-request-id');
     const handle = sheet.locator('.route-sheet-grabber');
     const bounds = await handle.boundingBox();
@@ -642,6 +643,7 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
     await resultCard.getByRole('button', { name: /Відкрити маршрут:/ }).click();
     const route = page.getByRole('main', { name: 'Побудований маршрут' });
     const map = route.locator('[data-marshgo-map-renderer="maplibre"]');
+    await expect(map).toHaveAttribute('data-marshgo-map-ready', 'true', { timeout: 30_000 });
     const segment = route.locator(`[data-segment-id="${segmentId}"]`);
     await expect(segment).toBeVisible();
     await segment.getByRole('button', { name: new RegExp(`Вибрати сегмент: .*${routeName}`) }).click();
