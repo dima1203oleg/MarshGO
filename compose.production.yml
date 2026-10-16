@@ -1,0 +1,132 @@
+services:
+  db:
+    image: postgis/postgis:17-3.5
+    platform: linux/amd64
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: marshgo
+      POSTGRES_USER: marshgo
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set a long random POSTGRES_PASSWORD}
+    volumes:
+      - marshgo-prod-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U marshgo -d marshgo"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [internal]
+
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set a long random REDIS_PASSWORD}
+    command: ["sh", "-c", "exec redis-server --appendonly yes --requirepass \"$$REDIS_PASSWORD\""]
+    volumes:
+      - marshgo-prod-redis:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [internal]
+
+  migrate:
+    image: marshgo/api:${MARSHGO_RELEASE_TAG:-local}
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    restart: "no"
+    environment: &api-environment
+      NODE_ENV: production
+      API_HOST: 0.0.0.0
+      API_PORT: 3002
+      TRUST_PROXY_HOPS: ${TRUST_PROXY_HOPS:?Set TRUST_PROXY_HOPS to the exact trusted proxy count}
+      DATABASE_URL: postgres://marshgo:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@db:5432/marshgo
+      REDIS_URL: redis://:${REDIS_PASSWORD:?Set REDIS_PASSWORD}@redis:6379
+      SESSION_SECRET: ${SESSION_SECRET:?Set random SESSION_SECRET of at least 32 bytes}
+      CORS_ORIGINS: https://${APP_DOMAIN:?Set APP_DOMAIN},capacitor://localhost
+      SMS_PROVIDER: twilio
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:?Set TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:?Set TWILIO_AUTH_TOKEN}
+      TWILIO_FROM_NUMBER: ${TWILIO_FROM_NUMBER:?Set TWILIO_FROM_NUMBER}
+      ROUTING_PRIMARY: osrm
+      OSRM_URL: ${OSRM_URL:?Set approved HTTPS OSRM-compatible endpoint}
+      GEOCODING_ENGINE_URL: ${GEOCODING_ENGINE_URL:?Set approved HTTPS geocoder endpoint}
+      GEOCODING_REVERSE_URL: ${GEOCODING_REVERSE_URL:?Set approved HTTPS reverse geocoder endpoint}
+      GEOCODING_PROVIDER: ${GEOCODING_PROVIDER:-nominatim}
+      GEOCODING_API_KEY: ${GEOCODING_API_KEY:-}
+      TRAFFIC_PROVIDER: none
+      MAP_RENDERER: maplibre
+      MAP_DATA_PROVIDER: marshgo
+      MAP_STYLE_MANIFEST_URL: ${MAP_STYLE_MANIFEST_URL:?Set immutable HTTPS MARSHGO style manifest}
+      MAP_DATA_MANIFEST_URL: ${MAP_DATA_MANIFEST_URL:?Set immutable HTTPS MARSHGO map data manifest}
+      S3_BUCKET: ${S3_BUCKET:?Set private S3-compatible bucket}
+      S3_REGION: ${S3_REGION:?Set S3_REGION}
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
+      S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-false}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-}
+      HERE_ROUTING_ENABLED: "false"
+      HERE_TRAFFIC_ENABLED: "false"
+      TOMTOM_ROUTING_ENABLED: "false"
+      TOMTOM_TRAFFIC_ENABLED: "false"
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    command: ["npm", "run", "db:migrate"]
+    networks: [internal]
+
+  api:
+    image: marshgo/api:${MARSHGO_RELEASE_TAG:-local}
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    restart: unless-stopped
+    environment: *api-environment
+    ports:
+      - "127.0.0.1:${API_PORT:-3002}:3002"
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+      db: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    networks: [internal]
+
+  web:
+    image: marshgo/web:${MARSHGO_RELEASE_TAG:-local}
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+      args:
+        VITE_MAP_STYLE_MANIFEST_URL: ${VITE_MAP_STYLE_MANIFEST_URL:?Set versioned web map style manifest URL}
+    restart: unless-stopped
+    depends_on:
+      api: { condition: service_healthy }
+    networks: [internal]
+
+  proxy:
+    image: caddy:2.9-alpine
+    restart: unless-stopped
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:?Set APP_DOMAIN to a domain whose DNS points here}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - marshgo-prod-caddy-data:/data
+      - marshgo-prod-caddy-config:/config
+    depends_on:
+      web: { condition: service_healthy }
+    networks: [internal]
+
+volumes:
+  marshgo-prod-postgres:
+  marshgo-prod-redis:
+  marshgo-prod-caddy-data:
+  marshgo-prod-caddy-config:
+
+networks:
+  internal:
+    driver: bridge

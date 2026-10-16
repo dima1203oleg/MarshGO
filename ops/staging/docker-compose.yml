@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgis/postgis:17-3.5
+    platform: linux/amd64
+    environment:
+      POSTGRES_DB: marshgo_staging
+      POSTGRES_USER: marshgo_staging
+      POSTGRES_PASSWORD: ${STAGING_POSTGRES_PASSWORD:?Set a staging-only DB password}
+    ports:
+      - "127.0.0.1:15434:5432"
+    volumes:
+      - staging-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U marshgo_staging -d marshgo_staging"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  redis:
+    image: redis:7.4-alpine
+    command: ["sh", "-c", "exec redis-server --appendonly yes --requirepass \"$$STAGING_REDIS_PASSWORD\""]
+    environment:
+      STAGING_REDIS_PASSWORD: ${STAGING_REDIS_PASSWORD:?Set a staging-only Redis password}
+    ports:
+      - "127.0.0.1:16380:6379"
+    volumes:
+      - staging-redis:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$STAGING_REDIS_PASSWORD\" ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  object-storage:
+    image: adobe/s3mock:5.2.2
+    environment:
+      COM_ADOBE_TESTING_S3MOCK_STORE_INITIAL_BUCKETS: marshgo-staging-private
+      COM_ADOBE_TESTING_S3MOCK_STORE_ROOT: /s3mockroot
+      COM_ADOBE_TESTING_S3MOCK_STORE_RETAIN_FILES_ON_EXIT: "true"
+    ports:
+      - "127.0.0.1:19090:9090"
+    volumes:
+      - staging-objects:/s3mockroot
+
+volumes:
+  staging-postgres:
+  staging-redis:
+  staging-objects:

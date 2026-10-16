@@ -1,5 +1,20 @@
 import {createRoot} from 'react-dom/client';
-import App from './App.tsx';
+import { ProductionMarketplace } from './views/ProductionMarketplace';
 import './index.css';
+import './services/theme';
+import { initializePlatform } from './platform';
 
-createRoot(document.getElementById('root')!).render(<App />);
+initializePlatform();
+
+import { ErrorBoundary } from './components/ErrorBoundary';
+
+const rootElement = document.getElementById('root')!;
+rootElement.replaceChildren();
+// The release entry imports only the server-backed application. The legacy
+// localStorage prototype in App.tsx is intentionally not in this module graph.
+createRoot(rootElement).render(
+  <ErrorBoundary>
+    <ProductionMarketplace />
+  </ErrorBoundary>
+);
+Reflect.set(window, '__MARSHGO_BOOTED__', true);
