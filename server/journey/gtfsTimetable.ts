@@ -5,6 +5,9 @@ import { journeyTransportTypeSelected, type JourneyTransportType } from './types
 
 const MAX_FEED_BYTES = 60 * 1024 * 1024;
 const CACHE_TTL_MS = 6 * 60 * 60_000;
+const FAILED_FEED_CACHE_TTL_MS = 5 * 60_000;
+const MERGED_FEED_CACHE_TTL_MS = 60_000;
+const MAX_MERGED_FEED_CACHE_ENTRIES = 2;
 const MAX_STOPS_PER_SIDE = 12;
 const MAX_STOPS_PER_TRANSPORT_TYPE = 2;
 const EARTH_RADIUS_M = 6_371_000;
@@ -237,7 +240,7 @@ export function parseGtfsTimetable(files: Record<string, Uint8Array>, fetchedAt 
  * timetable, despite operator-specific names; the transfer remains an
  * explicit, timed walking leg in the itinerary.
  */
-export function mergeGtfsTimetables(sources: readonly GtfsTimetableSource[]): GtfsTimetableFeed | null {
+function buildMergedGtfsTimetables(sources: readonly GtfsTimetableSource[]): GtfsTimetableFeed | null {
   if (sources.length === 0) return null;
   const ordered = [...sources].sort((a, b) => a.providerId.localeCompare(b.providerId));
   const timezone = ordered[0].feed.timezone;
@@ -335,6 +338,40 @@ export function mergeGtfsTimetables(sources: readonly GtfsTimetableSource[]): Gt
   });
   const fetchedAt = new Date(Math.min(...ordered.map((source) => source.feed.fetchedAt.getTime())));
   return { fetchedAt, timezone, routes, stops, trips, stopTimes, stopTimesByStop, calendars, exceptions, shapes, providersByRoute };
+}
+
+const mergeObjectIds = new WeakMap<object, number>();
+let nextMergeObjectId = 0;
+function mergeObjectId(value: object): number {
+  let id = mergeObjectIds.get(value);
+  if (id === undefined) { id = ++nextMergeObjectId; mergeObjectIds.set(value, id); }
+  return id;
+}
+const mergedFeedCache = new Map<string, { cachedAt: number; feed: GtfsTimetableFeed }>();
+
+/** Reuse the expensive provider-prefix/cross-feed merge for a short burst of route searches. */
+export function mergeGtfsTimetables(sources: readonly GtfsTimetableSource[]): GtfsTimetableFeed | null {
+  if (sources.length === 0) return null;
+  const cacheKey = sources.map((source) => [
+    source.providerId, source.providerName, source.providerCity, mergeObjectId(source.feed),
+  ].join('\u0000')).sort().join('\u0001');
+  const now = Date.now();
+  const cached = mergedFeedCache.get(cacheKey);
+  if (cached && now - cached.cachedAt < MERGED_FEED_CACHE_TTL_MS) {
+    mergedFeedCache.delete(cacheKey);
+    mergedFeedCache.set(cacheKey, cached);
+    return cached.feed;
+  }
+  if (cached) mergedFeedCache.delete(cacheKey);
+  const feed = buildMergedGtfsTimetables(sources);
+  if (!feed) return null;
+  mergedFeedCache.set(cacheKey, { cachedAt: now, feed });
+  while (mergedFeedCache.size > MAX_MERGED_FEED_CACHE_ENTRIES) {
+    const oldestKey = mergedFeedCache.keys().next().value;
+    if (oldestKey === undefined) break;
+    mergedFeedCache.delete(oldestKey);
+  }
+  return feed;
 }
 
 function isValidTimezone(timezone: string): boolean {
@@ -886,18 +923,19 @@ export function findGtfsItineraries(feed: GtfsTimetableFeed, input: GtfsItinerar
   return findGtfsItinerariesWithStats(feed, input).itineraries;
 }
 
-const feedCache = new Map<string, { cachedAt: number; promise: Promise<GtfsTimetableFeed> }>();
+const feedCache = new Map<string, { cachedAt: number; failedAt?: number; promise: Promise<GtfsTimetableFeed> }>();
 
 export function cachedGtfsTimetable(providerId: string, url: string, now = Date.now()): Promise<GtfsTimetableFeed> {
   const hit = feedCache.get(providerId);
-  if (hit && now - hit.cachedAt < CACHE_TTL_MS) return hit.promise;
+  if (hit && now - (hit.failedAt ?? hit.cachedAt) < (hit.failedAt === undefined ? CACHE_TTL_MS : FAILED_FEED_CACHE_TTL_MS)) return hit.promise;
   const promise = (async () => {
     const { data } = await fetchBinary(url, MAX_FEED_BYTES, 15000);
     const unzipped = unzipSync(data, { filter: (file) => /(^|\/)(agency|routes|stops|trips|stop_times|calendar|calendar_dates|shapes)\.txt$/.test(file.name) && file.originalSize < 100 * 1024 * 1024 });
     const files = Object.fromEntries(Object.entries(unzipped).map(([name, content]) => [name.split('/').pop() as string, content]));
     return parseGtfsTimetable(files);
   })();
-  feedCache.set(providerId, { cachedAt: now, promise });
-  promise.catch(() => { if (feedCache.get(providerId)?.promise === promise) feedCache.delete(providerId); });
+  const entry: { cachedAt: number; failedAt?: number; promise: Promise<GtfsTimetableFeed> } = { cachedAt: now, promise };
+  feedCache.set(providerId, entry);
+  promise.catch(() => { if (feedCache.get(providerId) === entry) entry.failedAt = Date.now(); });
   return promise;
 }

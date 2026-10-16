@@ -382,6 +382,18 @@ test('a busy bus schedule does not hide an available tram route in an all-mode s
   assert.deepEqual(results.map((itinerary) => itinerary.segments[0]?.transportType), ['bus', 'tram']);
 });
 
+test('reuses a merged timetable briefly and invalidates it when a source snapshot changes', () => {
+  const source = { providerId: 'merge-cache-reuse', providerName: 'Test Transit', providerCity: 'Львів', feed: feed() };
+  const first = mergeGtfsTimetables([source]);
+  const reused = mergeGtfsTimetables([source]);
+  assert.ok(first);
+  assert.strictEqual(reused, first);
+
+  const updated = mergeGtfsTimetables([{ ...source, feed: feed() }]);
+  assert.ok(updated);
+  assert.notStrictEqual(updated, first);
+});
+
 test('keeps the nearest stop for each transport type and reports the bounded stop search', () => {
   const rail = transferFeed({ routeType: '2', routeName: 'Regional train', fromId: 'rail-origin', fromName: 'Rail station',
     fromLon: '24.0203', fromLat: '49.8401', toId: 'rail-destination', toName: 'Rail destination',

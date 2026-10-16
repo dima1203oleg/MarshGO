@@ -2264,7 +2264,9 @@ app.post('/api/v1/journeys/search', requireAuth, asyncHandler(async (req, res) =
     BUS: ['bus', 'intercity_bus'], MINIBUS: ['marshrutka'], RAIL: ['train', 'suburban', 'city_train'],
     TRAM: ['tram'], TROLLEYBUS: ['trolleybus'], METRO: ['metro'], FERRY: ['ferry'], FUNICULAR: ['funicular'],
   };
-  const eligibleGtfsProviders = allowedTransitModes.length === 0 ? [] : spatiallyEligibleGtfsProviders.filter((provider) => {
+  const testFeedReadsDisabled = process.env.NODE_ENV !== 'production' && process.env.MOBILITY_ROUTING_FEEDS_DISABLED === 'true';
+  const eligibleGtfsProviders = testFeedReadsDisabled || allowedTransitModes.length === 0
+    ? [] : spatiallyEligibleGtfsProviders.filter((provider) => {
     const counts = provider.last_report?.counts;
     if (!counts) return true;
     return allowedTransitModes.some((mode) => typeKeysByMode[mode].some((type) => Number(counts[`routes_${type}`] ?? 0) > 0));
