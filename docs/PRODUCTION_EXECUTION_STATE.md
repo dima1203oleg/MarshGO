@@ -114,6 +114,15 @@ Latest selected CI snapshot: Server and Site ownership-guidance heads passed; la
 
 Refresh iOS PR #7 check-runs; continue exact-SHA integration and cross-portal/API acceptance for Admin and Partner. Investigate the unresolved Site screenshot difference against approved references. Keep original dirty worktrees intact. Do not claim production readiness without a verified staging deployment, exact deployed SHA, backup/rollback, provider/device acceptance, and required owner approval. Candidate manifest: `docs/PRODUCTION_RELEASE_CANDIDATE_2026-10-19.md`.
 
+### 2026-10-19 execution update — marketplace lifecycle and Site/iOS sync
+
+- Fixed the production booking UI so a successful server booking immediately navigates to Trips; slower background list refreshes no longer keep the committed booking modal spinning. Refresh failure is reported without misrepresenting the already committed booking.
+- Clarified the disabled rendezvous action label (“Зустріч можна підготувати о …”) and labeled the actual verified-vehicle selector explicitly. Site candidate commit `95c9fb07202605ad1b8755a2a2680e2786a1e29a` is pushed to the existing open [Site PR #9](https://github.com/dima1203oleg/MarshGO-Site/pull/9); PR head is exact and GitHub checks are 3/3 PASS.
+- The source E2E fixture now seeds `trust_level=3` when it claims a vehicle is verified. The API requires trust level ≥1 for proposals; the prior fixture only set legacy `verification_status='verified'`, which left `trust_level=0` and made the UI scenario impossible. Server enforcement was not loosened.
+- On the exact Site artifact built with isolated map fixtures and exact Server SHA `0c873adeb618bd871395a7ba150ba8c95d0ce19c`, all marketplace browser E2E passed: 9/9, 0 failed. Includes the complete two-account booking, MarshPass/boarding/completion/review/chat/reverse-marketplace flow; route map/GPS, responsive iPhone viewport, search persistence and onboarding. This is local isolated Postgres/Redis/fixture evidence, not staging.
+- Updated iOS workflow and README to pin Site `95c9fb07202605ad1b8755a2a2680e2786a1e29a`. iOS commit `295c532aa61c181320cd03dd7a7a3eb5c3aa3e35` is pushed to open [iOS PR #7](https://github.com/dima1203oleg/MarshGO-iOS/pull/7). Exact checkout, Node 24.21.0 Site build, Capacitor sync and unsigned Xcode Simulator compilation pass locally. GitHub Simulator checks are 2/2 PASS. Local interactive simulator installation/launch and physical iPhone remain unverified.
+- **Exact next action:**  then stage the updated acceptance docs and E2E fixture-only trust-level correction as a selective local documentation-owner commit. Do not stage unrelated dirty files. Continue Admin/Partner browser/API acceptance, investigate the 12% screenshot diff without replacing baselines, and check current staging availability.
+
 ## Hard limitations
 
 No branch deletion, history rewrite, force push, production deployment, destructive data cleanup, or external paid provisioning. Deployment and physical-device permissions that require the owner remain external gates. Do not call this checkpoint a product release.

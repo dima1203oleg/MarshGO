@@ -5,8 +5,8 @@
 | Component | Repository | Candidate branch | Exact SHA | Review |
 |---|---|---|---|---|
 | Server | `MarshGO-Server` | `integration/production-20261019` | `0c873adeb618bd871395a7ba150ba8c95d0ce19c` | [PR #9](https://github.com/dima1203oleg/MarshGO-Server/pull/9), open; GitHub checks 2/2 success |
-| Site | `MarshGO-Site` | `integration/production-20261019` | `94b52e50725241d1ac28bcfa3f83fbbd0e04f101` | [PR #9](https://github.com/dima1203oleg/MarshGO-Site/pull/9), open; GitHub checks 3/3 success |
-| iOS | `MarshGO-iOS` | `integration/production-20261019` | `50e15da67cb795651f754db8237cb98051e29eff` | [PR #7](https://github.com/dima1203oleg/MarshGO-iOS/pull/7), open; GitHub Simulator checks 2/2 success |
+| Site | `MarshGO-Site` | `integration/production-20261019` | `95c9fb07202605ad1b8755a2a2680e2786a1e29a` | [PR #9](https://github.com/dima1203oleg/MarshGO-Site/pull/9), open; GitHub checks 3/3 success |
+| iOS | `MarshGO-iOS` | `integration/production-20261019` | `295c532aa61c181320cd03dd7a7a3eb5c3aa3e35` | [PR #7](https://github.com/dima1203oleg/MarshGO-iOS/pull/7), open; GitHub Simulator checks 2/2 pass |
 
 ## Contracts and schema
 
@@ -18,8 +18,8 @@
 ## Evidence
 
 - Server candidate: 229 unit tests passed, 0 failed, 3 optional skipped; TypeScript and lint passed; clean migration and Postgres/Redis integration suites passed on isolated local services; GitHub checks 2/2 passed.
-- Site candidate: 118 unit tests passed, 0 failed, 0 skipped; TypeScript, lint, production build and isolated route-map E2E passed; GitHub checks 3/3 passed. Visual pixel comparison to the stored light-results baseline failed at 12% pixel difference and remains unresolved; the baseline was not replaced.
-- iOS candidate: exact Site checkout verified; Site build, release metadata generation, Capacitor sync and unsigned Xcode Simulator build passed. Simulator installation/launch was not verified because local `simctl install` stalled; physical iPhone, GPS background behavior and push are not tested.
+- Site candidate: 118 unit tests passed, 0 failed, 0 skipped; TypeScript, lint, production build and full isolated browser marketplace E2E 9/9 passed against the exact Server candidate. The E2E covers two-account search/booking, saved MarshPass, boarding, completion by both participants, persisted reviews/chat, reverse marketplace counteroffer, GPS deviation rerouting, viewport and navigation recovery. GitHub checks 3/3 passed. The earlier visual pixel comparison to a stored light-results baseline failed at 12%; it is unresolved and the baseline was not replaced.
+- iOS candidate: exact Site SHA `95c9fb07202605ad1b8755a2a2680e2786a1e29a` checkout verified with Node 24.21.0; Site build, release metadata generation, Capacitor sync and unsigned Xcode Simulator build passed locally. GitHub Simulator checks 2/2 passed. Simulator installation/launch was not verified because local `simctl install` stalled; physical iPhone, GPS background behavior and push are not tested.
 
 ## Environment and deployment
 
