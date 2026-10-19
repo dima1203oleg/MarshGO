@@ -9,6 +9,7 @@
 | iOS | `MarshGO-iOS` | `integration/production-20261019` | `68b833499a11fa67763fb6fcfd79b972783fe140` | [PR #7](https://github.com/dima1203oleg/MarshGO-iOS/pull/7), open; GitHub Simulator checks 2/2 pass |
 | Admin | `MarshGO-Admin` | `codex/p0-admin` | `9dbf7db0a935498ac40c98b19bc36bce056d630d` | [PR #1](https://github.com/dima1203oleg/MarshGO-Admin/pull/1), open; GitHub checks 1/1; local tests 2/2, typecheck/lint/build pass |
 | Partner | `MarshGO-Partner` | `codex/p0-partner` | `c639257a7f28aeda5b378a816038b01651146b83` | [PR #1](https://github.com/dima1203oleg/MarshGO-Partner/pull/1), open; GitHub checks 1/1; local tests 3/3, typecheck/lint/build pass |
+| Deployment orchestration | `MarshGO` | `codex/production-finalization-20261014` | `fb06856c1bc000de9bc074d1f8b99791c2f71fe4` | Local commit; candidate branch push and hosted CI recheck pending |
 
 ## Contracts and schema
 

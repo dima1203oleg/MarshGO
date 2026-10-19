@@ -8,7 +8,7 @@
   "server_sha": "0c873adeb618bd871395a7ba150ba8c95d0ce19c",
   "site_sha": "09871e6da312e6ac72c83857fbd3106e9c28cc7c",
   "ios_sha": "68b833499a11fa67763fb6fcfd79b972783fe140",
-  "integration_sha": "07aeaa10090e417b7f90fb19028cb1d096c29a4d",
+  "integration_sha": "fb06856c1bc000de9bc074d1f8b99791c2f71fe4",
   "database_migration": "054 (rendezvous consent; production/staging upgrade and rollback rehearsal still required)",
   "candidate_scope": "Exact review pins: Server 0c873adeb618bd871395a7ba150ba8c95d0ce19c (PR #9); Site 09871e6da312e6ac72c83857fbd3106e9c28cc7c (PR #9); Admin 9dbf7db0a935498ac40c98b19bc36bce056d630d (PR #1); Partner c639257a7f28aeda5b378a816038b01651146b83 (PR #1); iOS 68b833499a11fa67763fb6fcfd79b972783fe140 (PR #7, pins the exact Site SHA). Four production images materialize and build locally; Admin/Partner container wiring smoke passes with a mock API. PRs are unmerged. Staging/production, interactive iOS, physical GPS, production provider access, backups/restore on a hosted environment, and owner-authorized rollout are not verified. This manifest remains NOT_RELEASED.",
   "api_version": "v1",
@@ -92,7 +92,7 @@
     "umbrella_github_security_ci": "PASS: GitHub root PR #1 Security run #521 (run ID 38777367258) completed successfully on commit 83b4f22591083a4cc431b800a3e1ec9e1081e19b.",
     "exact_five_repository_candidate": "PASS: exact Server/Site/Admin/Partner checkouts materialized; four Docker images built; Admin and Partner HTTP/runtime/API-proxy smoke passed against mock API; Caddy and Compose config passed. This is local artifact/runtime wiring evidence only; all PRs are unmerged and no stable staging or production deployment is verified."
   },
-  "note": "Current five-repository review candidate only; exact Server/Site/Admin/Partner/iOS pins are listed at top level. The integration SHA identifies the root checkpoint preceding the uncommitted orchestration finalization and must be advanced to its committed SHA. All PRs are open/unmerged, no stable staging or production origin/deployed SHA is verified, and production_ready remains false. Historical verification entries below retain their original pinned SHAs and dates.",
+  "note": "Current five-repository review candidate only. Exact Server/Site/Admin/Partner/iOS pins are listed at top level; integration_sha pins the committed orchestration source. All component PRs are open/unmerged, no stable staging or production origin/deployed SHA is verified, and production_ready remains false. Historical verification entries below retain their original pins and dates.",
   "staging": {
     "url": null,
     "provider": null,
