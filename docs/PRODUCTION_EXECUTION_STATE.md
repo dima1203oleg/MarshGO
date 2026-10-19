@@ -152,3 +152,11 @@ Refresh iOS PR #7 check-runs; continue exact-SHA integration and cross-portal/AP
 ## Hard limitations
 
 No branch deletion, history rewrite, force push, production deployment, destructive data cleanup, or external paid provisioning. Deployment and physical-device permissions that require the owner remain external gates. Do not call this checkpoint a product release.
+
+### 2026-10-19 production-goal continuation
+
+- Owner reaffirmed the persistent objective: continue through implementation and verification until there is a working, tested production release; do not stop at an audit, plan, local build, or partial fix. This remains an execution objective, not permission to bypass review or deploy to production without its required approval.
+- Re-ran the rendezvous-map acceptance against the current `RELEASE_MANIFEST.json` pins (Server `182c77ae…`, Site `aff0ead3…`). The API fixture response was intercepted and returned HTTP 200, but the pinned Site artifact does not contain the required “Відкрити карту зустрічі” flow or `MeetingMapView`; the test fails at that acceptance step. The exact Site integration candidate `95c9fb0…` also lacks the screen, so this is an implementation gap in both checked release candidates, not a route-mock problem.
+- `e2e/rendezvous-map.spec.ts` remains an untracked acceptance test. Its request matchers now use URL pathname predicates, but the absence of the Site UI still causes the expected failure. Do not weaken the assertion. The marketplace scenario also timed out in its long full-flow run; its test result page remained on chat, so investigate with a focused trace before attributing it to the verified-vehicle selector.
+- **Next action:** add the mutual live meeting map to the isolated Site integration candidate, including pickup, both consented fresh locations, clear stale/permission states, distance and explicitly estimated ETA; then run focused acceptance against that exact candidate and its compatible Server SHA. Continue with Admin/Partner visual acceptance, screenshot difference triage, and staging discovery afterward.
+- This checkpoint does not represent release readiness. Staging/production and physical iPhone remain unverified.
