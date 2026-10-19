@@ -133,7 +133,7 @@ Refresh iOS PR #7 check-runs; continue exact-SHA integration and cross-portal/AP
 
 ### 2026-10-19 exact workspace state refresh
 
-- Orchestrator HEAD is `417eebed9edc4ce3a96c8179fcca3fa9fabc481d` on `codex/production-finalization-20261014`. Its worktree still contains many pre-existing/unrelated changes; the four production task records and selected E2E fixture changes were selectively committed, and unrelated content remains untouched. This branch has no configured remote tracking ref, so it was not pushed.
+- The previous continuation checkpoint was `417eebed9edc4ce3a96c8179fcca3fa9fabc481d`; the subsequent acceptance-evidence commit is `ec2dafdb79d64a7b71969a41c6d55ea37d76ee5c` on `codex/production-finalization-20261014`. Its worktree still contains many pre-existing/unrelated changes; only task documentation was selectively committed, and unrelated content remains untouched. This branch has no configured remote tracking ref, so it was not pushed.
 - Candidate SHA set remains Server `0c873adeb618bd871395a7ba150ba8c95d0ce19c`, Site `95c9fb07202605ad1b8755a2a2680e2786a1e29a`, iOS `295c532aa61c181320cd03dd7a7a3eb5c3aa3e35`; Admin `9dbf7db0a935498ac40c98b19bc36bce056d630d`, Partner `c639257a7f28aeda5b378a816038b01651146b83`.
 - Site PR #9 and iOS PR #7 descriptions now record exact latest evidence and limitations; both remain open/unmerged. Server PR #9 remains open/unmerged. No production merge/deploy has occurred.
 - **Next action:** selective commit of the refreshed acceptance evidence; then exact visual review and live staging discovery/acceptance if an owner-controlled staging endpoint is available.
