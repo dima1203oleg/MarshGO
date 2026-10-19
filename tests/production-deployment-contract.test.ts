@@ -35,6 +35,9 @@ test('bootstrap, update, and CI build and roll back the same portal set', () => 
   }
   assert.match(update, /for service in api web admin partner; do/);
   assert.match(update, /compose up -d api web admin partner proxy/);
+  assert.match(ci, /secrets\.MARSHGO_REPOS_READ_TOKEN/);
+  assert.match(ci, /GIT_ASKPASS_REQUIRE=force/);
+  assert.match(ci, /read-only Contents access to MarshGO-Admin and MarshGO-Partner/);
 });
 
 test('release manifest pins all five repositories and keeps the candidate unreleased', () => {
