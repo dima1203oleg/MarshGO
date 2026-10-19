@@ -107,7 +107,7 @@ Latest selected CI snapshot: Server and Site ownership-guidance heads passed; la
 - Checked out the exact Site candidate SHA `94b52e50725241d1ac28bcfa3f83fbbd0e04f101`; verified the checkout, built the Site, wrote bundle metadata with Server candidate `0c873ade…`, API contract `v1`, migration `054`, and ran `npx cap sync ios` successfully.
 - Found the current non-tag iOS workflow pin was the older Site SHA `be4a3f579971a981f580ff590a81166cdef0b712`. Updated both the checkout ref and verification ref to the exact Site candidate SHA.
 - Unsigned Xcode Simulator build passed on iOS Simulator SDK 27.0. Local app installation/launch remains NOT_TESTED: the iOS 27.0 simulator booted but `simctl install` stalled twice in the CoreSimulator service and was stopped. No physical-device test was attempted.
-- iOS integration commit `50e15da67cb795651f754db8237cb98051e29eff`, PR [MarshGO-iOS #7](https://github.com/dima1203oleg/MarshGO-iOS/pull/7), open and unmerged. Its GitHub Simulator check-runs were queued at last REST observation.
+- iOS integration commit `50e15da67cb795651f754db8237cb98051e29eff`, PR [MarshGO-iOS #7](https://github.com/dima1203oleg/MarshGO-iOS/pull/7), open and unmerged. GitHub Simulator checks completed successfully: 2/2.
 - The local compile used `https://api.marshgo.invalid` only as a reserved non-routable placeholder. No staging API origin is confirmed; this cannot be used as a release configuration.
 
 ### Exact next action

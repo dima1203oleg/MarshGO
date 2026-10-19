@@ -6,7 +6,7 @@
 |---|---|---|---|---|
 | Server | `MarshGO-Server` | `integration/production-20261019` | `0c873adeb618bd871395a7ba150ba8c95d0ce19c` | [PR #9](https://github.com/dima1203oleg/MarshGO-Server/pull/9), open; GitHub checks 2/2 success |
 | Site | `MarshGO-Site` | `integration/production-20261019` | `94b52e50725241d1ac28bcfa3f83fbbd0e04f101` | [PR #9](https://github.com/dima1203oleg/MarshGO-Site/pull/9), open; GitHub checks 3/3 success |
-| iOS | `MarshGO-iOS` | `integration/production-20261019` | `50e15da67cb795651f754db8237cb98051e29eff` | [PR #7](https://github.com/dima1203oleg/MarshGO-iOS/pull/7), open; GitHub Simulator checks queued at last observation |
+| iOS | `MarshGO-iOS` | `integration/production-20261019` | `50e15da67cb795651f754db8237cb98051e29eff` | [PR #7](https://github.com/dima1203oleg/MarshGO-iOS/pull/7), open; GitHub Simulator checks 2/2 success |
 
 ## Contracts and schema
 
