@@ -6,7 +6,18 @@
 
 ## Outcome goal
 
-Deliver an improved, integrated and tested MARSHGO production version across the applicable repositories. Keep executing independent implementation and verification work through the defined work cycle until the production acceptance gates pass or a specific external prerequisite blocks the remaining action. Never report a local build as production. Never call the work complete merely because an audit or checkpoint was written.
+**Owner-set objective (2026-10-19):** finish and improve MARSHGO into a working, integrated, production-tested release across the applicable repositories. Continue the cycle `inspect → implement → verify → fix → checkpoint → continue` through every available work item; do not stop at an audit, plan, one fix, successful build, or local tests. The objective is complete only when the production acceptance gates in `docs/MARSHGO_FINAL_PRODUCTION_SPEC.md` have evidence. If an action is blocked by an actual external prerequisite (credentials, contract, environment, or explicit deployment approval), finish all independent work, record the exact blocker and what is ready, and resume from this checkpoint when it is cleared. Never label local or staging evidence as production evidence, and never claim completion while any required gate is open.
+
+This is a persistent execution objective, not authorization to bypass access controls, required review, or the separate approval gate for production traffic, destructive migrations, or App Store publication. If the execution is interrupted, resume from this file, the acceptance matrix, and the existing Git diff; do not restart completed audits.
+
+## Latest continuation checkpoint — 2026-10-19
+
+- Reconfirmed the Server integration checkout at `/tmp/MarshGO-Server-integration-20261019`, clean at `0c873adeb618bd871395a7ba150ba8c95d0ce19c`.
+- Focused routing suite on that SHA: 82 passed, 0 failed, 0 skipped (planner, scoring, search, completeness, GTFS timetable/realtime, walking, community composition).
+- Full guarded Server loopback integration script against `marshgo_e2e_site_20261019` and local Redis: 30 passed, 0 failed, 0 skipped. Covered schema, live-journey ownership/unavailable state, 12-mode search/API auth, community booking and race/idempotency, trip edits/cancellation, rendezvous confirmation, vehicle verification, partner tenant isolation, navigation/GPS privacy, Redis realtime across instances, restart durability, and shared rate limits. DB host was loopback; only test ports 13306–13308 and 3304 were used; no process remained after cleanup.
+- Combined current local Server evidence: 112 passed, 0 failed, 0 skipped on SHA `0c873adeb618bd871395a7ba150ba8c95d0ce19c`. The mode matrix in this isolated DB returned only a community carpool offer; transit/provider modes were explicitly blocked because no enabled healthy matching provider was available there. This is not evidence of live city-feed coverage.
+- Updated this state and the production spec with the owner-set objective to continue through the acceptance gates. These documentation edits are currently uncommitted in the root worktree and are preserved.
+- **Next action:** continue Site/Admin/Partner production-screen browser acceptance and visual review at their exact candidate SHAs; then verify available staging/deployment configuration and external feed coverage. This checkpoint is not staging or production acceptance.
 
 ## Current local baseline
 
