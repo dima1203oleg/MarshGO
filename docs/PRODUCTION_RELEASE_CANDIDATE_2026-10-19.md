@@ -7,8 +7,8 @@
 | Server | `MarshGO-Server` | `integration/production-20261019` | `0c873adeb618bd871395a7ba150ba8c95d0ce19c` | [PR #9](https://github.com/dima1203oleg/MarshGO-Server/pull/9), open; GitHub checks 2/2 success |
 | Site | `MarshGO-Site` | `integration/production-20261019` | `95c9fb07202605ad1b8755a2a2680e2786a1e29a` | [PR #9](https://github.com/dima1203oleg/MarshGO-Site/pull/9), open; GitHub checks 3/3 success |
 | iOS | `MarshGO-iOS` | `integration/production-20261019` | `295c532aa61c181320cd03dd7a7a3eb5c3aa3e35` | [PR #7](https://github.com/dima1203oleg/MarshGO-iOS/pull/7), open; GitHub Simulator checks 2/2 pass |
-| Admin | `MarshGO-Admin` | `codex/p0-admin` | `9dbf7db0a935498ac40c98b19bc36bce056d630d` | [PR #1](https://github.com/dima1203oleg/MarshGO-Admin/pull/1), open; local tests 2/2, typecheck/lint/build pass |
-| Partner | `MarshGO-Partner` | `codex/p0-partner` | `c639257a7f28aeda5b378a816038b01651146b83` | [PR #1](https://github.com/dima1203oleg/MarshGO-Partner/pull/1), open; local tests 3/3, typecheck/lint/build pass |
+| Admin | `MarshGO-Admin` | `codex/p0-admin` | `9dbf7db0a935498ac40c98b19bc36bce056d630d` | [PR #1](https://github.com/dima1203oleg/MarshGO-Admin/pull/1), open; GitHub checks 1/1; local tests 2/2, typecheck/lint/build pass |
+| Partner | `MarshGO-Partner` | `codex/p0-partner` | `c639257a7f28aeda5b378a816038b01651146b83` | [PR #1](https://github.com/dima1203oleg/MarshGO-Partner/pull/1), open; GitHub checks 1/1; local tests 3/3, typecheck/lint/build pass |
 
 ## Contracts and schema
 
@@ -23,6 +23,7 @@
 - Site candidate: 118 unit tests passed, 0 failed, 0 skipped; TypeScript, lint, production build and full isolated browser marketplace E2E 9/9 passed against the exact Server candidate. The E2E covers two-account search/booking, saved MarshPass, boarding, completion by both participants, persisted reviews/chat, reverse marketplace counteroffer, GPS deviation rerouting, viewport and navigation recovery. GitHub checks 3/3 passed. The earlier visual pixel comparison to a stored light-results baseline failed at 12%; it is unresolved and the baseline was not replaced.
 - iOS candidate: exact Site SHA `95c9fb07202605ad1b8755a2a2680e2786a1e29a` checkout verified with Node 24.21.0; Site build, release metadata generation, Capacitor sync, unsigned Xcode Simulator build, simulator installation and app launch passed locally. Captured welcome screen at `/tmp/marshgo-ios-candidate-95c9fb0-later.png`; it rendered after WebView startup. GitHub Simulator checks 2/2 passed. Interactive sign-in/booking, physical iPhone, GPS background behavior and push are not tested.
 - Admin/Partner candidates: Admin `9dbf7db0…` and Partner `c639257a…`; local P0 suites 2/2 and 3/3, respectively, plus typecheck/lint/build. On 2026-10-19 the exact local Server candidate served an OTP-authenticated loopback API flow: Partner submitted an application, Admin read and approved it, and Partner read back the persisted approval and restricted permissions. This is API-level local acceptance only; a browser-driven portal flow and staging acceptance remain open.
+- Latest GitHub check-runs for these exact five candidate SHAs were re-read on 2026-10-19: Server 2/2, Site 3/3, iOS 2/2, Admin 1/1, Partner 1/1 completed successful checks. These PRs are still open and unmerged; each repo also has other open PRs, so successful candidate checks alone do not establish a released integration.
 
 ## Environment and deployment
 
