@@ -72,13 +72,22 @@ if (existsSync(releaseRoot)) assertRealDirectory(releaseRoot, 'release directory
 mkdirSync(releaseRoot, { recursive: true });
 const serverSha = sha('server_sha');
 const siteSha = sha('site_sha');
+const adminSha = sha('admin_sha');
+const partnerSha = sha('partner_sha');
 const server = checkout('server', 'MarshGO-Server', serverSha);
 const site = checkout('site', 'MarshGO-Site', siteSha);
+const admin = checkout('admin', 'MarshGO-Admin', adminSha);
+const partner = checkout('partner', 'MarshGO-Partner', partnerSha);
 
 installGeneratedFile(join(root, 'ops/docker/Dockerfile.server'), join(server, 'Dockerfile.marshgo'));
 installGeneratedFile(join(root, 'ops/docker/server.dockerignore'), join(server, '.dockerignore'));
 installGeneratedFile(join(root, 'ops/docker/Dockerfile.site'), join(site, 'Dockerfile.marshgo'));
 installGeneratedFile(join(root, 'ops/docker/site.dockerignore'), join(site, '.dockerignore'));
+for (const directory of [admin, partner]) {
+  installGeneratedFile(join(root, 'ops/docker/Dockerfile.portal'), join(directory, 'Dockerfile.marshgo'));
+  installGeneratedFile(join(root, 'ops/docker/portal.dockerignore'), join(directory, '.dockerignore'));
+  installGeneratedFile(join(root, 'deploy/nginx.conf'), join(directory, 'deploy/nginx.conf'));
+}
 const siteDeploy = join(site, 'deploy');
 try {
   const deployDirectory = lstatSync(siteDeploy);
@@ -94,8 +103,10 @@ installGeneratedFile(join(root, 'deploy/nginx.conf'), join(siteDeploy, 'nginx.co
 const generatedInputs = {
   server: ['Dockerfile.marshgo', '.dockerignore'],
   site: ['Dockerfile.marshgo', '.dockerignore', 'deploy/nginx.conf'],
+  admin: ['Dockerfile.marshgo', '.dockerignore', 'deploy/nginx.conf'],
+  partner: ['Dockerfile.marshgo', '.dockerignore', 'deploy/nginx.conf'],
 };
-for (const [name, directory] of [['Server', server], ['Site', site]]) {
+for (const [name, directory] of [['Server', server], ['Site', site], ['Admin', admin], ['Partner', partner]]) {
   assertMaterializedWorktreeClean(
     git(directory, ['status', '--porcelain=v1', '--untracked-files=all']),
     generatedInputs[name.toLowerCase()],
@@ -106,6 +117,8 @@ for (const [name, directory] of [['Server', server], ['Site', site]]) {
 let compose = readFileSync(join(root, 'compose.production.yml'), 'utf8');
 compose = compose.replaceAll('context: .\n      dockerfile: Dockerfile.api', `context: ${JSON.stringify(server)}\n      dockerfile: Dockerfile.marshgo`);
 compose = compose.replace('context: .\n      dockerfile: Dockerfile.web', `context: ${JSON.stringify(site)}\n      dockerfile: Dockerfile.marshgo`);
+compose = compose.replace('context: .\n      dockerfile: Dockerfile.admin', `context: ${JSON.stringify(admin)}\n      dockerfile: Dockerfile.marshgo`);
+compose = compose.replace('context: .\n      dockerfile: Dockerfile.partner', `context: ${JSON.stringify(partner)}\n      dockerfile: Dockerfile.marshgo`);
 compose = compose.replace('./deploy/Caddyfile:/etc/caddy/Caddyfile:ro', `${join(root, 'deploy/Caddyfile')}:/etc/caddy/Caddyfile:ro`);
 if (compose.includes('context: .\n      dockerfile: Dockerfile.') || compose.includes('./deploy/Caddyfile')) {
   throw new Error('Could not bind every production build and proxy config to the pinned release source/configuration.');
@@ -113,7 +126,7 @@ if (compose.includes('context: .\n      dockerfile: Dockerfile.') || compose.inc
 writeFileSync(join(releaseRoot, 'compose.production.yml'), compose);
 const materialization = {
   schemaVersion: 2,
-  source: { serverSha, siteSha, integrationSha: manifest.integration_sha },
+  source: { serverSha, siteSha, adminSha, partnerSha, integrationSha: manifest.integration_sha },
   sourceTrees: {
     server: {
       generatedInputs: generatedInputs.server,
@@ -125,6 +138,18 @@ const materialization = {
       dockerfileSha256: sha256File(join(site, 'Dockerfile.marshgo')),
       dockerignoreSha256: sha256File(join(site, '.dockerignore')),
       nginxConfigSha256: sha256File(join(siteDeploy, 'nginx.conf')),
+    },
+    admin: {
+      generatedInputs: generatedInputs.admin,
+      dockerfileSha256: sha256File(join(admin, 'Dockerfile.marshgo')),
+      dockerignoreSha256: sha256File(join(admin, '.dockerignore')),
+      nginxConfigSha256: sha256File(join(admin, 'deploy/nginx.conf')),
+    },
+    partner: {
+      generatedInputs: generatedInputs.partner,
+      dockerfileSha256: sha256File(join(partner, 'Dockerfile.marshgo')),
+      dockerignoreSha256: sha256File(join(partner, '.dockerignore')),
+      nginxConfigSha256: sha256File(join(partner, 'deploy/nginx.conf')),
     },
   },
   composeSha256: sha256(compose),

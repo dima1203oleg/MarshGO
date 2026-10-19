@@ -1,24 +1,26 @@
 {
   "schema_version": 1,
   "product": "MARSHGO",
-  "release_candidate": "RC-2026-10-16-multimodal-mobility.1",
+  "release_candidate": "RC-2026-10-19-five-repository-production.1",
   "status": "NOT_RELEASED",
   "ready_for_server_deployment": false,
   "production_ready": false,
-  "server_sha": "182c77ae4f78d576a287007d8e0864fb130f43f8",
-  "site_sha": "aff0ead39db51abfd939820530b3a874db26cfaf",
-  "ios_sha": "ecf9fd03de37595f8599be0bb951f35ca515f692",
-  "integration_sha": "1967842f7faafc5d0e24f5a7e4c483176f6ad559",
-  "database_migration": "053 (additive mobility registry, return-rule and micromobility journey-mode migrations; Server PR #7 CI passes migration/integration checks; production/staging upgrade and rollback rehearsal required)",
-  "candidate_scope": "Exact review pins: Server PR #7 182c77ae4f78d576a287007d8e0864fb130f43f8; Site PR #6 aff0ead39db51abfd939820530b3a874db26cfaf; iOS PR #5 ecf9fd03de37595f8599be0bb951f35ca515f692; integration PR #1 tested source 1967842f7faafc5d0e24f5a7e4c483176f6ad559; hosted CI passed on final code/report commit e750c7967bd56b81aff72a98352e9030d08aec5d. Local acceptance: Server 200 unit tests (one opt-in DB skip), 28 integration tests, typecheck/lint; root 30 integration tests with live GTFS isolated, 232 unit tests, typecheck/lint/build/bundle; exact pinned API/web production images build; zero production dependency audit findings. Exact-pinned Playwright rerun passed 12/12 on Server 182c77ae4f78d576a287007d8e0864fb130f43f8 + Site aff0ead39db51abfd939820530b3a874db26cfaf, root source 1967842f7faafc5d0e24f5a7e4c483176f6ad559; the button smoke audit also logged 17 interactions with no visible delta for manual classification. Live probes found Kyiv BikeNow+metro and Zelectra scooter+metro, plus Lviv Nextbike. Bike/scooter paths use approximate geometry, bike inventory is unknown, rental booking is disabled, and Kyiv metro vehicle telemetry is absent. E2E map/routing use deterministic fixtures; pixel parity against all 19 references, physical iPhone acceptance, and real street/foot-routing acceptance remain open. Production is NOT_READY: no staging/production target, production map/routing services or managed secrets, and partner access/contract requirements remain unresolved.",
+  "server_sha": "0c873adeb618bd871395a7ba150ba8c95d0ce19c",
+  "site_sha": "09871e6da312e6ac72c83857fbd3106e9c28cc7c",
+  "ios_sha": "68b833499a11fa67763fb6fcfd79b972783fe140",
+  "integration_sha": "07aeaa10090e417b7f90fb19028cb1d096c29a4d",
+  "database_migration": "054 (rendezvous consent; production/staging upgrade and rollback rehearsal still required)",
+  "candidate_scope": "Exact review pins: Server 0c873adeb618bd871395a7ba150ba8c95d0ce19c (PR #9); Site 09871e6da312e6ac72c83857fbd3106e9c28cc7c (PR #9); Admin 9dbf7db0a935498ac40c98b19bc36bce056d630d (PR #1); Partner c639257a7f28aeda5b378a816038b01651146b83 (PR #1); iOS 68b833499a11fa67763fb6fcfd79b972783fe140 (PR #7, pins the exact Site SHA). Four production images materialize and build locally; Admin/Partner container wiring smoke passes with a mock API. PRs are unmerged. Staging/production, interactive iOS, physical GPS, production provider access, backups/restore on a hosted environment, and owner-authorized rollout are not verified. This manifest remains NOT_RELEASED.",
   "api_version": "v1",
   "source_repositories": {
-    "server": "dima1203oleg/MarshGO-Server@feature/transport-layer-availability",
-    "site": "dima1203oleg/MarshGO-Site@codex/journey-rendezvous-map",
-    "ios": "dima1203oleg/MarshGO-iOS@codex/pin-rendezvous-site",
-    "integration": "dima1203oleg/MarshGO@codex/marshgo-production"
+    "server": "dima1203oleg/MarshGO-Server@integration/production-20261019",
+    "site": "dima1203oleg/MarshGO-Site@integration/production-20261019",
+    "admin": "dima1203oleg/MarshGO-Admin@codex/p0-admin",
+    "partner": "dima1203oleg/MarshGO-Partner@codex/p0-partner",
+    "ios": "dima1203oleg/MarshGO-iOS@integration/production-20261019",
+    "integration": "dima1203oleg/MarshGO@codex/production-finalization-20261014"
   },
-  "ios_simulator_site_sha": "aff0ead39db51abfd939820530b3a874db26cfaf",
+  "ios_simulator_site_sha": "09871e6da312e6ac72c83857fbd3106e9c28cc7c",
   "verification": {
     "umbrella_unit_tests": "PASS locally: npm run check:production reports 231 passed, 0 failed, 1 opt-in skip (232 total). Hosted umbrella CI uses exact Node 24.21.0.",
     "umbrella_production_check": "PASS locally: typecheck, ESLint, unit tests, Vite production build and bundle budget (51 JavaScript chunks, all <=350 KB gzip). Hosted umbrella CI uses exact Node 24.21.0.",
@@ -84,12 +86,13 @@
     "visual_reference_limit": "Behavioral map/sheet E2E and local macOS screenshot regressions pass. Pixel-by-pixel overlay against the supplied image crops has not been performed; exact one-to-one photo parity is not certified.",
     "route_sheet_cross_browser": "PASS: route sheet pointer tracking and snap completion passed in Chromium, Firefox and WebKit after the Firefox project uses standards-based mouse pointer input; the other two projects exercise the mobile touch-capable viewport. Full browser compatibility run: 6/6 on 2026-10-13.",
     "site_production_build_2026_10_13": "PASS: Site 68bae61bfbf3a3721ba11c4a7cc325f9d014a9ab built without VITE_MAP_STYLE_URL or VITE_MAP_STYLE_MANIFEST_URL; 18 JavaScript chunks pass the <=350 KB gzip gate and the emitted bundle contains no isolated E2E map URL. Production map provider remains unconfigured, so this is a build check, not deployed map acceptance.",
-    "current_candidate_browser_compatibility": "PASS: 3/3 route-map behavior checks on Site aff0ead39db51abfd939820530b3a874db26cfaf in Chromium, Firefox and WebKit with isolated fixtures; root full browser E2E passed 12/12 in Chromium on Server 182c77ae4f78d576a287007d8e0864fb130f43f8 / Site aff0ead39db51abfd939820530b3a874db26cfaf. Full 6-case cross-browser matrix was previously run on older pins and has not been repeated for this exact Server/root candidate.",
-    "current_candidate_production_images": "PASS: exact-pinned API and web production images built locally from Server 182c77ae4f78d576a287007d8e0864fb130f43f8 and Site aff0ead39db51abfd939820530b3a874db26cfaf; the web image has no production map manifest configured. Images were not started or deployed.",
-    "current_candidate_runtime_dependency_audit": "PASS: npm audit --omit=dev reports zero production dependency vulnerabilities for exact Server 182c77ae4f78d576a287007d8e0864fb130f43f8 and Site aff0ead39db51abfd939820530b3a874db26cfaf; development dependencies are outside this audit.",
-    "umbrella_github_security_ci": "PASS: GitHub root PR #1 Security run #521 (run ID 38777367258) completed successfully on commit 83b4f22591083a4cc431b800a3e1ec9e1081e19b."
+    "current_candidate_browser_compatibility": "PARTIAL: focused rendezvous browser E2E passed 1/1 on Site 09871e6da312e6ac72c83857fbd3106e9c28cc7c. On that Site candidate the default route/marketplace suite had 11/13 pass; one stale selector was fixed and its two-account lifecycle passed separately 1/1, and route-map behavior passed separately 1/1. The stored macOS screenshot baseline still differs by 12%; no baseline was replaced.",
+    "current_candidate_production_images": "PASS, local only: exact Server 0c873adeb618bd871395a7ba150ba8c95d0ce19c, Site 09871e6da312e6ac72c83857fbd3106e9c28cc7c, Admin 9dbf7db0a935498ac40c98b19bc36bce056d630d and Partner c639257a7f28aeda5b378a816038b01651146b83 were materialized and all four API/web/portal production images built. Admin/Partner were smoke-started with a mock API; API/Site were build-only. No DB, stable HTTPS staging or production deployment was started.",
+    "current_candidate_runtime_dependency_audit": "PASS, scoped to container build dependency installs: npm reported 0 vulnerabilities while installing production Server dependencies and build dependencies for Site/Admin/Partner on the exact current pins. This does not replace a dedicated complete SAST/secrets/container scan.",
+    "umbrella_github_security_ci": "PASS: GitHub root PR #1 Security run #521 (run ID 38777367258) completed successfully on commit 83b4f22591083a4cc431b800a3e1ec9e1081e19b.",
+    "exact_five_repository_candidate": "PASS: exact Server/Site/Admin/Partner checkouts materialized; four Docker images built; Admin and Partner HTTP/runtime/API-proxy smoke passed against mock API; Caddy and Compose config passed. This is local artifact/runtime wiring evidence only; all PRs are unmerged and no stable staging or production deployment is verified."
   },
-  "note": "Current exact review pins are listed in latest_workspace_sync_2026_10_16; root integration commit dae085dc01a316107c9bd2c6b64946721c2e612a. Local tests and current PR CI pass where stated, but no public staging or production environment is configured. Approximate bike/scooter geometry, unknown rental availability/booking, absent production map/routing configuration, partner integrations, physical-device acceptance, migration/rollback rehearsal, and full pixel-by-pixel verification against all 19 screenshots remain incomplete. This manifest does not authorize or claim a deployment.",
+  "note": "Current five-repository review candidate only; exact Server/Site/Admin/Partner/iOS pins are listed at top level. The integration SHA identifies the root checkpoint preceding the uncommitted orchestration finalization and must be advanced to its committed SHA. All PRs are open/unmerged, no stable staging or production origin/deployed SHA is verified, and production_ready remains false. Historical verification entries below retain their original pinned SHAs and dates.",
   "staging": {
     "url": null,
     "provider": null,
@@ -236,5 +239,7 @@
     "staging_and_production": "BLOCKED: GitHub environments API returned []; no staging or production deployment target. Nothing deployed.",
     "design_acceptance": "Not pixel-certified against the 19 supplied screenshots. E2E uses a deterministic map fixture rather than the production satellite basemap; physical iPhone acceptance remains open.",
     "status": "Review candidate only; status NOT_RELEASED and production_ready=false. No production deployment."
-  }
+  },
+  "admin_sha": "9dbf7db0a935498ac40c98b19bc36bce056d630d",
+  "partner_sha": "c639257a7f28aeda5b378a816038b01651146b83"
 }

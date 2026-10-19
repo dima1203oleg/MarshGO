@@ -13,10 +13,10 @@ compose config --quiet
 validate_production_env
 validate_release_ref
 compose pull db redis proxy
-compose build --pull api web
+compose build --pull api web admin partner
 compose up -d db redis
 compose run --rm migrate
-compose up -d api web proxy
+compose up -d api web admin partner proxy
 
 api_port="$(sed -n 's/^API_PORT=//p' "$ENV_FILE" | tail -n 1)"
 api_port="${api_port:-3002}"

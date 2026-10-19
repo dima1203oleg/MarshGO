@@ -56,7 +56,7 @@ jobs:
       - run: npm run build
       - run: npm run check:bundle
       - run: node ops/scripts/materialize-release.mjs
-      - run: docker compose --project-name marshgo-canonical-build --env-file ops/templates/production.env.example -f .release/compose.production.yml build api web
+      - run: docker compose --project-name marshgo-canonical-build --env-file ops/templates/production.env.example -f .release/compose.production.yml build api web admin partner
       - run: npx playwright install --with-deps chromium firefox webkit
       - name: Install Mesa and virtual display for Firefox WebGL
         run: sudo apt-get update && sudo apt-get install -y libgl1-mesa-dri xvfb xauth

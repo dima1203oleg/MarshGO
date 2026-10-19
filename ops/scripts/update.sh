@@ -17,21 +17,21 @@ MARSHGO_RELEASE_TAG="$(env_value MARSHGO_RELEASE_TAG)"
 export MARSHGO_RELEASE_TAG
 "$ROOT_DIR/ops/scripts/backup.sh"
 stamp="$(date -u +%Y%m%dT%H%M%SZ)"
-for service in api web; do
+for service in api web admin partner; do
   image_id="$(compose images -q "$service" | head -n 1)"
   if [[ -n "$image_id" ]]; then docker image tag "$image_id" "marshgo/$service:rollback-$stamp"; fi
 done
 restore_previous_images() {
-  for service in api web; do
+  for service in api web admin partner; do
     previous="marshgo/$service:rollback-$stamp"
     if docker image inspect "$previous" >/dev/null 2>&1; then
       docker image tag "$previous" "marshgo/$service:$MARSHGO_RELEASE_TAG"
     fi
   done
-  compose up -d api web proxy
+  compose up -d api web admin partner proxy
 }
-compose build --pull api web
-if ! { compose run --rm migrate && compose up -d api web proxy; }; then
+compose build --pull api web admin partner
+if ! { compose run --rm migrate && compose up -d api web admin partner proxy; }; then
   echo "Update failed. Previous image IDs are tagged rollback-$stamp; restoring the previous app images." >&2
   restore_previous_images || true
   exit 1
