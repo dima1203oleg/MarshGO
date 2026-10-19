@@ -1,7 +1,7 @@
 # MARSHGO production execution state
 
 **Last verified:** 2026-10-19, Europe/Kyiv
-**Current phase:** Server and Site integration candidates pushed with open PRs; local integration checks passed; no confirmed staging or production deployment.
+**Current phase:** Cross-repository integration candidates are pushed and their scoped CI/browser/integration evidence is recorded; Admin/Partner API acceptance now passes on loopback. Admin/Partner UI-browser acceptance, reference-image visual review, staging and production remain open.
 **State:** IN_PROGRESS. Existing uncommitted work is preserved.
 
 ## Outcome goal
@@ -121,7 +121,22 @@ Refresh iOS PR #7 check-runs; continue exact-SHA integration and cross-portal/AP
 - The source E2E fixture now seeds `trust_level=3` when it claims a vehicle is verified. The API requires trust level ≥1 for proposals; the prior fixture only set legacy `verification_status='verified'`, which left `trust_level=0` and made the UI scenario impossible. Server enforcement was not loosened.
 - On the exact Site artifact built with isolated map fixtures and exact Server SHA `0c873adeb618bd871395a7ba150ba8c95d0ce19c`, all marketplace browser E2E passed: 9/9, 0 failed. Includes the complete two-account booking, MarshPass/boarding/completion/review/chat/reverse-marketplace flow; route map/GPS, responsive iPhone viewport, search persistence and onboarding. This is local isolated Postgres/Redis/fixture evidence, not staging.
 - Updated iOS workflow and README to pin Site `95c9fb07202605ad1b8755a2a2680e2786a1e29a`. iOS commit `295c532aa61c181320cd03dd7a7a3eb5c3aa3e35` is pushed to open [iOS PR #7](https://github.com/dima1203oleg/MarshGO-iOS/pull/7). Exact checkout, Node 24.21.0 Site build, Capacitor sync and unsigned Xcode Simulator compilation pass locally. GitHub Simulator checks are 2/2 PASS. Simulator installed and launched; after WebView startup the welcome screen visibly rendered (capture `/tmp/marshgo-ios-candidate-95c9fb0-later.png`). Interactive sign-in/booking and physical iPhone remain unverified.
-- **Exact next action:**  then stage the updated acceptance docs and E2E fixture-only trust-level correction as a selective local documentation-owner commit. Do not stage unrelated dirty files. Continue Admin/Partner browser/API acceptance, investigate the 12% screenshot diff without replacing baselines, and check current staging availability.
+- **Exact next action:** stage only acceptance docs and E2E fixture-only correction in the orchestrator branch; leave unrelated dirty files untouched. Continue Admin/Partner UI-browser acceptance, investigate the 12% screenshot diff without replacing baselines, and check current staging availability.
+
+### Admin / Partner acceptance continuation, 2026-10-19
+
+- Started the exact local Server candidate SHA `0c873adeb618bd871395a7ba150ba8c95d0ce19c` on loopback port 3302 against the isolated local Postgres database `marshgo_e2e_site_20261019` and local Redis on port 6380. This was a test environment, not staging.
+- Admin and Partner Vite entrypoints responded HTTP 200 on loopback ports 4176 and 4177. The browser automation attempt did not complete a UI sign-in assertion; therefore portal-browser acceptance remains NOT_TESTED.
+- Using the real development OTP endpoint (not dev-preview), created a Partner account and application. An existing local-only test admin role was used in this isolated DB; Admin API loaded the live dashboard and pending-partner queue and approved the application. The Partner API then read persisted `ACTIVE` / `APPROVED` status and its owner permissions. The pending `INTEGRATION_ONLY` organization correctly had `canManageOrders=false` and `canManageIntegrations=false`.
+- The E2E data was written only to the isolated local database. No production or staging records were touched. This proves local central API and tenant-gated state transitions, not the interactive Admin/Partner UX or production authorization posture.
+- **Next action:** investigate the visual baseline mismatch; if no approved current references are available, preserve it as an unresolved acceptance blocker. Check for a real staging origin and exact deployment SHA; do not deploy or promote without the required owner approval.
+
+### 2026-10-19 exact workspace state refresh
+
+- Orchestrator HEAD is `417eebed9edc4ce3a96c8179fcca3fa9fabc481d` on `codex/production-finalization-20261014`. Its worktree still contains many pre-existing/unrelated changes; the four production task records and selected E2E fixture changes were selectively committed, and unrelated content remains untouched. This branch has no configured remote tracking ref, so it was not pushed.
+- Candidate SHA set remains Server `0c873adeb618bd871395a7ba150ba8c95d0ce19c`, Site `95c9fb07202605ad1b8755a2a2680e2786a1e29a`, iOS `295c532aa61c181320cd03dd7a7a3eb5c3aa3e35`; Admin `9dbf7db0a935498ac40c98b19bc36bce056d630d`, Partner `c639257a7f28aeda5b378a816038b01651146b83`.
+- Site PR #9 and iOS PR #7 descriptions now record exact latest evidence and limitations; both remain open/unmerged. Server PR #9 remains open/unmerged. No production merge/deploy has occurred.
+- **Next action:** selective commit of the refreshed acceptance evidence; then exact visual review and live staging discovery/acceptance if an owner-controlled staging endpoint is available.
 
 ## Hard limitations
 
