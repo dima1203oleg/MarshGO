@@ -19,7 +19,7 @@
 
 - Server candidate: 229 unit tests passed, 0 failed, 3 optional skipped; TypeScript and lint passed; clean migration and Postgres/Redis integration suites passed on isolated local services; GitHub checks 2/2 passed.
 - Site candidate: 118 unit tests passed, 0 failed, 0 skipped; TypeScript, lint, production build and full isolated browser marketplace E2E 9/9 passed against the exact Server candidate. The E2E covers two-account search/booking, saved MarshPass, boarding, completion by both participants, persisted reviews/chat, reverse marketplace counteroffer, GPS deviation rerouting, viewport and navigation recovery. GitHub checks 3/3 passed. The earlier visual pixel comparison to a stored light-results baseline failed at 12%; it is unresolved and the baseline was not replaced.
-- iOS candidate: exact Site SHA `95c9fb07202605ad1b8755a2a2680e2786a1e29a` checkout verified with Node 24.21.0; Site build, release metadata generation, Capacitor sync and unsigned Xcode Simulator build passed locally. GitHub Simulator checks 2/2 passed. Simulator installation/launch was not verified because local `simctl install` stalled; physical iPhone, GPS background behavior and push are not tested.
+- iOS candidate: exact Site SHA `95c9fb07202605ad1b8755a2a2680e2786a1e29a` checkout verified with Node 24.21.0; Site build, release metadata generation, Capacitor sync, unsigned Xcode Simulator build, simulator installation and app launch passed locally. Captured welcome screen at `/tmp/marshgo-ios-candidate-95c9fb0-later.png`; it rendered after WebView startup. GitHub Simulator checks 2/2 passed. Interactive sign-in/booking, physical iPhone, GPS background behavior and push are not tested.
 
 ## Environment and deployment
 
