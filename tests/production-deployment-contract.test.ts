@@ -40,6 +40,15 @@ test('bootstrap, update, and CI build and roll back the same portal set', () => 
   assert.match(ci, /read-only Contents access to MarshGO-Admin and MarshGO-Partner/);
 });
 
+test('generated Compose is rejected unless it matches the exact manifest pins and digest', () => {
+  const compose = read('ops/scripts/compose.sh');
+  const verifier = read('ops/scripts/verify-materialized-release.mjs');
+  assert.match(compose, /verify-materialized-release\.mjs/);
+  assert.match(compose, /Pinned release contexts are not materialized/);
+  assert.match(verifier, /integrationSha: manifest\.integration_sha/);
+  assert.match(verifier, /materialized\.composeSha256 !== actualComposeSha/);
+});
+
 test('release manifest pins all five repositories and keeps the candidate unreleased', () => {
   const manifest = JSON.parse(read('RELEASE_MANIFEST.json')) as Record<string, unknown>;
   for (const component of ['server', 'site', 'admin', 'partner', 'ios']) {
