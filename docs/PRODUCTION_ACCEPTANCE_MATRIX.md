@@ -7,7 +7,8 @@
 | iOS | `0fcf5f36e0a751152b9d3cd6778a930b372afae0`, clean PR #14 from main | Exact Site/Server pins + manifest assertion; simulator runs 40041831739 and 40041815392 PASS | PASS simulator only; physical device NOT_TESTED |
 | Admin | `9dbf7db0a935498ac40c98b19bc36bce056d630d` | Typecheck/lint/build, 2/2 tests; only no-session 401 route smoke | PARTIAL; authenticated workflow NOT_TESTED |
 | Partner | `c639257a7f28aeda5b378a816038b01651146b83` | Typecheck/lint/build, 3/3 tests; only no-session 401 route smoke | PARTIAL; tenant operations NOT_TESTED |
-| Cross-repo Browser E2E | Site `2af5219`, Server `c725278` | 19/20 pass; route viewport poll timeout in long run; isolated rerun of same test 1/1 pass. Button audit: 205 clicks/15 routes, 12 heuristic no-effect states; no JS errors/unexpected 5xx | PARTIAL; retain and diagnose long-suite timing failure |
+| Cross-repo Browser E2E | Site `2af5219`, Server `c725278` | Full fixture retest 20/20 PASS in 8.8m; 195 safe control clicks/15 routes, trace enabled, no uncaught JS errors/unexpected 5xx | PASS fixture E2E only; live provider/staging and all-reference visual acceptance NOT_TESTED |
+| Exact pinned release images | Server `c725278`, Site `2af521`, Admin `9dbf7d`, Partner `c63925`; materialized root config `f727312` | All four Docker images built locally from clean pinned source trees; Web/Admin/Partner root+SPA+healthz smoke PASS; local OCI refs in `docs/audit/103_EXACT_PINNED_RELEASE_IMAGE_BUILD_2026-10-24.md` | PASS local build/smoke; not pushed, staged, or deployed; API runtime image smoke NOT_TESTED |
 | Production deployment | none | No verified staging/production target, deployed SHA or HTTPS smoke | BLOCKED_EXTERNAL / NOT_RELEASED |
 
 # MARSHGO production acceptance matrix

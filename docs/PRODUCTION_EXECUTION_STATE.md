@@ -1,3 +1,13 @@
+# Checkpoint 2026-10-24 — exact pinned release images built locally
+
+- Root PR #5 current SHA: `b7c200215161ee6648719dc738a0545fea19190c`. `verify` run `40044137580` passed dependency audit, lint, typecheck, unit suite, migrations, Postgres/Redis integration, production build and bundle budget. It then failed closed because `MARSHGO_REPOS_READ_TOKEN` is absent for private Admin/Partner clone. Gitleaks and CodeQL pass. This is a missing Actions secret, not a code test failure; no required check was bypassed.
+- `ops/scripts/materialize-release.mjs` successfully materialized exact Server/Site/Admin/Partner SHAs and confirmed pinned source trees clean. Compose rendered eight services. Docker BuildKit built all four exact production images; local OCI refs are documented in `docs/audit/103_EXACT_PINNED_RELEASE_IMAGE_BUILD_2026-10-24.md`. These images remain local/unpublished.
+- Transient loopback checks for Web/Admin/Partner images passed root, `/journeys/search` SPA fallback and `/healthz`. Only containers created for those checks were removed; existing containers and volumes remain untouched. API image built but was not started against a DB in this check.
+- `npm run check:production` on Node 24.21.0: typecheck, lint, 256 unit tests PASS / 0 FAIL / 1 opt-in SKIP, production build, and 51-chunk bundle budget PASS. Exact Server integration 29/29 and exact Site/Server browser fixture retest 20/20 remain PASS.
+- **Next exact actions:** configure the read-only GitHub Actions secret (external owner action) to let root CI materialize private Admin/Partner; continue to staging, API/image runtime with isolated DB/Redis, authenticated Admin/Partner, dense-Lviv completeness, security/load, backup/restore/rollback and physical-device gates. No production deployment. Keep `PRODUCTION_READY=false`, `NOT_RELEASED`.
+
+---
+
 # Checkpoint 2026-10-24 — dependency audit and release-manifest correction
 
 - Root/orchestrator repo: `/Users/dima1203/Desktop/MarshGO`, branch `codex/production-finalization-20261014`. Dependency/security fix is committed and pushed as `dba2f436b6a4c5a90627e656438930c7463ef432`; this is not a clean release source because other pre-existing work remains modified/untracked.

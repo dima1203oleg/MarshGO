@@ -260,7 +260,10 @@
     "exact_site20_server31_root_e2e": "PASS 19/19 on exact Site a000b3cc07a956ae7ded4563ab5e97b11fe3db71 plus Server b65882584a3ad1e8dd7512d13176f52299cded51; isolated loopback database marshgo_e2e_site20_server31_20261023; 192 visible control clicks across 16 paths, 0 captured JS errors/unexpected HTTP 5xx; 12 heuristic no-change observations remain partially classified.",
     "ios_pr12_exact_candidate": "PASS run 39996495495 on iOS SHA 6e825cd59df9529c9b88aab063989d7328497fef, verifying exact Site a000b3cc07a956ae7ded4563ab5e97b11fe3db71, Server b65882584a3ad1e8dd7512d13176f52299cded51, embedded manifest, Capacitor sync and simulator compile; physical iPhone remains NOT_TESTED.",
     "server_full_integration": "PASS 29/29 on exact Server c7252783f3c8b3b1140d621bcbdae175248008be using Node 24.21.0, loopback-only marshgo_e2e and local Redis; migrations, Journey/live Journey, booking/trip edit, navigation, realtime, restart durability and rate limiting.",
-    "cross_repo_browser_e2e": "PASS repeat 20/20 in 8.8 minutes, exact Site 2af5219538aa005d285f9236ca0b0dafaca0274a + Server c7252783f3c8b3b1140d621bcbdae175248008be, fresh loopback marshgo_e2e_rc_20261024 DB, local Redis and map/geocoder/OSRM fixtures, Node 24.21.0, trace enabled. First full run was 19/20 due to a route-map fit polling timeout; isolated route test 1/1 and full repeat passed. Safe-control audit 195 clicks / 15 routes, 13 heuristic no-visible-effect observations. Fixture result is not staging/live-provider/production acceptance."
+    "cross_repo_browser_e2e": "PASS repeat 20/20 in 8.8 minutes, exact Site 2af5219538aa005d285f9236ca0b0dafaca0274a + Server c7252783f3c8b3b1140d621bcbdae175248008be, fresh loopback marshgo_e2e_rc_20261024 DB, local Redis and map/geocoder/OSRM fixtures, Node 24.21.0, trace enabled. First full run was 19/20 due to a route-map fit polling timeout; isolated route test 1/1 and full repeat passed. Safe-control audit 195 clicks / 15 routes, 13 heuristic no-visible-effect observations. Fixture result is not staging/live-provider/production acceptance.",
+    "canonical_release_materialization": "PASS exact pinned Server/Site/Admin/Partner checkouts materialized from GitHub; all pinned source trees clean apart from generated build inputs; production Compose renders all 8 declared services.",
+    "canonical_release_images": "PASS local BuildKit production images for API/Web/Admin/Partner. All four OCI references are local and were not pushed. Web/Admin/Partner transient loopback root/SPA/healthz smoke passed; API image built but not started against a database.",
+    "root_release_ci": "BLOCKED_EXTERNAL: hosted verify run 40044137580 passed Bun dependency audit, lint, typecheck, unit tests, DB migrations, Postgres/Redis integration, production build and bundle budget; then failed closed because Actions secret MARSHGO_REPOS_READ_TOKEN is absent for private Admin/Partner checkout. Gitleaks and CodeQL pass. No checks bypassed."
   },
   "latest_workspace_sync_2026_10_07": {
     "server_sha": "954b1105db73d76e482831ece70c0f1d48de0482",
@@ -509,7 +512,7 @@
     "checked_at_utc": "2026-10-21T16:28:00Z",
     "notes": "Exact tuple: Server 8889fce11cf78d2c29c8d0ca8cad8b567b0ef67b; Site c50ba344b7dfde9859826363fea119d95e2cc54e; iOS 7df237845d8841a98a5c15082677ec4198728339 pins that Site SHA. Site exact local/hosted gates pass (125 unit, 21 Playwright; hosted 39659459120/39659459087). iOS local simulator build/sync/launch passes; cold-start captures at 1s/3s show welcome. Hosted iOS simulator run 39659884926 SUCCESS; repeat PR #9 run 39660236409 SUCCESS. Server hosted DB/Redis integration passes but route search remains truncated. No staging/deployment evidence, physical iPhone acceptance, live provider acceptance, signed archive, or production HTTPS smoke. PRs remain unmerged; status NOT_RELEASED. Local recheck confirms Docker daemon and local web/API are unavailable; no staging runtime. New Server PR #24 commit 4df912bac31b0a097de761f7b25d7874bc14fab5 adds regression coverage for the three route strategy winners under bounded route-chain sampling; local Node 24 full suite 291/0/3 skip and typecheck/lint pass, hosted 39661371958 pending. It does not resolve known dense-feed truncation. Server PR #24 now has final head c33651b1387e0d2b377216a0b88f6ae02cdbec32: local full unit 292/0/3 skipped, typecheck/lint pass, both added route-oracle regressions pass (three strategy winners; exhaustive six feasible one-transfer chains). Final hosted run 39661572594 SUCCESS including migration and PostgreSQL/PostGIS + Redis integration; dense Lviv search still truncated."
   },
-  "checked_at_utc": "2026-10-23T03:53:18Z",
+  "checked_at_utc": "2026-10-24T00:26:29Z",
   "latest_workspace_sync_2026_10_23": {
     "status": "NOT_RELEASED; exact review candidate pins synchronized; no accepted/deployed release tuple.",
     "server": {
@@ -742,5 +745,29 @@
       "status": "review-only; PRs open/unmerged; no staging/deployed SHA; NOT_RELEASED"
     }
   },
-  "production_images": "NOT_BUILT for this exact tuple; image digests, deployment artifact, staging and rollback remain NOT_TESTED."
+  "production_images": "BUILT_LOCALLY_NOT_PUBLISHED for exact pinned Server/Site/Admin/Partner SHAs; local OCI references and static portal smoke recorded in local_image_build. Staging, release registry, runtime API smoke, deployment and rollback remain NOT_TESTED.",
+  "local_image_build": {
+    "status": "BUILT_LOCALLY_NOT_PUBLISHED",
+    "built_at_utc": "2026-10-24T00:26:29Z",
+    "source": {
+      "server": "c7252783f3c8b3b1140d621bcbdae175248008be",
+      "site": "2af5219538aa005d285f9236ca0b0dafaca0274a",
+      "admin": "9dbf7db0a935498ac40c98b19bc36bce056d630d",
+      "partner": "c639257a7f28aeda5b378a816038b01651146b83",
+      "integration": "f727312619dbb6d73b7de8eba99bab55880201d5"
+    },
+    "materialized_compose_sha256": "9d329c1a7353e3aa3d020f1f9ee1f66393581058949a27aa847645830fb6d2aa",
+    "pinned_source_trees_clean": true,
+    "local_oci_references": {
+      "api": "marshgo/api@sha256:b8eb6b5bf5f65e5f9c03f1abe3e6eae7be081540fcb9feb45e1604b558859b3d",
+      "web": "marshgo/web@sha256:029c283a66af4e47b0e8bc07d6e2adcb86322f5d9f7e71397ef819e9fff8aa95",
+      "admin": "marshgo/admin@sha256:aeee71a851ab32e8b3e3f76179ad2e264747e12eda2661764efa88ef1f367792",
+      "partner": "marshgo/partner@sha256:86cd19742dffac5b9ed04ed99c46640356d6ab4a9f2c6d3da954db69ad2661d4"
+    },
+    "portal_image_smoke": "PASS: Web, Admin and Partner image root, SPA fallback route, and /healthz returned successfully using transient loopback containers; no production backend/API data was contacted.",
+    "api_image_smoke": "NOT_TESTED at runtime; exact API image built and its runtime/integration behavior is covered by exact-candidate Server 29/29 integration and hosted CI.",
+    "published": false,
+    "staging": "NOT_TESTED",
+    "production": "NOT_RELEASED"
+  }
 }
