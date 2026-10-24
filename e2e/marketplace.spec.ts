@@ -221,8 +221,8 @@ test.beforeAll(async () => {
   `, [driverId, driverPhone]);
   await pool.query(`INSERT INTO user_roles(user_id,role) VALUES($1,'passenger'),($1,'driver')`, [driverId]);
   await pool.query(`
-    INSERT INTO vehicles(id,owner_id,make,model,model_year,seat_count,verification_status,is_active)
-    VALUES($1,$2,'E2E','Road Car',2024,4,'verified',true)
+    INSERT INTO vehicles(id,owner_id,make,model,model_year,seat_count,verification_status,trust_level,is_active)
+    VALUES($1,$2,'E2E','Road Car',2024,4,'verified',3,true)
   `, [vehicleId, driverId]);
   await pool.query(`
     INSERT INTO offers(id,driver_id,vehicle_id,origin_name,destination_name,origin,destination,route,
@@ -400,7 +400,8 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     await expect(passengerPage.getByText(/2 місця/).first()).toBeVisible();
     await passengerPage.getByRole('button', { name: 'Відкрити зустріч' }).click();
     await expect(passengerPage.getByText(/Точка посадки · Стрий/)).toBeVisible();
-    await expect(passengerPage.getByRole('button', { name: /Обмін місцем доступний/ })).toBeDisabled();
+    const prepareMeetingButton = passengerPage.getByRole('button', { name: /Зустріч можна підготувати/ });
+    await expect(prepareMeetingButton, 'rendezvous must remain unavailable before its scheduled activation time').toBeDisabled();
     await passengerPage.getByRole('button', { name: /Чат|Написати/ }).click();
     await expect(passengerPage.getByText('Буду на місці о 08:45.')).toBeVisible();
 
@@ -531,7 +532,7 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     await expect(driverPage.getByRole('heading', { name: 'Заявки пасажирів' })).toBeVisible();
     const openDemand = driverPage.getByTestId(`open-demand-${createdDemandId}`);
     await openDemand.getByRole('button', { name: /Запропонувати ціну/ }).click();
-    await driverPage.getByLabel('Авто для пропозиції').selectOption(vehicleId);
+    await driverPage.getByLabel('Перевірене авто').selectOption(vehicleId);
     await driverPage.getByLabel('Ціна, грн').fill('350');
     await driverPage.getByRole('button', { name: 'Надіслати пропозицію' }).click();
     await expect(driverPage.getByText('350 грн')).toBeVisible();
@@ -548,11 +549,8 @@ test('two independent accounts search, book, negotiate a demand, and exchange pe
     await driverPage.reload();
     await expect(driverPage).toHaveURL(/\/demands\/[A-Za-z0-9_-]+$/);
     await expect(driverPage.getByRole('heading', { name: 'Стрий → Львів' })).toBeVisible();
-    await driverPage.getByRole('button', { name: 'Поїздки', exact: true }).click();
-    await driverPage.getByRole('tab', { name: 'Запити' }).click();
-    await driverPage.getByRole('button', { name: 'Запити пасажирів' }).click();
-    await expect(driverPage.getByRole('heading', { name: 'Заявки пасажирів' })).toBeVisible();
-    await driverPage.getByTestId(`open-demand-${createdDemandId}`).getByRole('button').first().click();
+    // Reload restores the server-owned demand detail; the driver's counteroffer
+    // agreement belongs on this detail, not in the open-demands list.
     await driverPage.getByRole('button', { name: 'Погодити зустрічну ціну' }).click();
 
     await passengerPage.reload();

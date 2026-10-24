@@ -14,6 +14,11 @@ test('accepts only the known generated deployment files', () => {
     generated,
     'Site',
   ));
+  assert.doesNotThrow(() => assertMaterializedWorktreeClean(
+    '?? Dockerfile.marshgo\n M .dockerignore\n M deploy/nginx.conf',
+    generated,
+    'Site',
+  ));
 });
 
 test('rejects tracked edits in a pinned checkout', () => {
@@ -33,4 +38,6 @@ test('rejects unrelated untracked files such as local environment files', () => 
 test('rejects staged files and deletions', () => {
   assert.throws(() => assertMaterializedWorktreeClean('A  server/new.ts', generated, 'Server'));
   assert.throws(() => assertMaterializedWorktreeClean(' D shared/contracts.ts', generated, 'Server'));
+  assert.throws(() => assertMaterializedWorktreeClean('M  .dockerignore', generated, 'Server'));
+  assert.throws(() => assertMaterializedWorktreeClean(' D .dockerignore', generated, 'Server'));
 });

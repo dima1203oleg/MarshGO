@@ -1,11 +1,35 @@
 {$APP_DOMAIN}, api.{$APP_DOMAIN} {
-  encode zstd gzip
-  header {
-    -Server
-    X-Content-Type-Options nosniff
-    X-Frame-Options DENY
-    Referrer-Policy strict-origin-when-cross-origin
-    Strict-Transport-Security "max-age=31536000; includeSubDomains"
-  }
-  reverse_proxy web:8080
+	encode zstd gzip
+	header {
+		-Server
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+	}
+	reverse_proxy web:8080
+}
+
+admin.{$APP_DOMAIN} {
+	encode zstd gzip
+	header {
+		-Server
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+	}
+	reverse_proxy admin:8080
+}
+
+partner.{$APP_DOMAIN} {
+	encode zstd gzip
+	header {
+		-Server
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+	}
+	reverse_proxy partner:8080
 }

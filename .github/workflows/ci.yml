@@ -55,8 +55,32 @@ jobs:
       - run: API_TEST_DATABASE_URL="$E2E_DATABASE_URL" npm run test:integration
       - run: npm run build
       - run: npm run check:bundle
+      - name: Configure read-only access to private Admin and Partner repositories
+        env:
+          MARSHGO_REPOS_READ_TOKEN: ${{ secrets.MARSHGO_REPOS_READ_TOKEN }}
+        run: |
+          if [[ -z "$MARSHGO_REPOS_READ_TOKEN" ]]; then
+            echo "::error title=Missing private repository read token::Set the MARSHGO_REPOS_READ_TOKEN Actions secret with read-only Contents access to MarshGO-Admin and MarshGO-Partner."
+            exit 1
+          fi
+          askpass="$RUNNER_TEMP/marshgo-git-askpass"
+          cat > "$askpass" <<'ASKPASS'
+          #!/bin/sh
+          case "${1-}" in
+            *sername*) printf '%s\n' 'x-access-token' ;;
+            *assword*) printf '%s' "${MARSHGO_REPOS_READ_TOKEN:?}" ;;
+            *) exit 1 ;;
+          esac
+          ASKPASS
+          chmod 700 "$askpass"
+          {
+            echo "GIT_ASKPASS=$askpass"
+            echo "GIT_ASKPASS_REQUIRE=force"
+            echo "GIT_TERMINAL_PROMPT=0"
+            echo "MARSHGO_REPOS_READ_TOKEN=$MARSHGO_REPOS_READ_TOKEN"
+          } >> "$GITHUB_ENV"
       - run: node ops/scripts/materialize-release.mjs
-      - run: docker compose --project-name marshgo-canonical-build --env-file ops/templates/production.env.example -f .release/compose.production.yml build api web
+      - run: docker compose --project-name marshgo-canonical-build --env-file ops/templates/production.env.example -f .release/compose.production.yml build api web admin partner
       - run: npx playwright install --with-deps chromium firefox webkit
       - name: Install Mesa and virtual display for Firefox WebGL
         run: sudo apt-get update && sudo apt-get install -y libgl1-mesa-dri xvfb xauth
