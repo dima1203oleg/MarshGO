@@ -16,6 +16,8 @@
     "test:browser-compat": "bash scripts/run-browser-compat.sh",
     "check:bundle": "node scripts/check-bundle-size.mjs",
     "acceptance:live-providers": "tsx tools/live-provider-smoke.ts",
+    "acceptance:transport-feeds": "tsx tools/transport-feed-smoke.ts",
+    "acceptance:kiwitaxi-catalog": "tsx tools/kiwitaxi-catalog-smoke.ts",
     "check:production": "npm run typecheck && npm run lint && npm test && npm run build && npm run check:bundle",
     "test:integration:bookings": "tsx --test tests/api-bookings.integration.test.ts tests/trip-editing.integration.test.ts",
     "test:integration:navigation": "tsx --test tests/navigation.integration.test.ts",
@@ -49,7 +51,7 @@
     "@tailwindcss/vite": "^4.3.3",
     "@vitejs/plugin-react": "^6.1.1",
     "dotenv": "^17.2.3",
-    "express": "^4.21.2",
+    "express": "^4.22.3",
     "express-rate-limit": "^8.7.0",
     "fflate": "^0.8.3",
     "file-type": "^22.1.1",
@@ -67,7 +69,7 @@
     "redis": "^5.12.0",
     "vite": "^8.3.5",
     "ws": "^8.22.0",
-    "zod": "^4.6.5"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@capacitor/cli": "8.5.2",
@@ -91,7 +93,8 @@
   "overrides": {
     "uuid": "^11.1.1",
     "source-map-js": "^1.2.2",
-    "@grpc/grpc-js": "^1.13.6",
-    "markdown-it": "^14.3.3"
+    "@grpc/grpc-js": "1.14.6",
+    "markdown-it": "^14.3.3",
+    "body-parser": "1.20.9"
   }
 }
