@@ -20,13 +20,16 @@ These refs identify images in this local Docker daemon. Registry publication, si
 
 ## Runtime smoke
 
+- Built image architecture: **linux/arm64**, matching the local Docker host. The production target architecture is still unknown; no amd64 or multi-platform publish was performed.
+- API image ran in a separate disposable network with fresh PostGIS 17-3.5 and Redis 7.4 containers (no mounts or existing volumes). The exact image applied available Server migrations through `054_rendezvous_participant_consent.sql`, connected to PostGIS and Redis, and returned `/readyz` HTTP 200 in production mode. The temporary containers and network were removed after the check.
+
 - Web, Admin and Partner images each served `/`, the SPA fallback `/journeys/search`, and `/healthz` successfully from transient loopback-bound containers. Containers created for these smoke checks were removed afterwards. No pre-existing container or volume was changed.
 - The Nginx portal smoke used an isolated local `api` hostname stub; it did not test API calls or backend connectivity.
-- API image build passed. API runtime was not started as part of this image check; it remains covered by exact-candidate Server integration (29/29) and hosted tests, but not by this local image smoke.
+- API image build and isolated production-mode runtime passed; `/readyz` was 200 with the disposable database and Redis. This does not verify provider integrations, public DNS/TLS, external maps, production secrets, load, backup/restore or rollback.
 - Exact cross-repository browser fixture E2E remains 20/20 PASS, but it is not a staging or live-provider run.
 
 ## Hosted gate and release state
 
-PR #5 head `b7c200215161ee6648719dc738a0545fea19190c`: CodeQL and Gitleaks pass. Hosted `verify` run `40044137580` passed dependency audit, lint, typecheck, unit tests, database migrations, Postgres/Redis integration, production build and bundle-size gate, then stopped at the read-only private Admin/Partner checkout because the repository Actions secret `MARSHGO_REPOS_READ_TOKEN` is absent. Image materialization, image build and browser stages were skipped in hosted CI; the same source images were built locally as recorded above. The CI gate remains BLOCKED_EXTERNAL; no check was bypassed.
+PR #5 head `b7c200215161ee6648719dc738a0545fea19190c`: CodeQL and Gitleaks pass. Hosted `verify` run `40044137580` passed dependency audit, lint, typecheck, unit tests, database migrations, Postgres/Redis integration, production build and bundle-size gate, then stopped at the read-only private Admin/Partner checkout because the repository Actions secret `MARSHGO_REPOS_READ_TOKEN` is absent. Image materialization, image build and browser stages were skipped in hosted CI; the same source images were materialized and built locally, and API plus portal smoke were performed as recorded above. The CI gate remains BLOCKED_EXTERNAL; no check was bypassed.
 
 No staging URL, deployment credentials, real production provider configuration, HTTPS smoke, backup/restore, rollback rehearsal, physical iPhone acceptance or owner rollout approval was available. `PRODUCTION_READY=false`; `RELEASE_STATUS=NOT_RELEASED`. No deployment was attempted.

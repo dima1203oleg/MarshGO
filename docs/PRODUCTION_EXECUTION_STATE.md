@@ -1,3 +1,12 @@
+# Checkpoint 2026-10-24 — pinned image runtime smoke complete
+
+- Root PR #5 latest head: `323e345` (full SHA in `git rev-parse HEAD`). Hosted verify `40045106802` passed Bun audit, lint, typecheck, unit tests, migrations, Postgres/Redis integration, production build and bundle budget, then failed closed at the missing read-only `MARSHGO_REPOS_READ_TOKEN` for private Admin/Partner checkout. Gitleaks and CodeQL pass; no checks bypassed.
+- Local exact image build and runtime smoke now pass. API image ran on an isolated network with a fresh PostGIS 17-3.5 database and Redis 7.4, applied migrations through `054_rendezvous_participant_consent.sql`, and returned `/readyz` 200. Web/Admin/Partner images each served root, `/journeys/search` SPA fallback and `/healthz`. Temporary containers/network were removed; no pre-existing containers, volumes or databases were changed.
+- Image refs and evidence are in `docs/audit/103_EXACT_PINNED_RELEASE_IMAGE_BUILD_2026-10-24.md`. The local images target `linux/arm64`, remain unpublished, and are not verified for the production host architecture.
+- **Next actions:** get the missing read-only Actions token configured by an authorized repository owner; resolve actual staging origin/config and approved production provider/map endpoints; perform staging E2E, authenticated Admin/Partner, dense Lviv completeness, cross-browser on exact materialized source, load/security, backup/restore/rollback, and physical-iPhone checks. Keep `PRODUCTION_READY=false`, `NOT_RELEASED`.
+
+---
+
 # Checkpoint 2026-10-24 — exact pinned release images built locally
 
 - Root PR #5 current SHA: `b7c200215161ee6648719dc738a0545fea19190c`. `verify` run `40044137580` passed dependency audit, lint, typecheck, unit suite, migrations, Postgres/Redis integration, production build and bundle budget. It then failed closed because `MARSHGO_REPOS_READ_TOKEN` is absent for private Admin/Partner clone. Gitleaks and CodeQL pass. This is a missing Actions secret, not a code test failure; no required check was bypassed.

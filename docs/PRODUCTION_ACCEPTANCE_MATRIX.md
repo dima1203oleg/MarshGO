@@ -8,7 +8,7 @@
 | Admin | `9dbf7db0a935498ac40c98b19bc36bce056d630d` | Typecheck/lint/build, 2/2 tests; only no-session 401 route smoke | PARTIAL; authenticated workflow NOT_TESTED |
 | Partner | `c639257a7f28aeda5b378a816038b01651146b83` | Typecheck/lint/build, 3/3 tests; only no-session 401 route smoke | PARTIAL; tenant operations NOT_TESTED |
 | Cross-repo Browser E2E | Site `2af5219`, Server `c725278` | Full fixture retest 20/20 PASS in 8.8m; 195 safe control clicks/15 routes, trace enabled, no uncaught JS errors/unexpected 5xx | PASS fixture E2E only; live provider/staging and all-reference visual acceptance NOT_TESTED |
-| Exact pinned release images | Server `c725278`, Site `2af521`, Admin `9dbf7d`, Partner `c63925`; materialized root config `f727312` | All four Docker images built locally from clean pinned source trees; Web/Admin/Partner root+SPA+healthz smoke PASS; local OCI refs in `docs/audit/103_EXACT_PINNED_RELEASE_IMAGE_BUILD_2026-10-24.md` | PASS local build/smoke; not pushed, staged, or deployed; API runtime image smoke NOT_TESTED |
+| Exact pinned release images | Server `c725278`, Site `2af521`, Admin `9dbf7d`, Partner `c63925`; materialized root config `f727312` | All four Docker images built locally for linux/arm64 from clean pinned source trees; isolated API image migration + PostGIS/Redis `/readyz` PASS; Web/Admin/Partner root+SPA+healthz smoke PASS; OCI refs in audit 103 | PASS local build/runtime smoke; not published/staged/deployed; target architecture unresolved |
 | Production deployment | none | No verified staging/production target, deployed SHA or HTTPS smoke | BLOCKED_EXTERNAL / NOT_RELEASED |
 
 # MARSHGO production acceptance matrix
@@ -28,6 +28,7 @@
 | Lviv daytime GTFS route search | Public feed, 2026-10-24 08:00–09:30 Kyiv time, 2 OD pairs: 100 results each at 1.98 s/4.24 s; both searches and result pages truncated; fares absent | FAIL (search completeness) | Keep partial/truncated disclosure and unknown fare; graph/candidate retention remains P0 |
 | Lviv live transit layer | Same probe: GTFS-RT vehicle positions and TripUpdates both empty (0/0), no alerts | FAIL (live-data availability at probe time) | Do not display live vehicle or ETA based on these empty endpoints |
 | Ukrainian bike/scooter feed candidates | CityBikes discovery found 0 Ukrainian networks; Zelectra mixed Peru/Ukraine coordinates; Nextbike candidate was Latvia; another candidate 404 | BLOCKED / not enabled | Coverage and commercial rights need a verified Ukrainian service source |
+| Exact pinned Docker image set | API/Web/Admin/Partner built locally from exact SHAs; API migrations to 054 + PostGIS/Redis readiness; three portal static smokes | PASS local isolated image acceptance | linux/arm64 only; unpublished; no staging, external provider, backup/restore or rollback evidence |
 | Production deployment | No production/staging deployment or HTTPS smoke was run | NOT_RELEASED | Remains `PRODUCTION_READY=false`; staging, external rights, device, security/load, recovery and owner rollout gates are open |
 
 The exercised root/Site/Server worktrees are dirty and their exact heads are recorded in `CODEX_PROGRESS.md`; this evidence must not be represented as a clean exact-SHA release candidate.
