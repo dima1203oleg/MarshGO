@@ -4,7 +4,7 @@
 |---|---|---|---|
 | Site | `2af5219538aa005d285f9236ca0b0dafaca0274a`, PR #21 | Node 24.21: 98/98 tests, typecheck, lint, build, npm audit 0; hosted runs 40040066282 and 40040182059 pass | PASS local + hosted code gates; live/staging NOT_TESTED |
 | Server | `c7252783f3c8b3b1140d621bcbdae175248008be`, PR #35 | Node 24.21: 224 unit pass, 1 opt-in skip, typecheck, lint, npm audit 0; hosted runs 40040067773 and 40040185238 pass; isolated integration 29/29 PASS on Node 24.21 | PARTIAL; dense Lviv still truncated |
-| iOS | `0fcf5f36e0a751152b9d3cd6778a930b372afae`, clean PR #14 from main | Exact Site/Server pins + manifest assertion; simulator runs 40041831739 and 40041815392 PASS | PASS simulator only; physical device NOT_TESTED |
+| iOS | `0fcf5f36e0a751152b9d3cd6778a930b372afae0`, clean PR #14 from main | Exact Site/Server pins + manifest assertion; simulator runs 40041831739 and 40041815392 PASS | PASS simulator only; physical device NOT_TESTED |
 | Admin | `9dbf7db0a935498ac40c98b19bc36bce056d630d` | Typecheck/lint/build, 2/2 tests; only no-session 401 route smoke | PARTIAL; authenticated workflow NOT_TESTED |
 | Partner | `c639257a7f28aeda5b378a816038b01651146b83` | Typecheck/lint/build, 3/3 tests; only no-session 401 route smoke | PARTIAL; tenant operations NOT_TESTED |
 | Cross-repo Browser E2E | Site `2af5219`, Server `c725278` | 19/20 pass; route viewport poll timeout in long run; isolated rerun of same test 1/1 pass. Button audit: 205 clicks/15 routes, 12 heuristic no-effect states; no JS errors/unexpected 5xx | PARTIAL; retain and diagnose long-suite timing failure |

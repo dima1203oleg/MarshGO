@@ -1,3 +1,14 @@
+# Checkpoint 2026-10-24 — dependency audit and release-manifest correction
+
+- Root/orchestrator repo: `/Users/dima1203/Desktop/MarshGO`, branch `codex/production-finalization-20261014`. Dependency/security fix is committed and pushed as `dba2f436b6a4c5a90627e656438930c7463ef432`; this is not a clean release source because other pre-existing work remains modified/untracked.
+- Root dependency fix: Zod `4.6.7`, body-parser `1.20.9`, `@grpc/grpc-js` `1.14.6`; npm and Bun lockfiles aligned. `npm audit --audit-level=high` reports 0 high/critical vulnerabilities; `bun audit --audit-level=high` passes. Exact Gitleaks fingerprints for five reviewed SHA256 image-digest false positives are now accepted; the new Gitleaks CI runs pass.
+- Root `npm run check:production` on Node `24.21.0`: typecheck PASS, lint PASS, unit suite **256 PASS / 0 FAIL / 1 opt-in SKIP**, production build PASS, bundle budget PASS (51 JS chunks <= 350 KB gzip).
+- That local suite exposed an incorrect iOS candidate SHA in the root release manifest. The exact iOS checkout is `0fcf5f36e0a751152b9d3cd6778a930b372afae0` (40 hex characters); release documents are corrected locally. PR #5 verify run `40043952589` failed against the prior pushed manifest; this local correction has not yet been pushed. Re-run CI after the documentation commit.
+- Existing exact RC evidence remains: Server candidate integration 29/29 PASS; Site/Server fixture E2E retest 20/20 PASS; iOS Simulator hosted checks PASS. No production deployment.
+- **Next exact action:** commit only `CODEX_PROGRESS.md`, `NEXT_ACTIONS.md`, `RELEASE_MANIFEST.json`, `docs/RELEASE_MANIFEST.json`, `docs/PRODUCTION_EXECUTION_STATE.md`, `docs/PRODUCTION_ACCEPTANCE_MATRIX.md`, and `docs/audit/102_IMMUTABLE_RC_CANDIDATE_2026-10-24.md`; push to the existing root PR branch and re-check Gitleaks/verify/CodeQL. Then continue still-open authenticated Admin/Partner, dense-Lviv, staging, security/load, backup/restore/rollback and physical-iPhone gates. Keep `PRODUCTION_READY=false`, `NOT_RELEASED`.
+
+---
+
 # Next actions — current production candidate
 
 1. Classify the 13 heuristic no-visible-effect cases from the 195-click audit; add semantics-specific assertions only where an action is expected to change route/state/network/accessibility.
