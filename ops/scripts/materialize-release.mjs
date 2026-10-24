@@ -17,7 +17,10 @@ const sha = (name) => {
 };
 
 function git(directory, args) {
-  return execFileSync('git', ['-C', directory, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] }).trim();
+  const output = execFileSync('git', ['-C', directory, ...args], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] });
+  // Leading spaces in porcelain status encode unstaged-only changes. Preserve
+  // them so the materialized-worktree guard can distinguish ` M` from `M `.
+  return args[0] === 'status' ? output.trimEnd() : output.trim();
 }
 
 function assertRealDirectory(path, description) {
