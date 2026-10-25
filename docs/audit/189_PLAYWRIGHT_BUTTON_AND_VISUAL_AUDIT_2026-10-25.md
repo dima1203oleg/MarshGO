@@ -11,12 +11,21 @@
 
 ### Button audit — PASS
 
-Command: `node node_modules/@playwright/test/cli.js test --config playwright.config.ts e2e/button-audit.spec.ts`
+Included in the complete E2E command below.
 
 - 4 Playwright tests passed.
 - 169 visible controls were clicked across the audited screens.
 - 0 controls had no visible effect; 0 changed state before the click.
 - This is browser interaction coverage for the exact pinned manifest pair, not proof that every backend-dependent product capability or live provider works.
+
+### Complete browser E2E suite — 24 PASS / 1 FAIL
+
+Command: `node node_modules/@playwright/test/cli.js test --config playwright.config.ts --reporter=line`
+
+- 25 tests completed in 4.7 minutes; 24 passed and 1 failed.
+- The single failure is the same `transport-map-layers-light.png` visual comparison described below.
+- Passed coverage includes responsive sign-in/home/search, all 169 controls, conditional CTAs, navigation start and permission recovery, endpoint swap, transport catalog order, route segment focus, booking and persisted chat between two test accounts, multi-rider matching/rerouting, search URL restore, truncated-results warning, route strategy metadata, and rendezvous consent/revocation.
+- This run used local fixture map tiles, geocoder, OSRM, disabled live feeds/realtime, and the pinned Server SHA above. It is not live-provider or staging acceptance.
 
 ### Route-map visual E2E — FAIL / visual acceptance open
 
