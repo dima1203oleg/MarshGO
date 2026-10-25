@@ -13,16 +13,16 @@
 
 Included in the complete E2E command below.
 
-- 4 Playwright tests passed.
+- 4 button-audit Playwright tests passed on the pinned manifest pair. The same 4 tests also passed in the full suite below against the separate Site PR #27 candidate build.
 - 169 visible controls were clicked across the audited screens.
 - 0 controls had no visible effect; 0 changed state before the click.
-- This is browser interaction coverage for the exact pinned manifest pair, not proof that every backend-dependent product capability or live provider works.
+- This is browser interaction coverage, not proof that every backend-dependent product capability or live provider works.
 
 ### Complete browser E2E suite — 24 PASS / 1 FAIL
 
 Command: `node node_modules/@playwright/test/cli.js test --config playwright.config.ts --reporter=line`
 
-- 25 tests completed in 4.7 minutes; 24 passed and 1 failed.
+- 25 tests completed in 4.7 minutes; 24 passed and 1 failed. For this full run, Server was pinned at `38f17b88f98c8530f8090cfc6745cd334c87e53c` and Site used the separately built PR #27 candidate at `740f952729bc6f62498080660e2f70833026350f`.
 - The single failure is the same `transport-map-layers-light.png` visual comparison described below.
 - Passed coverage includes responsive sign-in/home/search, all 169 controls, conditional CTAs, navigation start and permission recovery, endpoint swap, transport catalog order, route segment focus, booking and persisted chat between two test accounts, multi-rider matching/rerouting, search URL restore, truncated-results warning, route strategy metadata, and rendezvous consent/revocation.
 - This run used local fixture map tiles, geocoder, OSRM, disabled live feeds/realtime, and the pinned Server SHA above. It is not live-provider or staging acceptance.
