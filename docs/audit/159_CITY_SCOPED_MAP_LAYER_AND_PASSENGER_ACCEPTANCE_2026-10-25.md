@@ -58,3 +58,7 @@ The generated synthetic test account, its five owned test journeys, one developm
 - `CAPACITOR_BUILD` Site production bundle and embedded release metadata built successfully; manifest recorded iOS `17da5c05be674cec2fadf7340cb5fdff5af010d9` as the source commit used by the build and the above Site/Server SHA pair, API contract `v1`, migration `055`. `npx cap sync ios` passed.
 - iPhone 16 Pro Max Simulator compile/install/launch passed with local API origin `http://127.0.0.1:3302`; the screenshot shows the welcome page only. API was not running during this later simulator launch, so authenticated app workflows, GPS, map assets and background behavior remain unverified.
 - iOS hosted PR/push CI for commit `7dfd35bf5f06169d7df82fa8d0879fcaf02431b5` was queued/in progress at this report update (runs 40163992039 / 40163988537); do not mark hosted CI passed until they complete.
+
+## Final CI status and exact review tuple
+
+Both iOS workflow runs completed successfully for `7dfd35bf5f06169d7df82fa8d0879fcaf02431b5` (runs 40163988537 and 40163992039). Exact current component pins and evidence are recorded in [manifest 160](160_EXACT_REVIEW_CANDIDATE_SHA_MANIFEST_2026-10-25.json). This closes the Site/iOS hosted-CI check only; all production blockers listed by the manifest remain open.
