@@ -43,3 +43,17 @@ This evidence uses local fixture map/geocoder/OSRM and a pinned local Server. It
 2. Isolate `Назад` and stale-GPS recovery in WebKit; explicitly assert the message/state transition.
 3. Resolve the remaining visual mismatch against the approved reference, without refreshing the golden to manufacture a pass.
 4. Re-run route-map and broader WebKit acceptance on one exact Site/Server SHA pair.
+
+## Follow-up confirmation
+
+After the first report draft, isolated WebKit checks confirmed both remaining behaviors:
+
+- A fresh account with a deliberately stale geolocation fix clicks `Почати без пункту призначення`; the UI exposes `GPS-точка застаріла`, and `Назад` returns to Home. Result: **1/1 PASS**.
+- Populated-place swap and fresh-GPS start/end remain **2/2 PASS**; active-section/tab and bottom-navigation state remains **1/1 PASS**.
+- The broad harness itself deliberately preselects `Активні` before enumerating controls and clicks the current route tab; those are same-state activations. Empty-input swap is also unchanged by definition. Its no-effect list was therefore a semantic-audit false positive, not evidence of 11 inert product controls.
+
+The screenshot gate was repeated against the same Site PR #27 SHA and remains **FAIL**, with the identical 12,657-pixel / 4% delta on `transport-map-layers-light.png`. Expected and actual images were visually inspected; the candidate uses fixture/schematic map assets and revised transport-category presentation. The screenshot was not approved and no golden was refreshed.
+
+## Updated next action
+
+Treat the isolated WebKit functional scenarios as PASS and keep the broad generic no-effect assertion as an audit-harness limitation until it gains semantic/idempotence handling. Continue by resolving reference-based visual acceptance and run the full route-map suite on the exact candidate after changes.
