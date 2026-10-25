@@ -31,9 +31,9 @@ The replay measured a frozen local feed, not a live provider. It proves determin
 
 ## Release status and next step
 
-The candidate has not been pushed or opened as a PR. It has not been reconciled with Site, iOS, Admin, Partner, staging, external provider credentials/rights, physical iPhone acceptance, production infrastructure, backup/restore, rollback, security, or load gates. Dense-feed search still reports truncation on all three queries. Keep `PRODUCTION_READY=false` and `RELEASE_STATUS=NOT_RELEASED`.
+The candidate has not been pushed or opened as a PR. A standalone Site correction is recorded below, but the Server and Site commits are not yet paired in an immutable release tuple; iOS, Admin, Partner, staging, external provider credentials/rights, physical iPhone acceptance, production infrastructure, backup/restore, rollback, security, and load gates are also open. Dense-feed search still reports truncation on all three queries. Keep `PRODUCTION_READY=false` and `RELEASE_STATUS=NOT_RELEASED`.
 
-Next: inspect the exact Site production search response handling against this Server candidate’s response contract, then assemble a clean compatible exact-SHA integration tuple before any staging gate. Do not suppress truncation or present these replay results as complete journeys.
+Next: assemble and verify a clean compatible exact-SHA integration tuple. Do not suppress truncation or present these replay results as complete journeys.
 
 ## Site response-contract follow-up
 
