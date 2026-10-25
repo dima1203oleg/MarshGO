@@ -38,8 +38,8 @@ Next: assemble and verify a clean compatible exact-SHA integration tuple. Do not
 ## Site response-contract follow-up
 
 - Site repository: `MarshGO-Site`
-- Isolated branch: `codex/search-truncation-status-20261025`
-- Commit: `c73f4d8e14288b3fc273252c4975270a425c1ce6` (`fix(search): distinguish truncated route result states`).
+- Isolated follow-up branch: `codex/search-truncation-status-20261025`, based on the fuller Site PR #23 candidate `9569bb4f174a4bdf912a6f490e69a359148db342`.
+- Exact integrated-candidate commit: `192a526fedb415bcb9f9d3cfff1dac65fa05dd03` (`fix(search): distinguish truncated route result states`). The change was cherry-picked and resolved against the candidate's already-refined incomplete-search message; prior route, rideshare, and layer work remains in the ancestry.
 - Added the Server `resultSamplingTruncated` response field to the client type and made the result panel distinguish result sampling from incomplete candidate generation. Legacy responses without the new field remain supported.
-- Site checks on Node `v25.4.0`: unit suite **82/82 PASS**, typecheck PASS, ESLint PASS, production build PASS. The route-result notice selector has five explicit legacy/new-state cases across two tests.
+- Site checks on Node `v25.4.0`: unit suite **107/107 PASS**, typecheck PASS, ESLint PASS, production build PASS, and bundle budget PASS (17 JS chunks, each ≤350 KB gzip). The route-result notice selector covers five legacy/new-state cases across two tests.
 - This Site SHA is not yet paired with the Server merge in an immutable release manifest and was not pushed or deployed. Browser visual acceptance was not rerun for this text-only status correction.
