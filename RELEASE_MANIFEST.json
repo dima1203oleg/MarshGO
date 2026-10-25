@@ -1,26 +1,26 @@
 {
   "schema_version": 1,
   "product": "MARSHGO",
-  "release_candidate": "RC-2026-10-24-review.1",
+  "release_candidate": "RC-2026-10-25-review.10",
   "status": "NOT_RELEASED",
   "ready_for_server_deployment": false,
   "production_ready": false,
-  "server_sha": "c7252783f3c8b3b1140d621bcbdae175248008be",
-  "site_sha": "2af5219538aa005d285f9236ca0b0dafaca0274a",
-  "ios_sha": "0fcf5f36e0a751152b9d3cd6778a930b372afae0",
-  "integration_sha": "f727312619dbb6d73b7de8eba99bab55880201d5",
-  "database_migration": "Server candidate migrations through 054_rendezvous_participant_consent.sql passed against an isolated loopback E2E database; staging apply, backup/restore and rollback NOT_TESTED.",
-  "candidate_scope": "Review-only exact product tuple: Site PR #21 2af5219538aa005d285f9236ca0b0dafaca0274a; Server PR #35 c7252783f3c8b3b1140d621bcbdae175248008be; iOS PR #14 0fcf5f36e0a751152b9d3cd6778a930b372afae0 pins those exact SHAs; Admin 9dbf7db0a935498ac40c98b19bc36bce056d630d; Partner c639257a7f28aeda5b378a816038b01651146b83. Site/Server/iOS PRs remain open and unmerged. Site/Server exact hosted CI PASS; Server isolated integration 29/29 PASS on Node 24.21.0; exact Site/Server browser fixture suite repeated 20/20 PASS after an initial 19/20 run; iOS Simulator PASS. The integration/orchestrator repository is at f727312619dbb6d73b7de8eba99bab55880201d5 but its worktree is dirty, so this is not yet a reproducible six-repository release tuple. No staging/deployment, physical iPhone, provider commercial acceptance, complete dense-Lviv search, authenticated Admin/Partner tenant acceptance, security/load, backup/restore or rollback evidence. Production ready=false; status NOT_RELEASED.",
+  "server_sha": "38f17b88f98c8530f8090cfc6745cd334c87e53c",
+  "site_sha": "7aed5344218058b024f5c269b36b03577d94026e",
+  "ios_sha": "7dfd35bf5f06169d7df82fa8d0879fcaf02431b5",
+  "integration_sha": "0d3ed4accecbb5623f0c20c55c69ff0f23f14a4d",
+  "database_migration": "Server 38f17b88f98c8530f8090cfc6745cd334c87e53c local isolated schema verified through migration 055; staging, backup/restore and rollback NOT_TESTED.",
+  "candidate_scope": "Exact review-only tuple: Server PR #40 38f17b88f98c8530f8090cfc6745cd334c87e53c; Site PR #25 7aed5344218058b024f5c269b36b03577d94026e; iOS PR #14 7dfd35bf5f06169d7df82fa8d0879fcaf02431b5 pins exact Site and Server; Admin PR #1 f39c4b74839a393f4487c830930669eabc8c0390; Partner PR #1 97a3727cc395dea092af6e3e24d6822370c2bc63; orchestration source checkpoint 0d3ed4accecbb5623f0c20c55c69ff0f23f14a4d. Hosted CI passes for all five component heads. Site local suite 109/109; Server local unit 315 pass with 3 opt-in tests skipped and isolated integration 30/30; Partner local 3/3 plus build/type/lint; current Admin exact-head local browser acceptance NOT_TESTED. PRs remain open; no current exact tuple images or staging. Dense Lviv search truncation, licensed map assets/provider entitlements, physical iPhone, security/load/recovery, backup/restore/rollback and owner deployment approval remain open. production_ready=false; NOT_RELEASED.",
   "api_version": "v1",
   "source_repositories": {
-    "server": "dima1203oleg/MarshGO-Server@codex/server-final-rc-20261024 (PR #35, exact head c7252783f3c8b3b1140d621bcbdae175248008be)",
-    "site": "dima1203oleg/MarshGO-Site@codex/site-final-rc-20261024 (PR #21, exact head 2af5219538aa005d285f9236ca0b0dafaca0274a)",
-    "admin": "dima1203oleg/MarshGO-Admin@codex/p0-admin (exact head 9dbf7db0a935498ac40c98b19bc36bce056d630d)",
-    "partner": "dima1203oleg/MarshGO-Partner@codex/p0-partner (exact head c639257a7f28aeda5b378a816038b01651146b83)",
-    "ios": "dima1203oleg/MarshGO-iOS@codex/ios-final-rc-20261024 (PR #14, exact head 0fcf5f36e0a751152b9d3cd6778a930b372afae0; pins Site 2af5219538aa005d285f9236ca0b0dafaca0274a and Server c7252783f3c8b3b1140d621bcbdae175248008be)",
-    "integration": "dima1203oleg/MarshGO@codex/production-finalization-20261014 (HEAD f727312619dbb6d73b7de8eba99bab55880201d5; working tree dirty, not accepted as immutable release artifact)"
+    "server": "dima1203oleg/MarshGO-Server@codex/server-production-integration-20261024 (PR #36, exact head 134ed017828a020e1d5f696b3cb9ea95527bb093; stacked on #34)",
+    "site": "dima1203oleg/MarshGO-Site@codex/rideshare-route-detail-reference-20261024 (PR #23, exact head 9569bb4f174a4bdf912a6f490e69a359148db342; stacked on #22/#21)",
+    "admin": "dima1203oleg/MarshGO-Admin@codex/p0-admin (PR #1, exact head bc37198ca139408907aaefa0d97dc9b60a568300)",
+    "partner": "dima1203oleg/MarshGO-Partner@codex/p0-partner (PR #1, exact head 97a3727cc395dea092af6e3e24d6822370c2bc63)",
+    "ios": "dima1203oleg/MarshGO-iOS@codex/ios-final-rc-20261024 (PR #14, exact head 0b404ca4dba62d1bba79847b79f052f0e0425ff7; pins Site 9569bb4f174a4bdf912a6f490e69a359148db342 and Server 134ed017828a020e1d5f696b3cb9ea95527bb093)",
+    "integration": "dima1203oleg/MarshGO@codex/production-finalization-20261014; manifest pin 8741bd1936115941386148104dff130525aa5f5d is a prior immutable candidate reference, not the current local checkout HEAD"
   },
-  "ios_simulator_site_sha": "2af5219538aa005d285f9236ca0b0dafaca0274a",
+  "ios_simulator_site_sha": "7aed5344218058b024f5c269b36b03577d94026e",
   "verification": {
     "gtfs_dense_feed_event_search_prototype_v3": "FAIL and rejected; test-only isolated branch based on Server PR #31 SHA b65882584a3ad1e8dd7512d13176f52299cded51. Full GTFS 68/68, typecheck/lint pass, but frozen Lviv 3-OD winner retention 0/3 each and route-chain recall 0%, 0%, 3.125%; all three requests hit 100001 boarding scans. Production search unchanged.",
     "gtfs_dense_feed_event_search_prototype_v4": "FAIL and rejected; test-only isolated deduplication/cache experiment on frozen Lviv ZIP SHA-256 bb4ac0ce9127b4967ad889379f523b04b84a0bb033814aa8c844526b42078164, Node v25.4.0, and three ODs. Full GTFS 69/69, focused oracle, typecheck, and lint pass, but each OD still hit the 100001 unique-transition-pair cap; winner retention 0/3 each and route-chain recall 0%, 0%, 3.125%. Timings 8.85/13.70/5.13 s; post-run RSS 889/973/556 MiB. These prototype counters are not equivalent to production graph/search budgets. Production search and limits unchanged; see audit 90.",
@@ -199,7 +199,36 @@
     "site_dual_rendezvous_route_map": "PASS locally on Site commit 1d0f1fe: typecheck, lint, 128/128 unit tests, production build and bundle budget; journey route E2E 3/3 Chromium/Firefox/WebKit asserts both GPS markers and both approach lines, then transit-segment focus. Fixture-backed; live staging NOT_TESTED. The existing consented Meeting Map E2E also passed 3/3 Chromium/Firefox/WebKit on the current production build.",
     "site_exact_head_ci": "PASS exact Site SHA 1d0f1febfd757dfcbaa3d9fbb06fef756d0c9fae; run 39881586340 passed dependency audit, lint, app/E2E typecheck, unit tests, production build, bundle budget, Playwright browser E2E 21/21 and immutable artifact upload. Artifact ID 12471766907, SHA-256 34c76d3e856b53c62b0033edf8ad180b6fa1970507b56506aeca11d773799976. First identical attempt canceled on a 20-minute browser-install timeout; exact-head rerun succeeded.",
     "current_release_gates": "SOURCE_CI_PASS: exact Server PR #31 runs 39880073407/39880107952; exact Site PR #15 run 39881586340 (browser acceptance 21/21 and immutable artifact 12471766907); exact iOS PR #12 runs 39884276804/39884281286. NOT_RELEASED: PRs open/stacked, root umbrella checkout blocked by missing read-only MARSHGO_REPOS_READ_TOKEN; no staging/production origin or HTTPS smoke; licensed map manifest unavailable; real provider entitlements, physical iPhone GPS/background/APNs, backup/restore/rollback and production rollout approval absent.",
-    "current_candidate_ios_ci": "PASS exact iOS PR #12 SHA ba2f08d47cf290d44053ec0dbbb120aac87915d2, hosted Simulator runs 39884276804 and 39884281286 SUCCESS; exact Site and Server pins, Capacitor sync and embedded manifest verified."
+    "current_candidate_ios_ci": "PASS exact iOS PR #12 SHA ba2f08d47cf290d44053ec0dbbb120aac87915d2, hosted Simulator runs 39884276804 and 39884281286 SUCCESS; exact Site and Server pins, Capacitor sync and embedded manifest verified.",
+    "server_candidate_pr36": "PASS exact-head hosted CI on 134ed017828a020e1d5f696b3cb9ea95527bb093: runs 40056723422 and 40056739994; unit tests, migrations, PostGIS/Redis integration, production image build and runtime smoke passed. Frozen Lviv replay is deterministic (58 trip chains, 37 route chains, 100 returned), but searchTruncated=true and candidateGraphTruncated=true.",
+    "site_candidate_pr21": "PASS exact Site PR #21 head df796e2c5d457332c11c39f3ba82fc4b3c6a3ae9: TypeScript, lint, build, 102/102 unit tests pass; exact-head CI runs 40064037097 and 40064033933 SUCCESS. Full pinned-source local fixture Playwright suite 20/20 PASS; see docs/audit/105_EXACT_RC_FULL_E2E_2026-10-24.md.",
+    "ios_candidate_pr14": "PASS exact iOS PR #14 head 6e5a3a63b200cc6e490878f889979ea0baf217f7, pins Site df796e2c5d457332c11c39f3ba82fc4b3c6a3ae9 and Server 134ed017828a020e1d5f696b3cb9ea95527bb093; Simulator Build CI runs 40064058349 and 40064055620 SUCCESS. Simulator compile/pins only; physical device and App Store signing NOT_TESTED.",
+    "exact_candidate_browser_compat": "PASS 6/6 local browser E2E on exact Server 134ed017828a020e1d5f696b3cb9ea95527bb093 and Site a85b33b774c43f031624fafa2d06732ca7a79354: Chromium, Firefox, WebKit each passed production sign-in/home/search at 320/390/430/768/1280/1440 widths and canonical route map sheet/stop details/map focus/light-dark. Isolated loopback marshgo_e2e database; fixture map/geocoder/routing, TRANSIT_REALTIME_DISABLED=true. E2E_API_PORT=3312 because port 3302 was already occupied and left untouched. Runtime Node v26.7.0 emitted engine warnings (package engines pin 24.21.0); exact candidate CI builds ran on the project-pinned Node 24.21.0. This is fixture acceptance, not live-provider/staging/production or physical device.",
+    "exact_rc_full_e2e_2026_10_24": "PASS 20/20 full local fixture Playwright scenarios in 7.6m on exact Server 134ed017828a020e1d5f696b3cb9ea95527bb093 / Site df796e2c5d457332c11c39f3ba82fc4b3c6a3ae9. Safe button audit: 195 clicks across 15 routes, 0 uncaught browser errors / unexpected HTTP 5xx; 24 no-visible-change/not-interactable observations logged. Root unit 256 pass / 1 opt-in integration skip; typecheck, ESLint, Vite build pass. Site unit 102/102, typecheck/lint/build pass. Host Node 26.7.0 differs from declared Site Node 24.21.0. Local fixtures only; staging, physical iPhone, live providers, Admin/Partner auth, security/load/recovery remain open. Evidence docs/audit/105_EXACT_RC_FULL_E2E_2026-10-24.md.",
+    "supplied_mockup_visual_parity_2026_10_24": "NOT_ACCEPTED: reviewed current route-results and route-details captures against supplied references 4 and 8. Functional E2E passes, but the map uses synthetic grid tiles and the compositions differ. All ten reference states have not been individually compared; no visual compliance claim.",
+    "root_bundle_budget_2026_10_24": "PASS: exact current local root build transfer budget: 51 JavaScript chunks each <=350 KB gzip; maplibre 275.7 KB, entry 223.6 KB, worker 141.5 KB.",
+    "site_candidate_pr23_2026_10_24": "PASS exact Site head 10454f37b59a848e4a5b381689dfe7f701fe2b81: local 105/105 unit tests, typecheck, lint, production build, bundle budget and full fixture Playwright 20/20 pass; hosted CI 40124900205 SUCCESS. Uses local fixtures, not staging/live-provider/production. Supplied visual acceptance remains NOT_ACCEPTED.",
+    "ios_candidate_pr14_2026_10_24": "PASS exact iOS head 53b28ec86ee806e95284eee8ab6c8a12739f6df4: hosted runs 40125380685 and 40125383444 SUCCESS; checked out exact Site 10454f37b59a848e4a5b381689dfe7f701fe2b81, built/synced shared web bundle, verified embedded release manifest and compiled iOS Simulator. Unsigned archive/artifact upload skipped by workflow conditions; physical iPhone, APNs, signing and TestFlight NOT_TESTED.",
+    "site_stack_ancestry_2026_10_24": "PR #21 df796e2c5d457332c11c39f3ba82fc4b3c6a3ae9 → PR #22 5a96e85630428c2ffc15dfe67308334eda9d7398 → PR #23 10454f37b59a848e4a5b381689dfe7f701fe2b81. All OPEN/MERGEABLE; #22/#23 drafts. Not merged, not deployed.",
+    "production_release_gate_current_2026_10_24": "NOT_RELEASED: no verified staging origin/deployment credentials or deployed SHA; root CI cannot materialize private Admin/Partner without MARSHGO_REPOS_READ_TOKEN; approved production map style and commercial provider entitlements not established; dense Lviv GTFS remains truncated; authenticated Admin/Partner tenant flows, physical iPhone, load/security/recovery and backup/restore/rollback are NOT_TESTED; deployment requires separate owner approval.",
+    "umbrella_production_check_2026_10_24_1930": "PASS on dirty orchestration checkout HEAD 8741bd1936115941386148104dff130525aa5f5d, npm run check:production exited 0: typecheck, ESLint, 256 unit tests pass / 0 fail / 1 opt-in database integration skip, production build, and 51-chunk gzip bundle budget pass. Local checkout evidence only; not an immutable release artifact, staging, or production.",
+    "current_materialization_2026_10_24": "PASS: node ops/scripts/materialize-release.mjs materialized the exact Server 134ed017828a020e1d5f696b3cb9ea95527bb093, Site 10454f37b59a848e4a5b381689dfe7f701fe2b81, Admin 13f4791d627badb1cfa89247a8a668b4429ecd14, Partner 9a90b8833d0dc031b307d00e558ab78a251451fe trees; origin/SHA/cleanliness guards passed. This checks source inputs only, not deployment.",
+    "production_compose_config_2026_10_24": "BLOCKED_EXTERNAL: docker compose config --quiet cannot interpolate without real APP_DOMAIN, Postgres/Redis credentials, approved map/geocoder/routing endpoints, Twilio credentials and private S3 bucket/region. No fake values were used for a client build; Compose was not started.",
+    "admin_candidate_2026_10_24": "PASS exact Admin PR #1 head 13f4791d627badb1cfa89247a8a668b4429ecd14: unit tests 2/2, TypeScript, ESLint and production build pass. Removed the inert notifications button because no notification API or action exists. Hosted checks are not yet reported on this head; authenticated Admin actions and tenant-scoped server acceptance remain NOT_TESTED.",
+    "admin_image_static_smoke_2026_10_24": "PASS exact Admin 13f4791d627badb1cfa89247a8a668b4429ecd14; local linux/arm64 image marshgo/admin:RC-2026-10-24-admin-13f4791, digest sha256:bf07d63dafcd07577936908a75f949244249a495c61db65e084932ab508c22c4. Root, /partners, /integrations, JS asset and /healthz returned HTTP 200 in an isolated loopback container. A DNS-only api alias was present to let Nginx resolve its expected upstream; API/auth workflows were not exercised. Temporary resources removed.",
+    "partner_candidate_2026_10_24": "PASS exact Partner PR #1 head 9a90b8833d0dc031b307d00e558ab78a251451fe: unit tests 3/3, TypeScript, ESLint and production build pass. Removed the inactive integration action with no URL or handler; the unavailable connection status remains visible. Authenticated Partner API operations and tenant isolation remain NOT_TESTED.",
+    "partner_image_static_smoke_2026_10_24": "PASS exact Partner 9a90b8833d0dc031b307d00e558ab78a251451fe; local linux/arm64 image marshgo/partner:RC-2026-10-24-partner-9a90b88, digest sha256:8c829d1774b4a6527a0fdaca1a4c1dc8c559de6823649badd6088ca8484ed17e. Root, /organization, /integrations, /settings, JS asset and /healthz returned HTTP 200 in isolated loopback smoke. Nginx used a DNS-only api alias; no API/auth flow was exercised; temporary resources removed.",
+    "partner_hosted_ci_2026_10_24": "PASS exact Partner SHA 9a90b8833d0dc031b307d00e558ab78a251451fe; hosted Verify run 40126076348 SUCCESS.",
+    "umbrella_unit_manifest_recheck_2026_10_24": "PASS on dirty orchestration HEAD 8741bd1936115941386148104dff130525aa5f5d after updating exact Admin/Partner review pins: npm test reports 256 pass, 0 fail, 1 opt-in DB integration skip (257 total). Local source checkout only.",
+    "portal_button_handler_audit_2026_10_24": "PASS static TypeScript AST audit: Admin has 20/20 buttons with onClick or form submit; Partner has 23/23. Exact Admin/Partner hosted Verify runs 40125895481 and 40126076348 passed. This proves event-handler presence only; authenticated API operations and tenant isolation remain NOT_TESTED.",
+    "current_site_oci_image": "STALE: local web OCI image digest in the previous tuple was built from Site 10454f37b59a848e4a5b381689dfe7f701fe2b81 and does not represent current Site 44a5e4a4b7281d78b72554d7ddfad3ee1bbe9492. Rebuild and repeat isolated smoke.",
+    "umbrella_production_check_2026_10_25": "PASS in dirty orchestration checkout, exact HEAD 8741bd1936115941386148104dff130525aa5f5d: npm run check:production exit 0; TypeScript, ESLint, 256 unit tests PASS / 0 FAIL / 1 opt-in integration SKIP, Vite production build, 51 JS chunks within 350 KB gzip budget. Release contract tests 3/3 PASS; git diff --check PASS. Not a clean pinned release artifact.",
+    "canonical_pr_reconciliation_2026_10_25": "See docs/audit/122_CANONICAL_REPOSITORY_PR_RECONCILIATION_2026-10-25.md. Six-repository PR heads/ancestry rechecked read-only. Component PRs remain unmerged. Root PR #6 Verify 40125100349 FAILURE because private Admin/Partner checkout lacks MARSHGO_REPOS_READ_TOKEN; CodeQL/Gitleaks runs 40125098012 and 40125100364 PASS. No bypass or merge.",
+    "site_previous_candidate_44a5_2026_10_25": "PASS: Site PR #23 exact SHA 44a5e4a4b7281d78b72554d7ddfad3ee1bbe9492; 105/105 unit tests, typecheck, ESLint, production build, bundle budget, full local fixture Playwright E2E 20/20; hosted Verify runs 40132182053 and 40132186290 PASS. Ten supplied mockup visual acceptance remains NOT_ACCEPTED; synthetic map fixtures.",
+    "ios_previous_candidate_946584_2026_10_25": "PASS: iOS PR #14 exact SHA 94658424c73d7a7e5c1c916560993a460d11f7cb pins Site 44a5e4a4b7281d78b72554d7ddfad3ee1bbe9492 and Server 134ed017828a020e1d5f696b3cb9ea95527bb093; hosted simulator runs 40133302719 and 40133306386 PASS; exact Capacitor/Xcode unsigned simulator build, install and launch on iPhone 15/16 Pro Max simulators. Local API localhost:3002 unavailable; authenticated flows and physical device NOT_TESTED.",
+    "site_current_candidate_8b80_2026_10_25": "PENDING: compact layer-sheet change at Site 9569bb4f174a4bdf912a6f490e69a359148db342; source checks and hosted PR #23 CI, root iPhone E2E fit/visual acceptance, simulator retest and current image rebuild/smoke pending.",
+    "ios_current_candidate_5e124d6_2026_10_25": "PENDING: iOS PR #14 0b404ca4dba62d1bba79847b79f052f0e0425ff7 pins Site 9569bb4f174a4bdf912a6f490e69a359148db342 and Server 134ed017828a020e1d5f696b3cb9ea95527bb093; hosted simulator CI, exact local simulator rebuild and screenshots pending.",
+    "site_current_oci_image": "STALE: image digest sha256:7116784c116468f3458c4d339cf4e4af8efd0560b53cdb29afeb5eec0cacd1b5 is for prior Site 44a5e4a4b7281d78b72554d7ddfad3ee1bbe9492; current Site is 9569bb4f174a4bdf912a6f490e69a359148db342. Rebuild and re-smoke."
   },
   "note": "Current exact review-candidate pins and exact-head checks are recorded in latest_workspace_sync_2026_10_21. Component PRs remain open/unmerged. No verified staging or production origin/deployed SHA; production_ready remains false. Historical entries retain their original pins and dates.",
   "staging": {
@@ -211,23 +240,23 @@
     "previous_temporary_staging": "https://superblessed-herlinda-epiphragmal.ngrok-free.dev",
     "previous_temporary_staging_status": "OFFLINE on 2026-10-09 (HTTP 404 ERR_NGROK_3200)."
   },
-  "candidate_database_migration": "054_rendezvous_participant_consent; isolated clean migration and full integration PASS on Node 24.21.0; staging/production rehearsal NOT_TESTED.",
+  "candidate_database_migration": "055",
   "deployed_site_sha": null,
   "latest_verification": {
     "server_ci": "PASS exact Server PR #35 SHA c7252783f3c8b3b1140d621bcbdae175248008be; hosted checks 40040067773 and 40040185238 PASS; local Node 24.21.0 unit/typecheck/lint/audit PASS.",
     "site_ci": "PASS exact Site PR #21 SHA 2af5219538aa005d285f9236ca0b0dafaca0274a; hosted runs 40040066282 and 40040182059 PASS; local Node 24.21.0 98/98, typecheck/lint/build/audit PASS.",
-    "ios_simulator": "PASS clean iOS PR #14 SHA 0fcf5f36e0a751152b9d3cd6778a930b372afae0 pins Site 2af5219538aa005d285f9236ca0b0dafaca0274a and Server c7252783f3c8b3b1140d621bcbdae175248008be; simulator runs 40041831739 and 40041815392 PASS. Physical iPhone/APNs/background GPS NOT_TESTED.",
-    "production_deployment": "NOT_RELEASED: no verified staging/production origin, deployment credentials, deployed SHA, HTTPS smoke or rollback rehearsal. No deployment attempted; separate owner rollout approval remains required.",
+    "ios_simulator": "PASS: exact iOS PR #14 0b404ca4dba62d1bba79847b79f052f0e0425ff7 pins exact Site 9569bb4f174a4bdf912a6f490e69a359148db342 and Server 134ed017828a020e1d5f696b3cb9ea95527bb093; hosted simulator runs 40135128350 and 40135124223 PASS. Physical iPhone, production API/GPS, APNs/background and signing NOT_TESTED.",
+    "production_deployment": "NOT_RELEASED: no verified staging/deployment origin, current exact Site OCI image, deployed SHA, HTTPS smoke or rollback rehearsal. No deployment attempted; production requires separate owner approval.",
     "exact_candidate": {
-      "server": "c7252783f3c8b3b1140d621bcbdae175248008be",
-      "site": "2af5219538aa005d285f9236ca0b0dafaca0274a",
-      "ios": "0fcf5f36e0a751152b9d3cd6778a930b372afae0",
-      "admin": "9dbf7db0a935498ac40c98b19bc36bce056d630d",
-      "partner": "c639257a7f28aeda5b378a816038b01651146b83",
-      "integration": "f727312619dbb6d73b7de8eba99bab55880201d5",
+      "server": "38f17b88f98c8530f8090cfc6745cd334c87e53c",
+      "site": "7aed5344218058b024f5c269b36b03577d94026e",
+      "admin": "f39c4b74839a393f4487c830930669eabc8c0390",
+      "partner": "97a3727cc395dea092af6e3e24d6822370c2bc63",
+      "ios": "7dfd35bf5f06169d7df82fa8d0879fcaf02431b5",
+      "integration": "0d3ed4accecbb5623f0c20c55c69ff0f23f14a4d",
       "api_version": "v1",
-      "database_migration": "054_rendezvous_participant_consent.sql",
-      "state": "Review-only; all deployment gates are not met; NOT_RELEASED."
+      "database_migration": "055",
+      "state": "Open-PR review tuple. All component CI passes, but exact images/staging/deployment and mandatory production gates are not complete."
     },
     "server_postgres_redis_integration": "PASS exact Server PR #29 SHA 648e481c9439633fd786613c457645c4c25753b7: hosted CI run 39863527878 and local exact-candidate npm run test:integration 30/30 PASS on separate loopback PostGIS/Redis and isolated DB marshgo_e2e_pr29_integration_20261023.",
     "browser_compatibility": "PASS exact Server 648e481c9439633fd786613c457645c4c25753b7 + Site 1d2aaa012b88519273eae7a2b8d703ec32c212f6 full Playwright 17/17 in 8.6 min, local Node 26.7 with isolated PostGIS/Redis DB and deterministic browser fixtures. Earlier 6/6 Chromium/Firefox/WebKit matrix used Server e21536d; not rerun on 648e481. No live provider/staging proof.",
@@ -246,7 +275,7 @@
     "root_umbrella_security": "PASS on root PR #5: CodeQL and Gitleaks passed; exact latest checks are linked from run 39855221269. Root hosted verify has the separate missing private-repository read-token blocker.",
     "server_route_search": "PARTIAL exact Server PR #30 14b3abfa29baa90b84d4d0d9d61b51604dac7f1d: GTFS suite 68/68 PASS after reverting the separate spatial-ranking experiment; the committed change is test-only exhaustive small-feed oracle/index coverage. Three frozen Lviv OD remain graph/search truncated. Same-runtime experimental A/B preserved winners, did not reduce truncation, and worsened median runtime; see audit 86. Route completeness is not established.",
     "docker_release_artifacts": "RC.21 exact Server API and Site Web images were built locally and runtime-smoked as recorded in server_rc21_api_runtime_smoke and site_rc21_web_runtime_smoke. RC.20 API/Web/Admin/Partner image evidence is retained under docker_release_artifacts_rc20_historical only; no RC.21 Admin/Partner image tuple or end-to-end staging deployment is claimed. Admin and Partner exact RC.21 images now also built and locally smoke-tested; see admin_partner_rc21_images.",
-    "checked_at_utc": "2026-10-22T23:54:39Z",
+    "checked_at_utc": "2026-10-25T05:07:19Z",
     "server_rc21_api_runtime_smoke": "PASS local exact image runtime: Server 648e481c9439633fd786613c457645c4c25753b7; image sha256:b4f32df4a20cf68d62de9e532607036788a2a378aa913061e37d102e7a1bb348 (linux/arm64). New isolated PostGIS DB applied 52 migrations through 055; local Redis connected. Production-mode API starts with TRUST_PROXY_HOPS=1 and test-only .invalid endpoints/credentials; /healthz 200, /readyz 200 with DB+Redis, protected journey/city endpoints 401 without session. No external provider/SMS call; local smoke only, not staging.",
     "site_rc21_web_runtime_smoke": "PASS local exact Web image runtime: Site 1d2aaa012b88519273eae7a2b8d703ec32c212f6; image sha256:fe815477ca388a594fdf64f393440661f2f9b75054bb778ee41b8bd51d9c868e (linux/arm64), exact RC.21 API backend 648e481c9439633fd786613c457645c4c25753b7. 5/5 HTTP web/proxy checks passed; protected Journey endpoint correctly returned 401 without session. Playwright root/search at 390x844 and 1440x1000: 4/4 HTTP 200, main visible, no horizontal overflow, 0 uncaught JS errors and 0 local HTTP 5xx. Browser external requests were intentionally blocked; no map tiles, OTP or provider data are claimed.",
     "admin_partner_rc21_images": "PASS local exact RC.21 images: Admin 9dbf7db0a935498ac40c98b19bc36bce056d630d → sha256:5947cb121781cd9d9ab69035754b616c18fd1ac9177ee449c1e84c81ead0e44c; Partner c639257a7f28aeda5b378a816038b01651146b83 → sha256:8465971cc2ff9cd687adcaa99f0c944e3626289a1d6e12db36c86be5fe7413fc (both linux/arm64). Exact images start with Nginx shell and proxy to RC.21 API; each healthz/healthz-api/readyz/root passes 4/4 HTTP 200; root Playwright 390x844 has Ukrainian main, no overflow or uncaught JS errors; no-session auth refresh correctly returns 401. Authenticated organization/admin actions remain NOT_TESTED locally.",
@@ -263,7 +292,86 @@
     "cross_repo_browser_e2e": "PASS repeat 20/20 in 8.8 minutes, exact Site 2af5219538aa005d285f9236ca0b0dafaca0274a + Server c7252783f3c8b3b1140d621bcbdae175248008be, fresh loopback marshgo_e2e_rc_20261024 DB, local Redis and map/geocoder/OSRM fixtures, Node 24.21.0, trace enabled. First full run was 19/20 due to a route-map fit polling timeout; isolated route test 1/1 and full repeat passed. Safe-control audit 195 clicks / 15 routes, 13 heuristic no-visible-effect observations. Fixture result is not staging/live-provider/production acceptance.",
     "canonical_release_materialization": "PASS exact pinned Server/Site/Admin/Partner checkouts materialized from GitHub; all pinned source trees clean apart from generated build inputs; production Compose renders all 8 declared services.",
     "canonical_release_images": "PASS all four production images built from clean exact pinned Server/Site/Admin/Partner trees for local linux/arm64. API image ran in an isolated production-mode network, applied migrations to fresh disposable PostGIS 17-3.5, connected to disposable Redis 7.4, and returned /readyz 200. Web/Admin/Partner root, SPA fallback and /healthz smoke passed in transient loopback containers. Images remain local/unpublished.",
-    "root_release_ci": "BLOCKED_EXTERNAL: hosted verify run 40045106802 passed Bun dependency audit, lint, typecheck, unit tests, DB migrations, Postgres/Redis integration, production build and bundle budget; then failed closed because Actions secret MARSHGO_REPOS_READ_TOKEN is absent for private Admin/Partner checkout. Gitleaks and CodeQL pass. No checks bypassed."
+    "root_release_ci": "BLOCKED_EXTERNAL: latest hosted verify run 40045390360 on orchestrator SHA 566a17e5c584efd4d68a97b381aabc068c87cf5c passed its earlier local-equivalent gates but failed closed at private Admin/Partner source checkout because Actions secret MARSHGO_REPOS_READ_TOKEN is not configured; hosted release-materialization/E2E jobs were skipped. Security run 40045390353 PASS. See docs/PRODUCTION_EXECUTION_STATE.md; no gate was bypassed.",
+    "cross_browser_compat_2026_10_24": "PASS 6/6 local Playwright checks in Chromium, Firefox and WebKit on exact Site 2af5219538aa005d285f9236ca0b0dafaca0274a + Server c7252783f3c8b3b1140d621bcbdae175248008be; focused sign-in/home/search viewport and route-map sheet/stop/map-focus/light-dark fixture flows; details docs/audit/104_EXACT_RC_CROSS_BROWSER_2026-10-24.md. Not full control/state, live provider, staging or device acceptance.",
+    "visual_reference_acceptance_2026_10_24": "NOT_ACCEPTED: reviewed candidate route/results/details/half-sheet/navigation/layers captures use synthetic map tiles and differ in layer-sheet composition; live rideshare/bus states lack matching candidate data. Ten-image delta table docs/audit/95_USER_MOCK_DESIGN_AUDIT_2026-10-23.md; latest focused visual note docs/audit/104_EXACT_RC_CROSS_BROWSER_2026-10-24.md.",
+    "partner_browser_acceptance": {
+      "sha": "97a3727cc395dea092af6e3e24d6822370c2bc63",
+      "hosted_verify_run": "40126462889 PASS",
+      "local_checks": "3/3 unit, typecheck, lint and production build PASS",
+      "isolated_server_acceptance": "Fresh PostGIS migrations and partner-platform integration test 1/1 PASS; tenant isolation and role checks included.",
+      "browser_flow": "OTP sign-in, overview, organization, integrations, settings, real onboarding submission/pending state, unavailable integration state and logout PASS; zero page errors.",
+      "limitations": "Development-only local API/browser run; production SMS, staging, provider entitlements and production deployment not tested.",
+      "image": "marshgo/partner:RC-2026-10-24-partner-97a3727, linux/arm64, sha256:9a5f3c25a4f26172b8603c251bfba44e40594c83f1006c29aef869d57a3595b5; isolated static HTTP smoke 6/6 endpoints PASS; not published."
+    },
+    "current_review_candidate": {
+      "server": "38f17b88f98c8530f8090cfc6745cd334c87e53c",
+      "site": "7aed5344218058b024f5c269b36b03577d94026e",
+      "admin": "f39c4b74839a393f4487c830930669eabc8c0390",
+      "partner": "97a3727cc395dea092af6e3e24d6822370c2bc63",
+      "ios": "7dfd35bf5f06169d7df82fa8d0879fcaf02431b5",
+      "integration": "0d3ed4accecbb5623f0c20c55c69ff0f23f14a4d",
+      "api_version": "v1",
+      "database_migration": "055",
+      "state": "Open-PR review tuple. All component CI passes, but exact images/staging/deployment and mandatory production gates are not complete."
+    },
+    "admin_otp_fix": {
+      "sha": "bc37198ca139408907aaefa0d97dc9b60a568300",
+      "hosted_verify_run": "40126700951 PASS",
+      "local_checks": "2/2 unit, typecheck, lint and production build PASS",
+      "finding": "Development OTP was rendered but not used by submit handler until edited; fallback to displayed code now matches input.",
+      "limitation": "Admin role is intentionally not granted when development OTP is visible; authenticated Admin UI E2E needs secure test SMS/configuration or authorized staging account.",
+      "image": "marshgo/admin:RC-2026-10-24-admin-bc37198, linux/arm64, sha256:a4668ffc8d7d516a40fa79f7d1d1db19ded6bcba9ee58781d4b8157620f66633; static route, bundle and health smoke 7/7 PASS; local/unpublished."
+    },
+    "integration_workspace_check": {
+      "sha": "8741bd1936115941386148104dff130525aa5f5d",
+      "status": "PASS",
+      "checks": "typecheck, lint, 256/256 root unit tests with one opt-in integration skip, production build, 51 JavaScript chunk gzip budget.",
+      "limitation": "Working tree is dirty; validates local state, not immutable CI artifact or production."
+    },
+    "site_full_browser_e2e": "PASS: full local fixture Playwright suite 20/20 in 4.9 minutes on exact Site 9569bb4f174a4bdf912a6f490e69a359148db342 + Server 134ed017828a020e1d5f696b3cb9ea95527bb093; includes strict 179-control sweep with zero no-op/stale controls. Node v26.7.0 on orchestration host (Site declares 24.21.0); exact Site hosted CI passed.",
+    "site_layer_sheet": "PASS: E2E confirms expanded layer controls fit above persistent navigation without scrolling at tested iPhone viewport; 44px minimum hit targets retained; two changed screenshot states regenerated and reviewed.",
+    "button_audit": "PASS (local fixture): 179 visible/enabled same-origin controls across 15 signed-in primary routes; zero no-effect, zero stale controls, zero page errors. Strict assertions enabled. Disabled/destructive/external controls and privileged Admin/Partner workflows excluded; see audit 125.",
+    "four_image_local_smoke": "PASS local isolated development-mode smoke: exact Server 134ed017828a020e1d5f696b3cb9ea95527bb093, Site 9569bb4f174a4bdf912a6f490e69a359148db342, Admin bc37198ca139408907aaefa0d97dc9b60a568300, Partner 97a3727cc395dea092af6e3e24d6822370c2bc63 images; migrations through 055, health/portal routes and three proxied expected 401 refresh responses PASS. No volumes; temp containers/network removed. Site map configuration empty; not deployable. See audit 126.",
+    "reference_mockups": "NOT_ACCEPTED: reviewed current route/layer/navigation fixture screenshots against ten references (audit 127). Synthetic map style materially differs; live bus/carpool route/progress/ETA states are not captured from authorized current data. No 10-image visual acceptance set.",
+    "orchestrator_check": "PASS local dirty checkout: typecheck, ESLint, 256 unit PASS / 0 FAIL / 1 opt-in DB test SKIP, production bundle build, 51 JavaScript chunks all <=350KB gzip. Audit 128. Not a clean immutable artifact or staging/production proof.",
+    "current_tuple_ci": {
+      "server": {
+        "pullRequest": 40,
+        "runs": [
+          40157715218,
+          40157852445
+        ],
+        "status": "PASS"
+      },
+      "site": {
+        "pullRequest": 25,
+        "runs": [
+          40163680187,
+          40163677847
+        ],
+        "status": "PASS"
+      },
+      "ios": {
+        "pullRequest": 14,
+        "runs": [
+          40163992039,
+          40163988537
+        ],
+        "status": "PASS"
+      },
+      "admin": {
+        "pullRequest": 1,
+        "run": 40162633629,
+        "status": "PASS"
+      },
+      "partner": {
+        "pullRequest": 1,
+        "run": 40126462889,
+        "status": "PASS"
+      },
+      "note": "CI proves the respective exact component commits, not an integrated staging deployment."
+    }
   },
   "latest_workspace_sync_2026_10_07": {
     "server_sha": "954b1105db73d76e482831ece70c0f1d48de0482",
@@ -388,8 +496,8 @@
     "design_acceptance": "Not pixel-certified against the 19 supplied screenshots. E2E uses a deterministic map fixture rather than the production satellite basemap; physical iPhone acceptance remains open.",
     "status": "Review candidate only; status NOT_RELEASED and production_ready=false. No production deployment."
   },
-  "admin_sha": "9dbf7db0a935498ac40c98b19bc36bce056d630d",
-  "partner_sha": "c639257a7f28aeda5b378a816038b01651146b83",
+  "admin_sha": "f39c4b74839a393f4487c830930669eabc8c0390",
+  "partner_sha": "97a3727cc395dea092af6e3e24d6822370c2bc63",
   "latest_workspace_sync_2026_10_19": {
     "checked_at": "2026-10-19",
     "server_sha": "d249df1aff79b33344ee161cca5cfca47dd87691",
@@ -512,7 +620,7 @@
     "checked_at_utc": "2026-10-21T16:28:00Z",
     "notes": "Exact tuple: Server 8889fce11cf78d2c29c8d0ca8cad8b567b0ef67b; Site c50ba344b7dfde9859826363fea119d95e2cc54e; iOS 7df237845d8841a98a5c15082677ec4198728339 pins that Site SHA. Site exact local/hosted gates pass (125 unit, 21 Playwright; hosted 39659459120/39659459087). iOS local simulator build/sync/launch passes; cold-start captures at 1s/3s show welcome. Hosted iOS simulator run 39659884926 SUCCESS; repeat PR #9 run 39660236409 SUCCESS. Server hosted DB/Redis integration passes but route search remains truncated. No staging/deployment evidence, physical iPhone acceptance, live provider acceptance, signed archive, or production HTTPS smoke. PRs remain unmerged; status NOT_RELEASED. Local recheck confirms Docker daemon and local web/API are unavailable; no staging runtime. New Server PR #24 commit 4df912bac31b0a097de761f7b25d7874bc14fab5 adds regression coverage for the three route strategy winners under bounded route-chain sampling; local Node 24 full suite 291/0/3 skip and typecheck/lint pass, hosted 39661371958 pending. It does not resolve known dense-feed truncation. Server PR #24 now has final head c33651b1387e0d2b377216a0b88f6ae02cdbec32: local full unit 292/0/3 skipped, typecheck/lint pass, both added route-oracle regressions pass (three strategy winners; exhaustive six feasible one-transfer chains). Final hosted run 39661572594 SUCCESS including migration and PostgreSQL/PostGIS + Redis integration; dense Lviv search still truncated."
   },
-  "checked_at_utc": "2026-10-24T00:30:38Z",
+  "checked_at_utc": "2026-10-25",
   "latest_workspace_sync_2026_10_23": {
     "status": "NOT_RELEASED; exact review candidate pins synchronized; no accepted/deployed release tuple.",
     "server": {
@@ -745,8 +853,79 @@
       "status": "review-only; PRs open/unmerged; no staging/deployed SHA; NOT_RELEASED"
     }
   },
-  "production_images": "BUILT_LOCALLY_NOT_PUBLISHED for exact pinned Server/Site/Admin/Partner SHAs; local OCI references and static portal smoke recorded in local_image_build. Staging, release registry, runtime API smoke, deployment and rollback remain NOT_TESTED.",
+  "production_images": "NOT_BUILT_FOR_CURRENT_EXACT_SOURCE_TUPLE; no current image digests. Prior local image records retained under historical_candidate_image_tuple and historical_local_image_build.",
   "local_image_build": {
+    "status": "NOT_BUILT_FOR_CURRENT_EXACT_SOURCE_TUPLE",
+    "source": {
+      "server": "38f17b88f98c8530f8090cfc6745cd334c87e53c",
+      "site": "7aed5344218058b024f5c269b36b03577d94026e",
+      "ios": "7dfd35bf5f06169d7df82fa8d0879fcaf02431b5",
+      "admin": "f39c4b74839a393f4487c830930669eabc8c0390",
+      "partner": "97a3727cc395dea092af6e3e24d6822370c2bc63",
+      "integration": "0d3ed4accecbb5623f0c20c55c69ff0f23f14a4d"
+    },
+    "images": null,
+    "digests": null
+  },
+  "candidate_image_tuple": {
+    "status": "NOT_BUILT_FOR_CURRENT_EXACT_SOURCE_TUPLE",
+    "source": {
+      "server": "38f17b88f98c8530f8090cfc6745cd334c87e53c",
+      "site": "7aed5344218058b024f5c269b36b03577d94026e",
+      "ios": "7dfd35bf5f06169d7df82fa8d0879fcaf02431b5",
+      "admin": "f39c4b74839a393f4487c830930669eabc8c0390",
+      "partner": "97a3727cc395dea092af6e3e24d6822370c2bc63",
+      "integration": "0d3ed4accecbb5623f0c20c55c69ff0f23f14a4d"
+    },
+    "images": null,
+    "digests": null,
+    "staging": "NOT_TESTED",
+    "production": "NOT_RELEASED"
+  },
+  "local_integration_worktree": {
+    "branch": "codex/production-finalization-20261014",
+    "head": "a75fc5fd94adf4aa067c481da23681df1c1fdaac",
+    "tracking": "origin/codex/production-finalization-20261014; ahead 4",
+    "status": "DIRTY; extensive tracked and untracked prior/user work; not an immutable release artifact"
+  },
+  "historical_candidate_image_tuple": {
+    "status": "CURRENT_FOUR_IMAGE_LOCAL_SMOKE_PASS_MAP_CONFIG_INCOMPLETE_NOT_DEPLOYABLE",
+    "platform": "linux/arm64",
+    "components": {
+      "server": {
+        "sha": "134ed017828a020e1d5f696b3cb9ea95527bb093",
+        "image": "marshgo/api:RC-2026-10-24-review.6",
+        "digest": "sha256:a0d676c3a3ded9daffb8c1bd1e85ee8879ffc3c3937985f128bf5697e509b7ab"
+      },
+      "site": {
+        "sha": "9569bb4f174a4bdf912a6f490e69a359148db342",
+        "image": "marshgo/web:RC-2026-10-25-review.6",
+        "digest": "sha256:150ce69d4787ef8ec99832b17627be604838c3bfe5f59b0e210f35ccfb7002bb",
+        "build_config": {
+          "VITE_MAP_STYLE_MANIFEST_URL": "UNSET_EMPTY_NOT_DEPLOYABLE"
+        }
+      },
+      "admin": {
+        "sha": "bc37198ca139408907aaefa0d97dc9b60a568300",
+        "image": "marshgo/admin:RC-2026-10-24-admin-bc37198",
+        "digest": "sha256:a4668ffc8d7d516a40fa79f7d1d1db19ded6bcba9ee58781d4b8157620f66633"
+      },
+      "partner": {
+        "sha": "97a3727cc395dea092af6e3e24d6822370c2bc63",
+        "image": "marshgo/partner:RC-2026-10-24-partner-97a3727",
+        "digest": "sha256:9a5f3c25a4f26172b8603c251bfba44e40594c83f1006c29aef869d57a3595b5"
+      }
+    },
+    "integrated_smoke": "PASS (local isolated dev-mode): exact Server/Site/Admin/Partner SHA/image tuple; fresh PostGIS schema migrated through 055; API ready/health and all portal routes pass; proxied unauthenticated refresh returns expected 401 through all 3 portals. Audit 126.",
+    "published": false,
+    "staging": "NOT_TESTED",
+    "production": "NOT_RELEASED",
+    "limitations": "Local smoke uses development API configuration, disposable amd64-emulated PostGIS, ephemeral Redis, local-only session secret, no persistent volumes and no external providers. Site map style manifest arg is empty; no approved immutable URL, staging, production credentials, auth workflows, TLS/DNS, live providers, load/security/recovery, backup/restore, rollback or physical-device acceptance. Do not publish/deploy.",
+    "historical_only_reason": "Previous Site image/digest in older audit 121 was built from Site SHA 44a5e4a4b7281d78b72554d7ddfad3ee1bbe9492 and is historical only. Current exact-source image is recorded above; it remains non-deployable until approved map configuration and integrated smoke.",
+    "site_static_smoke": "PASS: exact Site 9569bb4f174a4bdf912a6f490e69a359148db342; linux/arm64 image; /healthz, /, /journeys/search, /profile and five HTML-referenced JavaScript assets returned HTTP 200 in an isolated Docker network. Temporary containers/network removed; no volumes.",
+    "current_source_sha": "9569bb4f174a4bdf912a6f490e69a359148db342"
+  },
+  "historical_local_image_build": {
     "status": "BUILT_LOCALLY_NOT_PUBLISHED",
     "built_at_utc": "2026-10-24T00:26:29Z",
     "source": {
