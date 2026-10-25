@@ -24,6 +24,7 @@ On the exact Server/Site pair, using loopback Postgres/PostGIS, Redis and determ
 - Production-route control audit: 169 controls clicked across the audited route set; 0 had no visible effect, 0 became stale before interaction, and 4 audit scenarios PASS.
 - Responsive/browser matrix: 6/6 PASS on Chromium, Firefox and WebKit, covering home/search at 320, 390, 430, 768, 1280 and 1440 px and route-map/sheet/focus behavior with light/dark palettes.
 - GitHub checks: Server run `40157852445`, Site run `40158631306`, Admin run `38622007161`, Partner run `38622007703`, and iOS run `40158678815` report success on the SHAs above.
+- Admin and Partner were independently rechecked in clean detached worktrees at their exact PR SHAs using Node `24.21.0`: Admin tests 2/2, Partner tests 3/3, and each repository's typecheck, ESLint and production build PASS. These small suites validate presentation/workspace guards only, not real authenticated portal operations.
 
 The control audit covers visible enabled buttons, tabs, switches/radios and links enumerated on its 15 application routes. It does not claim every hidden, role-specific, external-provider or error-only state was exercised. Browser tests use fixtures and a local API, not production providers or staging.
 
