@@ -40,8 +40,8 @@ export interface HomeV5Props {
 const homeActions = [
   { title: 'Навігація', description: 'Побудувати маршрут', tone: 'navigation', icon: Navigation, action: 'navigation' },
   { title: 'Карта транспорту', description: 'Зупинки, лінії, рух', tone: 'transport', icon: BusFront, action: 'map' },
-  { title: 'Знайти маршрут', description: 'Усі види транспорту', tone: 'search', icon: Search, action: 'search' },
   { title: 'Опублікувати поїздку', description: 'Попутка / маршрут', tone: 'publish', icon: CirclePlus, action: 'publish' },
+  { title: 'Знайти маршрут', description: 'Усі види транспорту', tone: 'search', icon: Search, action: 'search' },
 ] as const;
 
 const popularRoutes: ReadonlyArray<{ destination: string; image: string; imagePosition?: string }> = [
