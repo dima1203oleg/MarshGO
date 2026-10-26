@@ -125,7 +125,7 @@ export const HomeV5: React.FC<HomeV5Props> = ({
       <button
         type="button"
         onClick={onSearchTrip}
-        aria-label="Вибрати місто для пошуку, зараз Львів"
+        aria-label="Відкрити пошук маршрутів для міста Львів"
         className="home-v5-city mb-2 flex min-h-9 shrink-0 items-center gap-2 self-start rounded-full border border-[#E3EBF4] bg-white px-3.5 text-sm font-bold text-[#142642] shadow-sm dark:border-slate-700 dark:bg-[#101E38] dark:text-white"
       >
         <MapPin size={16} className="text-blue-600" /> Львів
