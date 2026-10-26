@@ -11,8 +11,15 @@ if [[ ! -f "$ENV_FILE" ]]; then
 fi
 
 compose() {
-  local compose_file="$ROOT_DIR/compose.production.yml"
-  if [[ -f "$ROOT_DIR/.release/compose.production.yml" ]]; then compose_file="$ROOT_DIR/.release/compose.production.yml"; fi
+  local compose_file="$ROOT_DIR/.release/compose.production.yml"
+  if [[ ! -f "$compose_file" || ! -f "$ROOT_DIR/.release/materialized.json" ]]; then
+    echo "Pinned release contexts are not materialized. Run bootstrap/update before using Compose." >&2
+    return 2
+  fi
+  node "$ROOT_DIR/ops/scripts/verify-materialized-release.mjs" \
+    "$ROOT_DIR/RELEASE_MANIFEST.json" \
+    "$ROOT_DIR/.release/materialized.json" \
+    "$compose_file"
   docker compose --project-name "$PROJECT_NAME" --env-file "$ENV_FILE" -f "$compose_file" "$@"
 }
 
