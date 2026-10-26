@@ -28,5 +28,11 @@
 
 - There are **12** categories total; **five** were disabled (Taxi, Bicycle, Scooter, Carshare, Transfer).
 - Restore the intended isolated PostGIS/Redis runtime without deleting/resetting Docker data; align the runtime by using the documented launcher/port configuration; confirm `/readyz` before browser acceptance.
-- Rerun authenticated full route/button E2E and visual review for all provided mockups in both themes and at 320/390/430/768/1280/1440 px. Investigate the Home city-selection action.
+- Rerun authenticated full route/button E2E and visual review for all provided mockups in both themes and at 320/390/430/768/1280/1440 px.
 - Keep `PRODUCTION_READY=false`, `RELEASE_STATUS=NOT_RELEASED`. No staging or production deployment was performed.
+
+## Follow-up: truthful Home action label
+
+- Source inspection confirmed the Home city pill calls `onSearchTrip`; it does not open a city picker. Changed its accessible name from “choose city” to “open route search for Lviv” and verified the updated name in the guest browser.
+- TypeScript, targeted ESLint and all unit tests passed after the change: 256 pass / 1 opt-in DB skip / 0 fail.
+- Committed only this component change as `e87e152` (`fix: clarify home city search action label`). This does not add city-selection functionality; full route/browser acceptance remains blocked by the runtime above.
