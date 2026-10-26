@@ -60,10 +60,10 @@
       "acceptance_criteria": ["five distinct objective witnesses asserted", "competitive decoys contest eight sample slots", "bounded deterministic arrival orders", "run only new test file once", "no production or existing dirty file edits"],
       "model": "Gemini 3.8 Flash Medium",
       "resource_limits": {"one_active_antigravity_task": true, "one_local_test_process": true, "time_bounded": true},
-      "status": "RUNNING",
-      "result_sha": null,
-      "tests": "RUNNING",
-      "result_summary": "Prompt sent and verified in Antigravity GUI; agent displayed Working. Scope is a new test file; existing dirty Server work must remain untouched."
+      "status": "ACCEPTED",
+      "result_sha": "877ac41",
+      "tests": "Antigravity: 1 PASS / 0 FAIL / 10.28 ms; Codex independent rerun: 1 PASS / 0 FAIL / 508 ms; git diff --cached --check PASS.",
+      "result_summary": "Reviewed the new adversarial fixture and verified five distinct winners plus bounded order cases. Only the new test file was committed; existing dirty Server work remains unstaged. GUI token usage was not exposed."
     }
   ]
 }
