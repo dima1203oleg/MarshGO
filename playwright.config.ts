@@ -47,6 +47,8 @@ export default defineConfig({
       reuseExistingServer: false,
       timeout: 30_000,
       env: {
+        ...(process.env.E2E_SERVER_DIR ? { E2E_SERVER_DIR: process.env.E2E_SERVER_DIR } : {}),
+        ...(process.env.E2E_SERVER_PINNED_SHA ? { E2E_SERVER_PINNED_SHA: process.env.E2E_SERVER_PINNED_SHA } : {}),
         NODE_ENV: 'development',
         DATABASE_URL: databaseUrl,
         API_HOST: '127.0.0.1',

@@ -15,7 +15,11 @@ export function assertMaterializedWorktreeClean(statusOutput, generatedPaths, co
     .filter((entry) => {
       const status = entry.slice(0, 2);
       const path = entry.slice(3);
-      return status !== '??' || !allowed.has(path);
+      // Deployment inputs can intentionally replace tracked files such as
+      // .dockerignore in a pinned checkout. Accept only an unstaged worktree
+      // modification or an untracked generated file at an explicit path;
+      // staged edits and deletions must still stop materialization.
+      return !allowed.has(path) || ![' M', '??'].includes(status);
     });
 
   if (unexpected.length > 0) {
