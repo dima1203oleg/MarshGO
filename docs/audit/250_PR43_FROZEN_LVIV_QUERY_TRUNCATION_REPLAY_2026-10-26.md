@@ -25,7 +25,7 @@ This confirms the main dense-Lviv defect on the exact PR candidate: the current 
 
 ## Regression tests
 
-On this exact candidate, the focused GTFS timetable and journey-search-completeness suites passed **79/79** tests (Node `v25.4.0`). This includes exhaustive small-feed one-/two-transfer oracles, all three strategy winner checks on fixtures, transfer/pathway constraints, query-time retention, and explicit dense-graph truncation reporting. The fixture suite does not establish full Lviv-feed recall.
+On this exact candidate, the focused GTFS timetable and journey-search-completeness suites passed **79/79** tests; the complete Server unit suite passed **316/316** with **3 opt-in DB integration tests skipped**; `npm run typecheck` and `npm run lint` passed (all on Node `v25.4.0`). The focused suite includes exhaustive small-feed one-/two-transfer oracles, all three strategy winner checks on fixtures, transfer/pathway constraints, query-time retention, and explicit dense-graph truncation reporting. Skipped database integration tests are not passes, and the fixture suite does not establish full Lviv-feed recall.
 
 ## Engineering decision
 
