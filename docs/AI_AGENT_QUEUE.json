@@ -49,6 +49,21 @@
       "result_sha": null,
       "tests": "NOT_RUN",
       "result_summary": "Next product task; create isolated Server/Site worktrees and record each exact base SHA before editing."
+    },
+    {
+      "task_id": "AGY-GTFS-SAMPLER-ADVERSARIAL-TEST-20261026",
+      "owner": "antigravity-gui",
+      "repository": "MarshGO-Server",
+      "branch": "feature/transport-layer-availability",
+      "base_sha": "92a26a3f617f32d644a66c0af46cba096ccb0ce0",
+      "scope": ["tests/gtfs-route-chain-sampler-adversarial.test.ts only; new file"],
+      "acceptance_criteria": ["five distinct objective witnesses asserted", "competitive decoys contest eight sample slots", "bounded deterministic arrival orders", "run only new test file once", "no production or existing dirty file edits"],
+      "model": "Gemini 3.8 Flash Medium",
+      "resource_limits": {"one_active_antigravity_task": true, "one_local_test_process": true, "time_bounded": true},
+      "status": "RUNNING",
+      "result_sha": null,
+      "tests": "RUNNING",
+      "result_summary": "Prompt sent and verified in Antigravity GUI; agent displayed Working. Scope is a new test file; existing dirty Server work must remain untouched."
     }
   ]
 }
