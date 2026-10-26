@@ -36,3 +36,8 @@
 - Source inspection confirmed the Home city pill calls `onSearchTrip`; it does not open a city picker. Changed its accessible name from “choose city” to “open route search for Lviv” and verified the updated name in the guest browser.
 - TypeScript, targeted ESLint and all unit tests passed after the change: 256 pass / 1 opt-in DB skip / 0 fail.
 - Committed only this component change as `e87e152` (`fix: clarify home city search action label`). This does not add city-selection functionality; full route/browser acceptance remains blocked by the runtime above.
+
+## Follow-up: global create action / reverse-marketplace form
+
+- The global `+` control opens the quick-action sheet. “Створити запит пасажира” opens `/demands/new` with origin/destination, time window, passenger count, budget, budget unit, passenger needs, notes and a publish control. No request was submitted.
+- “Мої заявки” opens `/demands/mine` and displays the expected empty state. This verifies guest navigation and form rendering only; geocoding, persistence and driver matching remain untested because server readiness is failing.
