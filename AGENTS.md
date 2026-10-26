@@ -1,5 +1,6 @@
 # MARSHGO orchestration rules
 
+- **Project mission (persistent instruction, not Codex UI Goal):** Bring MARSHGO to verified production readiness: Web/PWA first, all 12 transport modes, real provider feeds, reliable routing, ridesharing, full testing, and safe deployment.
 - Work only in the six canonical repositories: `MarshGO`, `MarshGO-Server`, `MarshGO-Site`, `MarshGO-iOS`, `MarshGO-Admin`, and `MarshGO-Partner`. Exclude `MarshGO2`.
 - Inspect the relevant repository status and diff first. Preserve pre-existing dirty files; never reset, clean, force-push, or overwrite another task's work.
 - Use isolated Git worktrees for delegated edits. Keep one heavy local build, test, browser, Docker, or GTFS process at a time on the 8 GB Mac.
