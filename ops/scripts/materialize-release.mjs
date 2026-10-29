@@ -5,6 +5,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import process from 'node:process';
 import { assertMaterializedWorktreeClean } from './materialized-worktree.mjs';
+import { bindReleaseBuildMetadata, createReleaseBuildMetadata } from './release-build-metadata.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const manifestPath = join(root, 'RELEASE_MANIFEST.json');
@@ -123,6 +124,11 @@ compose = compose.replace('context: .\n      dockerfile: Dockerfile.web', `conte
 compose = compose.replace('context: .\n      dockerfile: Dockerfile.admin', `context: ${JSON.stringify(admin)}\n      dockerfile: Dockerfile.marshgo`);
 compose = compose.replace('context: .\n      dockerfile: Dockerfile.partner', `context: ${JSON.stringify(partner)}\n      dockerfile: Dockerfile.marshgo`);
 compose = compose.replace('./deploy/Caddyfile:/etc/caddy/Caddyfile:ro', `${join(root, 'deploy/Caddyfile')}:/etc/caddy/Caddyfile:ro`);
+const buildMetadata = createReleaseBuildMetadata(serverSha, {
+  runId: process.env.GITHUB_RUN_ID,
+  runAttempt: process.env.GITHUB_RUN_ATTEMPT,
+});
+compose = bindReleaseBuildMetadata(compose, buildMetadata);
 if (compose.includes('context: .\n      dockerfile: Dockerfile.') || compose.includes('./deploy/Caddyfile')) {
   throw new Error('Could not bind every production build and proxy config to the pinned release source/configuration.');
 }
@@ -130,6 +136,7 @@ writeFileSync(join(releaseRoot, 'compose.production.yml'), compose);
 const materialization = {
   schemaVersion: 2,
   source: { serverSha, siteSha, adminSha, partnerSha, integrationSha: manifest.integration_sha },
+  buildMetadata,
   sourceTrees: {
     server: {
       generatedInputs: generatedInputs.server,
@@ -159,4 +166,4 @@ const materialization = {
   pinnedSourceTreesClean: true,
 };
 writeFileSync(join(releaseRoot, 'materialized.json'), `${JSON.stringify(materialization, null, 2)}\n`);
-process.stdout.write(`Materialized canonical source: Server ${serverSha}, Site ${siteSha}\n`);
+process.stdout.write(`Materialized canonical source: Server ${serverSha}, Site ${siteSha}; API build metadata ${JSON.stringify(buildMetadata)}\n`);

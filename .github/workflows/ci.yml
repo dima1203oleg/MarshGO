@@ -80,7 +80,33 @@ jobs:
             echo "MARSHGO_REPOS_READ_TOKEN=$MARSHGO_REPOS_READ_TOKEN"
           } >> "$GITHUB_ENV"
       - run: node ops/scripts/materialize-release.mjs
+      - run: node --test ops/scripts/release-build-metadata.test.mjs
       - run: docker compose --project-name marshgo-canonical-build --env-file ops/templates/production.env.example -f .release/compose.production.yml build api web admin partner
+      - name: Verify pinned API identity inside the built image
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { execFileSync } from 'node:child_process';
+          import { readFileSync } from 'node:fs';
+
+          const metadata = JSON.parse(readFileSync('.release/materialized.json', 'utf8')).buildMetadata;
+          const manifest = JSON.parse(readFileSync('RELEASE_MANIFEST.json', 'utf8'));
+          assert.equal(metadata.commitSha, manifest.server_sha, 'build identity must match the exact pinned Server SHA');
+          assert.equal(metadata.sourceState, 'clean', 'only clean pinned source is promoted into the image');
+          const releaseTag = readFileSync('ops/templates/production.env.example', 'utf8').match(/^MARSHGO_RELEASE_TAG=(.+)$/m)?.[1];
+          assert.ok(releaseTag, 'production example must provide an immutable image tag');
+          const image = JSON.parse(execFileSync('docker', ['image', 'inspect', `marshgo/api:${releaseTag}`], { encoding: 'utf8' }))[0];
+          const environment = new Map(image.Config.Env.map((entry) => {
+            const separator = entry.indexOf('=');
+            return [entry.slice(0, separator), entry.slice(separator + 1)];
+          }));
+          assert.equal(environment.get('MARSHGO_BUILD_ID'), metadata.buildId);
+          assert.equal(environment.get('MARSHGO_BUILD_SHA'), metadata.commitSha);
+          assert.equal(environment.get('MARSHGO_BUILD_TIME'), metadata.builtAt);
+          assert.equal(environment.get('MARSHGO_SOURCE_STATE'), metadata.sourceState);
+          assert.equal(image.Config.Labels['org.opencontainers.image.revision'], metadata.commitSha);
+          console.log(`Verified API image ${releaseTag} -> Server ${metadata.commitSha} (${metadata.buildId})`);
+          NODE
       - run: npx playwright install --with-deps chromium firefox webkit
       - name: Install Mesa and virtual display for Firefox WebGL
         run: sudo apt-get update && sudo apt-get install -y libgl1-mesa-dri xvfb xauth
