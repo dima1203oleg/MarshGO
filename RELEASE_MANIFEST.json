@@ -1794,6 +1794,31 @@
     "commit": "UNCOMMITTED at time of writing; see provider_health_ids_2026_10_31 for the committed follow-up stage"
   },
 
+  "feed_cold_refresh_2026_10_31": {
+    "stage": "FEED-COLD-REFRESH-1 (#28)",
+    "verified_at_utc": "2026-10-31T19:01:00Z",
+    "environment": "local acceptance stack (api :3902, image marshgo/api:RC-2026-10-31-indexwarm.1) plus public HTTPS preview https://marshgo-dima.shares.zrok.io",
+    "defect": "A live-map viewport poll downloaded a provider's whole GTFS zip on the request path to classify vehicles; measured 10 830 ms cold. Providers without source_version bypass Redis L2 and their L1 lived only 60 s, so every expiry re-paid inside the request.",
+    "fix": "server/index.ts sequential non-overlapping background route-index pass (max(60 s, TRANSPORT_INDEX_REFRESH_MS || 4 min), first run 20 s after boot, kill switch TRANSPORT_INDEX_REFRESH_DISABLED=true); server/mobility/transportLayers.ts cachedGtfsRouteTypes l1TtlMs raised to 20 minutes.",
+    "measurement_method": "docker restart, wait for /readyz, then issue NO request until a route_index_warmed event whose timestamp is >= this container's State.StartedAt appears. A first version of the probe matched a pre-restart event (no start-time filter) and measured 41 684 ms; that run was discarded as a measurement defect, not reported as success.",
+    "results": {
+      "container_start": "2026-10-31T18:58:09.808Z",
+      "warm_event": "2026-10-31T18:58:50.270Z providers=7 failed=0",
+      "vehicles_after_warm_ms": [283, 1242, 1528],
+      "vehicles_before_fix_ms": 10830,
+      "public_https": "GET /journeys/search 200 with root div; login 200; /transport/vehicles 4212 ms then 119/126/115 ms, 323 features, failedProviders empty"
+    },
+    "gates": "npx tsc --noEmit exit 0 · npm test 382 tests / 379 pass / 3 skipped / 0 fail · npm run lint exit 0 · new tests/transport-index-warmup.test.ts 3/3 · diff secret-sweep clean",
+    "github": {
+      "repo": "dima1203oleg/MarshGO-Server",
+      "branch": "qoder/transport-journey-20261031",
+      "commit": "64d4119ac583a9947e91371e6d71b9a81129774d",
+      "remote_sha_match": true,
+      "pr": "#62 updated; not merged; main untouched; no force push"
+    },
+    "not_claimed": "Stale-while-revalidate (the «віддача stale» half of the ТЗ item) is NOT implemented - CacheService keeps no stale value, so an expired entry still blocks the request. The first ~40 s after a container start still costs a colliding request (41.7 s observed on an Укрзалізниця route_index timeout). /transport/vehicles has no dataQuality label anywhere: meta keys are failedProviders, failedProviderCount, providersQueried, filteredStaleVehicles, unclassifiedVehicles, truncated and feature properties are id, route, transport, bearing, speed, updatedAt, so endpoint-level LIVE/SCHEDULED/ESTIMATED/STALE labelling (task #33) stays unverified. Production remains NOT_RELEASED.",
+    "evidence_file": ".release/feed-cold-refresh-20261031-evidence.json (gitignored)"
+  },
   "provider_health_ids_2026_10_31": {
     "stage": "PROVIDER-HEALTH-IDS-1",
     "verified_at_utc": "2026-10-31T18:42:00Z",
