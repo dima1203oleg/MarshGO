@@ -4098,3 +4098,10 @@ Not claimed: payment capture, live GTFS-RT vehicle positions, anything on accept
 - `/transport/routes` (Львів, bus+marshrutka) через `https://marshgo-dima.shares.zrok.io` на `searchlat.7`: **8.44 s cold**, **2.32/2.35 s warm**, 200, 410 502 B, 130 features, `failedProviderCount=0`, `dataQuality=SCHEDULED` — базові 7 969 ms відтворюються.
 - Нова деталь: warm теж 2.3 s, тож дефект не тільки cold-старт.
 - Корінь: `loadRoutes` (`server/index.ts:850`) тягне `cachedNetwork` (повну GTFS-мережу), а live-карта (`server/index.ts:975`) уже має легкий route-index. Фікс — віддавати маршрути/зупинки з індексу; не реалізовано.
+
+## 2026-11-01 23:25 UTC — #33 аудит dataQuality на публічному URL + три відкриті дефекти; план #35 визнаний хибним
+- Vehicles (центр Лева, нічні години): 0 features, `level=UNKNOWN`, `counts={}` — сервер не вигадує борті, це коректна поведінка за вимогою unknown≠fabricated.
+- Routes (Львів, tram+trolleybus): 16 features, `SCHEDULED` з counts. Stops: 129 features, **dataQuality відсутній** — дефект маркування.
+- Routes (Київ, metro): 0 features + UNKNOWN — ендпоінт 200 без даних; UI мусить показувати «джерело недоступне».
+- Fares: `data` масив тарифів, без dataQuality, з **зашитим `lastVerifiedAt: 2026-10-13`** (`server/index.ts:833`), який жоден процес не оновлює; Site поле не читає, але `tests/transport-tariffs.test.ts` на ньому тримається — тож це зміна контракту, а не видалення. Правку навмисне НЕ робив без рішення власника і без циклу перевірки на публічному URL.
+- Самокорекція #35: `cachedGtfsRouteTypes` дає лише id→name/type без геометрії, тому «сервірувати маршрути з route-index» неможливо у записаній формі; warm 2.3 s при cachedNetwork-hit скоріше вказує на фільтрацію nationwide-мережі, ніж на парс — спершу вимір, потім код.

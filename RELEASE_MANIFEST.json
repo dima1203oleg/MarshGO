@@ -1913,6 +1913,27 @@
     "evidence": "GET /api/v1/transport/routes?bbox=23.95,49.75,24.12,49.92&types=bus,marshrutka over https://marshgo-dima.shares.zrok.io on marshgo/api:RC-2026-10-31-searchlat.7: 8.44 s cold then 2.32 s and 2.35 s warm, HTTP 200, 410502 B, 130 features, failedProviderCount=0, dataQuality=SCHEDULED. Recorded baseline was 7969 ms cold, so the defect reproduces; the warm path is also 2.3 s, so this is not only cold start.",
     "root_cause": "loadRoutes (server/index.ts:850-857) calls cachedNetwork, i.e. a fully parsed GTFS network, for every provider touching the bbox, while the adjacent live-vehicles endpoint (server/index.ts:975-988) already uses the lightweight route index only for name labels. The routes endpoint pays a full feed parse for data it needs only as line geometry, stops and type.",
     "fix": "NOT IMPLEMENTED. Planned minimal fix: serve transport/routes and transport/stops from the same route index the live map uses, guarded by a byte-equality regression on the 130-feature / 410502-byte response and a public-URL re-run.",
+    "production_status": "NOT_RELEASED",
+    "planned_fix": "Corrected: the lightweight route index (cachedGtfsRouteTypes, server/index.ts:974) carries only id to {name,type} with no geometry or stops, so routes cannot be served from it as written. Either the index must be extended with shapes (effectively a second network) or a different approach is needed. The 2.3 s warm cost happens with cachedNetwork already hot, which points at filtering/serialising the nationwide network rather than parsing; next step is a measurement that separates the two, not code."
+  },
+  "data_quality_label_audit_2026_11_01": {
+    "task": "#33 DATA-QUALITY-LABEL-1 public endpoint audit plus fare-freshness defect",
+    "repository": "MarshGO-Server",
+    "environment": "public zrok https://marshgo-dima.shares.zrok.io on marshgo/api:RC-2026-10-31-searchlat.7, 2026-11-01 23:25 UTC",
+    "evidence": {
+      "vehicles_lviv_center": "200 in 2.04 s, 0 features, meta.dataQuality.level=UNKNOWN, counts={}",
+      "routes_lviv_tram_trolleybus": "200 in 0.89 s, 16 features, dataQuality=SCHEDULED with counts {SCHEDULED:16}",
+      "stops_lviv_tram": "200 in 0.92 s, 129 features, meta.dataQuality absent",
+      "routes_kyiv_metro": "200 in 0.87 s, 0 features, dataQuality=UNKNOWN",
+      "fares_lviv": "200 in 0.98 s, data is an array of tariffs, no dataQuality field, hardcoded lastVerifiedAt 2026-10-13 at server/index.ts:833",
+      "site_usage": "MarshGO-Site does not read lastVerifiedAt; tests/transport-tariffs.test.ts asserts it, so changing it is a contract change"
+    },
+    "defects_open": [
+      "transport/stops has no dataQuality label, so the UI cannot honestly distinguish schedule from live on stop layers",
+      "transport/fares asserts a hardcoded lastVerifiedAt no process refreshes (18 days stale) - needs owner decision on whether the date is a real editorial fact or demo residue",
+      "kyiv metro routes returns 200 with zero features and UNKNOWN, which the UI must surface as source-unavailable rather than an empty map"
+    ],
+    "fixes_not_attempted_reason": "A server edit would need a build cycle plus public-URL verification to count as evidence, and the fares field needs an owner decision; committing an unverifiable edit as done is prohibited.",
     "production_status": "NOT_RELEASED"
   }
 }
