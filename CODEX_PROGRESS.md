@@ -4093,3 +4093,8 @@ Not claimed: payment capture, live GTFS-RT vehicle positions, anything on accept
 - `https://a602584pesfa.shares.zrok.io`: edge 200 за 1.01 s, логін через тунель (токен не друкувався), Lviv→Київ **15.80 s** і **14.70 s**, HTTP 200, тіло 230 429 B, 12 itinerary, перший маршрут 5 legs. Свіжі stage-логи того ж вікна: `segments-built elapsed=9 939 ms` (`instanceEvents=5 487`, `pairVisit=1 181`, `selection=458`, `segs=100000`) та `10 873 ms` (`instanceEvents=5 471`, `pairVisit=1 133`, `selection=335`).
 - `https://marshgo-dima.shares.zrok.io` (зарезервоване імʼя, його ж використовує iOS-бандл): 200, **17.17 s** і **20.98 s**, те саме тіло 230 429 B, 12 itinerary / 5 legs, `partial=true`, `resultsTruncated=true` — і partial, і обрізання клієнт бачить чесно.
 - Публічна базова лінія до частин 1–2 — 51.2 s cold / 21.6 s warm; публічний warm тепер 14.7–21.0 s залежно від стану кеша фіда. #36 не закривається: `segments-built` (≈10 s) лишається домінантою, production — NOT_RELEASED.
+
+## 2026-11-01 23:23 UTC — #35 ROUTES-COLD-PATH-1: публічний доказ і корінь (коду не чіпали)
+- `/transport/routes` (Львів, bus+marshrutka) через `https://marshgo-dima.shares.zrok.io` на `searchlat.7`: **8.44 s cold**, **2.32/2.35 s warm**, 200, 410 502 B, 130 features, `failedProviderCount=0`, `dataQuality=SCHEDULED` — базові 7 969 ms відтворюються.
+- Нова деталь: warm теж 2.3 s, тож дефект не тільки cold-старт.
+- Корінь: `loadRoutes` (`server/index.ts:850`) тягне `cachedNetwork` (повну GTFS-мережу), а live-карта (`server/index.ts:975`) уже має легкий route-index. Фікс — віддавати маршрути/зупинки з індексу; не реалізовано.
