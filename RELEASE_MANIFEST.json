@@ -1914,7 +1914,17 @@
     "root_cause": "loadRoutes (server/index.ts:850-857) calls cachedNetwork, i.e. a fully parsed GTFS network, for every provider touching the bbox, while the adjacent live-vehicles endpoint (server/index.ts:975-988) already uses the lightweight route index only for name labels. The routes endpoint pays a full feed parse for data it needs only as line geometry, stops and type.",
     "fix": "NOT IMPLEMENTED. Planned minimal fix: serve transport/routes and transport/stops from the same route index the live map uses, guarded by a byte-equality regression on the 130-feature / 410502-byte response and a public-URL re-run.",
     "production_status": "NOT_RELEASED",
-    "planned_fix": "Corrected: the lightweight route index (cachedGtfsRouteTypes, server/index.ts:974) carries only id to {name,type} with no geometry or stops, so routes cannot be served from it as written. Either the index must be extended with shapes (effectively a second network) or a different approach is needed. The 2.3 s warm cost happens with cachedNetwork already hot, which points at filtering/serialising the nationwide network rather than parsing; next step is a measurement that separates the two, not code."
+    "planned_fix": "Corrected: the lightweight route index (cachedGtfsRouteTypes, server/index.ts:974) carries only id to {name,type} with no geometry or stops, so routes cannot be served from it as written. Either the index must be extended with shapes (effectively a second network) or a different approach is needed. The 2.3 s warm cost happens with cachedNetwork already hot, which points at filtering/serialising the nationwide network rather than parsing; next step is a measurement that separates the two, not code.",
+    "warm_phase_attribution_2026_11_01_23_28": {
+      "method": "no build; varied types and bbox on the same warm public endpoint (marshgo-dima, image searchlat.7)",
+      "bus": "1.94 s, 130 features, 410502 B",
+      "bus_marshrutka": "1.86 s, identical body",
+      "marshrutka_only": "0.96 s, 0 features, 233 B",
+      "small_bbox": "1.52 s, 33 features, 97793 B",
+      "tram_trolleybus_central": "0.89 s, 16 features",
+      "conclusion": "a fixed ~0.9 s per-request term plus ~0.6 s scaling with network size; shrinking the output fourfold saves only 22 percent, so the warm cost is iterating the fully parsed network of each touching provider (type filter and routeInBbox), not JSON serialisation and not feed parsing",
+      "fix_direction": "per-provider spatial index of routes so the scan is proportional to hits rather than network size, and do not load a network at all when no route of it can match the requested types and bbox; requires an owner decision, a build cycle and a byte-equality regression"
+    }
   },
   "data_quality_label_audit_2026_11_01": {
     "task": "#33 DATA-QUALITY-LABEL-1 public endpoint audit plus fare-freshness defect",
