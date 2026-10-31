@@ -4,10 +4,18 @@
     "repository": "MarshGO-Site",
     "branch": "qoder/site-ui-polish-20261031",
     "head_sha": "0d3f20501a1dcd230f0474225b6e6f69d8262464",
-    "commits": ["9c00a746710f2b7add08aac0f8065c90fafd27a8", "3ff792f8ae3c673e00bf3d72792b5961c9ecdd2a", "0d3f20501a1dcd230f0474225b6e6f69d8262464"],
+    "commits": [
+      "9c00a746710f2b7add08aac0f8065c90fafd27a8",
+      "3ff792f8ae3c673e00bf3d72792b5961c9ecdd2a",
+      "0d3f20501a1dcd230f0474225b6e6f69d8262464"
+    ],
     "pull_request": "https://github.com/dima1203oleg/MarshGO-Site/pull/35",
     "deployed_acceptance_image": "marshgo/web:RC-2026-10-31-uipolish.17",
-    "public_bundle": {"js": "index-CzOH_okf.js", "css": "index-Cvo6IOi_.css", "initial_js_chunk_kb": 986},
+    "public_bundle": {
+      "js": "index-CzOH_okf.js",
+      "css": "index-Cvo6IOi_.css",
+      "initial_js_chunk_kb": 986
+    },
     "gates": "typecheck clean; npm test 188/188 pass (180 before stage 3: +5 searchPendingCopy cases, +4 canonical-design guards for the pending state, the skeleton keyframe, sheet motion tokens and the prefers-reduced-motion neutralizer); build index-CzOH_okf.js / index-Cvo6IOi_.css; acceptance :3900 and the public zrok URL serve identical bundle hashes",
     "public_evidence": "https://marshgo-dima.shares.zrok.io at 570x843: / = 19 visible buttons, all >=44px, 0 text <9.5px, 0 truncations; /journeys/search = 29 visible buttons, 0 text <9.5px, 0 truncations. Screenshots .release/design/uipolish15-home-public-570.png and uipolish15-search-public-570.png (local, .release is gitignored). Stage 3 (Lviv -> Kyiv corridor on the same public URL): pending panel mounts on submit and ticks real elapsed seconds 1->20 with both escalated notes observed live at 8s and 20s; computed mg-rise 0.42s with entrance easing, mg-shimmer 1.5s, 3 skeleton cards / 12 shimmer blocks, aria-busy=true; on completion 12 real result cards replaced the skeleton with 0 leftover .mg-skeleton. Bottom sheet: computed height 0.26s cubic-bezier(0.16,0.84,0.28,1), half -> expanded 421.5px -> 731px, no stranded transition:none. Screenshots .release/design/uipolish17-search-pending-lviv-kyiv.png and uipolish17-search-pending-public.png.",
     "superseded_claim": "The 21:40 checkpoint asserted Lviv -> Kyiv returns nothing because of a feed coverage gap. The stage-3 run on the same public URL returned 12 real cards for the same intercity corridor in ~30s, so that assertion was an over-generalisation and must not be repeated; it reopens SEARCH-LATENCY-1 (#36) and RANK-WAIT-1 (#16).",
@@ -1814,7 +1822,6 @@
     ],
     "commit": "UNCOMMITTED at time of writing; see provider_health_ids_2026_10_31 for the committed follow-up stage"
   },
-
   "feed_cold_refresh_2026_10_31": {
     "stage": "FEED-COLD-REFRESH-1 (#28)",
     "verified_at_utc": "2026-10-31T19:01:00Z",
@@ -1825,7 +1832,11 @@
     "results": {
       "container_start": "2026-10-31T18:58:09.808Z",
       "warm_event": "2026-10-31T18:58:50.270Z providers=7 failed=0",
-      "vehicles_after_warm_ms": [283, 1242, 1528],
+      "vehicles_after_warm_ms": [
+        283,
+        1242,
+        1528
+      ],
       "vehicles_before_fix_ms": 10830,
       "public_https": "GET /journeys/search 200 with root div; login 200; /transport/vehicles 4212 ms then 119/126/115 ms, 323 features, failedProviders empty"
     },
@@ -1852,5 +1863,46 @@
     "gates": "Server tsc clean, new transport-layer-failure-report test 4/4, npm test 379/376 pass/3 skip/0 fail, lint exit 0; Site tsc clean, npm test 167/167",
     "github": "Server qoder/transport-journey-20261031 @ 7e4d06deb0ea878e03fe3b87c9421b2c0d038b22 (PR #62); Site qoder/journey-deeplink-ratelimit-20261031 @ 754536fc1ef234313f6f6c85e175b72cec0ac6c7 (PR #33); local SHA == remote after fetch",
     "not_claimed": "provider row NOT disabled (DB write needs owner consent); wide-bbox cold path still exceeded a 20 s client timeout in 3 of 12 polls = FEED-COLD-REFRESH-1 open; production NOT_RELEASED"
+  },
+  "search_latency_2026_10_31_part1": {
+    "task": "SEARCH-LATENCY-1 (#36) part 1 - GTFS feed cache no longer evicts the feed it just loaded",
+    "repository": "MarshGO-Server",
+    "branch": "qoder/search-latency-20261031",
+    "head_sha": "1e26b9fed314e6c2d7d5585d817baa12a42c70ab",
+    "commits": [
+      "48ab36b (perf(journey): stop the largest GTFS feed from evicting itself on every search)",
+      "1e26b9f (chore(journey): time GTFS feed loading and group search behind the debug flag)"
+    ],
+    "pull_request": "https://github.com/dima1203/MarshGO-Server/pull/63",
+    "deployed_acceptance_image": "marshgo/api:RC-2026-10-31-searchlat.3",
+    "root_cause": "BoundedPromiseCache.evictToBounds() dropped the oldest insertion-order key while ignoring protectKey, so the largest feed (Lvivavtodor, requested first) evicted the value it had just paid to load on every search; feed weight was additionally overstated ~1.9x per stop_time row and understated ~1.5x per shape point",
+    "fix": "evictToBounds never sacrifices protectKey unless that entry alone exceeds the bound; per-record weights calibrated from --expose-gc heap retention (272 bytes/stop_time row, 72 bytes/shape point) so the 256 MB budget was left unchanged",
+    "gates": "npx tsc --noEmit exit 0; npm test 399 tests / 396 pass / 3 skipped / 0 fail; new regression test 'a value that overflows the budget on arrival evicts older entries instead of itself' in tests/bounded-promise-cache.test.ts; no secret in diff; MARSHGO_GTFS_SEARCH_DEBUG=1 only in .release/compose.container-acceptance.yml and absent from compose.production.yml",
+    "acceptance_evidence": "feed cache entries 4 / 96.85 MB -> 5 / 212.76 MB; provider-feed-loaded 8656 ms on every request -> 8656 ms cold and 1-4 ms warm; feeds-loaded ~9 s -> 166 ms; warm wall 21.6-24.6 s -> 17.84 s (best repeat 12.79 s); cold 51.2 s -> 32.9 s",
+    "public_https_evidence": "https://marshgo-dima.shares.zrok.io: login 200 (token never printed), unauthenticated /api/v1/journeys/search 401, authenticated Lviv->Kyiv 200 in 20.56 s then 16.03 s and 15.80 s; returned 12, candidates 100, pareto 36, partial true, resultsTruncated true, providerErrors 0",
+    "remaining": "Task #36 stays open: planner stage segments-built still 9460-14143 ms per request (40319 trips considered, 28153 with eligible stops, 100000 segments at budget). Attribution and bounding tracked as the part-2 lever; two candidate optimizations were deliberately not shipped (cross-pass memoization of eligibleTripInstanceStopEvents = RSS blow-up on the 8 GB Mac; pre-selecting routes before exact demand counting = changes graph budget semantics).",
+    "production_status": "NOT_RELEASED"
+  },
+  "search_latency_2026_10_31_part2": {
+    "task": "SEARCH-LATENCY-1 (#36) part 2 - phase attribution of segments-built and stop-pair projection cost",
+    "repository": "MarshGO-Server",
+    "branch": "qoder/search-latency-20261031",
+    "head_sha": "2c2342f (local commit on qoder/search-latency-20261031, not yet pushed)",
+    "commits": [
+      "2c2342f perf(journey): stop rebuilding stop-pair projections and attribute segments-built"
+    ],
+    "pull_request": "not opened for this commit; PR #63 still points at 1e26b9f",
+    "deployed_acceptance_image": "marshgo/api:RC-2026-10-31-searchlat.7",
+    "root_cause": "Measured rather than assumed. Of the 10734 ms segments-built stage on the Lviv->Kyiv acceptance search: eligibleTripInstanceStopEvents event-vector construction 6259 ms, stop-pair visitation 1172 ms, per-trip prologue 198 ms, final selection and materialisation 890 ms, retention ~0. One search generates 1924374 candidate stop pairs against a 100000-segment graph budget, i.e. ~95% of generated candidates are discarded.",
+    "fix": "Three semantics-preserving changes: visitTripInstanceLegs, a push-based twin of the lazy pair generator so the materializer stops allocating one projection object per pair; an Int32Array prefix sum per trip instance replacing a slice()+some() interval scan for every candidate edge; conditional property assignment instead of three conditional spreads per candidate; and a memo of the (trip, serviceDate, eligible-index-set) event vector shared by both exhaustive trip enumerations. Phase timers log only with MARSHGO_GTFS_SEARCH_DEBUG=1.",
+    "gates": [
+      "npx tsc --noEmit clean",
+      "npm test: 401 tests, 398 pass, 0 fail, 3 skipped (baseline 399/396, +2 new)",
+      "tests/gtfs-trip-leg-projection.test.ts asserts generator and push visitor agree pair-for-pair across 8 configurations including the omitted-beyond-window signal"
+    ],
+    "acceptance_evidence": "marshgo/api:RC-2026-10-31-searchlat.7 on http://127.0.0.1:3902, 2026-11-01 23:06-23:10 UTC, POST /api/v1/journeys/search Lviv->Kyiv BALANCED departureAt 2026-11-01T05:00Z: segments-built 10734 -> 9282-9780 ms, warm wall 11.5-13.1 s, cold wall 27.4-43.8 s (depends on feed-cache state), HTTP 200 with a byte-identical body to the baseline (230403 B, 12 itineraries, 0 provider errors).",
+    "public_https_evidence": "NOT RE-RUN: the zrok preview image has not been rebuilt from searchlat.5/.6/.7.",
+    "remaining": "Open discrepancy, recorded rather than smoothed over: the memo should have removed the ~3 s of duplicated work but removed only 0.6-1.0 s, so the surviving 5.2 s is first-build cost of ~55443 event vectors (~1.9M event objects plus ~3.8M cached timezone conversions), not duplication. Next hook: skip event-vector construction for routes whose graph budget is already at the per-route limit, then re-attribute. Three-leg regressions and RANK-WAIT-1 still pending.",
+    "production_status": "NOT_RELEASED"
   }
 }
