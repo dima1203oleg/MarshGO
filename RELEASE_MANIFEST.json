@@ -1,20 +1,22 @@
 {
   "site_ui_polish_2026_10_31": {
-    "task": "UI-POLISH-1 stages 1-2 (owner order: more animated, less noise, intuitive, better legibility)",
+    "task": "UI-POLISH-1 stages 1-3 (owner order: more animated, less noise, intuitive, better legibility)",
     "repository": "MarshGO-Site",
     "branch": "qoder/site-ui-polish-20261031",
-    "head_sha": "3ff792f8ae3c673e00bf3d72792b5961c9ecdd2a",
-    "commits": ["9c00a746710f2b7add08aac0f8065c90fafd27a8", "3ff792f8ae3c673e00bf3d72792b5961c9ecdd2a"],
+    "head_sha": "0d3f20501a1dcd230f0474225b6e6f69d8262464",
+    "commits": ["9c00a746710f2b7add08aac0f8065c90fafd27a8", "3ff792f8ae3c673e00bf3d72792b5961c9ecdd2a", "0d3f20501a1dcd230f0474225b6e6f69d8262464"],
     "pull_request": "https://github.com/dima1203oleg/MarshGO-Site/pull/35",
-    "deployed_acceptance_image": "marshgo/web:RC-2026-10-31-uipolish.15",
-    "public_bundle": {"js": "index-BHx5all3.js", "css": "index-DpgRvYEy.css", "initial_js_chunk_kb": 986},
-    "gates": "typecheck clean; npm test 180/180 pass including new 10px per-tsx floor, >=9px segment-tile CSS floor and 44px route-sheet action floor",
-    "public_evidence": "https://marshgo-dima.shares.zrok.io at 570x843: / = 19 visible buttons, all >=44px, 0 text <9.5px, 0 truncations; /journeys/search = 29 visible buttons, 0 text <9.5px, 0 truncations. Screenshots .release/design/uipolish15-home-public-570.png and uipolish15-search-public-570.png (local, .release is gitignored).",
+    "deployed_acceptance_image": "marshgo/web:RC-2026-10-31-uipolish.17",
+    "public_bundle": {"js": "index-CzOH_okf.js", "css": "index-Cvo6IOi_.css", "initial_js_chunk_kb": 986},
+    "gates": "typecheck clean; npm test 188/188 pass (180 before stage 3: +5 searchPendingCopy cases, +4 canonical-design guards for the pending state, the skeleton keyframe, sheet motion tokens and the prefers-reduced-motion neutralizer); build index-CzOH_okf.js / index-Cvo6IOi_.css; acceptance :3900 and the public zrok URL serve identical bundle hashes",
+    "public_evidence": "https://marshgo-dima.shares.zrok.io at 570x843: / = 19 visible buttons, all >=44px, 0 text <9.5px, 0 truncations; /journeys/search = 29 visible buttons, 0 text <9.5px, 0 truncations. Screenshots .release/design/uipolish15-home-public-570.png and uipolish15-search-public-570.png (local, .release is gitignored). Stage 3 (Lviv -> Kyiv corridor on the same public URL): pending panel mounts on submit and ticks real elapsed seconds 1->20 with both escalated notes observed live at 8s and 20s; computed mg-rise 0.42s with entrance easing, mg-shimmer 1.5s, 3 skeleton cards / 12 shimmer blocks, aria-busy=true; on completion 12 real result cards replaced the skeleton with 0 leftover .mg-skeleton. Bottom sheet: computed height 0.26s cubic-bezier(0.16,0.84,0.28,1), half -> expanded 421.5px -> 731px, no stranded transition:none. Screenshots .release/design/uipolish17-search-pending-lviv-kyiv.png and uipolish17-search-pending-public.png.",
+    "superseded_claim": "The 21:40 checkpoint asserted Lviv -> Kyiv returns nothing because of a feed coverage gap. The stage-3 run on the same public URL returned 12 real cards for the same intercity corridor in ~30s, so that assertion was an over-generalisation and must not be repeated; it reopens SEARCH-LATENCY-1 (#36) and RANK-WAIT-1 (#16).",
     "honest_exceptions": [
       "Seat-count steppers stay 44x24px (ProductionMarketplace.tsx:1450-1453): 44px width breaks the 3-column grid at 320px; meets WCAG 2.5.8 AA (24px), not AAA (44px).",
       "HomeView.tsx:99 swap-cities control stays 36px because it deliberately overlaps the field label via -my-3.",
       "Initial JS chunk is 986KB (~29s over the zrok preview tunnel); code-splitting deliberately deferred.",
-      "Animation stage 3 not done: the mg-* motion system with a prefers-reduced-motion guard exists and drives results/home/offer entrances, but the bottom-sheet snap transitions and the in-flight search state are not wired to it yet."
+      "The pending state only displays the delay honestly; it does not reduce it. Journey search still takes ~30s on the public URL and SEARCH-LATENCY-1 (#36) stays open with 3 uncommitted server files on qoder/search-latency-20261031.",
+      "Multi-hour waiting components appear inside result cards; per-card wait composition was not measured in this run, so RANK-WAIT-1 (#16) stays open rather than closed."
     ],
     "production_status": "NOT_RELEASED (nothing merged; main untouched)"
   },
