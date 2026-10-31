@@ -1791,6 +1791,20 @@
       ".release/server-routeindex-20261031",
       ".release/live-vehicles-1-evidence.json"
     ],
-    "commit": "UNCOMMITTED - owner approval required for MarshGO-Server"
+    "commit": "UNCOMMITTED at time of writing; see provider_health_ids_2026_10_31 for the committed follow-up stage"
+  },
+
+  "provider_health_ids_2026_10_31": {
+    "stage": "PROVIDER-HEALTH-IDS-1",
+    "verified_at_utc": "2026-10-31T18:42:00Z",
+    "environment": "local acceptance stack (api :3902) plus public HTTPS preview https://marshgo-dima.shares.zrok.io",
+    "api_image": "marshgo/api:RC-2026-10-31-failids.1",
+    "api_image_digest": "sha256:82de201b39ecae1d8ad139fa1502cad7b5b658882c60398b00300090d6d7bc60",
+    "contract": "meta.failedProviders = [{id,name,sourceType,layer,reason}] and meta.failedProviderCount on /transport/routes, /transport/stops, /transport/vehicles, /transport/micromobility, /transport/micromobility/geofences, /mobility/nearby",
+    "live_failure_evidence": "11th of 12 acceptance polls and 6th of 10 public polls returned {name: Львівавтодор... truncated_response, layer positions, count 1}; captured response bodies in .release/provider-health-ids-20261031-evidence.json",
+    "correction": "the intermittent failure is the Lviv GTFS-RT positions feed, not trip_updates as assumed at the 17:25 checkpoint",
+    "gates": "Server tsc clean, new transport-layer-failure-report test 4/4, npm test 379/376 pass/3 skip/0 fail, lint exit 0; Site tsc clean, npm test 167/167",
+    "github": "Server qoder/transport-journey-20261031 @ 7e4d06deb0ea878e03fe3b87c9421b2c0d038b22 (PR #62); Site qoder/journey-deeplink-ratelimit-20261031 @ 754536fc1ef234313f6f6c85e175b72cec0ac6c7 (PR #33); local SHA == remote after fetch",
+    "not_claimed": "provider row NOT disabled (DB write needs owner consent); wide-bbox cold path still exceeded a 20 s client timeout in 3 of 12 polls = FEED-COLD-REFRESH-1 open; production NOT_RELEASED"
   }
 }
