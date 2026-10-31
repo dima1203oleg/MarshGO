@@ -1935,5 +1935,32 @@
     ],
     "fixes_not_attempted_reason": "A server edit would need a build cycle plus public-URL verification to count as evidence, and the fares field needs an owner decision; committing an unverifiable edit as done is prohibited.",
     "production_status": "NOT_RELEASED"
+  },
+  "resume_state_2026_11_01": {
+    "purpose": "safe parking state so the next session resumes without re-deriving context",
+    "verified_now": {
+      "marshgo_server": "qoder/search-latency-20261031 @ 2c2342f, server/ clean, index clean",
+      "marshgo_root": "qoder/checkpoint-20261031 @ (this commit), index clean",
+      "acceptance_container": "marshgo-acceptance-api-1 = marshgo/api:RC-2026-10-31-searchlat.7, Up (healthy)",
+      "public_https": "a602584pesfa.shares.zrok.io and reserved marshgo-dima.shares.zrok.io both proxy localhost:8080 -> nginx -> api:3002"
+    },
+    "commits_today": [
+      "728bfaa public evidence for #36 part 2",
+      "bce8d9e disproved per-route-cap skip by code read",
+      "a4d601b repaired a word substitution that broke English text",
+      "1315bc7 dataQuality audit over public HTTPS plus correction of the #35 plan"
+    ],
+    "nothing_in_flight": "No uncommitted code and no experiment left in a working tree.",
+    "next_steps": [
+      "1) Phase-split the 2.3 s warm /transport/routes before choosing between a per-bbox-tile response cache and a spatial index of routes; the earlier route-index idea is invalid because cachedGtfsRouteTypes has no geometry.",
+      "2) Only after the small-graph oracle and three-leg regressions, cut the ~5.2-5.6 s first-build cost of 55443 event vectors in segments-built (#36).",
+      "3) Add meta.dataQuality to /transport/stops (#33), verifiable in one public run."
+    ],
+    "blocked_on_owner": [
+      "push 2c2342f and update PR #63",
+      "split 5ce19fa to remove four GATE-02 files from another task",
+      "decision on the hardcoded lastVerifiedAt 2026-10-13 in transport/fares (contract change touching tests/transport-tariffs.test.ts)"
+    ],
+    "production_status": "NOT_RELEASED"
   }
 }
