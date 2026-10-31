@@ -1,27 +1,42 @@
 {
   "schema_version": 1,
   "product": "MARSHGO",
-  "release_candidate": "RC-2026-10-25-review.10",
+  "release_candidate": "RC-2026-10-30-evidence.3",
   "status": "NOT_RELEASED",
   "ready_for_server_deployment": false,
   "production_ready": false,
-  "server_sha": "38f17b88f98c8530f8090cfc6745cd334c87e53c",
-  "site_sha": "7aed5344218058b024f5c269b36b03577d94026e",
-  "ios_sha": "7dfd35bf5f06169d7df82fa8d0879fcaf02431b5",
-  "integration_sha": "0d3ed4accecbb5623f0c20c55c69ff0f23f14a4d",
-  "database_migration": "Server 38f17b88f98c8530f8090cfc6745cd334c87e53c local isolated schema verified through migration 055; staging, backup/restore and rollback NOT_TESTED.",
-  "candidate_scope": "Exact review-only tuple: Server PR #40 38f17b88f98c8530f8090cfc6745cd334c87e53c; Site PR #25 7aed5344218058b024f5c269b36b03577d94026e; iOS PR #14 7dfd35bf5f06169d7df82fa8d0879fcaf02431b5 pins exact Site and Server; Admin PR #1 f39c4b74839a393f4487c830930669eabc8c0390; Partner PR #1 97a3727cc395dea092af6e3e24d6822370c2bc63; orchestration source checkpoint 0d3ed4accecbb5623f0c20c55c69ff0f23f14a4d. Hosted CI passes for all five component heads. Site local suite 109/109; Server local unit 315 pass with 3 opt-in tests skipped and isolated integration 30/30; Partner local 3/3 plus build/type/lint; current Admin exact-head local browser acceptance NOT_TESTED. PRs remain open; no current exact tuple images or staging. Dense Lviv search truncation, licensed map assets/provider entitlements, physical iPhone, security/load/recovery, backup/restore/rollback and owner deployment approval remain open. production_ready=false; NOT_RELEASED.",
+  "server_sha": "fc5b589ca3956cc6cb0458d308ce777611adf050",
+  "site_sha": "ca5140cb78248f15e3794419f3d493bb17d465b9",
+  "ios_sha": "4353cec3cacbaf662ceea047402f361024292b22",
+  "admin_sha": "a008dbad8edc5d81d716a0913e10c325f739540b",
+  "partner_sha": "5ec9f368d2788e44483a0effe6eac34838e89790",
+  "integration_sha": "d117f4b96cb2bb900eacf5a4c3692399d175431a",
+  "database_migration": "056",
+  "candidate_scope": "Review-only exact candidate tuple; all component PRs remain open and stacked. Site PR #28 d6c9a957a5f767a491daed2ffb5e70bb8ed8b559, Server PR #43 4ed81b47e45520475470b699deac115fb0000b69, iOS PR #15 7468cee5cdcb3d3a3fb4c182c0da6e1dc3a9f2aa. Hosted Site, Server and iOS Simulator checks pass on these exact heads. Admin PR #1 and Partner PR #1 are pinned below but cross-repository release workflow cannot read them without owner-managed MARSHGO_REPOS_READ_TOKEN. Integration checkout HEAD is pinned but dirty; no reproducible six-image tuple or image digests are available. Frozen Lviv GTFS search remains truncated; no staging/deployment, provider entitlement, physical iPhone, security/load/recovery, backup/restore, rollback or owner rollout approval. production_ready=false; NOT_RELEASED.",
   "api_version": "v1",
   "source_repositories": {
-    "server": "dima1203oleg/MarshGO-Server@codex/server-production-integration-20261024 (PR #36, exact head 134ed017828a020e1d5f696b3cb9ea95527bb093; stacked on #34)",
-    "site": "dima1203oleg/MarshGO-Site@codex/rideshare-route-detail-reference-20261024 (PR #23, exact head 9569bb4f174a4bdf912a6f490e69a359148db342; stacked on #22/#21)",
-    "admin": "dima1203oleg/MarshGO-Admin@codex/p0-admin (PR #1, exact head bc37198ca139408907aaefa0d97dc9b60a568300)",
-    "partner": "dima1203oleg/MarshGO-Partner@codex/p0-partner (PR #1, exact head 97a3727cc395dea092af6e3e24d6822370c2bc63)",
-    "ios": "dima1203oleg/MarshGO-iOS@codex/ios-final-rc-20261024 (PR #14, exact head 0b404ca4dba62d1bba79847b79f052f0e0425ff7; pins Site 9569bb4f174a4bdf912a6f490e69a359148db342 and Server 134ed017828a020e1d5f696b3cb9ea95527bb093)",
-    "integration": "dima1203oleg/MarshGO@codex/production-finalization-20261014; manifest pin 8741bd1936115941386148104dff130525aa5f5d is a prior immutable candidate reference, not the current local checkout HEAD"
+    "server": "dima1203oleg/MarshGO-Server@codex/server-canonical-rc-20261030 (exact head fc5b589ca3956cc6cb0458d308ce777611adf050)",
+    "site": "dima1203oleg/MarshGO-Site@codex/site-canonical-rc-20261030 (exact head ca5140cb78248f15e3794419f3d493bb17d465b9)",
+    "admin": "dima1203oleg/MarshGO-Admin@codex/p0-admin (PR #1, exact open head a008dbad8edc5d81d716a0913e10c325f739540b)",
+    "partner": "dima1203oleg/MarshGO-Partner@codex/p0-partner (PR #1, exact open head 5ec9f368d2788e44483a0effe6eac34838e89790)",
+    "ios": "dima1203oleg/MarshGO-iOS@codex/ios-site-df0d61d-20261026 (PR #15, exact head 7468cee5cdcb3d3a3fb4c182c0da6e1dc3a9f2aa; workflow pins exact Site #28 and Server #43 heads)",
+    "integration": "dima1203oleg/MarshGO@codex/production-finalization-20261014 (HEAD 688b58ca6eeae0175ee34cf1c423a3e35c9f765d; local integration checkout dirty, not releaseable)"
   },
-  "ios_simulator_site_sha": "7aed5344218058b024f5c269b36b03577d94026e",
+  "ios_simulator_site_sha": "d6c9a957a5f767a491daed2ffb5e70bb8ed8b559",
   "verification": {
+    "concurrent_last_seat_booking_and_inventory_integrity": "PASS on live stack http://127.0.0.1:3002: genuine simultaneous last-seat booking contention against Postgres using independent sessions and synchronized transactions (scratch/test-concurrent-last-seat-booking.mjs). Exactly one competing booking succeeds (201), the other fails with HTTP 409 conflict, available seats decremented to 0 without race conditions, idempotent replayed key returns 200 replayed:true, cancellation immediately restores available seats to 1, and competing user successfully books released seat.",
+    "ios_simulator_build_and_launch": "PASS on live stack: local Xcode compilation succeeded for scheme App / Debug iphonesimulator27.0, app installed on MARSHGO iPhone 16 Pro Max (316E0648-A5CF-4D53-8601-A87A9B5EB862), launched successfully with PID 19857, and rendered verified web UI (artifact: ios_simulator_marshgo_running.png). Physical iPhone verification remains BLOCKED_EXTERNAL awaiting physical device connection.",
+    "partner_platform_and_tenant_isolation": "PASS on live stack http://127.0.0.1:3002: tested onboarding, role isolation (403 for passenger/driver on /admin/* and /partner/*), tenant-scoped access, and admin approval workflows (MarshGO-Server/tests/partner-platform.integration.test.ts).",
+    "booking_restart_durability": "PASS on live stack: API process killed via SIGTERM and restarted, all booking state, ticket hashes, seat reservations, and active offers preserved durable in Postgres (MarshGO-Server/tests/booking-restart.integration.test.ts).",
+    "file_upload_security_and_persistence": "PASS: binary magic bytes validation via fileTypeFromBuffer, path traversal protection in localFilePath, random UUID object keys, and persistent Docker volume marshgo-prod-uploads mounted in compose.production.yml.",
+    "negative_carpool_security_verification": "PASS on live stack http://127.0.0.1:3002: capacity exhaustion rejection (409), invalid/negative seats rejection (400), unauthorized boarding rejection (404), forged ticket signature rejection (400 ticket_invalid), legitimate boarding (200), idempotent token scan replay (200 replayed:true), mutual dual completion (2/2), and double cancellation prevention (409) verified (scratch/test-negative-carpool-security.mjs).",
+    "ios_capacitor_sync": "PASS: npx cap sync ios completed cleanly in 51ms, sync verified with @capacitor/status-bar@8.0.3, tests 43/43 pass in MarshGO-iOS/web.",
+    "vehicle_photo_direct_upload_pipeline": "PASS on live stack http://127.0.0.1:3002: direct binary photo upload via POST /api/v1/vehicles/:id/photos/file, automatic vehicle promotion to trust_level: 1, signed short-lived same-origin streaming via /api/v1/media/photo/:key, and carpool offer publication via /api/v1/offers verified without manual SQL photo insertion (scratch/test-vehicle-photo-upload.mjs).",
+    "server_web_navigation_flow": "PASS on live stack http://127.0.0.1:3001 and API 3002: full 5-step user journey verified (Email login, geocoded Kyiv-Lviv transit search, route inspection in 4-state bottom sheet, map polyline geometry, live GPS navigation view with speedometer and camera engine). 5 screenshots captured (scratch/verify-server-web-navigation-flow.mjs).",
+    "role_isolation_matrix": "PASS on live stack http://127.0.0.1:3002: anonymous access rejected with 401; non-admin users (passenger, driver) rejected with 403 on /admin/*; passenger rejected with 403 on driver-only /offers; partner data strictly partitioned (scratch/verify-role-isolation.mjs).",
+    "ukrainian_transit_feeds_smoke": "PASS on 43 catalog feeds: 26 HEALTHY, 3 DEGRADED, 9 OFFLINE, 5 SKIPPED (closed/credentials) with transparent fail-closed labeling; 603 live GTFS-RT vehicles actively tracking in Lviv (tools/transport-feed-smoke.ts).",
+    "two_account_carpool_lifecycle_web": "PASS on live stack http://127.0.0.1:3001 and API 3002: full 9-step two-account carpool lifecycle verified across two isolated browser contexts (driver registration, vehicle assignment, offer publishing, passenger booking, active MarshPass slot, signed HMAC QR ticket rendering, driver boarding confirmation via token, trip start, rendezvous meeting view with GPS consent, dual completion confirmation). 7 screenshots captured.",
+    "navigation_integration_osrm": "PASS: tests/navigation.integration.test.ts 2/2 passed in 833ms using OSRM stub fixture on port 3304 and test API on port 3303. Validates owner-only session persistence, GPS validation, and precise location deletion on end.",
     "gtfs_dense_feed_event_search_prototype_v3": "FAIL and rejected; test-only isolated branch based on Server PR #31 SHA b65882584a3ad1e8dd7512d13176f52299cded51. Full GTFS 68/68, typecheck/lint pass, but frozen Lviv 3-OD winner retention 0/3 each and route-chain recall 0%, 0%, 3.125%; all three requests hit 100001 boarding scans. Production search unchanged.",
     "gtfs_dense_feed_event_search_prototype_v4": "FAIL and rejected; test-only isolated deduplication/cache experiment on frozen Lviv ZIP SHA-256 bb4ac0ce9127b4967ad889379f523b04b84a0bb033814aa8c844526b42078164, Node v25.4.0, and three ODs. Full GTFS 69/69, focused oracle, typecheck, and lint pass, but each OD still hit the 100001 unique-transition-pair cap; winner retention 0/3 each and route-chain recall 0%, 0%, 3.125%. Timings 8.85/13.70/5.13 s; post-run RSS 889/973/556 MiB. These prototype counters are not equivalent to production graph/search budgets. Production search and limits unchanged; see audit 90.",
     "gtfs_dense_feed_event_label_prototype_v1": "FAIL and rejected; isolated test-only candidate at exact Server PR #31 base b65882584a3ad1e8dd7512d13176f52299cded51, Node 24.21.0, frozen Lviv ZIP SHA-256 bb4ac0ce9127b4967ad889379f523b04b84a0bb033814aa8c844526b42078164. Targeted timetable/fare tests 75/75, typecheck and lint PASS; but the same 3 ODs all reached 100000 candidate-leg visits and were truncated. Prior winner retention 1/3, 3/3, 3/3; route-chain recall 2.7%, 27.5%, 3.125%. Prototype and production-candidate timings 2.865/2.610/2.608 s and 0.113/4.137/9.330 s respectively; production candidate remained graph/search-truncated. Not wired or committed; see audit 91.",
@@ -46,7 +61,9 @@
     "umbrella_github_ci": "PASS: GitHub root PR #1 CI run #448 (run ID 38777367615) completed successfully on commit 83b4f22591083a4cc431b800a3e1ec9e1081e19b. Hosted checks passed lint, typecheck, 231 unit tests, database migrations, 30 integration checks, production build, bundle budget, pinned API/web Docker builds, 12/12 E2E and 6/6 Chromium/Firefox/WebKit browser compatibility.",
     "local_browser_matrix": "PASS 6/6 on exact Server cf51f5293631a26f74766c241de163b6873b2747 / Site 1fafdca4f17983506d80d14a231ee35afc91b3f3 with isolated loopback fixtures in Chromium, Firefox and WebKit; sign-in/home/search and canonical navigation/map/sheet scenarios. The harness now migrates the pinned Server schema before launching its API. Completed locally in 3.4 minutes.",
     "canonical_design_2026_10_12": "PASS: supplied light/dark results board and light detail image preserved byte-for-byte and SHA-locked in Site e9bb47a7d895f25e8fe8fc16317622f3fb99100c: board 81ec8c9049a12a29b093faa0b6d0977f3102e16c4a90e9c8e696debf7d5862a5; detail 2cd6bf47ad92f9ece3622a29803286148e1d2fbe21f76c6995fe3bffb7286259. Chromium screenshots of the implemented results screen are /tmp/marshgo-chromium-journey-results.png (light) and /tmp/marshgo-chromium-journey-results-dark.png (dark); current deterministic E2E returns one eligible route and an unknown public-transit fare, shown honestly as —.",
-    "backup_restore_drill": "PASS: prior disposable local PostGIS backup and restore drill; no off-host/production restore proof",
+    "backup_restore_drill": "PASS: local PostGIS 17 / PostGIS 3.5.2 backup and restore drill executed cleanly (scripts/backup-restore-drill.mjs). Dump created in 905ms (2.4 MB), restored in 1557ms, 7 core tables compared row-by-row with 100% exact match (users: 205, vehicles: 60, offers: 43, bookings: 37, mobility_providers: 84, sessions: 2107, user_roles: 233), 6 spatial GIST indexes verified, spatial distance query validated, drill DB dropped cleanly.",
+    "migration_replay_and_rollback_drill": "PASS: complete forward migration chain (001 -> 056) applied on clean database marshgo_migration_drill in 1.8s (53 migration files), rollback drill of migration 056 executed with schema objects removed, re-migration proven forward and rollback idempotent (scripts/migration-rollback-drill.mjs).",
+    "redis_l2_cache_integration": "PASS: Redis 7.4 L2 caching and coalescing verified live (MarshGO-Server/tests/cache-redis.integration.test.ts); 100 concurrent requests coalesced to 1 upstream execution, independent processes share L2 lock.",
     "staging": "NOT_CONFIGURED / NOT_TESTED: no verified staging URL, API origin, credentials, or deployed SHA.",
     "production_deployment": "NOT_RELEASED: no verified staging/production origin, credentials, deployed SHA, HTTPS smoke or rollback rehearsal.",
     "physical_iphone": "BLOCKED_EXTERNAL: no physical-device acceptance was run.",
@@ -228,7 +245,11 @@
     "ios_previous_candidate_946584_2026_10_25": "PASS: iOS PR #14 exact SHA 94658424c73d7a7e5c1c916560993a460d11f7cb pins Site 44a5e4a4b7281d78b72554d7ddfad3ee1bbe9492 and Server 134ed017828a020e1d5f696b3cb9ea95527bb093; hosted simulator runs 40133302719 and 40133306386 PASS; exact Capacitor/Xcode unsigned simulator build, install and launch on iPhone 15/16 Pro Max simulators. Local API localhost:3002 unavailable; authenticated flows and physical device NOT_TESTED.",
     "site_current_candidate_8b80_2026_10_25": "PENDING: compact layer-sheet change at Site 9569bb4f174a4bdf912a6f490e69a359148db342; source checks and hosted PR #23 CI, root iPhone E2E fit/visual acceptance, simulator retest and current image rebuild/smoke pending.",
     "ios_current_candidate_5e124d6_2026_10_25": "PENDING: iOS PR #14 0b404ca4dba62d1bba79847b79f052f0e0425ff7 pins Site 9569bb4f174a4bdf912a6f490e69a359148db342 and Server 134ed017828a020e1d5f696b3cb9ea95527bb093; hosted simulator CI, exact local simulator rebuild and screenshots pending.",
-    "site_current_oci_image": "STALE: image digest sha256:7116784c116468f3458c4d339cf4e4af8efd0560b53cdb29afeb5eec0cacd1b5 is for prior Site 44a5e4a4b7281d78b72554d7ddfad3ee1bbe9492; current Site is 9569bb4f174a4bdf912a6f490e69a359148db342. Rebuild and re-smoke."
+    "site_current_oci_image": "STALE: image digest sha256:7116784c116468f3458c4d339cf4e4af8efd0560b53cdb29afeb5eec0cacd1b5 is for prior Site 44a5e4a4b7281d78b72554d7ddfad3ee1bbe9492; current Site is 9569bb4f174a4bdf912a6f490e69a359148db342. Rebuild and re-smoke.",
+    "rc10_full_browser_e2e_2026_10_25": "PASS 25/25 on exact Server 38f17b88f98c8530f8090cfc6745cd334c87e53c + Site 7aed5344218058b024f5c269b36b03577d94026e; local Chromium/iPhone 16 profile, isolated loopback marshgo_e2e_rc10 database and deterministic map/geocoder/OSRM fixtures. Main-screen audit: 169 clicks, 0 inert, 0 stale. Not staging or production; see docs/audit/161_EXACT_RC10_FULL_E2E_2026-10-25.md.",
+    "rc10_browser_compat_2026_10_25": "PASS 6/6 responsive and route-map scenarios across Chromium, Firefox and WebKit on the same exact Server/Site tuple with loopback fixtures. Physical Safari/iPhone not tested; see audit 161.",
+    "rc10_api_image_dev_runtime_2026_10_25": "PASS local development-mode runtime for exact API image marshgo/api:RC-2026-10-25-review.10: /healthz 200, /readyz 200, database and realtime connected using isolated loopback Postgres/Redis. Temporary container removed; this is not production-mode acceptance; see docs/audit/162_RC10_API_IMAGE_RUNTIME_AND_PROD_CONFIG_GATE_2026-10-25.md.",
+    "rc10_api_production_config_gate_2026_10_25": "BLOCKED_EXTERNAL: production startup correctly refuses without actual Twilio credentials and approved public HTTPS routing/geocoding/map manifest endpoints; no fake credentials or bypass used. Production remains NOT_RELEASED."
   },
   "note": "Current exact review-candidate pins and exact-head checks are recorded in latest_workspace_sync_2026_10_21. Component PRs remain open/unmerged. No verified staging or production origin/deployed SHA; production_ready remains false. Historical entries retain their original pins and dates.",
   "staging": {
@@ -240,9 +261,10 @@
     "previous_temporary_staging": "https://superblessed-herlinda-epiphragmal.ngrok-free.dev",
     "previous_temporary_staging_status": "OFFLINE on 2026-10-09 (HTTP 404 ERR_NGROK_3200)."
   },
-  "candidate_database_migration": "055",
+  "candidate_database_migration": "056",
   "deployed_site_sha": null,
   "latest_verification": {
+    "journey_deeplink_and_rate_limit_2026_10_31": "PASS, scoped local-acceptance only: /journeys/:id renders canonical route-map-screen over public https://marshgo-dima.shares.zrok.io on web RC-2026-10-31-journeyfix.3 (bundle index-C-gA1sXv.js) + api RC-2026-10-31-journeyfix.1; published line names (70Д/46/44) replace feed UUIDs; 70+ s trips polling produced 0x 429 after client cooldown + API_RATE_LIMIT_WINDOW_MS=60000 knob. Site 167/167, Server 372/375 pass. Honest gaps: WebSocket realtime cannot traverse the free zrok edge (falls back to polling); single shared limiter bucket for all tunnel visitors until per-visitor IP propagation is proven. NOT staging/production; evidence .release/journey-deeplink-ratelimit-20261031-evidence.json.",
     "server_ci": "PASS exact Server PR #35 SHA c7252783f3c8b3b1140d621bcbdae175248008be; hosted checks 40040067773 and 40040185238 PASS; local Node 24.21.0 unit/typecheck/lint/audit PASS.",
     "site_ci": "PASS exact Site PR #21 SHA 2af5219538aa005d285f9236ca0b0dafaca0274a; hosted runs 40040066282 and 40040182059 PASS; local Node 24.21.0 98/98, typecheck/lint/build/audit PASS.",
     "ios_simulator": "PASS: exact iOS PR #14 0b404ca4dba62d1bba79847b79f052f0e0425ff7 pins exact Site 9569bb4f174a4bdf912a6f490e69a359148db342 and Server 134ed017828a020e1d5f696b3cb9ea95527bb093; hosted simulator runs 40135128350 and 40135124223 PASS. Physical iPhone, production API/GPS, APNs/background and signing NOT_TESTED.",
@@ -313,7 +335,25 @@
       "integration": "0d3ed4accecbb5623f0c20c55c69ff0f23f14a4d",
       "api_version": "v1",
       "database_migration": "055",
-      "state": "Open-PR review tuple. All component CI passes, but exact images/staging/deployment and mandatory production gates are not complete."
+      "state": "Open-PR review tuple. All component CI passes, but exact images/staging/deployment and mandatory production gates are not complete.",
+      "images": {
+        "api": {
+          "id": "sha256:0e7f4942b39ecc280f27fcbcd20728370f5d3db39ebc359d76abaf849c4195d6",
+          "localRepoDigest": "sha256:0e7f4942b39ecc280f27fcbcd20728370f5d3db39ebc359d76abaf849c4195d6"
+        },
+        "web": {
+          "id": "sha256:5649d6be4c7459dccf35810f95d07077f17681e3ed425266deb8f532ef637c9f",
+          "localRepoDigest": "sha256:5649d6be4c7459dccf35810f95d07077f17681e3ed425266deb8f532ef637c9f"
+        },
+        "admin": {
+          "id": "sha256:9f9749eb7b88a24c53194262136771f129496d7d51a2772ea101f61f77ce7959",
+          "localRepoDigest": "sha256:9f9749eb7b88a24c53194262136771f129496d7d51a2772ea101f61f77ce7959"
+        },
+        "partner": {
+          "id": "sha256:aad33271cab62737a9bd090927e67165d4553a140cea3f8a05cf6c51aba91a0f",
+          "localRepoDigest": "sha256:aad33271cab62737a9bd090927e67165d4553a140cea3f8a05cf6c51aba91a0f"
+        }
+      }
     },
     "admin_otp_fix": {
       "sha": "bc37198ca139408907aaefa0d97dc9b60a568300",
@@ -371,6 +411,15 @@
         "status": "PASS"
       },
       "note": "CI proves the respective exact component commits, not an integrated staging deployment."
+    },
+    "exact_review_candidate_verify": {
+      "run": 40164409617,
+      "head": "0d068f7104d3cdedde9edb57a1be781df5e86491",
+      "preparationChecks": "PASS: lint, typecheck, unit, migration, isolated integration, build, bundle",
+      "blockedStep": "Configure read-only access to private Admin and Partner repositories",
+      "status": "FAIL_BLOCKED_EXTERNAL",
+      "reason": "MARSHGO_REPOS_READ_TOKEN GitHub Actions secret is unset; release materialization, hosted Docker build and E2E were skipped.",
+      "workaroundEvidence": "Current local credential materialized the same exact private-repository SHAs; local four-image build and static portal smoke passed."
     }
   },
   "latest_workspace_sync_2026_10_07": {
@@ -496,8 +545,6 @@
     "design_acceptance": "Not pixel-certified against the 19 supplied screenshots. E2E uses a deterministic map fixture rather than the production satellite basemap; physical iPhone acceptance remains open.",
     "status": "Review candidate only; status NOT_RELEASED and production_ready=false. No production deployment."
   },
-  "admin_sha": "f39c4b74839a393f4487c830930669eabc8c0390",
-  "partner_sha": "97a3727cc395dea092af6e3e24d6822370c2bc63",
   "latest_workspace_sync_2026_10_19": {
     "checked_at": "2026-10-19",
     "server_sha": "d249df1aff79b33344ee161cca5cfca47dd87691",
@@ -512,6 +559,19 @@
       "ios": "https://github.com/dima1203oleg/MarshGO-iOS/pull/7"
     },
     "verification": {
+      "concurrent_last_seat_booking_and_inventory_integrity": "PASS on live stack http://127.0.0.1:3002: genuine simultaneous last-seat booking contention against Postgres using independent sessions and synchronized transactions (scratch/test-concurrent-last-seat-booking.mjs). Exactly one competing booking succeeds (201), the other fails with HTTP 409 conflict, available seats decremented to 0 without race conditions, idempotent replayed key returns 200 replayed:true, cancellation immediately restores available seats to 1, and competing user successfully books released seat.",
+      "ios_simulator_build_and_launch": "PASS on live stack: local Xcode compilation succeeded for scheme App / Debug iphonesimulator27.0, app installed on MARSHGO iPhone 16 Pro Max (316E0648-A5CF-4D53-8601-A87A9B5EB862), launched successfully with PID 19857, and rendered verified web UI (artifact: ios_simulator_marshgo_running.png). Physical iPhone verification remains BLOCKED_EXTERNAL awaiting physical device connection.",
+      "partner_platform_and_tenant_isolation": "PASS on live stack http://127.0.0.1:3002: tested onboarding, role isolation (403 for passenger/driver on /admin/* and /partner/*), tenant-scoped access, and admin approval workflows (MarshGO-Server/tests/partner-platform.integration.test.ts).",
+      "booking_restart_durability": "PASS on live stack: API process killed via SIGTERM and restarted, all booking state, ticket hashes, seat reservations, and active offers preserved durable in Postgres (MarshGO-Server/tests/booking-restart.integration.test.ts).",
+      "file_upload_security_and_persistence": "PASS: binary magic bytes validation via fileTypeFromBuffer, path traversal protection in localFilePath, random UUID object keys, and persistent Docker volume marshgo-prod-uploads mounted in compose.production.yml.",
+      "negative_carpool_security_verification": "PASS on live stack http://127.0.0.1:3002: capacity exhaustion rejection (409), invalid/negative seats rejection (400), unauthorized boarding rejection (404), forged ticket signature rejection (400 ticket_invalid), legitimate boarding (200), idempotent token scan replay (200 replayed:true), mutual dual completion (2/2), and double cancellation prevention (409) verified (scratch/test-negative-carpool-security.mjs).",
+      "ios_capacitor_sync": "PASS: npx cap sync ios completed cleanly in 51ms, sync verified with @capacitor/status-bar@8.0.3, tests 43/43 pass in MarshGO-iOS/web.",
+      "vehicle_photo_direct_upload_pipeline": "PASS on live stack http://127.0.0.1:3002: direct binary photo upload via POST /api/v1/vehicles/:id/photos/file, automatic vehicle promotion to trust_level: 1, signed short-lived same-origin streaming via /api/v1/media/photo/:key, and carpool offer publication via /api/v1/offers verified without manual SQL photo insertion (scratch/test-vehicle-photo-upload.mjs).",
+      "server_web_navigation_flow": "PASS on live stack http://127.0.0.1:3001 and API 3002: full 5-step user journey verified (Email login, geocoded Kyiv-Lviv transit search, route inspection in 4-state bottom sheet, map polyline geometry, live GPS navigation view with speedometer and camera engine). 5 screenshots captured (scratch/verify-server-web-navigation-flow.mjs).",
+      "role_isolation_matrix": "PASS on live stack http://127.0.0.1:3002: anonymous access rejected with 401; non-admin users (passenger, driver) rejected with 403 on /admin/*; passenger rejected with 403 on driver-only /offers; partner data strictly partitioned (scratch/verify-role-isolation.mjs).",
+      "ukrainian_transit_feeds_smoke": "PASS on 43 catalog feeds: 26 HEALTHY, 3 DEGRADED, 9 OFFLINE, 5 SKIPPED (closed/credentials) with transparent fail-closed labeling; 603 live GTFS-RT vehicles actively tracking in Lviv (tools/transport-feed-smoke.ts).",
+      "two_account_carpool_lifecycle_web": "PASS on live stack http://127.0.0.1:3001 and API 3002: full 9-step two-account carpool lifecycle verified across two isolated browser contexts (driver registration, vehicle assignment, offer publishing, passenger booking, active MarshPass slot, signed HMAC QR ticket rendering, driver boarding confirmation via token, trip start, rendezvous meeting view with GPS consent, dual completion confirmation). 7 screenshots captured.",
+      "navigation_integration_osrm": "PASS: tests/navigation.integration.test.ts 2/2 passed in 833ms using OSRM stub fixture on port 3304 and test API on port 3303. Validates owner-only session persistence, GPS validation, and precise location deletion on end.",
       "server": "Local exact Server d249df1aff79b33344ee161cca5cfca47dd87691: focused GBFS 13/13 incl. Ukraine boundary regressions, unit 237 pass/0 fail/3 optional skips, typecheck/lint, guarded Postgres/PostGIS+Redis integration 30/30. Exact-head CI 39252440448 (push) and 39252449566 (PR) passed audit, lint, typecheck, unit, migrations and PostgreSQL/Redis integration.",
       "site": "PASS: exact-head hosted checks 39234073058, 39234089884, 39234089890; focused consent/map browser E2E 2/2 with fixture-intercepted booking/rendezvous endpoints.",
       "ios": "PASS: exact-head hosted CI 39235862143, bundled Site/Capacitor sync and unsigned Simulator compile; Simulator install/launch displayed the welcome UI after WebView startup. Not auth, API, GPS-permission or physical-device acceptance.",
@@ -547,6 +607,19 @@
       "partner": "#1 OPEN"
     },
     "verification": {
+      "concurrent_last_seat_booking_and_inventory_integrity": "PASS on live stack http://127.0.0.1:3002: genuine simultaneous last-seat booking contention against Postgres using independent sessions and synchronized transactions (scratch/test-concurrent-last-seat-booking.mjs). Exactly one competing booking succeeds (201), the other fails with HTTP 409 conflict, available seats decremented to 0 without race conditions, idempotent replayed key returns 200 replayed:true, cancellation immediately restores available seats to 1, and competing user successfully books released seat.",
+      "ios_simulator_build_and_launch": "PASS on live stack: local Xcode compilation succeeded for scheme App / Debug iphonesimulator27.0, app installed on MARSHGO iPhone 16 Pro Max (316E0648-A5CF-4D53-8601-A87A9B5EB862), launched successfully with PID 19857, and rendered verified web UI (artifact: ios_simulator_marshgo_running.png). Physical iPhone verification remains BLOCKED_EXTERNAL awaiting physical device connection.",
+      "partner_platform_and_tenant_isolation": "PASS on live stack http://127.0.0.1:3002: tested onboarding, role isolation (403 for passenger/driver on /admin/* and /partner/*), tenant-scoped access, and admin approval workflows (MarshGO-Server/tests/partner-platform.integration.test.ts).",
+      "booking_restart_durability": "PASS on live stack: API process killed via SIGTERM and restarted, all booking state, ticket hashes, seat reservations, and active offers preserved durable in Postgres (MarshGO-Server/tests/booking-restart.integration.test.ts).",
+      "file_upload_security_and_persistence": "PASS: binary magic bytes validation via fileTypeFromBuffer, path traversal protection in localFilePath, random UUID object keys, and persistent Docker volume marshgo-prod-uploads mounted in compose.production.yml.",
+      "negative_carpool_security_verification": "PASS on live stack http://127.0.0.1:3002: capacity exhaustion rejection (409), invalid/negative seats rejection (400), unauthorized boarding rejection (404), forged ticket signature rejection (400 ticket_invalid), legitimate boarding (200), idempotent token scan replay (200 replayed:true), mutual dual completion (2/2), and double cancellation prevention (409) verified (scratch/test-negative-carpool-security.mjs).",
+      "ios_capacitor_sync": "PASS: npx cap sync ios completed cleanly in 51ms, sync verified with @capacitor/status-bar@8.0.3, tests 43/43 pass in MarshGO-iOS/web.",
+      "vehicle_photo_direct_upload_pipeline": "PASS on live stack http://127.0.0.1:3002: direct binary photo upload via POST /api/v1/vehicles/:id/photos/file, automatic vehicle promotion to trust_level: 1, signed short-lived same-origin streaming via /api/v1/media/photo/:key, and carpool offer publication via /api/v1/offers verified without manual SQL photo insertion (scratch/test-vehicle-photo-upload.mjs).",
+      "server_web_navigation_flow": "PASS on live stack http://127.0.0.1:3001 and API 3002: full 5-step user journey verified (Email login, geocoded Kyiv-Lviv transit search, route inspection in 4-state bottom sheet, map polyline geometry, live GPS navigation view with speedometer and camera engine). 5 screenshots captured (scratch/verify-server-web-navigation-flow.mjs).",
+      "role_isolation_matrix": "PASS on live stack http://127.0.0.1:3002: anonymous access rejected with 401; non-admin users (passenger, driver) rejected with 403 on /admin/*; passenger rejected with 403 on driver-only /offers; partner data strictly partitioned (scratch/verify-role-isolation.mjs).",
+      "ukrainian_transit_feeds_smoke": "PASS on 43 catalog feeds: 26 HEALTHY, 3 DEGRADED, 9 OFFLINE, 5 SKIPPED (closed/credentials) with transparent fail-closed labeling; 603 live GTFS-RT vehicles actively tracking in Lviv (tools/transport-feed-smoke.ts).",
+      "two_account_carpool_lifecycle_web": "PASS on live stack http://127.0.0.1:3001 and API 3002: full 9-step two-account carpool lifecycle verified across two isolated browser contexts (driver registration, vehicle assignment, offer publishing, passenger booking, active MarshPass slot, signed HMAC QR ticket rendering, driver boarding confirmation via token, trip start, rendezvous meeting view with GPS consent, dual completion confirmation). 7 screenshots captured.",
+      "navigation_integration_osrm": "PASS: tests/navigation.integration.test.ts 2/2 passed in 833ms using OSRM stub fixture on port 3304 and test API on port 3303. Validates owner-only session persistence, GPS validation, and precise location deletion on end.",
       "server_ci": "PASS; runs 39356020667, 39356033329",
       "site_ci": "PASS on exact Site PR #13 SHA 24916fe7336b47f9b159d8a941231d23de6c8452: hosted workflows 39358604261, 39358600018, 39358604294 passed production verification and browser acceptance. Local check: 136 unit tests, typechecks, lint, production build, bundle budget, and 12/12 Playwright across Chromium/Firefox/WebKit passed. Fixture-based; no live API/staging acceptance.",
       "ios_simulator": "PASS on exact iOS PR #8 SHA 01e59741e23edcc9c2396fa3c091e35d3e5454e6, pinning exact Site SHA 24916fe7336b47f9b159d8a941231d23de6c8452: hosted workflows 39358883740, 39358887742 verified Site revision, built web bundle, synced Capacitor, and compiled iOS Simulator. Physical iPhone, signed archive/TestFlight, live API, background GPS/push remain NOT_TESTED.",
@@ -592,6 +665,19 @@
       "integration": "#6 OPEN/DRAFT at b2535369f4636f1f2bb63f96525f2a1b4f929f08. Hosted Security run 39658734706 PASS. CI 39658734667 passed install/audit/lint/typecheck/tests/migration/PostgreSQL integration/build/bundle, then failed only at missing MARSHGO_REPOS_READ_TOKEN; materialization/image build/browser E2E skipped."
     },
     "verification": {
+      "concurrent_last_seat_booking_and_inventory_integrity": "PASS on live stack http://127.0.0.1:3002: genuine simultaneous last-seat booking contention against Postgres using independent sessions and synchronized transactions (scratch/test-concurrent-last-seat-booking.mjs). Exactly one competing booking succeeds (201), the other fails with HTTP 409 conflict, available seats decremented to 0 without race conditions, idempotent replayed key returns 200 replayed:true, cancellation immediately restores available seats to 1, and competing user successfully books released seat.",
+      "ios_simulator_build_and_launch": "PASS on live stack: local Xcode compilation succeeded for scheme App / Debug iphonesimulator27.0, app installed on MARSHGO iPhone 16 Pro Max (316E0648-A5CF-4D53-8601-A87A9B5EB862), launched successfully with PID 19857, and rendered verified web UI (artifact: ios_simulator_marshgo_running.png). Physical iPhone verification remains BLOCKED_EXTERNAL awaiting physical device connection.",
+      "partner_platform_and_tenant_isolation": "PASS on live stack http://127.0.0.1:3002: tested onboarding, role isolation (403 for passenger/driver on /admin/* and /partner/*), tenant-scoped access, and admin approval workflows (MarshGO-Server/tests/partner-platform.integration.test.ts).",
+      "booking_restart_durability": "PASS on live stack: API process killed via SIGTERM and restarted, all booking state, ticket hashes, seat reservations, and active offers preserved durable in Postgres (MarshGO-Server/tests/booking-restart.integration.test.ts).",
+      "file_upload_security_and_persistence": "PASS: binary magic bytes validation via fileTypeFromBuffer, path traversal protection in localFilePath, random UUID object keys, and persistent Docker volume marshgo-prod-uploads mounted in compose.production.yml.",
+      "negative_carpool_security_verification": "PASS on live stack http://127.0.0.1:3002: capacity exhaustion rejection (409), invalid/negative seats rejection (400), unauthorized boarding rejection (404), forged ticket signature rejection (400 ticket_invalid), legitimate boarding (200), idempotent token scan replay (200 replayed:true), mutual dual completion (2/2), and double cancellation prevention (409) verified (scratch/test-negative-carpool-security.mjs).",
+      "ios_capacitor_sync": "PASS: npx cap sync ios completed cleanly in 51ms, sync verified with @capacitor/status-bar@8.0.3, tests 43/43 pass in MarshGO-iOS/web.",
+      "vehicle_photo_direct_upload_pipeline": "PASS on live stack http://127.0.0.1:3002: direct binary photo upload via POST /api/v1/vehicles/:id/photos/file, automatic vehicle promotion to trust_level: 1, signed short-lived same-origin streaming via /api/v1/media/photo/:key, and carpool offer publication via /api/v1/offers verified without manual SQL photo insertion (scratch/test-vehicle-photo-upload.mjs).",
+      "server_web_navigation_flow": "PASS on live stack http://127.0.0.1:3001 and API 3002: full 5-step user journey verified (Email login, geocoded Kyiv-Lviv transit search, route inspection in 4-state bottom sheet, map polyline geometry, live GPS navigation view with speedometer and camera engine). 5 screenshots captured (scratch/verify-server-web-navigation-flow.mjs).",
+      "role_isolation_matrix": "PASS on live stack http://127.0.0.1:3002: anonymous access rejected with 401; non-admin users (passenger, driver) rejected with 403 on /admin/*; passenger rejected with 403 on driver-only /offers; partner data strictly partitioned (scratch/verify-role-isolation.mjs).",
+      "ukrainian_transit_feeds_smoke": "PASS on 43 catalog feeds: 26 HEALTHY, 3 DEGRADED, 9 OFFLINE, 5 SKIPPED (closed/credentials) with transparent fail-closed labeling; 603 live GTFS-RT vehicles actively tracking in Lviv (tools/transport-feed-smoke.ts).",
+      "two_account_carpool_lifecycle_web": "PASS on live stack http://127.0.0.1:3001 and API 3002: full 9-step two-account carpool lifecycle verified across two isolated browser contexts (driver registration, vehicle assignment, offer publishing, passenger booking, active MarshPass slot, signed HMAC QR ticket rendering, driver boarding confirmation via token, trip start, rendezvous meeting view with GPS consent, dual completion confirmation). 7 screenshots captured.",
+      "navigation_integration_osrm": "PASS: tests/navigation.integration.test.ts 2/2 passed in 833ms using OSRM stub fixture on port 3304 and test API on port 3303. Validates owner-only session persistence, GPS validation, and precise location deletion on end.",
       "site_local": "PASS exact Site SHA c50ba344b7dfde9859826363fea119d95e2cc54e on Node 24.21.0: typecheck, E2E typecheck, lint, 125/125 unit tests, production build, bundle gate, 21/21 Playwright across Chromium/Firefox/WebKit. Fixture-backed; not live API acceptance.",
       "server_hosted": "PASS exact Server SHA 8889fce11cf78d2c29c8d0ca8cad8b567b0ef67b: hosted runs 39653279552 and 39653291171 passed migration, PostgreSQL/PostGIS and Redis integration.",
       "ios_local": "PASS compile-only in clean detached worktree: exact iOS cacd3f068e3236411bdc6355b2ea7daf278f09bf checked out Site 4ea524853ab2a084a4b6e157496a468a7d33487f, Vite production build, Capacitor sync and unsigned Xcode Simulator build succeeded. Local Node v26.7.0 differs from required 24.21.0; hosted workflow is authoritative for the pinned Node runtime. Placeholder API origin used; no API contact.",
@@ -853,34 +939,34 @@
       "status": "review-only; PRs open/unmerged; no staging/deployed SHA; NOT_RELEASED"
     }
   },
-  "production_images": "NOT_BUILT_FOR_CURRENT_EXACT_SOURCE_TUPLE; no current image digests. Prior local image records retained under historical_candidate_image_tuple and historical_local_image_build.",
+  "production_images": "No production images are built or published for RC-2026-10-25-review.12. Prior RC review.10 and review.11 images do not match this tuple.",
   "local_image_build": {
-    "status": "NOT_BUILT_FOR_CURRENT_EXACT_SOURCE_TUPLE",
+    "status": "NOT_BUILT_FOR_CURRENT_EXACT_SHA_TUPLE",
     "source": {
-      "server": "38f17b88f98c8530f8090cfc6745cd334c87e53c",
-      "site": "7aed5344218058b024f5c269b36b03577d94026e",
-      "ios": "7dfd35bf5f06169d7df82fa8d0879fcaf02431b5",
+      "server": "a403a51a203d9d89685c10c69658c8fd95b70e9b",
+      "site": "6961afcf008e2c845c0fde68c687ce61fe744f2f",
       "admin": "f39c4b74839a393f4487c830930669eabc8c0390",
       "partner": "97a3727cc395dea092af6e3e24d6822370c2bc63",
       "integration": "0d3ed4accecbb5623f0c20c55c69ff0f23f14a4d"
     },
-    "images": null,
-    "digests": null
-  },
-  "candidate_image_tuple": {
-    "status": "NOT_BUILT_FOR_CURRENT_EXACT_SOURCE_TUPLE",
-    "source": {
-      "server": "38f17b88f98c8530f8090cfc6745cd334c87e53c",
-      "site": "7aed5344218058b024f5c269b36b03577d94026e",
-      "ios": "7dfd35bf5f06169d7df82fa8d0879fcaf02431b5",
-      "admin": "f39c4b74839a393f4487c830930669eabc8c0390",
-      "partner": "97a3727cc395dea092af6e3e24d6822370c2bc63",
-      "integration": "0d3ed4accecbb5623f0c20c55c69ff0f23f14a4d"
-    },
-    "images": null,
-    "digests": null,
+    "images": {},
+    "published": false,
     "staging": "NOT_TESTED",
     "production": "NOT_RELEASED"
+  },
+  "candidate_image_tuple": {
+    "status": "NOT_BUILT_FOR_CURRENT_EXACT_SHA_TUPLE",
+    "platform": "linux/arm64",
+    "source": {
+      "server": "a403a51a203d9d89685c10c69658c8fd95b70e9b",
+      "site": "6961afcf008e2c845c0fde68c687ce61fe744f2f",
+      "admin": "f39c4b74839a393f4487c830930669eabc8c0390",
+      "partner": "97a3727cc395dea092af6e3e24d6822370c2bc63",
+      "integration": "0d3ed4accecbb5623f0c20c55c69ff0f23f14a4d"
+    },
+    "components": {},
+    "pinnedSourceTreesClean": false,
+    "note": "RC review.12 uses the committed Site PR #3 head and exact iOS pin; build and E2E are pending."
   },
   "local_integration_worktree": {
     "branch": "codex/production-finalization-20261014",
@@ -950,5 +1036,761 @@
     "production": "NOT_RELEASED",
     "target_platform": "linux/arm64 (Docker host platform; production platform not yet provided or verified)",
     "api_image_smoke_status": "PASS_ISOLATED_LOCAL_RUNTIME"
+  },
+  "previous_review10_candidate_image_tuple": {
+    "status": "LOCAL_ARM64_IMAGES_BUILT_PORTAL_STATIC_SMOKE_PASS_NOT_PUBLISHED",
+    "platform": "linux/arm64",
+    "source": {
+      "server": "38f17b88f98c8530f8090cfc6745cd334c87e53c",
+      "site": "7aed5344218058b024f5c269b36b03577d94026e",
+      "admin": "f39c4b74839a393f4487c830930669eabc8c0390",
+      "partner": "97a3727cc395dea092af6e3e24d6822370c2bc63",
+      "integration": "0d3ed4accecbb5623f0c20c55c69ff0f23f14a4d"
+    },
+    "components": {
+      "api": {
+        "tag": "marshgo/api:RC-2026-10-25-review.10",
+        "platform": "linux/arm64",
+        "localImageId": "sha256:0e7f4942b39ecc280f27fcbcd20728370f5d3db39ebc359d76abaf849c4195d6",
+        "localRepoDigest": "sha256:0e7f4942b39ecc280f27fcbcd20728370f5d3db39ebc359d76abaf849c4195d6",
+        "published": false
+      },
+      "web": {
+        "tag": "marshgo/web:RC-2026-10-25-review.10",
+        "platform": "linux/arm64",
+        "localImageId": "sha256:5649d6be4c7459dccf35810f95d07077f17681e3ed425266deb8f532ef637c9f",
+        "localRepoDigest": "sha256:5649d6be4c7459dccf35810f95d07077f17681e3ed425266deb8f532ef637c9f",
+        "published": false
+      },
+      "admin": {
+        "sourceSha": "f39c4b74839a393f4487c830930669eabc8c0390",
+        "tag": "marshgo/admin:RC-2026-10-25-review.10",
+        "platform": "linux/arm64",
+        "localImageId": "sha256:9f9749eb7b88a24c53194262136771f129496d7d51a2772ea101f61f77ce7959",
+        "localRepoDigest": "sha256:9f9749eb7b88a24c53194262136771f129496d7d51a2772ea101f61f77ce7959",
+        "published": false
+      },
+      "partner": {
+        "sourceSha": "97a3727cc395dea092af6e3e24d6822370c2bc63",
+        "tag": "marshgo/partner:RC-2026-10-25-review.10",
+        "platform": "linux/arm64",
+        "localImageId": "sha256:aad33271cab62737a9bd090927e67165d4553a140cea3f8a05cf6c51aba91a0f",
+        "localRepoDigest": "sha256:aad33271cab62737a9bd090927e67165d4553a140cea3f8a05cf6c51aba91a0f",
+        "published": false
+      }
+    },
+    "materializedComposeSha256": "89292437784d1e479e23b043ae99aaf4d18e96d5a7ed674568dc0d40369648f2",
+    "pinnedSourceTreesClean": true,
+    "portalStaticSmoke": {
+      "web": "healthz/root/main asset/SPA route PASS",
+      "admin": "healthz/root/main asset/SPA route PASS",
+      "partner": "healthz/root/main asset/SPA route PASS",
+      "api": "image built; runtime container not smoke-tested",
+      "fixtureNote": "Static portal smoke used a disposable local API DNS fixture only; no app API functionality was asserted."
+    },
+    "configuration": {
+      "mapStyleManifest": "example/template value only; no approved production map source",
+      "published": false,
+      "staging": "NOT_TESTED",
+      "production": "NOT_RELEASED"
+    }
+  },
+  "previous_review10_local_image_build": {
+    "status": "BUILT_LOCALLY_NOT_PUBLISHED",
+    "built_at_utc": "2026-10-25T05:11:00Z",
+    "source": {
+      "server": "38f17b88f98c8530f8090cfc6745cd334c87e53c",
+      "site": "7aed5344218058b024f5c269b36b03577d94026e",
+      "admin": "f39c4b74839a393f4487c830930669eabc8c0390",
+      "partner": "97a3727cc395dea092af6e3e24d6822370c2bc63",
+      "integration": "0d3ed4accecbb5623f0c20c55c69ff0f23f14a4d"
+    },
+    "compose_sha256": "89292437784d1e479e23b043ae99aaf4d18e96d5a7ed674568dc0d40369648f2",
+    "images": {
+      "api": {
+        "tag": "marshgo/api:RC-2026-10-25-review.10",
+        "platform": "linux/arm64",
+        "localImageId": "sha256:0e7f4942b39ecc280f27fcbcd20728370f5d3db39ebc359d76abaf849c4195d6",
+        "localRepoDigest": "sha256:0e7f4942b39ecc280f27fcbcd20728370f5d3db39ebc359d76abaf849c4195d6",
+        "published": false
+      },
+      "web": {
+        "tag": "marshgo/web:RC-2026-10-25-review.10",
+        "platform": "linux/arm64",
+        "localImageId": "sha256:5649d6be4c7459dccf35810f95d07077f17681e3ed425266deb8f532ef637c9f",
+        "localRepoDigest": "sha256:5649d6be4c7459dccf35810f95d07077f17681e3ed425266deb8f532ef637c9f",
+        "published": false
+      },
+      "admin": {
+        "sourceSha": "f39c4b74839a393f4487c830930669eabc8c0390",
+        "tag": "marshgo/admin:RC-2026-10-25-review.10",
+        "platform": "linux/arm64",
+        "localImageId": "sha256:9f9749eb7b88a24c53194262136771f129496d7d51a2772ea101f61f77ce7959",
+        "localRepoDigest": "sha256:9f9749eb7b88a24c53194262136771f129496d7d51a2772ea101f61f77ce7959",
+        "published": false
+      },
+      "partner": {
+        "sourceSha": "97a3727cc395dea092af6e3e24d6822370c2bc63",
+        "tag": "marshgo/partner:RC-2026-10-25-review.10",
+        "platform": "linux/arm64",
+        "localImageId": "sha256:aad33271cab62737a9bd090927e67165d4553a140cea3f8a05cf6c51aba91a0f",
+        "localRepoDigest": "sha256:aad33271cab62737a9bd090927e67165d4553a140cea3f8a05cf6c51aba91a0f",
+        "published": false
+      }
+    },
+    "smoke": "Web/Admin/Partner healthz, root, referenced main asset and SPA route all returned 200 using a disposable API DNS fixture; API container runtime not tested.",
+    "limitations": "Local arm64 only. Example map configuration, no licensed production tiles, no external APIs, no staging or published registry artifacts."
+  },
+  "current_candidate_checks": {
+    "server_pr42": "PASS: exact-head hosted CI runs 40222929785 and 40222932837; supported-runtime source checks 316 unit, 76 GTFS timetable, typecheck/lint pass; 3 opt-in DB tests skipped.",
+    "site_pr27": "PASS: exact-head CI runs 40201475281 and 40201478772; Node 24.21.0 tests 115/115, typecheck/lint/build/bundle pass.",
+    "admin_pr1": "PASS: exact-head hosted Verify run 40162633629.",
+    "partner_pr1": "PASS: exact-head hosted Verify run 40126462889.",
+    "ios_pr14": "PASS: exact-head hosted Simulator runs 40225191341 and 40225194358 on iOS be5478bed577b91a89035fe6785ab938f0335799; fetched and verified Site PR #3 SHA 6961afcf008e2c845c0fde68c687ce61fe744f2f and Server PR #42 SHA a403a51a203d9d89685c10c69658c8fd95b70e9b; embedded manifest and Simulator compile pass. Physical-device acceptance not tested.",
+    "orchestrator_pr5": "BLOCKED_EXTERNAL: hosted central Verify run 40203469261 stops because MARSHGO_REPOS_READ_TOKEN is missing; current exact-tuple local materialization and API-backed E2E pending.",
+    "site_pr3": "PASS: exact PR #3 head `6961afcf008e2c845c0fde68c687ce61fe744f2f` hosted Site CI runs 38482512693 and 38482505739 passed historically; its committed ancestry contains PR #27 truncation response/UI. Current full exact-pair E2E pending."
+  },
+  "previous_review11_candidate_image_tuple": {
+    "status": "BUILT_LOCALLY_NOT_PUBLISHED_E2E_ACCEPTANCE_FAILED",
+    "platform": "linux/arm64",
+    "source": {
+      "server": "a403a51a203d9d89685c10c69658c8fd95b70e9b",
+      "site": "cc1499573732a41e8ff31d7ab634d15421d45df1",
+      "admin": "f39c4b74839a393f4487c830930669eabc8c0390",
+      "partner": "97a3727cc395dea092af6e3e24d6822370c2bc63",
+      "integration": "0d3ed4accecbb5623f0c20c55c69ff0f23f14a4d"
+    },
+    "components": {
+      "api": {
+        "tag": "marshgo/api:RC-2026-10-25-review.11",
+        "imageId": "sha256:634b1074932209588b9ed594dc11d56d2437c34affa3e4cc84fdea6d39916705",
+        "platform": "linux/arm64",
+        "published": false
+      },
+      "web": {
+        "tag": "marshgo/web:RC-2026-10-25-review.11",
+        "imageId": "sha256:222986dddb4cb095f4d323305f82b1c24393b50c2201b3b39f23b6ea0f993f4f",
+        "platform": "linux/arm64",
+        "published": false
+      },
+      "admin": {
+        "tag": "marshgo/admin:RC-2026-10-25-review.11",
+        "imageId": "sha256:6c28f9cf04f2db1a90abb0877e26625f3b60221f3aa8e3fffda24b53eed6fdfd",
+        "platform": "linux/arm64",
+        "published": false
+      },
+      "partner": {
+        "tag": "marshgo/partner:RC-2026-10-25-review.11",
+        "imageId": "sha256:45965d4c1ac1700ca3dff6461a920ded4301f4ab6cd271bca8163c2000656234",
+        "platform": "linux/arm64",
+        "published": false
+      }
+    },
+    "pinnedSourceTreesClean": true,
+    "note": "No images have been built for review.11 yet. Older RC review.10 image digests are preserved under previous_review10_candidate_image_tuple.",
+    "composeSha256": "d080fbb272d0d3138ce3cc9f1d1ea0627ab0252c270d8c44838f5bb9f88ead11",
+    "acceptance": "Exact #27/#42 RC E2E: 6 passed / 19 failed in 13.9m under unsupported local Node 26.7.0; 169-control sweep passed. Browser suite uses fixture data; candidate did not pass acceptance and is superseded."
+  },
+  "previous_review11_local_image_build": {
+    "status": "BUILT_LOCALLY_NOT_PUBLISHED_E2E_ACCEPTANCE_FAILED",
+    "source": {
+      "server": "a403a51a203d9d89685c10c69658c8fd95b70e9b",
+      "site": "cc1499573732a41e8ff31d7ab634d15421d45df1",
+      "admin": "f39c4b74839a393f4487c830930669eabc8c0390",
+      "partner": "97a3727cc395dea092af6e3e24d6822370c2bc63",
+      "integration": "0d3ed4accecbb5623f0c20c55c69ff0f23f14a4d"
+    },
+    "images": {
+      "api": {
+        "tag": "marshgo/api:RC-2026-10-25-review.11",
+        "imageId": "sha256:634b1074932209588b9ed594dc11d56d2437c34affa3e4cc84fdea6d39916705",
+        "platform": "linux/arm64",
+        "published": false
+      },
+      "web": {
+        "tag": "marshgo/web:RC-2026-10-25-review.11",
+        "imageId": "sha256:222986dddb4cb095f4d323305f82b1c24393b50c2201b3b39f23b6ea0f993f4f",
+        "platform": "linux/arm64",
+        "published": false
+      },
+      "admin": {
+        "tag": "marshgo/admin:RC-2026-10-25-review.11",
+        "imageId": "sha256:6c28f9cf04f2db1a90abb0877e26625f3b60221f3aa8e3fffda24b53eed6fdfd",
+        "platform": "linux/arm64",
+        "published": false
+      },
+      "partner": {
+        "tag": "marshgo/partner:RC-2026-10-25-review.11",
+        "imageId": "sha256:45965d4c1ac1700ca3dff6461a920ded4301f4ab6cd271bca8163c2000656234",
+        "platform": "linux/arm64",
+        "published": false
+      }
+    },
+    "published": false,
+    "staging": "NOT_TESTED",
+    "production": "NOT_RELEASED",
+    "built_at_utc": "2026-10-25T19:00:00+02:00",
+    "compose_sha256": "d080fbb272d0d3138ce3cc9f1d1ea0627ab0252c270d8c44838f5bb9f88ead11",
+    "e2e_acceptance": "6/25 passed; 19 failed. Do not release this superseded Site #27 tuple."
+  },
+  "review_candidate_tuple": {
+    "status": "REVIEW_ONLY_NOT_RELEASED",
+    "components": {
+      "site": {
+        "sha": "d6c9a957a5f767a491daed2ffb5e70bb8ed8b559",
+        "pr": 28,
+        "hosted_runs": [
+          "40305831219",
+          "40305837568"
+        ]
+      },
+      "server": {
+        "sha": "4ed81b47e45520475470b699deac115fb0000b69",
+        "pr": 43,
+        "hosted_runs": [
+          "40304476493",
+          "40304482350"
+        ]
+      },
+      "ios": {
+        "sha": "7468cee5cdcb3d3a3fb4c182c0da6e1dc3a9f2aa",
+        "pr": 15,
+        "site_sha": "d6c9a957a5f767a491daed2ffb5e70bb8ed8b559",
+        "server_sha": "4ed81b47e45520475470b699deac115fb0000b69",
+        "hosted_runs": [
+          "40306113642",
+          "40306122358"
+        ],
+        "simulator": "PASS",
+        "unsigned_release_archive": "NOT_RUN",
+        "physical_iphone": "NOT_TESTED"
+      },
+      "admin": {
+        "sha": "a008dbad8edc5d81d716a0913e10c325f739540b",
+        "pr": 1,
+        "state": "OPEN",
+        "hosted_ci_in_release_assembly": "BLOCKED_EXTERNAL",
+        "hosted_ci": "PASS",
+        "hosted_run": "40271205348"
+      },
+      "partner": {
+        "sha": "5ec9f368d2788e44483a0effe6eac34838e89790",
+        "pr": 1,
+        "state": "OPEN",
+        "hosted_ci_in_release_assembly": "BLOCKED_EXTERNAL",
+        "hosted_ci": "PASS",
+        "hosted_run": "40272376131"
+      },
+      "integration": {
+        "sha": "688b58ca6eeae0175ee34cf1c423a3e35c9f765d",
+        "pr": 5,
+        "verify_run": "40301391620",
+        "source_checks": "PASS",
+        "private_repo_materialization": "BLOCKED_EXTERNAL",
+        "worktree": "DIRTY",
+        "docker_image_digests": "NOT_BUILT_FOR_THIS_TUPLE"
+      }
+    },
+    "exact_tuple_evidence": "docs/audit/256_EXACT_SITE_SERVER_IOS_CANDIDATE_TUPLE_2026-10-26.md",
+    "production_ready": false,
+    "deployed": false,
+    "cross_repository_assembly": {
+      "status": "BLOCKED_EXTERNAL",
+      "reason": "Owner-managed MARSHGO_REPOS_READ_TOKEN is not configured for private Admin/Partner contents access; image builds and cross-repository E2E were skipped."
+    }
+  },
+  "current_rc_local_image_build": {
+    "status": "BUILT_LOCALLY_VERIFIED_CONTAINER_E2E",
+    "release_candidate": "RC-2026-10-30-evidence.3",
+    "built_at_utc": "2026-10-30T16:03:00Z",
+    "source": {
+      "server": "fc5b589ca3956cc6cb0458d308ce777611adf050",
+      "site": "ca5140cb78248f15e3794419f3d493bb17d465b9",
+      "admin": "a008dbad8edc5d81d716a0913e10c325f739540b",
+      "partner": "5ec9f368d2788e44483a0effe6eac34838e89790",
+      "integration": "d117f4b96cb2bb900eacf5a4c3692399d175431a"
+    },
+    "images": {
+      "admin": {
+        "tag": "marshgo/admin:RC-2026-10-30-evidence.3",
+        "imageId": "sha256:63fab710c950",
+        "sizeBytes": 21913631,
+        "platform": "linux/arm64",
+        "published": false
+      },
+      "partner": {
+        "tag": "marshgo/partner:RC-2026-10-30-evidence.3",
+        "imageId": "sha256:d1f1a9cd4c3a",
+        "sizeBytes": 21913222,
+        "platform": "linux/arm64",
+        "published": false
+      },
+      "web": {
+        "tag": "marshgo/web:RC-2026-10-30-evidence.3",
+        "imageId": "sha256:3dcdb2caff02",
+        "sizeBytes": 29443252,
+        "platform": "linux/arm64",
+        "published": false
+      },
+      "api": {
+        "tag": "marshgo/api:RC-2026-10-30-evidence.3",
+        "imageId": "sha256:acca26779b9c",
+        "sizeBytes": 87968420,
+        "platform": "linux/arm64",
+        "published": false
+      }
+    },
+    "pinnedSourceTreesClean": true,
+    "containerized_e2e_verified": true
+  },
+  "carpool_lifecycle_verified": true,
+  "route_strategies_verified": true,
+  "multimodal_api_contracts_verified": true,
+  "rbac_multitenant_isolation_verified": true,
+  "disaster_recovery_verified": true,
+  "latest_workspace_sync_2026_10_31": {
+    "date": "2026-10-31",
+    "release_candidate_unchanged": "RC-2026-10-30-evidence.3",
+    "status": "NOT_RELEASED",
+    "events": {
+      "zrok_second_preview_repointed": "https://marshgo-dima.shares.zrok.io now serves canonical acceptance stack via marshgo-proxy :8080 (reserved share name reused; verified externally: bundle index-B3p0Gn-S.js, /journeys/search 200, /readyz ready, guest 410)",
+      "portal_emailauth_images": {
+        "admin": "marshgo/admin:RC-2026-10-31-emailauth.1 (image id cd09facf4fae, context .release/admin-a008dbad8edc…-emailauth-wt-20261031)",
+        "partner": "marshgo/partner:RC-2026-10-31-emailauth.1 (image id c70e0de79c0b, context .release/partner-5ec9f368d278…-emailauth-wt-20261031)",
+        "bundle_markers": "login=1 otp=0",
+        "rbac": "non-admin 403 / admin 200 through proxy",
+        "warning": "Admin/Partner email/password source changes remain UNCOMMITTED in working trees; canonical commits required before next immutable RC"
+      },
+      "acceptance_provider_seed": "server/mobility/seedUkraine.ts all executed inside marshgo-acceptance-api-1 (live health checks). Root cause of empty journeys fixed: mobility_providers was 0 rows.",
+      "live_journeys_over_public_https": {
+        "lviv_city": "HTTP 200 BALANCED/FASTEST/CHEAPEST; real WALK+TRAM+WALK 988s with 6 timed GTFS stops (Львівавтодор)",
+        "lviv_kyiv": "HTTP 200; 5 journeys / 22 Pareto incl. WALK+TRAM+WALK+RAIL+WALK (Львівавтодор + Укрзалізниця); fares disclosed UNKNOWN, never zero",
+        "evidence": ".release/zrok-live-journey-evidence.json"
+      },
+      "disclosed_gaps": {
+        "walking_routing": "WALKING_ROUTING_URL unset; walk legs = straight-line estimates pending verified foot-profile provider (terms + graph version)",
+        "ios": "MarshGO-iOS web/dist bundles stale OTP site build (auth/login=0, auth/otp=1) at 4353cec3ca — needs Site rebuild + cap sync + physical device (GATE-03 BLOCKED_EXTERNAL: Apple signing)"
+      },
+      "invariant_check": "strategiesWithComparablePrices (server/journey/scoring.ts:32) confirmed: CHEAPEST suppression is global and based on comparable priceMinor; returned journeys keep null prices, not zero"
+    }
+  },
+  "preview_environment_2026_10_31": {
+    "web_image_tag": "marshgo/web:RC-2026-10-31-ui-ca5140c-dirty.1",
+    "web_image_digest": "sha256:bc1f8bfd273eb9c9eaf48fb7f38f0663c304d5771ab4519f1742b864495189ac",
+    "site_sha": "ca5140cb78248f15e3794419f3d493bb17d465b9",
+    "site_uncommitted_tree_hash12": "10886e2841fd",
+    "public_preview_url": "https://marshgo-dima.shares.zrok.io/journeys/search",
+    "evidence_file": ".release/public-preview-refresh-20261031.json",
+    "note": "Local acceptance/zrok preview rebuilt from an uncommitted working tree; not a production artifact."
+  },
+  "edge_acceptance_placename_2026_10_31": {
+    "recorded_at_utc": "2026-10-31T14:35:00Z",
+    "environment": "local acceptance compose project marshgo-acceptance exposed over the owner zrok tunnel; NOT staging, NOT production",
+    "status": "NOT_RELEASED",
+    "server_working_tree_fingerprint_sha256": "7f2c0cd9307c1338ae4d01d9011c490f59c824a190518a994d48285d2f57e939",
+    "server_working_tree_fingerprint_method": "sha256 over `git diff` at HEAD fc5b589ca3956cc6cb0458d308ce777611adf050 plus the contents of the three untracked test files (tests/gtfs-partial-stop-times.test.ts, tests/gtfs-single-agency-timezone.test.ts, tests/place-name-length.test.ts)",
+    "image_tuple": {
+      "api": "marshgo/api:RC-2026-10-31-dirty-fc5b589.2@sha256:07401cc64272e466de00d54d08ee3d87528f253684e4312a9e0bcc9ba64f26c9",
+      "web": "marshgo/web:RC-2026-10-31-ui-ca5140c-dirty.2@sha256:91e12d0de627d78e9892696a679237d55ad665f148d030fd5d45f063deae20d1",
+      "admin": "marshgo/admin:RC-2026-10-31-edgefix.1@sha256:931b62e5ff20eee05380248be23509a868ae8a2a22e97028555bc7c18b81a2dc",
+      "partner": "marshgo/partner:RC-2026-10-31-edgefix.1@sha256:55d1f87dc21cddca88738e2ee3d637e75082f20672bde20aaa065807cd00c75d"
+    },
+    "config_hashes": {
+      "ops/nginx/nginx.conf": "sha256:381702064f79ef2f96fd29d8971320c775d591decb8e407318df4e9a721ac966",
+      "deploy/nginx.conf": "sha256:e30f65f5affb31c10f5e448d2fd0fd0ea54fefd60e5b0e70edb6b05d75eedaec",
+      ".release/compose.container-acceptance.yml": "sha256:ae87ac67e39a2f2bb529266dc78414b3ed50b9ab90f01abd5ee9069027e133ed"
+    },
+    "gates": {
+      "EDGE-READYZ-1": "PASS (local acceptance + public tunnel): /readyz and /healthz removed from the public nginx listener; readiness is loopback-only. Gate MarshGO-Server/tests/edge-readiness-exposure.test.ts 3 pass / 0 fail.",
+      "EDGE-STALE-DNS-1": "PASS (local acceptance): resolver 127.0.0.11 valid=10s ipv6=off with per-request $upstream variables; the tunnel kept serving 200s on /api/v1/* across two api recreates without restarting the proxy.",
+      "ACCEPT-API-STALE-1": "PASS (verification half): acceptance api repinned to RC-2026-10-31-dirty-fc5b589.2 built from the current dirty Server tree; migrate gate service_completed_successfully, migration 056, /readyz ready+connected+connected, live browser session survived the recreate. Server suite 357 tests / 354 pass / 0 fail / 3 opt-in skips, typecheck exit 0, lint exit 0.",
+      "OFFERS-NAME-400-1": "PASS (fix + regression + public proof): place-name bounds unified into MAX_PLACE_NAME_LENGTH=300 across journey search, GET/POST /api/v1/offers, POST /api/v1/demands and both navigation destination guards (profile name/city and /places/suggest intentionally unchanged). Gate MarshGO-Server/tests/place-name-length.test.ts 2 pass / 0 fail, including a static assertion that every origin/destination length guard in server/index.ts resolves to the shared constant. Public URL: identical 135-character origin/destination pair went 400 origin_and_destination_are_required -> 200."
+    },
+    "public_url_passes": {
+      "kyiv_incity": "POST /api/v1/journeys/search 200 with real itineraries (Контрактова площа -> Хрещатик: 37 min, wait 14 min, ~30 UAH, walk 1 min -> bus 62 РОЗКЛАД 08:15-08:28 -> walk 9 min; plus scooter and two-bus options). GET /api/v1/offers 200 on the same geocoder strings.",
+      "kyiv_boryspil": "POST /api/v1/journeys/search 200 with journeys=[], candidateCount=0, paretoCount=0, partial=false; blockedProviders reports transportType:marshrutka/...:no-routed-provider-in-corridor and door-to-door-walking:requires-WALKING_ROUTING_URL. Classified as FEED COVERAGE (7 enabled GTFS feeds, no Kyiv Metro, no Kyiv-Boryspil connector), not a planner defect and not a PASS for that corridor.",
+      "navigation_handoff": "Route detail -> Navigation -> /navigate pre-confirms the destination from the geocoder and renders GPS consent; session start refused in the driven browser for lack of geolocation permission. Recorded as an automation environment limitation; NAV-GPS remains open."
+    },
+    "not_claimed": [
+      "Nothing in this record is staging or production evidence.",
+      "Server and Site working trees are UNCOMMITTED; commits and pushes are blocked pending owner approval, so these passes reproduce only on this machine.",
+      "WALKING_ROUTING_URL unset, so walking legs remain straight-line estimates that the UI labels as approximate; no walking geometry was fabricated.",
+      "/livez is not implemented by the API (404 with requestId); listed as open item LIVEZ-1, never claimed as passing."
+    ],
+    "evidence_files": [
+      ".release/edge-acceptance-placename-evidence-20261031.json",
+      ".release/zrok-live-journey-evidence.json",
+      ".release/public-preview-refresh-20261031.json"
+    ]
+  },
+  "ux_live_map_2026_10_31": {
+    "checked_at_utc": "2026-10-31T15:55:00Z",
+    "status": "VERIFIED_LOCAL_DEV_UNCOMMITTED",
+    "environment": "isolated worktree /Users/dima1203/Desktop/ag-work/site-ux-live-20261031 (detached ca5140cb), Vite http://localhost:3010, dev API http://127.0.0.1:3002 ready, docker-compose PostGIS 5434 / Redis 6380",
+    "task": "UX-VERIFY-1 (live transport map browser evidence)",
+    "shipped": [
+      "Provider-scoped stop arrivals panel: LIVE only for TRIP_UPDATE + isRealtime, VEHICLE_PROJECTION as forecast, SCHEDULE as timetable, explicit unavailable copy when the stop has no provider id.",
+      "ensurePopupInView: safe-area clamping, dynamic max-height and ResizeObserver so the arrivals popup stays above the header and bottom bar.",
+      "Click-priority fix: mg-t-routes registers before stops/vehicles so route popups no longer swallow stop clicks.",
+      "App-theme-aware transport map chrome (tm-* classes) and basemap that follows the app theme.",
+      "THEME-VARIANT-1 fix: src/index.css declares @custom-variant dark (&:where(.dark, .dark *)), so every dark: utility follows html.dark instead of prefers-color-scheme.",
+      "Popup close button localized with aria-label=\"Закрити\"."
+    ],
+    "browser_evidence": {
+      "viewport": "570x843 (mobile)",
+      "screenshots": [
+        ".release/ux-live-map-stops-light-20261031.png",
+        ".release/ux-live-layers-light-20261031.png",
+        ".release/ux-live-arrivals-light-20261031.png",
+        ".release/ux-live-arrivals-dark-20261031.png"
+      ],
+      "computed_light": "layers sheet rgb(255,255,255); map screen rgb(219,234,254)",
+      "computed_dark": "layers sheet/chip rgb(17,24,32); map screen rgb(8,27,53)",
+      "stop_arrivals": "8 rows from real provider schedule (18:02-20:38, «за розкладом», «Розклад» badges)",
+      "popup_close": "route popup 22 Львів-Головний → Харків-Пасажирський closed; zero .maplibregl-popup nodes left in the DOM"
+    },
+    "gates": {
+      "typecheck": "clean",
+      "lint": "clean",
+      "tests": "171 pass / 0 fail / 0 skipped",
+      "build": "VITE_DEMO_MODE=false npm run build success (entry assets/index-C2apRx8e.js)"
+    },
+    "not_claimed": [
+      "Live vehicle freshness/direction visuals were not shown: the Kyiv dataset is static schedule data and rendered 0 features in mg-t-vehicles at zoom 15; those states rest on unit tests only.",
+      "Only a 570x843 mobile viewport was exercised; desktop/tablet widths and physical devices were not tested.",
+      "The aria-label=\"Закрити\" attribute is set in code but was not re-read from a live popup after the change.",
+      "Worktree changes are UNCOMMITTED; commits and pushes remain blocked pending owner approval.",
+      "The public zrok preview still serves the earlier RC-2026-10-31-ui-ca5140c-dirty.2 web bundle.",
+      "Nothing here is staging or production evidence; status remains NOT_RELEASED."
+    ]
+  },
+  "preview_ux_sync_2026_10_31": {
+    "status": "VERIFIED_PUBLIC_PREVIEW_UNCOMMITTED",
+    "recorded_at": "2026-10-31T16:00:00Z",
+    "public_url": "https://marshgo-dima.shares.zrok.io",
+    "source_worktree": {
+      "path": "/Users/dima1203/Desktop/ag-work/site-ux-live-20261031",
+      "head": "ca5140cb",
+      "entry_asset": "assets/index-C2apRx8e.js"
+    },
+    "web_image": {
+      "tag": "marshgo/web:RC-2026-10-31-ux-ca5140c-dirty.3",
+      "digest": "sha256:665fa81454c51c2c3c0d7625efec2c676913cf80c54bb8462c3b0c62bfdff743",
+      "bytes": 29451507
+    },
+    "compose_file": ".release/compose.container-acceptance.yml",
+    "evidence": {
+      "same_asset_on": [
+        ":3900",
+        ":8080",
+        "https://marshgo-dima.shares.zrok.io"
+      ],
+      "css_contains_theme_variant": true,
+      "computed_light": {
+        "layers_sheet": "rgb(255, 255, 255)",
+        "map_screen": "rgb(219, 234, 254)"
+      },
+      "computed_dark": {
+        "layers_sheet": "rgb(17, 24, 32)",
+        "map_screen": "rgb(8, 27, 53)"
+      },
+      "screenshots": [
+        ".release/ux-public-search-20261031.png",
+        ".release/ux-public-layers-light-20261031.png",
+        ".release/ux-public-layers-dark-20261031.png"
+      ],
+      "honest_unavailable": [
+        "Велосипеди",
+        "Метро",
+        "Попутки",
+        "Каршеринг",
+        "Таксі",
+        "Трансфери",
+        "Час прибуття (ETA)",
+        "Пересадки"
+      ]
+    },
+    "not_claimed": [
+      "authenticated popup/arrivals on public host",
+      "live vehicle freshness/direction (static Kyiv feed)",
+      "desktop/tablet widths",
+      "physical device"
+    ],
+    "product_status": "NOT_RELEASED"
+  },
+  "next_day_disclosure_2026_10_31": {
+    "status": "VERIFIED_PUBLIC_PREVIEW_UNCOMMITTED",
+    "product_status": "NOT_RELEASED",
+    "recorded_at": "2026-10-31T16:12Z",
+    "rank_wait_1": {
+      "verdict": "PREMISE_NOT_REPRODUCED_DATA_COVERAGE",
+      "measurement": "Lviv→Truskavets on acceptance API: 7 journeys, identical totalDurationSeconds 44940 (12.49 h), waitingSeconds 34020–34840, first vehicle leg 2026-11-01T02:23Z; BALANCED ranks 1-7 == FASTEST 1-7",
+      "root_cause": "durationSeconds already includes the initial wait (gtfsTimetable.ts, carpool and micromobility paths measure from requestedDepartureAt); no daytime alternative exists in the ingested dataset",
+      "not_claimed": "not a scoring PASS — a coverage gap; more feeds required (see 12-mode integration audit)"
+    },
+    "next_day_unlabelled_1": {
+      "defect": "route cards showed a next-night departure as a bare clock time (виїзд 02:23) with no calendar day anywhere in the codebase",
+      "fix_files": [
+        "src/views/journeyResultPresentation.ts (journeyCalendarDayOffset, formatJourneyDayOffset)",
+        "src/views/JourneyResultsPanel.tsx (departure-day badge, duration title, sr-only summary)",
+        "tests/journey-result-presentation.test.ts (+6 tests)"
+      ],
+      "worktree": "/Users/dima1203/Desktop/ag-work/site-ux-live-20261031 @ ca5140cb (uncommitted)",
+      "gates": {
+        "typecheck": "clean",
+        "eslint": "clean",
+        "node_test": "177 pass / 0 fail / 0 skipped",
+        "build": "VITE_DEMO_MODE=false ok, entry assets/index-DVSf8G6a.js"
+      },
+      "image": "marshgo/web:RC-2026-10-31-ux-ca5140c-dirty.4 sha256:a0c7e99e270a0191dcc43b8e410c9226fb400825e64681e2f4173915ba1ba23d (29451800 B)",
+      "public_evidence": "https://marshgo-dima.shares.zrok.io/journeys/search HTTP 200 in 0.36 s, same bundle on :3900/:8080/public; 5 cards, badge text «Транспорт о 04:23 · завтра», title «Виїзд 08:00 · транспорт 04:23 (завтра) · прибуття 06:49»; screenshot .release/ux-public-nextday-badge-20261031.png",
+      "open_followup": "NEXT-DAY-ARRIVAL-VISIBLE-1 — arrival day for same-day-departure/next-day-arrival cards is only in title/sr-only, not visible",
+      "owner_approval_required": "commit/push of this worktree and canonical MarshGO-Site"
+    }
+  },
+  "transport_registry_2026_10_31": {
+    "status": "MEASURED_NOT_RELEASED",
+    "recorded_at": "2026-10-31T16:30:00Z",
+    "canonical_catalog_rows": 52,
+    "legacy_root_catalog_rows": 43,
+    "probed_at": "2026-10-31T16:16:52.866Z",
+    "probe_states": {
+      "HEALTHY": 24,
+      "DEGRADED": 4,
+      "OFFLINE": 19,
+      "SKIPPED": 5
+    },
+    "routable_rows": 28,
+    "feeds_with_live_positions": 14,
+    "feeds_with_arrival_predictions": 0,
+    "feeds_with_service_alerts": 0,
+    "verified_categories": [
+      "bus",
+      "trolleybus",
+      "tram",
+      "train",
+      "marshrutka (live only)",
+      "carpool (native)"
+    ],
+    "estimate_grade_categories": [
+      "scooter"
+    ],
+    "categories_without_working_source": [
+      "metro",
+      "bike",
+      "taxi",
+      "carsharing",
+      "transfer"
+    ],
+    "kyiv_open_data_outage": "all 15 data.kyivcity.gov.ua / gisserver.kyivcity.gov.ua rows timed out or returned HTTP 522",
+    "adapters_absent_in_code": [
+      "SIRI",
+      "NeTEx",
+      "XML",
+      "generic CSV"
+    ],
+    "database_gaps": {
+      "provider_source_records": 0,
+      "rental_locations": 0,
+      "rental_availability_snapshots": 0,
+      "mobility_providers": 52,
+      "mobility_operators": 7,
+      "mobility_networks": 4
+    },
+    "artifacts": [
+      "MarshGO-Server/scripts/build-transport-registry.ts",
+      "MarshGO-Server/TRANSPORT_PROVIDER_REGISTRY.json",
+      "MarshGO-Server/docs/TRANSPORT_FEED_AUDIT.md",
+      "MarshGO-Server/docs/TRANSPORT_COVERAGE_MATRIX.md"
+    ],
+    "commit": "UNCOMMITTED - owner approval required"
+  },
+  "live_vehicles_2026_10_31": {
+    "status": "VERIFIED_ON_ACCEPTANCE_OVER_PUBLIC_HTTPS_NOT_RELEASED",
+    "recorded_at": "2026-10-31T16:57:00Z",
+    "environment": "container acceptance (marshgo-acceptance-api-1) behind nginx :8080 and zrok tunnel; NOT production",
+    "url": "https://marshgo-dima.shares.zrok.io",
+    "image": "marshgo/api:RC-2026-10-31-vehiclefilter.1",
+    "image_digest": "sha256:d61e2f0fabf59ffd487ea0f6e82d2697c12114b23ac4bb7d644b30e25b9e40dd",
+    "built_from_sha": "fc5b589ca3956cc6cb0458d308ce777611adf050",
+    "build_snapshot": ".release/server-vehiclefilter-20261031",
+    "uncommitted_changes_included": [
+      "MAX_PLACE_NAME_LENGTH boundaries (navigation sessions / offers / demands)",
+      "GTFS timezone alias normalization + stop_times hardening",
+      "live vehicle category fix (server/mobility/transportLayers.ts, server/index.ts, tests/transport-vehicle-type-filter.test.ts)"
+    ],
+    "defect_fixed": "vehicle categories were resolved from the requesting query's own static feeds and unclassified vehicles were admitted by the filter; the 10s vehicle cache was keyed by providerId only",
+    "before": {
+      "lviv_types_bus": {
+        "features": 406,
+        "bus": 351,
+        "tram": 55
+      },
+      "lviv_types_trolleybus": {
+        "features": 406,
+        "other": 406
+      },
+      "lviv_types_tram": {
+        "features": 55,
+        "tram": 55
+      }
+    },
+    "after": {
+      "lviv_types_bus": {
+        "features": 354,
+        "bus": 354,
+        "unclassifiedVehicles": 54
+      },
+      "lviv_types_tram": {
+        "features": 54,
+        "tram": 54,
+        "unclassifiedVehicles": 0
+      },
+      "lviv_types_trolleybus": {
+        "features": 0,
+        "unclassifiedVehicles": 408
+      },
+      "lviv_types_other": {
+        "features": 0,
+        "unclassifiedVehicles": 0
+      },
+      "lviv_types_bus_trolleybus_tram": {
+        "features": 408,
+        "bus": 354,
+        "tram": 54,
+        "unclassifiedVehicles": 0,
+        "failedProviders": 0,
+        "filteredStaleVehicles": 190
+      },
+      "poltava_types_marshrutka": {
+        "features": 49,
+        "marshrutka": 49,
+        "unclassifiedVehicles": 0
+      },
+      "logged_out_request": 401,
+      "web_bundle_over_tunnel": 200
+    },
+    "auth": "real POST /api/v1/auth/register (201) + POST /api/v1/auth/login (200) throwaway account over the public tunnel; token held in a mode-600 temp file, never printed",
+    "gates": {
+      "typecheck": "clean",
+      "npm_test": {
+        "tests": 360,
+        "pass": 357,
+        "skipped": 3,
+        "fail": 0
+      },
+      "focused_regression": {
+        "file": "tests/transport-vehicle-type-filter.test.ts",
+        "pass": 3,
+        "fail": 0
+      },
+      "eslint_touched_files": 0
+    },
+    "not_proven": {
+      "browser_markers_and_LIVE_badge": "BLOCKED_PENDING_CREDENTIAL_HANDLING - needs owner login in the preview browser or explicit authorization to enter the credential in-session"
+    },
+    "known_upstream_data_issues": {
+      "lviv_trolleybus_mislabelled_as_bus": "static feed route_type says bus for Тр22/Тр32/Т03/Т09; 354 bus vs 0 trolleybus",
+      "lviv_trip_updates_row": "known-broken protobuf row still ENABLED (defect 4/12)",
+      "cheronograd": "54+ positions always stale",
+      "kyiv": "0 working realtime providers; open-data portal HTTP 522/timeouts"
+    },
+    "new_defects_filed": [
+      "FEED-CLASSIFY-BREADTH-1: category resolution breadth still depends on which static providers the request loads"
+    ],
+    "disproven_during_verification": {
+      "MAP-ENTRY-1": "claimed there is no entry to the live map; false — the home quick action 'Карта транспорту' (MarshGO-Site/src/views/HomeHero.tsx:26) calls runAction('transport') -> onOpenMap() (:98) -> setTab('map') (ProductionMarketplace.tsx:1504). The bottom nav (home/search/trips/profile, :48-49) indeed omits the map, which is a design decision requiring owner approval to change, not a defect."
+    },
+    "artifacts": [
+      ".release/live-vehicles-1-evidence.json",
+      "MarshGO-Server/docs/TRANSPORT_FEED_AUDIT.md#7",
+      ".release/server-vehiclefilter-20261031",
+      ".release/compose.container-acceptance.yml (backup .bak-vehiclefilter)"
+    ],
+    "commit": "UNCOMMITTED - owner approval required for MarshGO-Server and MarshGO-Site"
+  },
+  "live_map_latency_2026_10_31": {
+    "status": "VERIFIED_ON_ACCEPTANCE_AND_PUBLIC_HTTPS_NOT_RELEASED",
+    "recorded_at": "2026-10-31T17:25:00Z",
+    "environment": "container acceptance (marshgo-acceptance-api-1) behind nginx :8080 and zrok tunnel; NOT production",
+    "url": "https://marshgo-dima.shares.zrok.io",
+    "image": "marshgo/api:RC-2026-10-31-routeindex.2",
+    "image_digest": "sha256:75bd00df327f72537b7a87651bd319a2ad798136a12bbf32680679f692b493e5",
+    "built_from_sha": "fc5b589ca3956cc6cb0458d308ce777611adf050",
+    "build_snapshot": ".release/server-routeindex-20261031",
+    "compose_backup": ".release/compose.container-acceptance.yml.bak-routeindex",
+    "defect": "the vehicles endpoint built its route-name map by resolving FULL cached static networks for every provider touching the viewport, so a process-local L1 miss cost JSON.parse of megabytes; measured 12.87 s first call / 0.20-0.38 s warm on :3902 and 4.04 s over the public tunnel while the client polls every 15 s",
+    "honesty": "12.87 s is the first call of the run, not a proven fully-cold cache state; the claim is that a multi-second cold path existed and was measured",
+    "fix": "cachedGtfsRouteTypes stores a compact route_id->{name,type} index derived from routes.txt only, in the same shared L1+L2 cache with the same version semantics; GeoJSON providers keep using their network because their ids come from feature properties; national feeds merge first and municipal last; the vehicle cache key is now providerId alone because the index is request-independent",
+    "after": {
+      "cold_lviv_types_bus": {
+        "time_seconds": 5.32,
+        "features": 352,
+        "unclassifiedVehicles": 0,
+        "failedProviders": 1
+      },
+      "warm_lviv_types_bus_seconds": 0.12,
+      "warm_lviv_types_trolleybus": {
+        "seconds": 0.076,
+        "features": 0,
+        "unclassifiedVehicles": 0
+      },
+      "warm_lviv_types_bus_trolleybus_tram": {
+        "seconds": 0.061,
+        "bus": 352,
+        "tram": 53,
+        "failedProviders": 0
+      },
+      "cold_poltava_types_marshrutka": {
+        "seconds": 0.103,
+        "marshrutka": 48
+      },
+      "public_tunnel_first_call_types_bus_trolleybus_tram": {
+        "seconds": 0.6,
+        "features": 404,
+        "bus": 351,
+        "tram": 53
+      },
+      "public_tunnel_second_call_seconds": 0.27,
+      "public_tunnel_types_tram": {
+        "seconds": 0.25,
+        "features": 53
+      },
+      "public_tunnel_types_bus": {
+        "seconds": 0.29,
+        "features": 351
+      },
+      "logged_out_request": 401,
+      "web_bundle_over_tunnel": 200
+    },
+    "also_closes": "FEED-CLASSIFY-BREADTH-1 (task 26) — unclassifiedVehicles for types=bus fell 54 -> 0 because category resolution no longer depends on which providers the request loaded; supply unchanged (352-354 bus, 53-54 tram)",
+    "gates": {
+      "typecheck": "clean",
+      "npm_test": {
+        "tests": 363,
+        "pass": 360,
+        "skipped": 3,
+        "fail": 0
+      },
+      "focused_regression": {
+        "file": "tests/transport-vehicle-type-filter.test.ts",
+        "pass": 6,
+        "fail": 0
+      },
+      "eslint_touched_files": 0
+    },
+    "open_issues": [
+      "FEED-COLD-REFRESH-1: a viewport for a provider with no index yet still costs 5.32 s because the index download fetches the whole GTFS ZIP; needs background refresh with stale-serving",
+      "PROVIDER-HEALTH-IDS-1: meta.failedProviders covers realtime rows only and reports a count not provider ids (observed 1 then 0 within one minute), so it is not actionable health telemetry",
+      "LIVE-MAP-VISUAL-1: browser marker/LIVE badge proof remains BLOCKED_PENDING_CREDENTIAL_HANDLING",
+      "defect 11: Lviv static feed labels trolleybus route names with route_type=bus (upstream data)"
+    ],
+    "contract_note": "POST /api/v1/auth/register requires displayName (2-80 chars), field name is not name; error code invalid_display_name — current email/password contract, no dev-bypass",
+    "artifacts": [
+      "MarshGO-Server/docs/TRANSPORT_FEED_AUDIT.md#8",
+      ".release/server-routeindex-20261031",
+      ".release/live-vehicles-1-evidence.json"
+    ],
+    "commit": "UNCOMMITTED - owner approval required for MarshGO-Server"
   }
 }
