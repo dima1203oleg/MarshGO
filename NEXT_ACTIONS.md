@@ -3187,3 +3187,13 @@ The reported two-account test is partial: it directly fabricates vehicle trust i
 5. Вирішити долю незалитого ханка `MARSHGO_SOURCE_SHA` у
    `ops/scripts/materialize-release.mjs` (файл несе чужі GATE-02 хунки) — у який
    коміт його приземлити.
+
+
+## Блокувач після CANONICAL-JOURNEY-2 (2026-11-01)
+
+1. **`OSRM_URL` продакшн.** Зараз канонічний стек зібрано з `router.project-osrm.org` —
+   публічного демо-сервера, без SLA і без права на комерційне навантаження. Потрібне
+   рішення власника: власний OSRM-контейнер з українськими OSM-даними (чи зовнішній
+   постачальник із договором). До цього кроку «навігація» не вважається продакшн-готовою.
+2. **`WALKING_ROUTING_URL`.** У відповіді пошуку `door-to-door-walking:requires-WALKING_ROUTING_URL`;
+   пішохідні ноги рахуються евристику, а не по реальній мережі.

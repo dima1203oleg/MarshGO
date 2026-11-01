@@ -2302,5 +2302,30 @@
       "життєвий цикл carpool на канонічних образах (доведено лише на acceptance-стеку)"
     ],
     "production_status": "NOT_RELEASED"
+  },
+  "gate02_canonical_full_chain_2026_11_01": {
+    "status": "PROVEN_LOCAL_CANONICAL_IMAGE",
+    "date": "2026-11-01",
+    "environment": "локальний канонічний прод-стек RC-2026-11-01-canonical.1 (api 44f954b), порт 3012",
+    "steps": {
+      "sign_in_and_select": "POST /api/v1/auth/register (email+password) → POST /api/v1/journeys/search → обраний journey a8d7b105-0db2-46c3-8aed-a50601a55a2c",
+      "GET_/api/v1/journeys/me": "HTTP 200, 24 збережених поїздок",
+      "GET_/api/v1/journeys/:id": "HTTP 200, state=PLANNED, strategy=BALANCED, legs=3, origin/destination coordinates present",
+      "GET_/api/v1/journeys/:id/live": "HTTP 200, checkedAt=2026-11-01T18:09:51.447Z, segments=1, перший сегмент status=LIVE, vehiclePositionStatus=UNAVAILABLE, boardingStopArrival={'status': 'SCHEDULED', 'scheduledAt': '2026-11-01T18:54:00.000Z'}",
+      "POST_/api/v1/navigation/sessions": "HTTP 201, state=active, route_distance_m=2041, route_duration_s=220, maneuvers=11, перший 'DEPART' на [24.028672, 49.839679]"
+    },
+    "honest_labelling_observed": [
+      "live-сегмент: status=LIVE, але vehiclePositionStatus=UNAVAILABLE — образ не видає прогнозу за реальну позицію",
+      "boardingStopArrival.status=SCHEDULED із scheduledAt — розклад позначений як розклад",
+      "matching_vehicle_available=false і vehicle_id=null: акаунт без перевіреного авто не отримує пасажирського матчингу"
+    ],
+    "blocking_finding": "OSRM-маршрут навігації взято з router.project-osrm.org (публічний демо-сервер). Для продакшну потрібен власний або авторизований OSRM; канонічний реліз не повинен залежати від демо-інфраструктури.",
+    "not_covered": [
+      "браузерний UI на прод-образі web (образ ще не зібрано)",
+      "публічний HTTPS-edge",
+      "carpool-цикл на канонічних образах",
+      "reroute/pause/resumeLifecycle на канонічному образі"
+    ],
+    "production_status": "NOT_RELEASED"
   }
 }

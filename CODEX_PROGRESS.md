@@ -4318,3 +4318,26 @@ Not claimed: payment capture, live GTFS-RT vehicle positions, anything on accept
 
 Сирі докази: `.release/canonical-journey-20261101-evidence.json` (gitignored), ключ
 `gate02_canonical_journey_2026_11_01` у `RELEASE_MANIFEST.json`.
+
+
+## CANONICAL-JOURNEY-2 (2026-11-01): повний ланцюжок «пошук → деталі → живий статус → навігація» на прод-образі
+
+Той самий канонічний образ `marshgo/api:RC-2026-11-01-canonical.1` (`44f954b`) відпрацював
+усю базову життєву цикл-ланцюжку користувача, а не лише пошук:
+
+| Крок | Результат |
+| --- | --- |
+| `POST /api/v1/auth/register` | 201 — email+password, без dev-bypass |
+| `POST /api/v1/journeys/search` | 200 — 10 реальних маршрутів («Львівавтодор», А37) |
+| `GET /api/v1/journeys/me` | 200 — 24 збережені поїздки |
+| `GET /api/v1/journeys/:id` | 200 — `state=PLANNED`, координати й ноги на місці |
+| `GET /api/v1/journeys/:id/live` | 200 — сегмент `status=LIVE`, `vehiclePositionStatus=UNAVAILABLE`, посадка `SCHEDULED` |
+| `POST /api/v1/navigation/sessions` | 201 — `state=active`, 2041 м / 220 с, `maneuvers` із назвами вулиць |
+
+Ключове: образ чесний у маркуванні. Реальної позиції транспорту немає — і він пише
+`UNAVAILABLE`, а не малює вигаданий борт; посадка лишається `SCHEDULED`; акаунт без
+перевіреного авто отримує `matching_vehicle_available=false`.
+
+Блокувач, знайдений саме тут: маршрут навігації рахує **публічний демо-OSRM**
+(`router.project-osrm.org`). Для продакшну це непридатна залежність — потрібен власний
+або ліцензований OSRM, інакше реліз тримається на чужій демо-інфраструктурі.
