@@ -3097,3 +3097,29 @@ The reported two-account test is partial: it directly fabricates vehicle trust i
 **Закрито того ж дня (#49, EDGE-PROXY-COMPOSE-1):** край тепер описаний у `ops/nginx/compose.edge.yml` — `docker compose -f ops/nginx/compose.edge.yml up -d` відтворює його повністю (той самий `container_name: marshgo-proxy`, зовнішня мережа `marshgo-acceptance_isolated_acceptance`, `restart: unless-stopped`, порт **127.0.0.1**:8080 замість 0.0.0.0, read-only mount конфігу). Файл навмисне без секретів, тож він у git; сам acceptance-компоуз лишається gitignored, бо містить `POSTGRES_PASSWORD` / `SESSION_SECRET` / `TWILIO_AUTH_TOKEN`. Публічний смоук після перестворення: `/healthz` 200, `/` 200, `/admin/` 200, `/partner/` 200, статика 273 707 B gzip, `/api/v1/journeys/me` 188 963 B gzip, WebSocket `/api/v1/realtime` → `Upgrade: websocket`. `/tiles/` = 502 — на хості ніхто не слухає 3306 (`nc -z 127.0.0.1 3306` = CLOSED), тобто самохостованого тайл-сервера в цьому стеку просто немає; це було так і до перестворення, а не регресія.
 
 Не заявляється: це не зникає задачу SEARCH-LATENCY-1 (#36) — туди 15–21 s іде на обчислення маршруту, а не на передачу; і це ще не продакшн-деплой (продакшн-конфіг `compose.production.yml` лишається брудним від іншої задачі). Продакшн — **NOT_RELEASED**.
+
+## STOP-DQ-LABEL-1 (#33): шар зупинків нарешті каже, звідки взялися його дані
+
+**Дефект, знайдений публічним аудитом:** `transport/routes` і `transport/vehicles` оголошували `meta.dataQuality`, а `transport/stops` — ні. Клієнт, який малює зупинки, не міг відрізнити точку з опублікованого розкладу від живої телеметрії, а порожній viewport відповідав `200` з пустим списком без будь-якого пояснення; вимога майстер-ТЗ «позначати live/scheduled/estimated/unknown» на цьому шарі не виконувалась.
+
+**Фікс (сервер, `server/index.ts`, блок обробника зупинків):** шар зупинків тепер використовує ту саму функцію, що й маршрути — `scheduledDataQuality(served.length)`, — тобто мітка рахується за фактично віддану кількість фіч після усікання, а не за повним списком. Ніяких нових рівнів якості не вигадували: `aggregateDataQuality([])` уже дає `UNKNOWN`, тому порожній viewport чесно називає себе невідомим. Запобіжний тест додано в `tests/transport-data-quality.test.ts` (він читає початковий код обробника, тож наступне «забудемо мітку» впаде в CI, а не в публічній мапі).
+
+**Виміряно на зовнішньому HTTPS** (не localhost), `https://marshgo-dima.shares.zrok.io`, образ `marshgo/api:RC-2026-11-01-dqlabel.1` (`sha256:0d28d7557822`), вхід за email/паролем, 2026-11-01 08:57 UTC:
+
+| запит | HTTP | фіч | `dataQuality.level` | counts |
+|---|---|---|---|---|
+| `stops?bbox=24.00,49.83,24.08,49.87&types=tram` (Львів) | 200 | 101 | `SCHEDULED` | `{SCHEDULED: 101}` |
+| `stops?bbox=-30,-20,-29.5,-19.5&types=tram` (порожньо) | 200 | 0 | `UNKNOWN` | `{}` |
+| `routes?bbox=24.00,49.83,24.08,49.87&types=tram` (регресія) | 200 | 16 | `SCHEDULED` | `{SCHEDULED: 16}` |
+
+Перевірки перед розгортанням: `npx tsx --test tests/transport-data-quality.test.ts` = 11 pass / 0 fail, `npm run typecheck` чистий, `docker compose config --quiet` ok; acceptance-компоуз лишається gitignored (секрети), тож оновлено лише локальний тег служби `api` з резервною копією `.release/compose.container-acceptance.yml.bak-dqlabel`. Коміт `0192026` у `qoder/search-latency-20261031`, запушено (локальний і віддалений SHA збігаються), доказ — коментар до PR #63.
+
+**Спростовано того ж вікна, щоб наступний агент не витрачав цикли білди на мертві ідеї (#36):**
+- `createServiceTimeConverter` уже мемоїзує за `serviceDate:secondsAfterMidnight` (`server/journey/gtfsTimetable.ts:1139-1146`) — «зкешувати конвертер часового поясу» = no-op.
+- Вкладка стратегії НЕ робить повторного пошуку: сервер один раз формує кандидатів і лише ранжує для трьох стратегій (`server/index.ts:3003-3004` і `:3605`), а Site переупорядковує клієнтсько за `strategyRanks` (`src/views/journeyStrategySelection.ts:23-31`). Кеш відповідей економив би тільки повтори одного й того самого запиту.
+- Стискання теж не важіль (різниця ttfb↔total 0,01 s — усі 17–20 s є серверне обчислення).
+- Лікарня залишається архітектурною: поза-запитовий кеш query-незалежної проекції подій `(trip, serviceDate)` або аналітичний замість `O(k²)` підрахунок пар у Pass A. Фази вже інструментовані — `debugStage('segments-built')` віддає `phaseInstanceEventsMs` / `phasePairVisitationMs` / `phaseRetentionMs` (`gtfsTimetable.ts:2800-2802`); для одного виміру потрібен запуск з `MARSHGO_GTFS_SEARCH_DEBUG=1`, а dev-процес на 3002 (pid 56323) не має цього прапорця й навмисне не перезапущено: це чужий живий процес.
+
+**Потрібне рішення власника (не закриваю самостійно):** `transport/fares` віддає зашитою `lastVerifiedAt: '2026-10-13'` (`server/index.ts:833`), яку жоден процес не оновлює (18 діб), і Site її не читає, але на ній тримається `tests/transport-tariffs.test.ts`. Це редакторський факт каталогу тарифів чи залишок demo? Прибрання або заміна на `null` = зміна контракту.
+
+**Наступний конкретний крок (#33, пункт 3):** Київське метро відповідає `200` з `0` фіч та `UNKNOWN` — сервер уже чесний, але Site взагалі не споживає `meta.dataQuality` (єдиний читач — `src/map/transportQuality.ts`, і лише vehicle-фічі), тому мапа показує порожній шар замість «джерело недоступне».
