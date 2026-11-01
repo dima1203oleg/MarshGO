@@ -2410,5 +2410,26 @@
     ],
     "production_status": "NOT_RELEASED",
     "correction_note": "Попередня версія цього ключа містила хибний порівняльний проєб (DNS-невідомий хост) і надто загальне «КМДА-GIS лежить»; виправлено цим записом."
+  },
+  "canonical_carpool_lifecycle_2026_11_01": {
+    "status": "PROVEN_LIVE",
+    "date": "2026-11-01",
+    "environment": "локальний продакшн-стек з пінних SHA (compose.production.yml), порт 3012, образ marshgo/api:photo-fix-1",
+    "source_sha": "44f954b3ce6099dde86cebfe7984079a078a5872 + фікс 8cc634a (.qoder гілка qoder/uploads-perm-fix-20261101)",
+    "steps": [
+      "водій: реєстрація -> vehicle -> фото -> trust_level=1 -> offer (OSRM route_source=osrm)",
+      "пасажир: пошук allowedTransportTypes=[carpool] -> 1 реальний COMMUNITY маршрути",
+      "booking 201 (idempotency-key, fee 0 community-0pct-v1, 8000 UAH minor)",
+      "MarshPass ticket MARSHGO-HMAC-SHA256-V1 -> driver boarding 200 -> rendezvous ACTIVE -> start -> complete 1/2 підтверджень"
+    ],
+    "fixture_label": "акаунти й поїздки — ізольовані smoke-дані, не реальні користувачі"
+  },
+  "carpool_publish_blocker_2026_11_01": {
+    "status": "ROOT_CAUSE_FOUND_AND_FIXED",
+    "symptom": "у продакшн-образі завантаження фото авто повертало 400 invalid_photo; тому пошук лише carpool давав порожній результат без partial",
+    "root_cause": "том marshgo-prod-uploads монтувався в /app/.uploads від імені root, а API працює від node (uid 1000) -> запис фото неможливий",
+    "fix": "Dockerfile: mkdir + chown node:node /app/.uploads перед USER node; objectStorage.putPhotoObject: помилка локального запису тепер ObjectStorageUnavailableError -> 503 замість хибного 400",
+    "verification": "повторний збіг образу та свіжий том: фото 201, trust_level 1, offer 201, пошук carpool повертає реальний маршрути",
+    "honesty_finding": "картка carpool не мала labels partial/unsupported, бо движок завжди вважає carpool доступним; це було наслідком блокера публікації, а не окремою помилкою"
   }
 }

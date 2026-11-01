@@ -4393,3 +4393,10 @@ Not claimed: payment capture, live GTFS-RT vehicle positions, anything on accept
 Наслідок для релізу: METRO — **BLOCKED_EXTERNAL** (мертвий або фільтрований першоджерело),
 а не технічний борг. Варіанти: чекати відновлення КМДА, знайти легальний альтернативний
 київський метро-фід, або налаштувати дозвіл/агент — кожне потребує рішення власника.
+
+
+## CANONICAL-CARPOOL-1 (2026-11-01) — повний carpool-цикл на продакшн-образі
+- Знайдено і виправлено блокувач публікації: том `marshgo-prod-uploads` належав root, API працює від `node`, тому завантаження фото авто падало з омановим `400 invalid_photo`.
+- Виправлення: `Dockerfile`/`ops/docker/Dockerfile.server` створюють `/app/.uploads` з `chown node:node`; `server/objectStorage.ts` тепер повертає 503 (відмовлений запис сховища), а не 400 про «не коректне фото».
+- Доказ після перероблення образу (свіжий том): фото 201 -> `trust_level=1` -> offer 201 (OSRM) -> пошук з `allowedTransportTypes=["carpool"]` повертає 1 реальний COMMUNITY маршрути -> бронювання 201 з `Idempotency-Key` -> MarshPass `MARSHGO-HMAC-SHA256-V1` -> посадка водія 200 -> rendezvous `ACTIVE` -> `start` -> `complete` потребує 2 підтверджень (1/2 зараховано).
+- Дані: ізольовані smoke-акаунти, не реальні користувачі. Продакшн-статус залишається `NOT_RELEASED`.
