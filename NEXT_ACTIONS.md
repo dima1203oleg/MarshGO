@@ -3170,3 +3170,20 @@ The reported two-account test is partial: it directly fabricates vehicle trust i
 3. Прогнати `docker compose -f .release/compose.production.yml up` з `seedUkraine` (52 провайдери, 22 живі) і довести реальну поїздку на канонічних образах — досі доказано лише завантаження.
 4. Caddy-edge: `deploy/Caddyfile` і HTTPS-завершення ще не перевірялись локально.
 5. #56 модерація в UI порталу — заблоковано: потрібен пароль адміна в acceptance-БД (дозвіл власника).
+
+
+## Після CANONICAL-JOURNEY-1 (2026-11-01)
+
+1. Публічний edge на канонічних прод-образах: підняти Caddy/nginx перед `web`+`api` з
+   `RC-2026-11-01-canonical.1` і повторити пошук через реальний HTTPS-домен (зараз
+   суто локальний доказ).
+2. Зібрати `marshgo/web:RC-2026-11-01-canonical.1` — власник має дати версійований
+   `VITE_MAP_STYLE_MANIFEST_URL`; потім прохід «вхід → пошук → маршрут → навігація» в
+   браузері саме на прод-образі.
+3. Пройти carpool-цикл (публікація → пропозиція → бронювання → MarshPass) на канонічних
+   образах, а не лише на acceptance-стеку.
+4. Додати коридор, де `priceStatus` хоча б раз
+   стає `CONFIRMED`, інакше продакшн показує лише оцінені тарифи.
+5. Вирішити долю незалитого ханка `MARSHGO_SOURCE_SHA` у
+   `ops/scripts/materialize-release.mjs` (файл несе чужі GATE-02 хунки) — у який
+   коміт його приземлити.

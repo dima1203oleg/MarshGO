@@ -4284,3 +4284,37 @@ Not claimed: payment capture, live GTFS-RT vehicle positions, anything on accept
 - Перший реальний runtime-smoke канонічного prod-конфігу (ізольований локальний compose-проєкт `marshgo-canonical-smoke`, власні томи, acceptance-стек не чіпаний): `migrate` вийшов 0 на чистій PostGIS 17, тобто схема застосовується; `api` healthy, `/readyz` = `{"status":"ready","database":"connected","realtime":"connected"}`; `admin` healthy, `/healthz` = ok, `/` віддає `index-CMEEKaj2.js` — той самий хеш бандла, що й acceptance-контейнер на :3903, отже canonical-рецепт відтворює перевірений застосунок; запит `/api/healthz` крізь nginx адмінки дає 404 з тілом помилки API, тобто проксі дійсно доходить до сервісу. Після доказу стек знято (`down -v`).
 - Виявлено чотири передумови запуску, яких раніше ніде не було записано: 16 обовʼязкових інтерполяцій ще до `compose build`; `server/config.ts` у production відмовляється стартувати з `SESSION_SECRET` коротшим за 32 байти і з не-HTTPS `OSRM_URL`/геокодинг/`MAP_*` (fail-fast, без безшумних фолбеків); api публікує `127.0.0.1:${API_PORT:-3002}` і конфліктує з dev-API; заміна `POSTGRES_PASSWORD` на вже ініціалізованому томі ламає `migrate` (initdb зберігає перший пароль).
 - Чесно: БД порожня (немає провайдерів і GTFS), тож цей стек доводить завантаження й зʼєднання, а не реальну поїздку; це local, не staging; деплою не було й дозволу на нього немає. `production_status` залишається `NOT_RELEASED`.
+
+
+## CANONICAL-JOURNEY-1 (2026-11-01): реальна поїздка на канонічних прод-образах
+
+Доведено, що канонічний продакшн-образ `marshgo/api:RC-2026-11-01-canonical.1` (source
+`44f954b`) не просто стартує, а віддає справжні маршрутні результати з реальних відкритих
+фісів.
+
+Ланцюжок доказу:
+
+1. Реєстрація: `POST /api/v1/auth/register` на прод-образі — email+password, жодного
+   dev-bypass (валідатор прод-конфігу їх забороняє).
+2. Дані: `npm run mobility:seed` усередині того самого образу — 43 провайдери в реєстрі, живі
+   GTFS-RT із віком бортів у секундах (Львів 423 борті, 3 s; Київпастранс 1528 зупинок;
+   Укрзалізниця 122 потяги).
+3. Пошук: `POST /api/v1/journeys/search`, коридор Оперний театр → Залізничний вокзал (Львів):
+   - `BALANCED`: HTTP 200, `candidateCount=100`, `paretoCount=10`, повернуто 10 маршрутів;
+     ноги `WALK` 27 / `BUS` 22; пересадки від 0 до 3; найкращий 1230 s.
+   - `FASTEST`: найшвидший 870 s; `CHEAPEST`: найдешевший 1008 s.
+   - кожна нога має `providerName`/`providerId` («Львівавтодор — розклад (GTFS)»,
+     `routeShortName` А48/А09/А37), назви зупинок і часи прибуття/відправлення.
+   - ціна: `priceStatus=ESTIMATED`, `currency=UAH`, 2300 minor (23,00 грн). Нуля і
+     «підтвердженої» ціни не вигадували.
+4. Негативний контроль: той самий запит до аеропорту повернув `journeys=[]`,
+   `candidateCount=0` і явний список `blockedProviders`/`unsupportedPreferences`
+   (`transportType:marshrutka:no-routed-provider-in-corridor` тощо) — тобто порожньо там,
+   де фізично немає покриття, а не «маршрут не знайдено» без пояснення.
+
+Чого це НЕ покриває: публічний HTTPS-edge на канонічних образах (zrok-превью досі
+обслуговує acceptance-стек), збірка `marshgo/web` (чекає на реальний версійований
+`VITE_MAP_STYLE_MANIFEST_URL`), carpool-цикл на канонічних образах, staging.
+
+Сирі докази: `.release/canonical-journey-20261101-evidence.json` (gitignored), ключ
+`gate02_canonical_journey_2026_11_01` у `RELEASE_MANIFEST.json`.

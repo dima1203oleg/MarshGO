@@ -2259,5 +2259,48 @@
       "no deployment performed and none authorized; production_status stays NOT_RELEASED"
     ],
     "production_status": "NOT_RELEASED"
+  },
+  "gate02_canonical_journey_2026_11_01": {
+    "status": "PROVEN_LOCAL_CANONICAL_IMAGE",
+    "date": "2026-11-01",
+    "environment": "локальний канонічний прод-стек (NOT staging, NOT публічнийPreview)",
+    "release_tag": "RC-2026-11-01-canonical.1",
+    "images_used": {
+      "api": "marshgo/api:RC-2026-11-01-canonical.1 (org.opencontainers.image.revision=44f954b3ce6099dde86cebfe7984079a078a5872)",
+      "admin": "marshgo/admin:RC-2026-11-01-canonical.1 (com.marshgo.git.sha=4eb5d15d1692ebcdb5aae40dbcffc39446138fb5)",
+      "partner": "marshgo/partner:RC-2026-11-01-canonical.1 (com.marshgo.git.sha=544e5d8c71a04601fae5f0d92dd5ec186f7ac241)"
+    },
+    "auth": "кинутий акаунт створено через POST /api/v1/auth/register на прод-образі (email+password); dev-bypass у прод-конфігу заборонено валідатором",
+    "data_seed": "npm run mobility:seed усередині прод-образу api; 43 провайдери в реєстрі, живі GTFS-RT з віком бортів у секундах",
+    "live_provider_evidence": {
+      "Львів gtfs": "healthy, stops=1071, routes=72, trips=15716, stopTimes=426685 (routes_bus=64, routes_tram=8)",
+      "Львів gtfs_rt": "degraded, vehicles=423, ageSeconds=3, fresh vehicle positions",
+      "Київ gtfs": "healthy, stops=1528, routes=165, trips=24312",
+      "Укрзалізниця gtfs": "healthy, routes_train=122, routes_suburban=3"
+    },
+    "journey_search_results": {
+      "endpoint": "POST /api/v1/journeys/search (прод-образ, локальний порт 3012)",
+      "corridor": "Оперний театр (24.0287, 49.8397) → Залізничний вокзал (24.0172, 49.8487), Львів",
+      "BALANCED": "HTTP 200, candidateCount=100, paretoCount=10, returned=10; ноги WALK=27/BUS=22; пересадки 0–3; найкращий 1230 s",
+      "FASTEST": "HTTP 200, повернуто 7, найшвидший 870 s",
+      "CHEAPEST": "HTTP 200, повернуто 7, найдешевший 1008 s при 2300 minor",
+      "fare_labelling": "усі 10 маршрутів priceStatus=ESTIMATED, currency=UAH, totalPriceMinor=2300 (23,00 грн); нуля чи підтвердженої ціни не вигадуано",
+      "provider_attribution": "legs[].providerName='Львівавтодор — розклад (GTFS)' + providerId, routeShortName А48/А09/А37",
+      "negative_control": "коридор до аеропорту повернув journeys=[] із candidateCount=0 і явними blockedProviders/unsupportedPreferences (transportType:marshrutka:no-routed-provider-in-corridor та ін.) — чесний partial, без фіктивних результатів"
+    },
+    "startup_commands": {
+      "up": "docker compose --project-name marshgo-canonical-smoke --env-file .release/env.build-smoke -f .release/compose.production.yml up -d",
+      "seed": "docker compose --project-name marshgo-canonical-smoke --env-file .release/env.build-smoke -f .release/compose.production.yml run --rm --no-deps api npm run mobility:seed",
+      "status": "docker compose --project-name marshgo-canonical-smoke --env-file .release/env.build-smoke -f .release/compose.production.yml ps",
+      "stop": "docker compose --project-name marshgo-canonical-smoke --env-file .release/env.build-smoke -f .release/compose.production.yml stop"
+    },
+    "evidence_file": ".release/canonical-journey-20261101-evidence.json (gitignored, 43 провайдери + повні відповіді пошуків)",
+    "not_covered": [
+      "публічний HTTPS-EDGE з прод-образами (zrok-превью зараз обслуговує acceptance-стек, не канонічний)",
+      "web-образ marshgo/web:RC-2026-11-01-canonical.1 не зібрано: потрібен реальний версійований VITE_MAP_STYLE_MANIFEST_URL",
+      "staging-обладнання не погоджено власником",
+      "життєвий цикл carpool на канонічних образах (доведено лише на acceptance-стеку)"
+    ],
+    "production_status": "NOT_RELEASED"
   }
 }
