@@ -3162,3 +3162,11 @@ The reported two-account test is partial: it directly fabricates vehicle trust i
 ## 2026-11-01 17:47 UTC — GATE-02/05: піни та materializer
 - Зроблено: піни `RELEASE_MANIFEST.json` виправлено на реально запушені HEAD (Server `44f954b`, Site `fef697e`, Admin `4eb5d15`, Partner `544e5d8`); дублюючі портальні рецепти відкатуано; materializer пройдено з exit 0 і згенеровано `.release/compose.production.yml`, привʼязаний до pinned-checkoutʼів.
 - Далі: (1) додати `ARG GIT_SHA` + OCI `LABEL` у `ops/docker/Dockerfile.{server,site,portal}` (одне джерело правди, не в app-репо); (2) `docker compose -f .release/compose.production.yml build` по одному сервісу за раз і зняти час/памʼять; (3) пройти email/password логін і чергу модерації на зображенні з канонічного шляху, а не з мого dist-based; (4) узяти в власника значення `VITE_MAP_STYLE_MANIFEST_URL` і `MARSHGO_RELEASE_TAG` для справжнього релізу.
+
+## 2026-11-01 18:00 UTC — GATE-02/05: далі по канонічному релізу
+
+1. Отримати від власника `VITE_MAP_STYLE_MANIFEST_URL` і `MARSHGO_RELEASE_TAG`, тоді зібрати `marshgo/web` і повторити публічний прохід journey на цьому образі.
+2. Вирішити, хто комітне hunk інʼєкції `MARSHGO_SOURCE_SHA` у `ops/scripts/materialize-release.mjs`: файл уже містить чужі незакомічені зміни GATE-02 (привʼязка build-metadata, `--no-single-branch`), тому я його не закомітив, щоб не приписати чужу роботу собі.
+3. Прогнати `docker compose -f .release/compose.production.yml up` з `seedUkraine` (52 провайдери, 22 живі) і довести реальну поїздку на канонічних образах — досі доказано лише завантаження.
+4. Caddy-edge: `deploy/Caddyfile` і HTTPS-завершення ще не перевірялись локально.
+5. #56 модерація в UI порталу — заблоковано: потрібен пароль адміна в acceptance-БД (дозвіл власника).

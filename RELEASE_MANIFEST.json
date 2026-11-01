@@ -2182,5 +2182,82 @@
       "OCI-лейбл git SHA досі лише в acceptance-образі; у канонічному рецепті його немає"
     ],
     "production_status": "NOT_RELEASED"
+  },
+  "gate02_canonical_release_smoke_2026_11_01": {
+    "date_utc": "2026-11-01T17:59Z",
+    "environment": "local Docker Desktop on 8 GB MacBook Pro; isolated compose project marshgo-canonical-smoke with its own volumes and network; acceptance stack untouched; NOT staging",
+    "recipe_change": {
+      "commit": "0d9b12e",
+      "files": [
+        "ops/docker/Dockerfile.portal",
+        "ops/docker/Dockerfile.site"
+      ],
+      "effect": "runtime image carries LABEL com.marshgo.git.sha bound to the pinned source commit of that repo",
+      "note": "org.opencontainers.image.revision on nginx-unprivileged base images is the base image SHA (d5fb0119...), never app provenance"
+    },
+    "materializer_change": {
+      "file": "ops/scripts/materialize-release.mjs",
+      "status": "UNCOMMITTED",
+      "reason": "the same file already carries another task's uncommitted GATE-02 hunks (release-build-metadata binding, --no-single-branch clone); committing it here would misattribute foreign work",
+      "injected_args": {
+        "web": "MARSHGO_SOURCE_SHA=fef697e2603b + existing VITE_MAP_STYLE_MANIFEST_URL",
+        "admin": "MARSHGO_SOURCE_SHA=4eb5d15d1692",
+        "partner": "MARSHGO_SOURCE_SHA=544e5d8c71a0"
+      },
+      "verified": "docker compose config --quiet exit 0 and PyYAML parse of all four services"
+    },
+    "images_built": [
+      {
+        "tag": "marshgo/admin:RC-2026-11-01-canonical.1",
+        "id": "db568d95e91e",
+        "size": "76.4MB",
+        "wall_time_s": 14.4,
+        "label_com.marshgo.git.sha": "4eb5d15d1692ebcdb5aae40dbcffc39446138fb5"
+      },
+      {
+        "tag": "marshgo/partner:RC-2026-11-01-canonical.1",
+        "id": "fec79406ad27",
+        "size": "76.4MB",
+        "wall_time_s": 6.0,
+        "label_com.marshgo.git.sha": "544e5d8c71a04601fae5f0d92dd5ec186f7ac241"
+      },
+      {
+        "tag": "marshgo/api:RC-2026-11-01-canonical.1",
+        "id": "3ede87183045",
+        "size": "443MB",
+        "wall_time_s": 1.6,
+        "note": "layers cached from an earlier build",
+        "baked_env": {
+          "MARSHGO_BUILD_ID": "local-44f954b3ce60-20261101T175131044Z",
+          "MARSHGO_BUILD_SHA": "44f954b3ce6099dde86cebfe7984079a078a5872"
+        }
+      },
+      {
+        "tag": "marshgo/web",
+        "status": "NOT BUILT",
+        "blocker": "VITE_MAP_STYLE_MANIFEST_URL has no owner-supplied value; build would bake a wrong style manifest URL into the public bundle"
+      }
+    ],
+    "runtime_smoke": {
+      "migrate": "exited 0 against a fresh postgis/postgis:17-3.5 volume, so the canonical api image applies the real schema",
+      "api": "Up (healthy); GET /readyz = {\"status\":\"ready\",\"database\":\"connected\",\"realtime\":\"connected\"}",
+      "admin": "Up (healthy); /healthz = ok; / serves index-CMEEKaj2.js which is byte-for-byte the same bundle hash as the acceptance admin container on 127.0.0.1:3903, proving the canonical recipe reproduces the tested app",
+      "admin_to_api_proxy": "GET /api/healthz through the container nginx returns HTTP 404 with the API JSON error body, i.e. the proxy reaches the API service",
+      "teardown": "docker compose down -v on the smoke project; no containers or volumes left"
+    },
+    "startup_prerequisites_discovered": [
+      "16 required interpolations must be set even to run compose build for one service: POSTGRES_PASSWORD, REDIS_PASSWORD, SESSION_SECRET, TWILIO_ACCOUNT_SID/AUTH_TOKEN/FROM_NUMBER, S3_BUCKET/S3_REGION, APP_DOMAIN, TRUST_PROXY_HOPS, OSRM_URL, GEOCODING_ENGINE_URL, GEOCODING_REVERSE_URL, MAP_DATA_MANIFEST_URL, MAP_STYLE_MANIFEST_URL, VITE_MAP_STYLE_MANIFEST_URL",
+      "server/config.ts rejects startup in production unless SESSION_SECRET is >=32 bytes and OSRM/GEOCODING/MAP urls are public HTTPS (fail-fast validated, no silent fallback)",
+      "api publishes 127.0.0.1:${API_PORT:-3002}:3002, which collides with the running dev API; set API_PORT to something free for local runs",
+      "changing POSTGRES_PASSWORD on an existing db volume breaks migrate with auth failure; initdb keeps the first password, so a fresh volume is required"
+    ],
+    "not_covered": [
+      "empty schema, no seeded providers or GTFS, therefore this stack proves boot and wiring only, not a real journey",
+      "web/PWA image not built (owner input needed for the style manifest URL)",
+      "Caddy edge not started, no HTTPS termination check",
+      "local, not staging; staging gate still open",
+      "no deployment performed and none authorized; production_status stays NOT_RELEASED"
+    ],
+    "production_status": "NOT_RELEASED"
   }
 }
