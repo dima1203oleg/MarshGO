@@ -6,11 +6,11 @@
 
 | Layer | Value |
 |---|---|
-| Site branch / HEAD | `qoder/site-ui-polish-20261031` / `53c1347` |
-| Redesign commits | 18, range `0d3f205..53c1347` |
-| Root checkpoint | `0307074` (`NEXT_ACTIONS.md`) |
-| Public image tag | `marshgo/web:RC-2026-11-01-boards.1` |
-| Served bundle | `dist/assets/index-9sZIGS80.js` — 1 013,61 kB, gzip 273,25 kB |
+| Site branch / HEAD | `qoder/site-ui-polish-20261031` / `255184c` |
+| Redesign commits | 19, range `0d3f205..255184c` |
+| Root checkpoint | `0e31084` (`NEXT_ACTIONS.md`) |
+| Public image tag | `marshgo/web:RC-2026-11-01-order.2` |
+| Served bundle | `dist/assets/index-CDLvxRZh.js` — 1 013,83 kB, gzip 273,29 kB |
 | Public URL | `https://marshgo-dima.shares.zrok.io` → nginx `marshgo-proxy` :8080 → web :3900 |
 | Data behind the UI | 52 registered / 21 enabled healthy+degraded providers; Lviv GTFS-RT live layer 443 борти |
 
@@ -31,7 +31,7 @@
 | 7 | Booking / MarshPass / Trips / Profile | `8b27533`, `a3c9189`, `1373a1a` | scanner + theme segments at 44 px; lazy profile sections and point picker no longer blank |
 | 8 | Light AND dark verified | task #43 #44 | paired screenshots for every screen group below; both themes captured on the public build |
 | 9 | Real browser screenshots | — | 32 PNGs under `.release/` (16 in `ux-states-20261101/`), captured with browser tooling, not mockups |
-| 10 | Lint / types / build / tests | `53c1347` | `npx tsc --noEmit` = 0 errors, `npm run lint` = 0, `npm test` = **221/221**, `npm run build` = bundle above |
+| 10 | Lint / types / build / tests | `255184c` | `npx tsc --noEmit` = 0 errors, `npm run lint` = 0, `npm test` = **226/226**, `npm run build` = bundle above |
 | 11 | Fix every found defect | 18 commits | each defect row in §2 names its commit |
 | 12 | Deliver report | this file | — |
 
@@ -78,7 +78,7 @@ A latent accessibility defect surfaced by the same measurement — three buttons
 
 1. **Not a production release.** `NOT_RELEASED`. Deployment requires explicit owner authorization.
 2. **1 MB initial chunk remains.** `index-9sZIGS80.js` = 1 013,61 kB / gzip 273,25 kB — visually clean but a real load-cost problem; code-splitting is still open.
-3. **Card order is still tie-driven.** Ties leave boarding times in arbitrary order (08:21, 10:08, 08:33). A deterministic tie-break (earliest boarding first) is a routing-ranking decision, not a cosmetic one, and is not yet implemented.
+3. ~~**Card order is still tie-driven.**~~ **Resolved the same session** (`255184c`, task BOARDING-ORDER-1). Measured cause was not a UI tie: the planner returns BALANCED ranks 1/2/3 for three journeys with identical `totalDurationSeconds 34548`, `walkingMeters 3022`, `transfers 1`, `legs 5` and identical `score 0.053408534075540484`, and ranks 5/6/7 for three more with `walkingMeters 2971 / transfers 2 / legs 7 / score 0.10355828220858895` — the rank gap inside such a group carries no information. The comparator now treats journeys that are equal on everything a passenger can compare (duration, price, walking, transfers, leg count) as one group and orders that group by boarding time, and otherwise defers to the server rank unchanged. Public result before → after: `08:21, 10:08, 08:33` → `08:21, 08:33, 10:08` and `09:12, 08:01, 08:09` → `08:01, 08:09, 09:12`; the genuinely different rail results stayed in their server positions (Поїзд 11:03 fourth, Поїзд 16:03 last). Evidence: `.release/ux-states-20261101/public-boarding-order-light.png`, 4 new regression tests (226 total).
 4. **Open product question:** whether «9 год 36 хв» total duration should count waiting from the requested departure. Left to the owner.
 5. **Search latency (#36/#38) and cold paths (#35)** are still in progress; the honest pending copy exists precisely because tens of seconds is the real number.
 6. **iOS on a physical device** remains `BLOCKED_EXTERNAL`; simulator rendering is proven, device build is not.
