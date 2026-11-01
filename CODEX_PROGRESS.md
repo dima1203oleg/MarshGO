@@ -4256,3 +4256,22 @@ Not claimed: payment capture, live GTFS-RT vehicle positions, anything on accept
 **Не доведено (точний блокувач і наступний крок).** Чергу модерації в браузері на цьому образі не пройдено: в acceptance-БД є три `admin.audit.*@marshgo.ua` (`roles={passenger,admin}`), але паролів до них немає в жодному збереженому файлі (`/tmp/dima_preview_creds.txt`, `/tmp/partner_preview_creds.txt`, `/tmp/uicreds.txt` — усі без адмін-ролей), а призначати роль тестовому акаунту я без дозволу не змінюю. Наступний крок: власник дає адмін-обліковку acceptance-БД (або дозвіл виставити пароль тестовому `admin.audit.*`), після чого пройти `Модерація авто` → черга → перегляд документів → рішення.
 
 **Не чіпав:** чужі брудні файли в кореневому репо (зокрема `compose.production.yml`) і застарілі `RC-2026-10-31-edgefix.1` — лишилися в локальному сховищі образів як точка відкату.
+
+## 2026-11-01 17:46 UTC — GATE-02/05: справжній блокувач був у пінах маніфесту, а не в рецептах (друга самоскорекція)
+
+**Мій попередній висновок був неправильний.** Я написав, що «рецепта білду acceptance-образів не існує ніде». Насправді канонічні рецепти містяться в git: `ops/docker/Dockerfile.server`, `Dockerfile.site`, `Dockerfile.portal` плюс `server/site/portal.dockerignore`, а `ops/scripts/materialize-release.mjs` встановлює їх у закріплені клони як `Dockerfile.marshgo` і додає `deploy/nginx.conf` з кореня. Причина помилки: я шукав рецепт лише в app-репозиторіях і в `.release`, не в `ops/`.
+
+**Наслідок моєї помилки:** коміти `9deb80f` (Admin) і `a58d334` (Partner) додали в портали конкуруючий dist-based рецепт, який дублював канонічний і відрізнявся від нього. Дублювання коду заборонене правилами проєкту, тому я його відкатував: Admin `4eb5d15`, Partner `544e5d8` (обидва запушено; опубліковані історії не переписував). Такі ж мої нові файли в `MarshGO-Site` (`Dockerfile`, `.dockerignore`) вилучені до коміту — дерево Site знову чисте на `fef697e`.
+
+**Знайдений справжній блокувач GATE-02/05.** `RELEASE_MANIFEST.json` мав застарілі піни для всіх чотирьох репозиторіїв, які materializer читає як `{server,site,admin,partner}_sha` і за якими клонує з GitHub:
+- `server_sha` `fc5b589ca395` → `44f954b3ce60` (без одно-прохідного retention-фіксу латентності);
+- `site_sha` `ca5140cb7824` → `fef697e2603b` (піна збірки для iOS-симулятора замість того, що реально віддається публічно; публічний бандл `index-DmIrJFXl.js` збігає з білдом саме з `fef697e`);
+- `admin_sha` `a008dbad8edc` → `4eb5d15d1692` (старий пін містив OTP-only автентифікацію без email/password і без черги модерації);
+- `partner_sha` `5ec9f368d278` → `544e5d8c71a0` (те саме).
+Тобто «точний SHA-маніфест» зібрав би продакшн-реліз з кодом, який не є поточним, і жоден мій попередній доказ латентності чи порталів у нього не входив.
+
+**Доведено виконанням, а не наміром.** `node ops/scripts/materialize-release.mjs` — exit 0: чотири клони з GitHub на точних SHA (функція `checkout` звіряє `remote get-url` і `rev-parse HEAD` із піном), generated inputs встановлені, `assertMaterializedWorktreeClean` пройдено для всіх чотирьох, написано `.release/compose.production.yml` (6137 байтів) з build-контекстами, привʼязаними до pinned-checkoutʼів, `dockerfile: Dockerfile.marshgo`, `MARSHGO_BUILD_ID = local-44f954b3ce60-20261101T174449434Z`, `MARSHGO_BUILD_SHA = 44f954b3ce60…`, `MARSHGO_BUILD_TIME`, обовʼязковим `VITE_MAP_STYLE_MANIFEST_URL` (compose відмовляється стартувати без значення) і Caddy на edge. Вільний диск до запуску — 15 Gi.
+
+**Що це змінює для acceptance-образів.** Мій dist-based `RC-2026-11-01-portalsec.1` лишається запущеним і доводить, що закомічений код порталів працює в контейнері, а його провенанс перевіряється лейблом `com.marshgo.git.sha`. Але канонічний продакшн-шлях — self-contained multi-stage (npm ci і vite build усередині образу), тому для GATE-02 правильним є materializer, а не мій рецепт. Єдина цінна річ із мого варіанту, якої бракує канонічному, — OCI-лейбл з git SHA: його треба додати як `ARG`/`LABEL` саме в `ops/docker/Dockerfile.*` (одне джерело правди), а не в app-репозиторії.
+
+**Не покрито цим кроком:** фактичний `docker build` із materialized-контекстів (потребує витягнути `node:24.21.0-alpine` і чотири `npm ci` — на 8 GB лише по одному за раз), smoke-перевірка на staging-подібному запуску, і будь-який деплой (чекає явного дозволу власника на ціль). Статус продакшну — `NOT_RELEASED`.

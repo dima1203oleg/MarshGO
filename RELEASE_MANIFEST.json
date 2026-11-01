@@ -34,11 +34,11 @@
   "status": "NOT_RELEASED",
   "ready_for_server_deployment": false,
   "production_ready": false,
-  "server_sha": "fc5b589ca3956cc6cb0458d308ce777611adf050",
-  "site_sha": "ca5140cb78248f15e3794419f3d493bb17d465b9",
+  "server_sha": "44f954b3ce6099dde86cebfe7984079a078a5872",
+  "site_sha": "fef697e2603b43c5bc76a9f98e78dba50cc8b480",
   "ios_sha": "4353cec3cacbaf662ceea047402f361024292b22",
-  "admin_sha": "a008dbad8edc5d81d716a0913e10c325f739540b",
-  "partner_sha": "5ec9f368d2788e44483a0effe6eac34838e89790",
+  "admin_sha": "4eb5d15d1692ebcdb5aae40dbcffc39446138fb5",
+  "partner_sha": "544e5d8c71a04601fae5f0d92dd5ec186f7ac241",
   "integration_sha": "d117f4b96cb2bb900eacf5a4c3692399d175431a",
   "database_migration": "056",
   "candidate_scope": "Review-only exact candidate tuple; all component PRs remain open and stacked. Site PR #28 d6c9a957a5f767a491daed2ffb5e70bb8ed8b559, Server PR #43 4ed81b47e45520475470b699deac115fb0000b69, iOS PR #15 7468cee5cdcb3d3a3fb4c182c0da6e1dc3a9f2aa. Hosted Site, Server and iOS Simulator checks pass on these exact heads. Admin PR #1 and Partner PR #1 are pinned below but cross-repository release workflow cannot read them without owner-managed MARSHGO_REPOS_READ_TOKEN. Integration checkout HEAD is pinned but dirty; no reproducible six-image tuple or image digests are available. Frozen Lviv GTFS search remains truncated; no staging/deployment, provider entitlement, physical iPhone, security/load/recovery, backup/restore, rollback or owner rollout approval. production_ready=false; NOT_RELEASED.",
@@ -2118,5 +2118,69 @@
       "moderation_queue_ui": "немає адмін-пароля в acceptance-БД (admin.audit.*@marshgo.ua без збереженого пароля); потрібен дозвіл власника на зміну пароля тестового акаунту",
       "ci_reproducibility": "Dockerfile копіює dist/, тож npm-сцена досі поза межами образу"
     }
+  },
+  "gate02_materialized_release_2026_11_01": {
+    "run_at": "2026-11-01T17:47:00Z",
+    "summary": "Піни маніфесту були застарілими для всіх чотирьох репозиторіїв; виправлено й прогнано canonical materialize-release з exit 0",
+    "pins_corrected": {
+      "server_sha": {
+        "was": "fc5b589ca395",
+        "now": "44f954b3ce60",
+        "now_full": "44f954b3ce6099dde86cebfe7984079a078a5872"
+      },
+      "site_sha": {
+        "was": "ca5140cb7824",
+        "now": "fef697e2603b",
+        "now_full": "fef697e2603b43c5bc76a9f98e78dba50cc8b480"
+      },
+      "admin_sha": {
+        "was": "a008dbad8edc",
+        "now": "4eb5d15d1692",
+        "now_full": "4eb5d15d1692ebcdb5aae40dbcffc39446138fb5"
+      },
+      "partner_sha": {
+        "was": "5ec9f368d278",
+        "now": "544e5d8c71a0",
+        "now_full": "544e5d8c71a04601fae5f0d92dd5ec186f7ac241"
+      }
+    },
+    "stale_pin_consequence": [
+      "server_sha без одно-прохідного retention-фіксу латентності",
+      "site_sha вказував на збірку для iOS-симулятора, а не на те, що віддається публічно (публічний бандл index-DmIrJFXl.js збігає з білдом з fef697e)",
+      "admin_sha та partner_sha вказували на OTP-only автентифікацію без email/password і без черги модерації"
+    ],
+    "materializer_run": {
+      "command": "node ops/scripts/materialize-release.mjs",
+      "exit_code": 0,
+      "checkouts": [
+        "server-44f954b3ce6099dde86cebfe7984079a078a5872",
+        "site-fef697e2603b43c5bc76a9f98e78dba50cc8b480",
+        "admin-4eb5d15d1692ebcdb5aae40dbcffc39446138fb5",
+        "partner-544e5d8c71a04601fae5f0d92dd5ec186f7ac241"
+      ],
+      "generated_output": ".release/compose.production.yml (6137 bytes)",
+      "guards_passed": [
+        "checkout звіряє origin URL і rev-parse HEAD із піном",
+        "assertMaterializedWorktreeClean для всіх чотирьох репозиторіїв",
+        "усі build-контексти й dockerfile привʼязані; Caddyfile абсолютизований",
+        "обовʼязковий VITE_MAP_STYLE_MANIFEST_URL із fail-fast"
+      ],
+      "build_metadata": {
+        "MARSHGO_BUILD_ID": "local-44f954b3ce60-20261101T174449434Z",
+        "MARSHGO_BUILD_SHA": "44f954b3ce6099dde86cebfe7984079a078a5872"
+      }
+    },
+    "canonical_recipes": "ops/docker/Dockerfile.{server,site,portal} + однойменні .dockerignore; materializer встановлює їх у клони як Dockerfile.marshgo й додає deploy/nginx.conf з кореня",
+    "self_corrections": [
+      "Твердження «рецепта білду не існує ніде» було хибним: я шукав лише в app-репо та .release, а канонічні рецепти містяться в ops/docker/*.",
+      "Мої портальні Dockerfile (9deb80f / a58d334) дублювали канонічний рецепт і відкачені (4eb5d15 / 544e5d8); dist-based RC-portalsec.1 придатний лише для acceptance-доказу, не для продакшн-шляху."
+    ],
+    "not_covered": [
+      "docker build із materialized-контекстів (node:24.21.0-alpine і чотири npm ci, на 8 GB по одному)",
+      "staging smoke",
+      "деплой — потребує явного дозволу власника на ціль",
+      "OCI-лейбл git SHA досі лише в acceptance-образі; у канонічному рецепті його немає"
+    ],
+    "production_status": "NOT_RELEASED"
   }
 }
