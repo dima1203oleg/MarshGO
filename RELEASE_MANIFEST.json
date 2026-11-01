@@ -2470,7 +2470,11 @@
     "fix": "MarshGO-Server a5ec118: додати b.completed_at, b.cancelled_at у SELECT списку бронювань (гілка qoder/uploads-perm-fix-20261101, PR #64)",
     "image": "marshgo/api:RC-2026-11-01-canonical.3 (rev a5ec118bc01d4469650757521e637ffd03f502a3, source_state=clean, git archive)",
     "verification": "тот сам 41-кроковий цикл на RC.3: final status: completed | completed_at: 2026-11-01T18:40:04.647Z (раніше None); скасування й надалі повертає місця (2), раса останнього місця 201/409",
-    "still_open": "SOLDOUT-OFFER-404-1 (забронований offer -> 404 offer_not_found) — залишається відкритим, потребує продуктових правил показу",
-    "fixture_label": "ізольовані smoke-акаунти; продакшн NOT_RELEASED"
+    "still_open": "SOLDOUT-OFFER-404-1 (розпроданий offer -> 404 offer_not_found) — залишається відкритим, потребує продуктових правил показу",
+    "fixture_label": "ізольовані smoke-акаунти; продакшн NOT_RELEASED",
+    "cancel_path_audit": "три шляхи скасування пишуть cancelled_at=now(): індексація :5045 (скасування користувачем), :2651 (каскад при скасуванні offer), :2694 (схвалення зміни бронювання) — новий стовпчик у читанні правдивий, а не заповнений напівдо",
+    "api_cross_check_2026_11_01": "RC.3 (rev a5ec118): GET /api/v1/bookings після входу водія повертає 3 рядки — completed completed_at=2026-11-01T18:40:04.647Z / cancelled cancelled_at=2026-11-01T18:40:04.843Z / confirmed без позначок; пасажир бачить 2 свої рядки з тими ж значеннями",
+    "db_cross_check_2026_11_01": "psql у тому ж smoke-стекі: cancelled 3 рядки з 3 cancelled_at, completed 3 з 3 completed_at, confirmed 4 і in_progress 1 — нуль completed_at і нуль cancelled_at; API і БД збігаються, хибних позначок немає",
+    "stack_state": "marshgo-canonical-smoke зупинено (down без -v): томи збережено; RC.3 образ залишається локально"
   }
 }

@@ -4407,7 +4407,7 @@ Not claimed: payment capture, live GTFS-RT vehicle positions, anything on accept
 - Перестворено канонічний прод-образ з пінного SHA `8cc634a`: `marshgo/api:RC-2026-11-01-canonical.2` (контекст `.release/server-8cc634a…` = чистий `git archive`, `Dockerfile.marshgo` = `ops/docker/Dockerfile.server` з `chown node:node /app/.uploads`), свіжий том `marshgo-prod-uploads-can2`, порт 3012.
 - Повний життєвий цикл пройшов: фото 201 -> `trust_level=1` -> offer 201 -> пошук carpool -> booking 201 -> MarshPass (`token len 232`, `expiresAt +48h`) -> `boarding` 200 -> `start` 200 -> `complete` x2 -> `completed`; скасування повертає місця (2) і повторний cancel ідемпотентний.
 - Додатково доказано на цьому образі: расу останнього місця (1 seat -> рівно один 201, інший 409) та IDOR-гейти (чужий boarding 400, чужий ticket 401, чужі events 404). Всього 41 крок у `/tmp/carpool_e2e.json`.
-- Два UX-спостереження: повністю забронований offer дає `404 offer_not_found` замість «немає місць»; у `GET /bookings` для `completed` не заповнений `completed_at` (події перехід показують). Це не дефекти цілісності.
+- Два UX-спостереження: повністю розпроданий offer дає `404 offer_not_found` замість «немає місць»; у `GET /bookings` для `completed` не заповнений `completed_at` (події перехід показують). Це не дефекти цілісності.
 - Дані: ізольовані smoke-акаунти. Продакшн залишається `NOT_RELEASED`.
 
 ## CARPOOL-PUBLISH-FIX-HARDENED (2026-11-01)
@@ -4419,4 +4419,12 @@ Not claimed: payment capture, live GTFS-RT vehicle positions, anything on accept
 - Причина: `GET /api/v1/bookings` узагалі не вибирав `b.completed_at` (стовпчик у БД заповнювався коректно).
 - Виправлення: MarshGO-Server `a5ec118` — у SELECT додано `b.completed_at, b.cancelled_at`; PR #64 оновлено.
 - Перестворено канонічний образ `marshgo/api:RC-2026-11-01-canonical.3` (rev `a5ec118`, чистий `git archive`) і прогнали той самий 41-кроковий цикл: `final status: completed | completed_at: 2026-11-01T18:40:04.647Z` замість попереднього `None`; скасування повертає місця, раса останнього місця 201/409 без змін.
-- Залишається відкритим SOLDOUT-OFFER-404-1 (забронований offer → `404 offer_not_found`) — потрібні продуктові правила показу, це не цілісність.
+- Залишається відкритим SOLDOUT-OFFER-404-1 (розпроданий offer → `404 offer_not_found`) — потрібні продуктові правила показу, це не цілісність.
+
+## COMPLETED-AT-1 (крос-провір, 2026-11-01 18:44 UTC)
+
+- `[e2e]` RC.3 (`marshgo/api:RC-2026-11-01-canonical.3`, rev `a5ec118`, port 3012) — `GET /api/v1/bookings` після входу водія: `completed` з `completed_at=2026-11-01T18:40:04.647Z`, `cancelled` з `cancelled_at=2026-11-01T18:40:04.843Z`, `confirmed` без позначок; пасажир бачить свої 2 рядки з тими ж значеннями.
+- `[db]` `psql` у тому ж стеку: cancelled 3/3 з `cancelled_at`, completed 3/3 з `completed_at`, confirmed 4 і in_progress 1 — нуль обох позначок. API і БД збігаються, хибних timestamp немає.
+- `[audit]` `bookings.cancelled_at=now()` пишуть усі три шляхи скасування: `server/index.ts:5045` (користувач), `:2651` (каскад при скасуванні offer), `:2694` (схвалення зміни бронювання).
+- `[stack]` `marshgo-canonical-smoke` зупинено (`down` без `-v`), томи збережено; образ RC.3 лишається локально.
+- `[open]` SOLDOUT-OFFER-404-1 (#60) лишається: розпроданий offer має пояснювати «немає місць», а не відповідати 404 — потрібне продуктове рішення власника.

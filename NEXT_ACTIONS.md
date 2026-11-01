@@ -3223,7 +3223,7 @@ The reported two-account test is partial: it directly fabricates vehicle trust i
 3. Гейт чесності: коли жодного offer немає, пошук з єдиним `carpool` повертає порожній список без `partial`; вирішити, чи додавати окремий reason `community-offers:none-in-corridor`.
 
 ## Нові кроки після CANONICAL-CARPOOL-2
-4. UX-чесність: повністю забронований offer повертає `404 offer_not_found`; рішення — 410/ok з `availableSeats: 0` і поясненням, щоб картка не виглядала зламаною.
+4. UX-чесність: повністю розпроданий offer повертає `404 offer_not_found`; рішення — 410/ok з `availableSeats: 0` і поясненням, щоб картка не виглядала зламаною.
 5. [ЗАКРИТО 2026-11-01] `completed_at` тепер у відповіді `GET /bookings` (a5ec118, образ RC-2026-11-01-canonical.3, доказ `completed_at: 2026-11-01T18:40:04.647Z`).
 6. [ЗАКРИТО 2026-11-01] Юніт-тест локального фолбека сховища додано (`b03bba3`, PR #64): 412 тестів / 0 fail, eslint і tsc чисті.
 
