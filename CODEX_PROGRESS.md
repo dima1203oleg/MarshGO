@@ -4368,3 +4368,23 @@ Not claimed: payment capture, live GTFS-RT vehicle positions, anything on accept
 
 Ще не доведено на канонічних образах: `METRO` (київський метро-фід `offline` у цьому
 засіянні), `CARPOOL`, `TAXI`, `CARSHARING`, `BICYCLE`.
+
+
+## METRO-FEED-ROOT-CAUSE (2026-11-01): чому метро не з'являється в поїздках
+
+Гіпотеза була «наш імпорт реєструє київське метро, але парсер дає 0 features». Вона
+**спростована** прямим запитом до першоджерела в обхід нашого коду:
+
+- `https://gisserver.kyivcity.gov.ua/` → HTTP 403 (server replied)
+- `.../KYIV_API/transport_public/MapServer?f=json` → HTTP 522 (server replied)
+- шар 4 (станції метро) → HTTP 522 (server replied)
+- портал `https://data.kyivcity.gov.ua/` → HTTP 403 (server replied)
+- для порівняння `https://codebook.lviv.ua/` → URLError: <urlopen error [Errno 8] nodename nor servname provided, or not known>
+
+522 — це відповідь CDN про те, що origin-сервер не відповідає. Тобто КМДА-GIS лежить, і
+жоден наш фікс цього не обійде. Поширюється на всі режими з цього джерела: метро,
+фунікулер, маршрутки Києва.
+
+Наслідок для релізу: це **BLOCKED_EXTERNAL**, а не технічний борг. Для закриття 12-режимної
+матриці або чекаємо відновлення КМДА, або шукаємо легальну альтернативу київського
+метро-фіду — рішення за власником.
