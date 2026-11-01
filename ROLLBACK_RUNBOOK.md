@@ -30,3 +30,7 @@ separate empty database exactly as step 5 requires, never over the live one.
   through the cold path before it reaches the warm median.
 - Not yet exercised: app-image rollback on a deployed host (`ops/scripts/update.sh` `rollback-*`
   tags) and a restore of an *encrypted* off-container copy. Both remain staging checks before release.
+- Smoke on the restored database, same drill: `postgis_version()` returns `3.5 USE_GEOS=1 USE_PROJ=1 USE_STATS=1`,
+  `select count(*) from journeys` returns 1087, a geography distance between Lviv and Kyiv stops returns
+  469 km, and the public-table count matches the source database (55 both sides). The restored copy is
+  queryable by the app's own spatial SQL, not merely structurally equal.
