@@ -2,7 +2,14 @@ node_modules/
 build/
 dist/
 coverage/
+test-results/
+playwright-report/
 .DS_Store
 *.log
 .env*
 !.env.example
+.backup-key
+backups/
+*.dump.gpg
+/.release/
+.zrok-share.txt

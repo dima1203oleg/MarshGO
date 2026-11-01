@@ -1,0 +1,4 @@
+{"t":0,"lat":49,"lon":24,"accuracy":8,"speed":2}
+{"t":1000,"lat":49.00005,"lon":24.00005,"accuracy":125,"speed":5}
+{"t":2000,"lat":49.0001,"lon":24.0001,"accuracy":160,"speed":7}
+{"t":3000,"lat":49.00015,"lon":24.00015,"accuracy":90,"speed":7}
