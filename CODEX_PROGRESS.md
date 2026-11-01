@@ -4235,3 +4235,24 @@ Not claimed: payment capture, live GTFS-RT vehicle positions, anything on accept
 - **SHAs на момент чекпоінта:** MarshGO `663900a→c188979` (qoder/checkpoint-20261031), Server `44f954b` (qoder/search-latency-20261031, PR #63 OPEN), Site `fef697e` (qoder/site-ui-polish-20261031, PR #35 OPEN), iOS `4353cec` (codex/production-site-sync-20261014, чисте), Admin `6ee2ede` (PR #3 OPEN), Partner `df37e7c` (PR #3 OPEN).
 - **Не чіпав:** у root-репо 105 змінених відстежуваних і 326 нових файлів (236 у `docs/audit`) — чужа в роботі робота, включно з `compose.production.yml`, який потрібен для GATE-02; комітOnly мої два-три документи через pathspec.
 - **Статус:** продакшн **NOT_RELEASED**; деплой — лише за явною авторизацією власника.
+
+## 2026-11-01 17:39 UTC —PORTAL-IMAGE-PROVENANCE-1:acceptance-образи порталів тепер будуються з пінних SHA
+
+**Самоскорекція доказової бази.** Раніше я виводив застарілість образу з «нуль входжень `moderation`» у бандлі — це хибний маркер: свіжий білд із `6ee2ede` теж має 0 таких входжень (слово не з'являється в коді). Чинний доказ — контентний: у робочому `index-Ci_vSaQ7.js` (`grep -c 'Модерац'` = 0, `grep -o '/admin/verification'` = 0), у білді з чистого `6ee2ede` `index-CMEEKaj2.js` = 1 і 3 відповідно, з пунктом навігації «Модерація авто» та `verifications()/verificationEvidence()/decideVerification()`.
+
+**Корінь проблеми.** У `MarshGO-Admin`, `MarshGO-Partner` і `.release` не існувало жодного Dockerfile чи рецепта білду цих образів — тож гейт Admin/Partner на закоміченому джерелі був невідтворюваним, а провенанс перевірявся лише grep-ом по бандлу.
+
+**Виправлено (закомічено і запушено).**
+- Рецепт зіблено з фактичної ієрархії шарів робочого образу (`docker history`): `nginxinc/nginx-unprivileged:1.27.5-alpine` ( locally `:1.27-alpine`, той самий revision `d5fb0119cf5c`) + `COPY deploy/nginx.conf` + `COPY dist/` + `USER 101` + `HEALTHCHECK /healthz`.
+- `deploy/nginx.conf` — точна копія конфігурації, яку вже віддавали контейнери (md5 `efda980df94ec68c136dc001c3188907`, admin і partner ідентичні), з тим самим same-origin `location /api/ → http://api:3002/api/`; `src/api.ts:7` залишає `VITE_API_BASE_URL` порожнім, тому відносні виклики працюють без білд-аргументів.
+- Коміти: Admin `9deb80f`, Partner `a58d334` (гілки `qoder/admin-email-auth-moderation-20261031` і `qoder/partner-email-auth-20261031`, PR #3 оновлені). Додано `.dockerignore` (у тому числі `dist/`, який ігнорується git).
+- Нові образи з OCI-лейблом походження: `marshgo/admin:RC-2026-11-01-portalsec.1` = `sha256:33d8f9b74bac`, `com.marshgo.git.sha=6ee2ede2d7c7e9a24e09d028731c10f7b511d4ef`; `marshgo/partner:RC-2026-11-01-portalsec.1` = `sha256:1e2d201a23e8`, `com.marshgo.git.sha=df37e7c9298483ff5dec73c69113078cb13f5f2e`.
+- Перепінено `compose.container-acceptance.yml:114` і `:125`, перестворено контейнери: `admin=200 partner=200 healthz=200`, віддаються `index-CMEEKaj2.js` і `index-B3CaW0wS.js`.
+
+**Побічне спостереження (зменшує обсяг робіт).** Білд Partner із чистого `df37e7c` дає той самий хеш бандла `index-B3CaW0wS.js`, що й робочий контейнер — тобто образ Partner не був застарілим; застарілим був лише Admin.
+
+**Що тепер доведено.** Образ Admin у acceptance-стеці зібраний із закоміченого `6ee2ede` і віддає екран черги модерації; провенанс перевіряється `docker inspect`, а не grep-ом. У браузері на `:3903` новий образ запускається, відновлює сесію з `localStorage`, реально дзвонить на API й чесно показує стан без ролі: «У цього акаунта немає адміністративної ролі.»
+
+**Не доведено (точний блокувач і наступний крок).** Чергу модерації в браузері на цьому образі не пройдено: в acceptance-БД є три `admin.audit.*@marshgo.ua` (`roles={passenger,admin}`), але паролів до них немає в жодному збереженому файлі (`/tmp/dima_preview_creds.txt`, `/tmp/partner_preview_creds.txt`, `/tmp/uicreds.txt` — усі без адмін-ролей), а призначати роль тестовому акаунту я без дозволу не змінюю. Наступний крок: власник дає адмін-обліковку acceptance-БД (або дозвіл виставити пароль тестовому `admin.audit.*`), після чого пройти `Модерація авто` → черга → перегляд документів → рішення.
+
+**Не чіпав:** чужі брудні файли в кореневому репо (зокрема `compose.production.yml`) і застарілі `RC-2026-10-31-edgefix.1` — лишилися в локальному сховищі образів як точка відкату.

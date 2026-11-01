@@ -1994,7 +1994,7 @@
     "server_sha_unchanged": "2c2342f (qoder/search-latency-20261031) - no code change in this step",
     "production_status": "NOT_RELEASED"
   },
-"gate05_sha_manifest_and_dr_drill_2026_11_01": {
+  "gate05_sha_manifest_and_dr_drill_2026_11_01": {
     "task": "GATE-05 preparation: exact-SHA manifest of the six canonical repositories plus the executed DR drill",
     "recorded_at": "2026-11-01T17:27:00Z",
     "production_status": "NOT_RELEASED",
@@ -2078,5 +2078,45 @@
       "GATE-05 owner release authorization",
       "1000 RPS load test needs approved hardware"
     ]
+  },
+  "portal_image_provenance_2026_11_01": {
+    "built_at": "2026-11-01T17:39:00Z",
+    "status": "Походність portal-образів тепер відтворюється з пінних SHA; прохід черги модерації в браузері ще заблоковано",
+    "correction": "Хибний маркер «нуль входжень moderation у бандлі» замінено на контентний: /admin/verification і «Модерація авто» відсутні в робочому index-Ci_vSaQ7.js і присутні в білді з 6ee2ede.",
+    "build_recipe": {
+      "commit_admin": "9deb80f",
+      "commit_partner": "a58d334",
+      "files": "Dockerfile + deploy/nginx.conf + .dockerignore у кожному порталі",
+      "base_image": "nginxinc/nginx-unprivileged:1.27.5-alpine (revision d5fb0119cf5c6a94cba03474ccc841bbe037fa87)",
+      "nginx_conf_md5": "efda980df94ec68c136dc001c3188907"
+    },
+    "images": {
+      "marshgo/admin:RC-2026-11-01-portalsec.1": {
+        "image_id": "sha256:33d8f9b74baccb6236e72fd71fbe76cae8291ed85f071de0ed56cf33509011f9",
+        "git_sha_label": "6ee2ede2d7c7e9a24e09d028731c10f7b511d4ef",
+        "served_bundle": "index-CMEEKaj2.js"
+      },
+      "marshgo/partner:RC-2026-11-01-portalsec.1": {
+        "image_id": "sha256:1e2d201a23e8e0fc8fd2fec4d5cb65726de193cd0634307fd4839e2652c8e44b",
+        "git_sha_label": "df37e7c9298483ff5dec73c69113078cb13f5f2e",
+        "served_bundle": "index-B3CaW0wS.js"
+      }
+    },
+    "compose_pins": {
+      "file": "MarshGO/.release/compose.container-acceptance.yml (gitignored)",
+      "admin_line": 114,
+      "partner_line": 125
+    },
+    "verified": {
+      "admin_http": 200,
+      "partner_http": 200,
+      "healthz": 200,
+      "browser": "на :3903 образ запускається, відновлює сесію, реально дзвонить на API і чесно показує стан без ролі",
+      "partner_bundle_match": "білд з df37e7c дає той самий index-B3CaW0wS.js, тобто Partner не був застарілим"
+    },
+    "not_verified": {
+      "moderation_queue_ui": "немає адмін-пароля в acceptance-БД (admin.audit.*@marshgo.ua без збереженого пароля); потрібен дозвіл власника на зміну пароля тестового акаунту",
+      "ci_reproducibility": "Dockerfile копіює dist/, тож npm-сцена досі поза межами образу"
+    }
   }
 }
