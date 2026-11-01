@@ -1972,5 +1972,26 @@
       "decision on the hardcoded lastVerifiedAt 2026-10-13 in transport/fares (contract change touching tests/transport-tariffs.test.ts)"
     ],
     "production_status": "NOT_RELEASED"
+  },
+  "routes_cold_path_2026_11_01_l2_cache_fix": {
+    "task": "#35 ROUTES-COLD-PATH-1 - closed by cache configuration, no code change",
+    "root_cause_final": "CacheService.connect() reads only process.env.REDIS_CACHE_URL and deliberately never falls back to REDIS_URL. The acceptance stack never set it, so L2 did not exist (cache Redis DBSIZE=4, zero gtfs_network keys). Every request after the 10 minute L1 TTL or an LRU eviction re-downloaded and re-parsed the GTFS feed on the request path.",
+    "measurement_method_correction": "the recorded public warm 2.3 s was mostly transport, not the app: local warm is 0.030-0.047 s; GET /healthz (3 B, zero server work) over the tunnel is 0.686 s; the same 410502 B routes response took 6.93 s without Accept-Encoding gzip versus 1.13 s with gzip, so compression is already active. Every public request carries a fixed floor of about 0.69 s (zrok), not MARSHGO.",
+    "fix_applied_environment_only": "gitignored harness .release/compose.container-acceptance.yml (backup .bak-before-l2): added a redis-cache service (redis:7.4-alpine, maxmemory 256mb, allkeys-lru, no persistence) plus REDIS_CACHE_URL=redis://redis-cache:6379 for api. Container log confirms cache.redis_connected; the cache holds 10 gtfs_network keys, largest 580510 B, so feeds fit under the 8 MB maxL2Bytes cap and no oversized feed exists here.",
+    "before_after": {
+      "local_first_request_after_restart": "routes 9.85 s to 0.041 s; stops 12.36 s to 0.016 s",
+      "public_first_request_after_full_api_restart": "routes 8.44 s to 2.25 s (repeats 1.17-1.49 s); stops 0.76 s",
+      "body_invariant": "routes 410502 B / 130 features, stops 110590 B / 391 features - byte identical to the baseline",
+      "image": "marshgo/api:RC-2026-10-31-searchlat.7 (not rebuilt)"
+    },
+    "plan_falsified": "the per-provider route spatial index for the warm path is abandoned: server-side warm costs 30-47 ms, so the index would have saved milliseconds against a 0.69 s tunnel floor. No build cycle was spent.",
+    "production_gap_blocked_on_owner": "compose.production.yml defines a single redis and only REDIS_URL; REDIS_CACHE_URL is absent, so production has the same ~10 s cold path and no shared cache between processes. That file belongs to the GATE-02 task and was NOT modified. MarshGO-Server/docker-compose.yml and .env.example already provide redis-cache, so this is purely a production manifest gap.",
+    "code_followups_not_applied": [
+      "server/cache/cacheService.ts:260 and :266 parse the L2 payload twice (schema.parse(JSON.parse(payload)) in the condition and again in the return) - double work on every L2 hit for a 580 KB value",
+      "values above maxL2Bytes are skipped when writing to L2 silently, with no counter or metric"
+    ],
+    "search_latency_unaffected": "#36 unchanged: local 35.56 s first / 14.28-15.03 s repeats, 9 journeys, partial=true. The planner uses its own BoundedPromiseCache, so segments-built ~10 s remains the next real target.",
+    "server_sha_unchanged": "2c2342f (qoder/search-latency-20261031) - no code change in this step",
+    "production_status": "NOT_RELEASED"
   }
 }
