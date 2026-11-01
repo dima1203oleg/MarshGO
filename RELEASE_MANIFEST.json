@@ -2327,5 +2327,68 @@
       "reroute/pause/resumeLifecycle на канонічному образі"
     ],
     "production_status": "NOT_RELEASED"
+  },
+  "gate02_canonical_multimode_2026_11_01": {
+    "status": "PROVEN_LOCAL_CANONICAL_IMAGE",
+    "date": "2026-11-01",
+    "environment": "локальний канонічний прод-стек RC-2026-11-01-canonical.1 (api 44f954b), порт 3012, той самий засеяний том",
+    "coverage_added": "режими поза BUS/WALK на прод-образі",
+    "results": {
+      "Київ_Майдан_→_Вокзал_Центральний": {
+        "strategy": "BALANCED",
+        "HTTP": 200,
+        "candidates": 23,
+        "pareto": 3,
+        "returned": 2,
+        "modes": {
+          "SCOOTER": 1,
+          "WALK": 4,
+          "TROLLEYBUS": 1,
+          "BUS": 1
+        },
+        "providers": [
+          "Zelectra (реальний GBFS-запіл)",
+          "Київпастранс — розклад (GTFS)"
+        ],
+        " journeys": "самокат 733 s (7,4 хв) ціна UNKNOWN; тролейбус+автобус 4857 s ціна 6000 minor ESTIMATED"
+      },
+      "Львів_→_Київ_міжмісто": {
+        "strategy": "FASTEST",
+        "HTTP": 200,
+        "candidates": 100,
+        "pareto": 6,
+        "returned": 6,
+        "modes": {
+          "WALK": 19,
+          "RAIL": 6,
+          "TRAM": 4,
+          "BUS": 3
+        },
+        "providers": [
+          "Укрзалізниця — розклад поїздів (GTFS)",
+          "Львівавтодор — розклад (GTFS)",
+          "Київпастранс — розклад (GTFS)"
+        ],
+        "multi_provider_chain": "TRAM → WALK → RAIL → WALK (реальна пересадка між двома містами і двома операторами)",
+        "duration": "28867 s ≈ 8 год 01 хв — правдоподібний міжміський час"
+      }
+    },
+    "honest_labelling_observed": [
+      "ціновий статус самоката й потяга — UNKNOWN, а не 0; ESTIMATED лишається лише там, де тариф є у фіду",
+      "міжміський результат не підміняється вигаданим автобусом: якщо RAIL-з'єднання немає, кандидат не з'являється"
+    ],
+    "modes_still_unproven_on_canonical_images": [
+      "METRO (київський метро-фід offline у цьому засіянні)",
+      "CARPOOL",
+      "TAXI",
+      "CARSHARING",
+      "BICYCLE",
+      "TRANSFER як окремий режим"
+    ],
+    "quality_observations": [
+      "Київ 19:42Z (21:42 локальний) — єдиний суспільний варіант 81 хв на 3 км коридор: вечірні інтервали, але UI має показувати очікування, а не вигляд «поганий маршрут»",
+      "міжмісто: 6 кандидатів з однаковою тривалістю — Парето-фронт за ціною не працює, бо тарифів УЗ у фіду немає"
+    ],
+    "production_status": "NOT_RELEASED"
   }
 }
