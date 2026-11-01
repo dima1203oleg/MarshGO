@@ -2395,19 +2395,20 @@
     "status": "ROOT_CAUSED_BLOCKED_EXTERNAL",
     "date": "2026-11-01",
     "question": "Чи METRO-режим на канонічному образі блокується нашим парсером, чи джерелом?",
-    "answer": "Джерелом. Гіпотеза «реєстрація/парсер» спростована прямим запитом до першоджерела поза нашим кодом.",
+    "answer": "Джерелом, а не парсером — але з точним розмежуванням: ArcGIS-ендпоінти КМДА (MapServer та шар 4) дають HTTP 522 (CDK/VPN-шар: origin не відповідає), корінь gisserver і портал data.kyivcity.gov.ua дають HTTP 403 (WAF блокує запит без браузерного запиту). В обох випадках джерело київського метро для нашого імпортера недоступне; гіпотеза «наш парсер дає 0 features» спростована.",
     "probes_outside_our_code": {
       "gisserver root": "HTTP 403 (server replied)",
       "gisserver MapServer?f=json": "HTTP 522 (server replied)",
       "metro stations layer 4": "HTTP 522 (server replied)",
       "portal data.kyivcity.gov.ua": "HTTP 403 (server replied)",
-      "Lviv GTFS (comparison, works)": "URLError: <urlopen error [Errno 8] nodename nor servname provided, or not known>"
+      "Lviv GTFS (comparison, works)": "НЕВАЛІДНА спроба: навмисно вказано хибний хост codebook.lviv.ua, DNS не існує. Робочий Львів підтверджено не цим запитом, а засіванням (426685 stop_times)."
     },
-    "conclusion": "gisserver.kyivcity.gov.ua (ArcGIS-сервер КМДА, з якого беруться метро, фунікулер і маршрутки Києва) не відповідає: 522 від CDN, тобто origin-сервер лежить. Наш код тут нічого не ламає.",
+    "conclusion": "ArcGIS-шлях КМДА повертає 522 (origin недоступний), портал і корінь — 403 (фільтр на не-браузерні запити). Тому metro/funicular/київські маршрутки з цього джерела не імпортуєш, поки не зʼявиться або живий ендпоінт, або дозвіл/UA-конфігурація, яку має схвалити власник.",
     "consequence_for_release": [
       "METRO, FUNICULAR і київські маршрутки з цього джерела неможливо довести доки першоджерело не оживе — це зовнішня блокада, а не дефект імпортера",
       "для 12-режимної матриці потрібен альтернативний легальний кіївський метро-фід (наприклад київський GTFS від іншого постачальника) або рішення власника чекати"
     ],
-    "production_status": "NOT_RELEASED"
+    "production_status": "NOT_RELEASED",
+    "correction_note": "Попередня версія цього ключа містила хибний порівняльний проєб (DNS-невідомий хост) і надто загальне «КМДА-GIS лежить»; виправлено цим записом."
   }
 }
