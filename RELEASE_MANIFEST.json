@@ -2433,9 +2433,10 @@
     "status": "ROOT_CAUSE_FOUND_AND_FIXED",
     "symptom": "у продакшн-образі завантаження фото авто повертало 400 invalid_photo; тому пошук лише carpool давав порожній результат без partial",
     "root_cause": "том marshgo-prod-uploads монтувався в /app/.uploads від імені root, а API працює від node (uid 1000) -> запис фото неможливий",
-    "fix": "Dockerfile: mkdir + chown node:node /app/.uploads перед USER node; objectStorage.putPhotoObject: помилка локального запису тепер ObjectStorageUnavailableError -> 503 замість хибного 400",
+    "fix": "Dockerfile: mkdir + chown node:node /app/.uploads перед USER node; objectStorage.putPhotoObject: помилка локального запису тепер ObjectStorageUnavailableError -> 503 замість хибного 400; шлях помилки тепер має юніт-тест tests/object-storage-local-fallback.test.ts (b03bba3, PR #64)",
     "verification": "повторний збіг образу та свіжий том: фото 201, trust_level 1, offer 201, пошук carpool повертає реальний маршрути",
-    "honesty_finding": "картка carpool не мала labels partial/unsupported, бо движок завжди вважає carpool доступним; це було наслідком блокера публікації, а не окремою помилкою"
+    "honesty_finding": "картка carpool не мала labels partial/unsupported, бо движок завжди вважає carpool доступним; це було наслідком блокера публікації, а не окремою помилкою",
+    "test_evidence": "MarshGO-Server npm test: 412 тестів, 409 pass, 0 fail, 3 skipped; eslint і tsc --noEmit чисті"
   },
   "canonical_carpool_rc2_2026_11_01": {
     "status": "PROVEN_LIVE",
@@ -2460,6 +2461,7 @@
       "у GET /api/v1/bookings для completed-бронювання completed_at не заповнений, хоча події мають перехід in_progress -> completed",
       "недоліків цілісності бронювання/сидінь не знайдено"
     ],
-    "fixture_label": "усі акаунти, авто, офери й поїздки — ізольовані smoke-дані; продакшн NOT_RELEASED"
+    "fixture_label": "усі акаунти, авто, офери й поїздки — ізольовані smoke-дані; продакшн NOT_RELEASED",
+    "release_stack_state": "проєкт marshgo-canonical-smoke зупинено (без видалення томів); image tag RC-2026-11-01-canonical.2 лишається локально"
   }
 }

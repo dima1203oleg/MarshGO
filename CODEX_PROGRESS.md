@@ -4409,3 +4409,8 @@ Not claimed: payment capture, live GTFS-RT vehicle positions, anything on accept
 - Додатково доказано на цьому образі: расу останнього місця (1 seat -> рівно один 201, інший 409) та IDOR-гейти (чужий boarding 400, чужий ticket 401, чужі events 404). Всього 41 крок у `/tmp/carpool_e2e.json`.
 - Два UX-спостереження: повністю забронований offer дає `404 offer_not_found` замість «немає місць»; у `GET /bookings` для `completed` не заповнений `completed_at` (події перехід показують). Це не дефекти цілісності.
 - Дані: ізольовані smoke-акаунти. Продакшн залишається `NOT_RELEASED`.
+
+## CARPOOL-PUBLISH-FIX-HARDENED (2026-11-01)
+- Додано юніт-тест `tests/object-storage-local-fallback.test.ts` (MarshGO-Server `b03bba3`, гілка `qoder/uploads-perm-fix-20261101`, оновлений PR https://github.com/dima1203oleg/MarshGO-Server/pull/64): локальний фолбек сховища пише об'єкт на диск, а при незаписуваному шляху дає `ObjectStorageUnavailableError` (503), і водночас не приймає тіло, що не відповідає declared type.
+- Повний юніт-прогін сервера: 412 тестів, 409 pass, 0 fail, 3 skipped; `eslint` і `tsc --noEmit` без зауважень.
+- Canonical smoke-стек (порт 3012) зупинено без видалення томів; образ `marshgo/api:RC-2026-11-01-canonical.2` (rev `8cc634a`) лишається локально. Продакшн `NOT_RELEASED`.
