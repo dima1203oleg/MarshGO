@@ -2476,5 +2476,41 @@
     "api_cross_check_2026_11_01": "RC.3 (rev a5ec118): GET /api/v1/bookings після входу водія повертає 3 рядки — completed completed_at=2026-11-01T18:40:04.647Z / cancelled cancelled_at=2026-11-01T18:40:04.843Z / confirmed без позначок; пасажир бачить 2 свої рядки з тими ж значеннями",
     "db_cross_check_2026_11_01": "psql у тому ж smoke-стекі: cancelled 3 рядки з 3 cancelled_at, completed 3 з 3 completed_at, confirmed 4 і in_progress 1 — нуль completed_at і нуль cancelled_at; API і БД збігаються, хибних позначок немає",
     "stack_state": "marshgo-canonical-smoke зупинено (down без -v): томи збережено; RC.3 образ залишається локально"
+  },
+  "resume_state_2026_11_01_late": {
+    "written_utc": "2026-11-01T18:47Z",
+    "production_status": "NOT_RELEASED",
+    "canonical_images": {
+      "api": "marshgo/api:RC-2026-11-01-canonical.3 (server rev a5ec118bc01d4469650757521e637ffd03f502a3, source_state=clean via git archive; RC.2 = 8cc634a/b03bba3 earlier on the same branch)",
+      "recipe": ".release/server-<sha> контексти + root ops/docker/Dockerfile.server (містить chown node /app/.uploads) + .release/compose.production.yml з overlay .release/compose.canonical3.yml, проєкт marshgo-canonical-smoke, порт 3012"
+    },
+    "branch_heads": {
+      "MarshGO-Server": "qoder/uploads-perm-fix-20261101 @ 959e547 (PR #64): a5ec118 фікс читання + 959e547 регрес-тест",
+      "MarshGO": "qoder/checkpoint-20261031 @ 4ba9f20"
+    },
+    "proved_this_session": [
+      "карпул повний цикл на канонічному prod-образі: реєстрація -> роль -> авто -> фото -> trust_level 1 -> offer -> пошук -> атомарне бронювання -> MarshPass-квиток -> boarding -> rendezvous -> start -> completion (2 підтвердження) -> скасування",
+      "раса останнього місця: 201/409, рівний один успіх; скасування повертає місця (2)",
+      "IDOR-межі: чужий boarding 400, чужий квиток 401, чужі події 404",
+      "completed_at / cancelled_at у списку бронювань: API і psql збігаються 1:1 (completed 3/3, cancelled 3/3, confirmed+in_progress без позначок)",
+      "локальний fallback сховища + чесний 503 при недоступному томi (юніт-тест tests/object-storage-local-fallback.test.ts)"
+    ],
+    "stack_and_resource_state": {
+      "marshgo-canonical-smoke": "зупинено (down без -v), томи збережено",
+      "dev_processes": "API :3002 (node 56323, без watch) і Vite :3000 не чіпати й не перезапускати — належать іншим задачам",
+      "single_heavy_task_rule": "на 8 GB Mac одночасно один важкий процес"
+    },
+    "blocked_on_owner_decisions_A_to_E": [
+      "A продакшн S3 (без нього фото/докази живуть на локальному fallback)",
+      "B self-hosted OSRM замість публічного демо-роутера",
+      "C авторизація публічного HTTPS-edge/staging — без неї staging-gate не існує, deploy заборонено",
+      "D джерело Київського метро (КМДА віддає 522)",
+      "E продуктове правило #60: розпроданий offer має показувати «немає місць», а не 404"
+    ],
+    "next_independent_steps": [
+      "#56 PORTAL-MODERATION-UI-1: браузерний прохід черги модерації на Admin-образі з 6ee2ede",
+      "GATE-03 iOS: збірка на канонічний домен (physical device BLOCKED_EXTERNAL)",
+      "#33/#35/#36: data-quality labels, cold-шлях routes 8.4 s, хвости latency"
+    ]
   }
 }
