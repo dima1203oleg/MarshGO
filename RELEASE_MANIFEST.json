@@ -2463,5 +2463,14 @@
     ],
     "fixture_label": "усі акаунти, авто, офери й поїздки — ізольовані smoke-дані; продакшн NOT_RELEASED",
     "release_stack_state": "проєкт marshgo-canonical-smoke зупинено (без видалення томів); image tag RC-2026-11-01-canonical.2 лишається локально"
+  },
+  "completed_at_fix_2026_11_01": {
+    "status": "FIXED_AND_PROVEN_LIVE",
+    "defect": "GET /api/v1/bookings не вибирав b.completed_at, тому завершена поїздка у списку виглядала незавершеною (completed_at: None)",
+    "fix": "MarshGO-Server a5ec118: додати b.completed_at, b.cancelled_at у SELECT списку бронювань (гілка qoder/uploads-perm-fix-20261101, PR #64)",
+    "image": "marshgo/api:RC-2026-11-01-canonical.3 (rev a5ec118bc01d4469650757521e637ffd03f502a3, source_state=clean, git archive)",
+    "verification": "тот сам 41-кроковий цикл на RC.3: final status: completed | completed_at: 2026-11-01T18:40:04.647Z (раніше None); скасування й надалі повертає місця (2), раса останнього місця 201/409",
+    "still_open": "SOLDOUT-OFFER-404-1 (забронований offer -> 404 offer_not_found) — залишається відкритим, потребує продуктових правил показу",
+    "fixture_label": "ізольовані smoke-акаунти; продакшн NOT_RELEASED"
   }
 }

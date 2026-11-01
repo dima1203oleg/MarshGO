@@ -3224,7 +3224,7 @@ The reported two-account test is partial: it directly fabricates vehicle trust i
 
 ## Нові кроки після CANONICAL-CARPOOL-2
 4. UX-чесність: повністю забронований offer повертає `404 offer_not_found`; рішення — 410/ok з `availableSeats: 0` і поясненням, щоб картка не виглядала зламаною.
-5. Заповнити `completed_at` (чи exposing в `GET /api/v1/bookings`) для завершених бронювань — зараз події показують перехід, а поле порожнє.
+5. [ЗАКРИТО 2026-11-01] `completed_at` тепер у відповіді `GET /bookings` (a5ec118, образ RC-2026-11-01-canonical.3, доказ `completed_at: 2026-11-01T18:40:04.647Z`).
 6. [ЗАКРИТО 2026-11-01] Юніт-тест локального фолбека сховища додано (`b03bba3`, PR #64): 412 тестів / 0 fail, eslint і tsc чисті.
 
 ## Рішення власника, без яких далі не йде (станом на 2026-11-01)

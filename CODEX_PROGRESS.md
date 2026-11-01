@@ -4414,3 +4414,9 @@ Not claimed: payment capture, live GTFS-RT vehicle positions, anything on accept
 - Додано юніт-тест `tests/object-storage-local-fallback.test.ts` (MarshGO-Server `b03bba3`, гілка `qoder/uploads-perm-fix-20261101`, оновлений PR https://github.com/dima1203oleg/MarshGO-Server/pull/64): локальний фолбек сховища пише об'єкт на диск, а при незаписуваному шляху дає `ObjectStorageUnavailableError` (503), і водночас не приймає тіло, що не відповідає declared type.
 - Повний юніт-прогін сервера: 412 тестів, 409 pass, 0 fail, 3 skipped; `eslint` і `tsc --noEmit` без зауважень.
 - Canonical smoke-стек (порт 3012) зупинено без видалення томів; образ `marshgo/api:RC-2026-11-01-canonical.2` (rev `8cc634a`) лишається локально. Продакшн `NOT_RELEASED`.
+
+## COMPLETED-AT-1 (2026-11-01) — історія поїздок тепер показує час завершення
+- Причина: `GET /api/v1/bookings` узагалі не вибирав `b.completed_at` (стовпчик у БД заповнювався коректно).
+- Виправлення: MarshGO-Server `a5ec118` — у SELECT додано `b.completed_at, b.cancelled_at`; PR #64 оновлено.
+- Перестворено канонічний образ `marshgo/api:RC-2026-11-01-canonical.3` (rev `a5ec118`, чистий `git archive`) і прогнали той самий 41-кроковий цикл: `final status: completed | completed_at: 2026-11-01T18:40:04.647Z` замість попереднього `None`; скасування повертає місця, раса останнього місця 201/409 без змін.
+- Залишається відкритим SOLDOUT-OFFER-404-1 (забронований offer → `404 offer_not_found`) — потрібні продуктові правила показу, це не цілісність.
