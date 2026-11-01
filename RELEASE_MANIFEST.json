@@ -2420,9 +2420,14 @@
       "водій: реєстрація -> vehicle -> фото -> trust_level=1 -> offer (OSRM route_source=osrm)",
       "пасажир: пошук allowedTransportTypes=[carpool] -> 1 реальний COMMUNITY маршрути",
       "booking 201 (idempotency-key, fee 0 community-0pct-v1, 8000 UAH minor)",
-      "MarshPass ticket MARSHGO-HMAC-SHA256-V1 -> driver boarding 200 -> rendezvous ACTIVE -> start -> complete 1/2 підтверджень"
+      "MarshPass ticket MARSHGO-HMAC-SHA256-V1 -> driver boarding 200 -> rendezvous ACTIVE -> start -> complete 1/2 підтверджень",
+      "водій complete 200 -> status=in_progress, confirmations 1 з 2 (друге підтвердження обов'язкове)",
+      "пасажир complete 200 -> status=completed, confirmations 2 з 2",
+      "окремий booking: cancel 200 -> status=cancelled (скасування підтверджено)"
     ],
-    "fixture_label": "акаунти й поїздки — ізольовані smoke-дані, не реальні користувачі"
+    "fixture_label": "акаунти й поїздки — ізольовані smoke-дані, не реальні користувачі",
+    "coverage": "публікація -> пошук -> бронювання -> MarshPass -> boarding -> rendezvous -> start -> complete (2/2) -> completed; окремий скасований booking -> cancelled",
+    "remaining_gap": "закрито: канонічний RC-тег RC-2026-11-01-canonical.2 з 8cc634a перестворений і цикл повторений на ньому (див. canonical_carpool_rc2_2026_11_01)"
   },
   "carpool_publish_blocker_2026_11_01": {
     "status": "ROOT_CAUSE_FOUND_AND_FIXED",
@@ -2431,5 +2436,30 @@
     "fix": "Dockerfile: mkdir + chown node:node /app/.uploads перед USER node; objectStorage.putPhotoObject: помилка локального запису тепер ObjectStorageUnavailableError -> 503 замість хибного 400",
     "verification": "повторний збіг образу та свіжий том: фото 201, trust_level 1, offer 201, пошук carpool повертає реальний маршрути",
     "honesty_finding": "картка carpool не мала labels partial/unsupported, бо движок завжди вважає carpool доступним; це було наслідком блокера публікації, а не окремою помилкою"
+  },
+  "canonical_carpool_rc2_2026_11_01": {
+    "status": "PROVEN_LIVE",
+    "date": "2026-11-01",
+    "image": "marshgo/api:RC-2026-11-01-canonical.2",
+    "image_revision_label": "8cc634a13a804b1c2de3d19d86c15837351ec4e8",
+    "image_build_id": "local-8cc634a13a80-20261101T183245435ZZ (подвійний Z у хвості — косметична вада мого BID-скрипту, не серверна)",
+    "source_state": "clean: git archive 8cc634a, Dockerfile.marshgo = ops/docker/Dockerfile.server з chown /app/.uploads",
+    "environment": "compose.production.yml + overlay compose.canonical2.yml, проект marshgo-canonical-smoke, порт 3012, свіжий том marshgo-prod-uploads-can2",
+    "steps_proved": [
+      "водій: реєстрація -> roles -> vehicle -> фото 201 -> trust_level=1 -> offer 201",
+      "пасажир: пошук allowedTransportTypes=[carpool] -> реальний COMMUNITY маршрути -> booking 201 (Idempotency-Key)",
+      "MarshPass MARSHGO-HMAC-SHA256-V1 (token len 232, expiresAt +48h)",
+      "не-власник boarding 400 / ticket 401 / events 404 -> IDOR-гейти тримають",
+      "rendezvous SCHEDULED -> boarding 200 -> start 200 -> complete 200 -> complete 200 -> completed (2 підтвердження)",
+      "скасування: cancel 200 -> seats відновлені (2), повторний cancel 200 ідемпотентно",
+      "раса останнього місця: 1 seat, два паралельні bookings -> 201 і 409, успішних рівно 1"
+    ],
+    "evidence_file": "/tmp/carpool_e2e.json (41 кроків, isolated smoke-акаунти)",
+    "findings": [
+      "офери, повністю заброньовані, повертають 404 на GET /api/v1/offers/:id замість пояснення «немає місць» — користувач із посиланням бачить offer_not_found (UX-чесність, не цілісність)",
+      "у GET /api/v1/bookings для completed-бронювання completed_at не заповнений, хоча події мають перехід in_progress -> completed",
+      "недоліків цілісності бронювання/сидінь не знайдено"
+    ],
+    "fixture_label": "усі акаунти, авто, офери й поїздки — ізольовані smoke-дані; продакшн NOT_RELEASED"
   }
 }
