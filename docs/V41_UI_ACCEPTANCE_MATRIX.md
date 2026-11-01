@@ -1,14 +1,15 @@
 # MARSHGO Web/PWA — аудит і матриця приймання за ТЗ v4.1
 
-Дата вимірювань: 2026-11-01, 19:25–19:35 UTC.
+Дата вимірювань: 2026-11-01, 19:25–19:35 UTC (перший прохід) і 19:47 UTC (повтор після фікса V41-D2).
 Середовище: **публічний acceptance-preview через HTTPS**, не localhost.
 
 | компонент | образ / білд | доказ |
 |---|---|---|
-| Web/PWA | `marshgo/web:RC-2026-11-01-v41menu.2`, `org.opencontainers.image.revision = f86d81eecbd59df720c7fb74d30cf72ae212901f` | `docker image inspect` |
-| відданий бандл | `index-BpkS9lSm.js` | `curl https://marshgo-dima.shares.zrok.io/` і `https://a602584pesfa.shares.zrok.io/` — однаковий хеш |
+| Web/PWA (перший прохід) | `marshgo/web:RC-2026-11-01-v41menu.2`, `org.opencontainers.image.revision = f86d81eecbd59df720c7fb74d30cf72ae212901f` | `docker image inspect` |
+| Web/PWA (повтор) | `marshgo/web:RC-2026-11-01-resultnav.1`, revision `a6ba09f4dc921910d4f4a36218eb164e0f8eeed0` | `docker image inspect`, `.release/web-rc-20261101-resultnav/Dockerfile` |
+| відданий бандл | `index-BpkS9lSm.js` (перший прохід) → `index-Dvb9lqBq.js` (повтор) | `curl https://marshgo-dima.shares.zrok.io/`; бандл зафіксований у `stage5.json` |
 | API | `marshgo/api:RC-2026-11-01-retention.2` | `docker ps`, `/readyz` 200 |
-| браузер | Playwright 1.63, Chromium, профіль iPhone 13 (390×664, DPR 3), заголовок `skip_zrok_interstitial` | скрипти `.release/v41-audit-20261101/stage{2,3,4}.mjs`, JSON `stage{2,3,4}.json`, скріншоти `v41-*.png` |
+| браузер | Playwright 1.63, Chromium, профіль iPhone 13 (390×664, DPR 3), заголовок `skip_zrok_interstitial` | скрипти `.release/v41-audit-20261101/stage{2,3,4,5}.mjs`, JSON `stage{2,3,4,5}.json`, скріншоти `v41-*.png` |
 
 Статуси: PASS / FAIL / IN_PROGRESS / NOT_TESTED. Неперевірене не переведено в PASS.
 
@@ -30,8 +31,8 @@
 | ID | Пункт ТЗ | Статус | Факт |
 |---|---|---|---|
 | V41-D1 | §6: результат = один екран «мапа MapLibre + нижній лист» | **FAIL** | `/journeys/search` — список без мапи (`canvas:0`); мапа зʼявляється лише після тапу по картці (`JOURNEY-DETAIL canvas:1`) |
-| V41-D2 | Глобальна навігація доступна на всіх режимах, у т.ч. під час маршруту | **FAIL** | `navVisible:false` на екрані результатів і на деталях маршруту (`RESULTS-SCREEN`, `JOURNEY-DETAIL`) |
-| V41-D3 | Три справжні ранкінги видимі користувачеві | **IN_PROGRESS** | Чіпи Оптимальний/Найшвидший/Найдешевший клікабельні, але це клієнтський перерангінг (`JourneyResultsPanel.tsx:239-265`, `strategyJourneys`), API не викликається; на міському запиті результат лише 1, тому видимість зміни не доведена. Мультимодальний запит Львів→Київ не вдається повторити: гекодер не повернув варіантів для «Київ, Майдан Незалежності» (опція `element is not enabled`) |
+| V41-D2 | Глобальна навігація доступна на всіх режимах, у т.ч. під час маршруту | **PASS (ез екран повноекранної мапи)** | Виправлено в Site `a6ba09f` (гілка `qoder/v41-ui-20261101`), образ `marshgo/web:RC-2026-11-01-resultnav.1`, бандл `index-Dvb9lqBq.js`. Публічний повтор (`stage5.json`): на `/journeys/search` з 5 і з 1 карткою `navVisible:true`, `navTabCount:5`, `mainShell:flow`; остання картка досяжна після скролу (`lastCardVisible:true`, `cardHiddenBehindNav:false`, scrollHeight 1284 > innerHeight 664). Першопричина: `immersiveRouteView` охоплював `showResults` → зникав tabbar, а `.route-immersive-shell` (`height:100svh; overflow:hidden`) робив решту карток недосяжною. Лишається іммерсивним екран `selectedRouteMap` (деталі маршруту) — див. V41-D1 |
+| V41-D3 | Три справжні ранкінги видимі користувачеві | **IN_PROGRESS** | Чіпи працюють і чесні: на міжміському Львів→Київ `aria` = «Оптимальний, 5 маршрутів», «Найшвидший, 5 маршрутів», «Найдешевший, немає доступних маршрутів» (чіп disabled, бо всі тарифи «невідомий» — unknown ≠ 0). Порядок карток під Оптимальний і Найшвидший на цих 5 результатах збігається, тож «три різні ранкінги» досі не доведені — це питання політики планувальника (#36/#52), не UI. Geocoder Києва обійдено прямим deep-link `mode=planner` |
 | V41-D4 | 12 категорій 4×3, живі маркери транспорту, Follow-режим | **NOT_TESTED** | Не виміряно в цьому проході |
 | V41-D5 | Палітра §2.2 проти чинних токенів | **IN_PROGRESS** | Рішення власника: брати hex ТЗ лише там, де він виграє за WCAG; розрахунки контрасту ще не записані |
 
