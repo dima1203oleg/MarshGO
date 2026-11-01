@@ -1993,5 +1993,90 @@
     "search_latency_unaffected": "#36 unchanged: local 35.56 s first / 14.28-15.03 s repeats, 9 journeys, partial=true. The planner uses its own BoundedPromiseCache, so segments-built ~10 s remains the next real target.",
     "server_sha_unchanged": "2c2342f (qoder/search-latency-20261031) - no code change in this step",
     "production_status": "NOT_RELEASED"
+  },
+"gate05_sha_manifest_and_dr_drill_2026_11_01": {
+    "task": "GATE-05 preparation: exact-SHA manifest of the six canonical repositories plus the executed DR drill",
+    "recorded_at": "2026-11-01T17:27:00Z",
+    "production_status": "NOT_RELEASED",
+    "repositories": {
+      "MarshGO": {
+        "branch": "qoder/checkpoint-20261031",
+        "head_sha": "663900ababae494bbc3806c3b1bfc202ec386eaf",
+        "dirty_files": 432
+      },
+      "MarshGO-Server": {
+        "branch": "qoder/search-latency-20261031",
+        "head_sha": "44f954b3ce6099dde86cebfe7984079a078a5872",
+        "dirty_files": 0
+      },
+      "MarshGO-Site": {
+        "branch": "qoder/site-ui-polish-20261031",
+        "head_sha": "fef697e2603b43c5bc76a9f98e78dba50cc8b480",
+        "dirty_files": 0
+      },
+      "MarshGO-iOS": {
+        "branch": "codex/production-site-sync-20261014",
+        "head_sha": "4353cec3cacbaf662ceea047402f361024292b22",
+        "dirty_files": 0
+      },
+      "MarshGO-Admin": {
+        "branch": "qoder/admin-email-auth-moderation-20261031",
+        "head_sha": "6ee2ede2d7c7e9a24e09d028731c10f7b511d4ef",
+        "dirty_files": 0
+      },
+      "MarshGO-Partner": {
+        "branch": "qoder/partner-email-auth-20261031",
+        "head_sha": "df37e7c9298483ff5dec73c69113078cb13f5f2e",
+        "dirty_files": 0
+      }
+    },
+    "pull_requests": {
+      "MarshGO-Server": "https://github.com/dima1203oleg/MarshGO-Server/pull/63",
+      "MarshGO-Site": "https://github.com/dima1203oleg/MarshGO-Site/pull/35",
+      "MarshGO-Admin": "https://github.com/dima1203oleg/MarshGO-Admin/pull/3",
+      "MarshGO-Partner": "https://github.com/dima1203oleg/MarshGO-Partner/pull/3"
+    },
+    "acceptance_image_pins": {
+      "api": "marshgo/api:RC-2026-11-01-retention.2",
+      "web": "marshgo/web:RC-2026-11-01-chipavail.1",
+      "admin": "marshgo/admin:RC-2026-10-31-edgefix.1",
+      "partner": "marshgo/partner:RC-2026-10-31-edgefix.1"
+    },
+    "search_latency_evidence": {
+      "commit": "44f954b3ce6099dde86cebfe7984079a078a5872",
+      "public_samples_seconds": [
+        10.38,
+        10.56,
+        11.01,
+        11.15,
+        11.22,
+        11.67,
+        12.5,
+        18.1
+      ],
+      "median_seconds": 11.18,
+      "baseline": "51.2 s cold / 21.6 s warm",
+      "all_http_200_with_7_itineraries": true
+    },
+    "dr_drill": {
+      "executed_at": "2026-11-01T17:26:00Z",
+      "environment": "local acceptance PostGIS 17 (marshgo-acceptance-db-1)",
+      "dump_bytes": 4022562,
+      "dump_sha256": "dd5f72d7b68e4ffc8a8bcaf78aa25a941413f85d92a206cd5bd9908a5eba6e62",
+      "restore_seconds": 2.2,
+      "restore_exit": 0,
+      "validation": "53 tables / 17200 rows on both sides; per-table count diff empty",
+      "not_covered": [
+        "parsed GTFS/GTFS-RT snapshots and warm caches",
+        "deployed-host image rollback",
+        "encrypted off-container copy"
+      ]
+    },
+    "open_gate_items": [
+      "GATE-02 staging deploy",
+      "GATE-03 iOS canonical-domain release build (physical device BLOCKED_EXTERNAL)",
+      "GATE-05 owner release authorization",
+      "1000 RPS load test needs approved hardware"
+    ]
   }
 }
