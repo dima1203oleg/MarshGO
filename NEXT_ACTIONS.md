@@ -3449,8 +3449,8 @@ Site `qoder/v41-ui-20261101`: `9de6537` (мітка дати відправле�
 
 ## RESUME BLOCK 2026-11-02 01:57 UTC — DR drill 2: зашифрована копія поза контейнером відновлена і звірена
 
-- Повний ланцюг пройдено без перебудов: `pg_dump` → `docker cp` → `openssl aes-256-cbc -pbkdf2` → `cmp` (ідеднентно) → `pg_restore` у scratch-БД → **31/31 таблиць збігаються.count(*) + md5 відсортованих рядків**.
-- Артеша: `.release/backups/marshgo-acceptance-20261102-dr.enc` (не читабельна — пароль свідомо не збережено; у продакшні ключ і шифртекст мають жити окремо).
+- Повний ланцюг пройдено без перебудов: `pg_dump` → `docker cp` → `openssl aes-256-cbc -pbkdf2` → `cmp` (ідеднентно) → `pg_restore` у scratch-БД → **31/31 таблиць: однакові count(*) + md5 відсортованих рядків**.
+- Артефакт: `.release/backups/marshgo-acceptance-20261102-dr.enc` (не читабельна — пароль свідомо не збережено; у продакшні ключ і шифртекст мають жити окремо).
 - Спростовано хибний пробник: побайтовий `pg_dump --data-only` diff ≠ дефект відновлення (heap order + живі записи фідів).
-- Гейк backup/restore тепер PASS(local, twice); залишок — off-host сховище з retention, restore на staging-хості, `update.sh rollback-*` на задеплоєному таргеті (BLOCKED: немає схваленого середовища).
+- Гейт backup/restore тепер PASS(local, twice); залишок — off-host сховище з retention, restore на staging-хості, `update.sh rollback-*` на задеплоєному таргеті (BLOCKED: немає схваленого середовища).
 - Residue прибрано: `marshgo_dr_20261102e` dropнуто, тимчасові дампи видалено. Статус: **NOT_RELEASED**.
