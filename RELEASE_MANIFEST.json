@@ -30,28 +30,28 @@
   },
   "schema_version": 1,
   "product": "MARSHGO",
-  "release_candidate": "RC-2026-10-30-evidence.3",
+  "release_candidate": "RC-2026-11-02-mainmerge.1",
   "status": "NOT_RELEASED",
   "ready_for_server_deployment": false,
   "production_ready": false,
-  "server_sha": "44f954b3ce6099dde86cebfe7984079a078a5872",
-  "site_sha": "fef697e2603b43c5bc76a9f98e78dba50cc8b480",
-  "ios_sha": "4353cec3cacbaf662ceea047402f361024292b22",
-  "admin_sha": "4eb5d15d1692ebcdb5aae40dbcffc39446138fb5",
-  "partner_sha": "544e5d8c71a04601fae5f0d92dd5ec186f7ac241",
-  "integration_sha": "d117f4b96cb2bb900eacf5a4c3692399d175431a",
+  "server_sha": "a632d873252c6d51687918f831e39bdb77240cb9",
+  "site_sha": "8d927e8098a36f94f2ac519e52f7c720f1e0d239",
+  "ios_sha": "ad27b6f70b6255d1dd323bafcffafe4558232224",
+  "admin_sha": "02b28940ee017523f2feed01de458f8d0aa20279",
+  "partner_sha": "179631f45e984c5712bef83af43912125e3521d1",
+  "integration_sha": "a5e2004f44f268557bcdd35bedebc0295cdffae2",
   "database_migration": "056",
-  "candidate_scope": "Review-only exact candidate tuple; all component PRs remain open and stacked. Site PR #28 d6c9a957a5f767a491daed2ffb5e70bb8ed8b559, Server PR #43 4ed81b47e45520475470b699deac115fb0000b69, iOS PR #15 7468cee5cdcb3d3a3fb4c182c0da6e1dc3a9f2aa. Hosted Site, Server and iOS Simulator checks pass on these exact heads. Admin PR #1 and Partner PR #1 are pinned below but cross-repository release workflow cannot read them without owner-managed MARSHGO_REPOS_READ_TOKEN. Integration checkout HEAD is pinned but dirty; no reproducible six-image tuple or image digests are available. Frozen Lviv GTFS search remains truncated; no staging/deployment, provider entitlement, physical iPhone, security/load/recovery, backup/restore, rollback or owner rollout approval. production_ready=false; NOT_RELEASED.",
+  "candidate_scope": "All five product repositories now carry the reviewed release lines on main: Server PR #74 a632d873, Site PR #41 8d927e80, iOS PR #17 ad27b6f7, Admin PR #3 02b28940, Partner PR #3 179631f4; each required check was green on the exact head before merge. iOS branch CI now bundles Site 8d927e80 and records Server a632d873, so no iOS build pins a stale Site. Root: PR #12 promotes qoder/checkpoint-20261031 to main and is blocked only by the missing MARSHGO_REPOS_READ_TOKEN Actions secret (materialize step fails closed); every other verify step passes on a5e2004. No staging deployment, provider entitlement, physical iPhone, security/load/recovery, backup/restore rehearsal against these pins, rollback drill or owner rollout approval has been completed for this tuple. production_ready=false; NOT_RELEASED.",
   "api_version": "v1",
   "source_repositories": {
-    "server": "dima1203oleg/MarshGO-Server@codex/server-canonical-rc-20261030 (exact head fc5b589ca3956cc6cb0458d308ce777611adf050)",
-    "site": "dima1203oleg/MarshGO-Site@codex/site-canonical-rc-20261030 (exact head ca5140cb78248f15e3794419f3d493bb17d465b9)",
-    "admin": "dima1203oleg/MarshGO-Admin@codex/p0-admin (PR #1, exact open head a008dbad8edc5d81d716a0913e10c325f739540b)",
-    "partner": "dima1203oleg/MarshGO-Partner@codex/p0-partner (PR #1, exact open head 5ec9f368d2788e44483a0effe6eac34838e89790)",
-    "ios": "dima1203oleg/MarshGO-iOS@codex/ios-site-df0d61d-20261026 (PR #15, exact head 7468cee5cdcb3d3a3fb4c182c0da6e1dc3a9f2aa; workflow pins exact Site #28 and Server #43 heads)",
-    "integration": "dima1203oleg/MarshGO@codex/production-finalization-20261014 (HEAD 688b58ca6eeae0175ee34cf1c423a3e35c9f765d; local integration checkout dirty, not releaseable)"
+    "server": "dima1203oleg/MarshGO-Server@main (a632d873252c6d51687918f831e39bdb77240cb9, merged via PR #74)",
+    "site": "dima1203oleg/MarshGO-Site@main (8d927e8098a36f94f2ac519e52f7c720f1e0d239, merged via PR #41)",
+    "admin": "dima1203oleg/MarshGO-Admin@main (02b28940ee017523f2feed01de458f8d0aa20279, merged via PR #3)",
+    "partner": "dima1203oleg/MarshGO-Partner@main (179631f45e984c5712bef83af43912125e3521d1, merged via PR #3)",
+    "ios": "dima1203oleg/MarshGO-iOS@main (ad27b6f70b6255d1dd323bafcffafe4558232224, merged via PR #17; branch and release CI bundle Site 8d927e80 and record Server a632d873)",
+    "integration": "dima1203oleg/MarshGO@qoder/checkpoint-20261031 (a5e2004f44f268557bcdd35bedebc0295cdffae2; PR #12 open to main, blocked only on MARSHGO_REPOS_READ_TOKEN)"
   },
-  "ios_simulator_site_sha": "d6c9a957a5f767a491daed2ffb5e70bb8ed8b559",
+  "ios_simulator_site_sha": "8d927e8098a36f94f2ac519e52f7c720f1e0d239",
   "verification": {
     "concurrent_last_seat_booking_and_inventory_integrity": "PASS on live stack http://127.0.0.1:3002: genuine simultaneous last-seat booking contention against Postgres using independent sessions and synchronized transactions (scratch/test-concurrent-last-seat-booking.mjs). Exactly one competing booking succeeds (201), the other fails with HTTP 409 conflict, available seats decremented to 0 without race conditions, idempotent replayed key returns 200 replayed:true, cancellation immediately restores available seats to 1, and competing user successfully books released seat.",
     "ios_simulator_build_and_launch": "PASS on live stack: local Xcode compilation succeeded for scheme App / Debug iphonesimulator27.0, app installed on MARSHGO iPhone 16 Pro Max (316E0648-A5CF-4D53-8601-A87A9B5EB862), launched successfully with PID 19857, and rendered verified web UI (artifact: ios_simulator_marshgo_running.png). Physical iPhone verification remains BLOCKED_EXTERNAL awaiting physical device connection.",
@@ -280,7 +280,7 @@
     "rc10_api_image_dev_runtime_2026_10_25": "PASS local development-mode runtime for exact API image marshgo/api:RC-2026-10-25-review.10: /healthz 200, /readyz 200, database and realtime connected using isolated loopback Postgres/Redis. Temporary container removed; this is not production-mode acceptance; see docs/audit/162_RC10_API_IMAGE_RUNTIME_AND_PROD_CONFIG_GATE_2026-10-25.md.",
     "rc10_api_production_config_gate_2026_10_25": "BLOCKED_EXTERNAL: production startup correctly refuses without actual Twilio credentials and approved public HTTPS routing/geocoding/map manifest endpoints; no fake credentials or bypass used. Production remains NOT_RELEASED."
   },
-  "note": "Current exact review-candidate pins and exact-head checks are recorded in latest_workspace_sync_2026_10_21. Component PRs remain open/unmerged. No verified staging or production origin/deployed SHA; production_ready remains false. Historical entries retain their original pins and dates.",
+  "note": "Top-level pins name the merged component mains. All five product repositories (Server, Site, Admin, Partner, iOS) are merged to main with green required checks; root PR #12 remains BLOCKED_EXTERNAL on MARSHGO_REPOS_READ_TOKEN. No verified production origin/deployed SHA; production_ready remains false.",
   "staging": {
     "url": null,
     "provider": null,
@@ -2512,5 +2512,161 @@
       "GATE-03 iOS: збірка на канонічний домен (physical device BLOCKED_EXTERNAL)",
       "#33/#35/#36: data-quality labels, cold-шлях routes 8.4 s, хвости latency"
     ]
-  }
+  },
+  "main_merge_2026_11_02": {
+    "what": "Promoted the reviewed release lines of four component repositories to their main branches and opened the remaining two merges (iOS, root) as prepared PRs.",
+    "integration_order": [
+      "Site PR #41 → main 8d927e8098a36f94f2ac519e52f7c720f1e0d239 (base for iOS bundle and web image)",
+      "Server PR #74 → main a632d873252c6d51687918f831e39bdb77240cb9",
+      "Admin PR #3 → main 02b28940ee017523f2feed01de458f8d0aa20279",
+      "Partner PR #3 → main 179631f45e984c5712bef83af43912125e3521d1",
+      "iOS PR #17 → main ad27b6f70b6255d1dd323bafcffafe4558232224 (simulator-build SUCCESS on the PR head e6ee60e before merge)",
+      "Root PR #12 → qoder/checkpoint-20261031 (a5e2004) open to main"
+    ],
+    "blockers_resolved_before_merge": {
+      "server_lint": "server/config.ts rethrows the WALKING_ROUTING_URLS error with { cause } so the preserve-caught-error rule passes without disabling it.",
+      "server_unit_glob": "tests/qr-attestation-characterization.integration.test.ts needs a live API; it now skips with a named reason when no API answers /healthz and is bound to the managed API (port 3306) in the integration job, so CI still executes the coverage.",
+      "site_conflict": "src/services/productionApi.ts keeps both normalizePlaceQuery guarding empty queries and the lat/lon locality bias."
+    },
+    "ci_evidence": {
+      "server_main_verify": "PASS on PR #74 head before merge",
+      "site_main_verify": "PASS on PR #41 head before merge",
+      "admin_main_verify": "PASS on PR #3 head before merge",
+      "partner_main_verify": "PASS on PR #3 head before merge",
+      "ios_main_simulator_build": "PASS on PR #17 head e6ee60e (required simulator-build, both matrix entries SUCCESS) before merging to main ad27b6f7",
+      "root_verify": "run 41498678709 on a5e2004: unit + integration + db:migrate + bun audit --audit-level=high + lint + typecheck + bundle checks all pass; Gitleaks and CodeQL pass; the run fails at exactly one step, 'Missing private repository read token'."
+    },
+    "blocked_external": {
+      "root_merge": "BLOCKED_EXTERNAL — dima1203oleg/MarshGO has zero Actions secrets. Adding MARSHGO_REPOS_READ_TOKEN (read-only Contents on the private MarshGO-Admin and MarshGO-Partner) is an owner action; the workflow fails closed by design and was not bypassed, disabled or worked around.",
+      "production": "BLOCKED_EXTERNAL — no authorized production target or owner rollout approval for this tuple."
+    },
+    "not_claimed": "No staging deployment, browser E2E, backup/restore or rollback drill has been executed against this exact tuple yet; those remain open. production_ready=false; status stays NOT_RELEASED."
+  },
+  "staging_rc_mainmerge_2026_11_02": {
+    "what": "RC-2026-11-02-mainmerge.1 built from the merged component mains and exercised as a live passenger through the public zrok preview.",
+    "component_shas": {
+      "server": "a632d873252c6d51687918f831e39bdb77240cb9",
+      "site": "8d927e8098a36f94f2ac519e52f7c720f1e0d239",
+      "admin": "02b28940ee017523f2feed01de458f8d0aa20279",
+      "partner": "179631f45e984c5712bef83af43912125e3521d1",
+      "ios": "ad27b6f70b6255d1dd323bafcffafe4558232224",
+      "integration": "a5e2004f44f268557bcdd35bedebc0295cdffae2"
+    },
+    "images": {
+      "api": "marshgo/api:RC-2026-11-02-mainmerge.1 marshgo/api@sha256:5a738191af4c04c49af3f722b08a8feaa741034924a580f5a6d6db4c09935c6c",
+      "web": "marshgo/web:RC-2026-11-02-mainmerge.1 marshgo/web@sha256:a93b1464bb4a2a812be74e0c54ec4d36d5a68f1f4ac0d907a2db06525b18f86d",
+      "admin": "marshgo/admin:RC-2026-11-02-mainmerge.1 marshgo/admin@sha256:78ee2f3ef72dc708bf4dff6a6f66f1e26e5c643c58320436fc24c3fd1ec9734f",
+      "partner": "marshgo/partner:RC-2026-11-02-mainmerge.1 marshgo/partner@sha256:b190af2cdc72b6d39ccc4e05c8af106bfbcb89eaa3e5c1e0ffca54534afe29a3"
+    },
+    "root_causes_fixed": [
+      "ops/docker/Dockerfile.site only forwarded VITE_MAP_STYLE_MANIFEST_URL, so a release build silently produced a basemap-less PWA (visible 'Базові тайли карти не налаштовані'). All four VITE_MAP_* style/tile args are now forwarded.",
+      "web/admin/partner images inherited org.opencontainers.image.revision from the nginx base image (d5fb0119...). Dockerfile.site and Dockerfile.portal now set revision (and Site source) from MARSHGO_SOURCE_SHA; rebuilt images report server a632d873 / site 8d927e80 / admin 02b28940 / partner 179631f4."
+    ],
+    "image_label_evidence": {
+      "api": "org.opencontainers.image.revision=a632d873252c6d51687918f831e39bdb77240cb9",
+      "web": "com.marshgo.git.sha=8d927e8098a36f94f2ac519e52f7c720f1e0d239, org.opencontainers.image.revision=8d927e8098a36f94f2ac519e52f7c720f1e0d239",
+      "admin": "com.marshgo.git.sha=02b28940ee017523f2feed01de458f8d0aa20279, org.opencontainers.image.revision=02b28940ee017523f2feed01de458f8d0aa20279",
+      "partner": "com.marshgo.git.sha=179631f45e984c5712bef83af43912125e3521d1, org.opencontainers.image.revision=179631f45e984c5712bef83af43912125e3521d1"
+    },
+    "acceptance_stack": {
+      "project": "marshgo-acceptance",
+      "web": "http://127.0.0.1:3900 serves assets/index-Ci-jmXW8.js",
+      "api": "http://127.0.0.1:3902/readyz -> {status:ready,database:connected,realtime:connected}",
+      "admin": "http://127.0.0.1:3903 -> 200",
+      "partner": "http://127.0.0.1:3904 -> 200",
+      "all_four_containers": "healthy on RC-2026-11-02-mainmerge.1"
+    },
+    "public_preview": {
+      "edge": "https://marshgo-dima.shares.zrok.io",
+      "web_bundle_on_main": "assets/index-Ci-jmXW8.js (Site 8d927e80 with basemap config)",
+      "api": "mg-viz-api runs marshgo/api:RC-2026-11-02-mainmerge.1 (a632d873), /readyz 200, /api/v1/health 200, /api/v1/places/suggest 200",
+      "map": "route detail renders OSM basemap tiles and street geometry after the Dockerfile.site fix"
+    },
+    "live_journey_search": {
+      "route": "площа Ринок, Середмістя, Львів -> Стрийська, Вулька, Львів",
+      "date": "2026-11-03 08:00, 1 passenger, strategy BALANCED",
+      "result": "2 journeys from live GTFS: 23 хв / 30 ₴ Автобус А57 (walk 5 + bus 13 + walk 2, boarding 08:08, arrival 08:23) and 37 хв / 60 ₴ Трамвай + Автобус (arrival 08:37)",
+      "honesty": "banner states part of schedules temporarily unavailable and that rejected chains failed walking time/distance checks",
+      "mode_labels": "Маршрутка/Тролейбус/Метро/Велосипед/Самокат show 'Немає підключеного провайдера'; Таксі/Каршеринг/Трансфер show 'поки не підтримується'"
+    },
+    "not_claimed": [
+      "No production deployment: no owner authorization and no named production host.",
+      "Cross-browser Chromium/Firefox/WebKit and physical-iPhone acceptance still to be run on this RC.",
+      "Root CI PR #12 still BLOCKED_EXTERNAL on MARSHGO_REPOS_READ_TOKEN."
+    ],
+    "verdict": "RC images are consistent with the merged mains and work live end-to-end; production_ready remains false until the remaining gates and owner authorization."
+  },
+  "cross_browser_e2e_2026_11_02": {
+    "what": "Chromium, Firefox and WebKit drove the RC-2026-11-02-mainmerge.1 web bundle on the public zrok preview as a real passenger: onboarding intro, email/password login, place picker -> coordinates, journey search, route details, start of active navigation.",
+    "preview": "https://marshgo-dima.shares.zrok.io",
+    "bundle": "assets/index-Ci-jmXW8.js (MarshGO-Site 8d927e8098a36f94f2ac519e52f7c720f1e0d239)",
+    "api": "marshgo/api:RC-2026-11-02-mainmerge.1 (MarshGO-Server a632d873252c6d51687918f831e39bdb77240cb9) via mg-viz-api",
+    "viewport": "430x932, deviceScaleFactor 2, locale uk-UA, timezone Europe/Kyiv",
+    "departure": "2026-11-03 08:00 Europe/Kyiv, 1 passenger, BALANCED",
+    "route": "площа Ринок, Львів -> Стрийська, Львів",
+    "engines": {
+      "chromium": {
+        "status": "PASS",
+        "journeys": 2,
+        "basemap_requests_ok": 34,
+        "map_unavailable_label": 0
+      },
+      "firefox": {
+        "status": "PASS",
+        "journeys": 2,
+        "basemap_requests_ok": 44,
+        "map_unavailable_label": 0
+      },
+      "webkit": {
+        "status": "PASS",
+        "journeys": 2,
+        "basemap_requests_ok": 36,
+        "map_unavailable_label": 0
+      }
+    },
+    "observed_result": "23 хв · 30 ₴ · готівкою, Автобус A57 о 08:08 (08:00 → 08:23), 3 segments, boarding «Проспект Свободи (67)», alighting «Податкова (566)», 456 м walk to boarding; second option 37 хв · 60 ₴.",
+    "active_navigation": "header aria-label «Навігація до Стрийська», step 1 of 3 «Пішки до Проспект Свободи (67)» 08:00 → 08:05 · 5 хв · 456 м, next action «Далі: Автобус A57 о 08:08», CTA «Далі».",
+    "basemap": "OpenFreeMap vector style + tiles rendered in all three engines with the route geometry; the honest «Карта недоступна» state was not shown.",
+    "findings": [
+      "Harness caveat, not a product defect: the zrok interstitial requires the skip_zrok_interstitial header, and forwarding it to third-party hosts turns the style request into a preflighted CORS call that fails. The harness now scopes the header to the zrok origin only; the earlier Chromium-only «Карта недоступна» frame was this artifact.",
+      "Preview infrastructure limit: the API answers a direct WebSocket upgrade with 101 Switching Protocols and connection.ready (verified on 127.0.0.1:3902 with a real ticket), but the zrok public share terminates HTTP/2 and does not forward Upgrade — GET /api/v1/realtime?ticket= through zrok returns an Express 404, so the chat socket cannot connect on the preview. Trip state has a documented 3 s polling fallback; production nginx already sets Upgrade/Connection for /api/.",
+      "Acceptance-only config: the acceptance web origin http://127.0.0.1:3900 is absent from CORS_ORIGINS, so a browser on :3900 gets 403 on the realtime upgrade; origin allowlist is deployment configuration, not application code.",
+      "Pre-login POST /auth/refresh 401 is the documented pre-login refresh, not an error state."
+    ],
+    "artifacts": ".release/cross-browser-e2e-20261102/ (report.json + screenshots per engine: onboarding intro, login, filled search, results, route details, active navigation)",
+    "cleanup": "7 throwaway accounts (e2e.crossbrowser.* / e2e.realtime.* / e2e.ws.*) removed in one transaction with their sessions and roles; residue 0, passwords never written to disk or stdout.",
+    "not_claimed": [
+      "Physical iPhone 15 Pro Max + Safari (requires the device).",
+      "Production deployment.",
+      "Live chat socket through the zrok preview (blocked by the tunnel, see findings)."
+    ]
+  },
+  "checked_at_utc_cross_browser": "2026-11-02T20:20:00Z",
+  "portal_rc_smoke_2026_11_02": {
+    "what": "Admin and Partner portals on the canonical RC-2026-11-02-mainmerge.1 images: register through the public email/password API, sign in through the real login form, open every section, and assert a heading plus no load failure.",
+    "images": {
+      "admin": "marshgo/admin:RC-2026-11-02-mainmerge.1 (MarshGO-Admin main, sha256:78ee2f3e...)",
+      "partner": "marshgo/partner:RC-2026-11-02-mainmerge.1 (MarshGO-Partner main, sha256:b190af2c...)",
+      "api": "marshgo/api:RC-2026-11-02-mainmerge.1 (MarshGO-Server a632d873252c6d51687918f831e39bdb77240cb9) on :3902"
+    },
+    "admin": {
+      "login": "PASS",
+      "sections": ["Огляд — Доброго дня", "Партнери", "Модерація авто — Перевірка водіїв та автомобілів", "Провайдери", "Інтеграції — Центр керування інтеграціями", "Журнал аудиту"],
+      "sections_ok": 6,
+      "load_failures": 0,
+      "observed_data": "Огляд: 0 активних партнерів, 3 заявки на перевірці, 4 джерела провайдерів, 0 інтеграцій. Інтеграції: 52 технічні джерела, 7 операторів, 1 live-оператор, 33 потребують дії."
+    },
+    "partner": {
+      "login": "PASS",
+      "sections": ["Огляд — Вітаємо у MARSHGO Partner", "Організація", "Підключення — Інтеграції", "Налаштування"],
+      "sections_ok": 4,
+      "load_failures": 0,
+      "observed_data": "Новий акаунт без організації: чесний порожній стан «Організацій ще немає» з CTA «Подати заявку». Повний цикл заявки партнера вже доведено окремим браузерним гейтом PARTNER-GATE-UI-1."
+    },
+    "access_control": "Fresh passenger account on the Admin portal is refused with «У цього акаунта немає адміністративної ролі» (fail-closed); access required an explicit user_roles admin grant, matching the RBAC dual-source contract.",
+    "accounts": "Two throwaway accounts per run, deleted transactionally after the run (4 removed, 0 residue).",
+    "artifacts": ".release/portal-rc-20261102/ (report.json + admin-0*.png + partner-0*.png)",
+    "not_claimed": ["physical-device verification", "production deployment"]
+  },
+  "checked_at_utc_portal_rc": "2026-11-02T20:18:00Z"
 }
