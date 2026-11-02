@@ -3438,3 +3438,11 @@ Site `qoder/v41-ui-20261101`: `9de6537` (мітка дати відправле�
   - Висновок: ланцюг «ввів назву → отримав провайдерські маршрути» працює на живих даних через зовнішній HTTPS без жодних підставлених координат. Доказ: `.release/picker-e2e-20261102-evidence.json`, `.release/public-smoke-20261102-evidence.json`.
 - **Ще спростовано (дешево, два grep):** вигадані «Умань, Біла Церква» у формі попутки (`MarshGO-Site/src/views/DriverOfferNewView.tsx:54`) належать `DemoApp` (`App.tsx:38`), який збирається лише за `import.meta.env.DEV && VITE_DEMO_MODE==='true'` (`App.tsx:34`) — у продакш-шляху ці дані не потрапляють у запит, тож це не дефект продукту.
 - **Слід знову прибрано:** усі `public.smoke.*` видалено (residue 0).
+
+## RESUME BLOCK 2026-11-02 01:55 UTC — пін запущеного API відновлено без перебудови
+
+- `marshgo/api:RC-2026-11-01-retention.2` не має OCI-лейбли взагалі (`docker image inspect` → labels `null`), тож пін добуто хешем вмісту:
+  `/app/server/journey/gtfsTimetable.ts` = `2f69d674…db54` = `git show 44f954b:…`; `/app/server/index.ts` = `32ff43bc…c5f` = версія `44f954b`, але ≠ HEAD `fcdf9d8b` (`481ea92f…`).
+- Висновок: запущений образ — дерево MarshGO-Server `44f954b` («resolve a trip group's retention tier in one candidate pass»), він **передує** `a5ec118` / `959e547` / `fcdf9d8b`.
+- Це висновок із двох файлів, а не машинний читабельний білд-лейбл → на наступному RC обов'язково додавати `--label org.opencontainers.image.revision=$SHA` (процесний дефект GATE-05, не дефект продукту).
+- Залишаються лише власницькі розв'язки: secret `MARSHGO_REPOS_READ_TOKEN` для CI порталів; #79/#78/#67/#33; дозвіл на staging/production deploy. Статус: **NOT_RELEASED**.
