@@ -2595,5 +2595,51 @@
       "Root CI PR #12 still BLOCKED_EXTERNAL on MARSHGO_REPOS_READ_TOKEN."
     ],
     "verdict": "RC images are consistent with the merged mains and work live end-to-end; production_ready remains false until the remaining gates and owner authorization."
-  }
+  },
+  "cross_browser_e2e_2026_11_02": {
+    "what": "Chromium, Firefox and WebKit drove the RC-2026-11-02-mainmerge.1 web bundle on the public zrok preview as a real passenger: onboarding intro, email/password login, place picker -> coordinates, journey search, route details, start of active navigation.",
+    "preview": "https://marshgo-dima.shares.zrok.io",
+    "bundle": "assets/index-Ci-jmXW8.js (MarshGO-Site 8d927e8098a36f94f2ac519e52f7c720f1e0d239)",
+    "api": "marshgo/api:RC-2026-11-02-mainmerge.1 (MarshGO-Server a632d873252c6d51687918f831e39bdb77240cb9) via mg-viz-api",
+    "viewport": "430x932, deviceScaleFactor 2, locale uk-UA, timezone Europe/Kyiv",
+    "departure": "2026-11-03 08:00 Europe/Kyiv, 1 passenger, BALANCED",
+    "route": "площа Ринок, Львів -> Стрийська, Львів",
+    "engines": {
+      "chromium": {
+        "status": "PASS",
+        "journeys": 2,
+        "basemap_requests_ok": 34,
+        "map_unavailable_label": 0
+      },
+      "firefox": {
+        "status": "PASS",
+        "journeys": 2,
+        "basemap_requests_ok": 44,
+        "map_unavailable_label": 0
+      },
+      "webkit": {
+        "status": "PASS",
+        "journeys": 2,
+        "basemap_requests_ok": 36,
+        "map_unavailable_label": 0
+      }
+    },
+    "observed_result": "23 хв · 30 ₴ · готівкою, Автобус A57 о 08:08 (08:00 → 08:23), 3 segments, boarding «Проспект Свободи (67)», alighting «Податкова (566)», 456 м walk to boarding; second option 37 хв · 60 ₴.",
+    "active_navigation": "header aria-label «Навігація до Стрийська», step 1 of 3 «Пішки до Проспект Свободи (67)» 08:00 → 08:05 · 5 хв · 456 м, next action «Далі: Автобус A57 о 08:08», CTA «Далі».",
+    "basemap": "OpenFreeMap vector style + tiles rendered in all three engines with the route geometry; the honest «Карта недоступна» state was not shown.",
+    "findings": [
+      "Harness caveat, not a product defect: the zrok interstitial requires the skip_zrok_interstitial header, and forwarding it to third-party hosts turns the style request into a preflighted CORS call that fails. The harness now scopes the header to the zrok origin only; the earlier Chromium-only «Карта недоступна» frame was this artifact.",
+      "Preview infrastructure limit: the API answers a direct WebSocket upgrade with 101 Switching Protocols and connection.ready (verified on 127.0.0.1:3902 with a real ticket), but the zrok public share terminates HTTP/2 and does not forward Upgrade — GET /api/v1/realtime?ticket= through zrok returns an Express 404, so the chat socket cannot connect on the preview. Trip state has a documented 3 s polling fallback; production nginx already sets Upgrade/Connection for /api/.",
+      "Acceptance-only config: the acceptance web origin http://127.0.0.1:3900 is absent from CORS_ORIGINS, so a browser on :3900 gets 403 on the realtime upgrade; origin allowlist is deployment configuration, not application code.",
+      "Pre-login POST /auth/refresh 401 is the documented pre-login refresh, not an error state."
+    ],
+    "artifacts": ".release/cross-browser-e2e-20261102/ (report.json + screenshots per engine: onboarding intro, login, filled search, results, route details, active navigation)",
+    "cleanup": "7 throwaway accounts (e2e.crossbrowser.* / e2e.realtime.* / e2e.ws.*) removed in one transaction with their sessions and roles; residue 0, passwords never written to disk or stdout.",
+    "not_claimed": [
+      "Physical iPhone 15 Pro Max + Safari (requires the device).",
+      "Production deployment.",
+      "Live chat socket through the zrok preview (blocked by the tunnel, see findings)."
+    ]
+  },
+  "checked_at_utc_cross_browser": "2026-11-02T20:20:00Z"
 }
