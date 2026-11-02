@@ -97,3 +97,31 @@ any npm script or workflow. Writing the test found a real defect in the restore 
   `restore.sh` need a real `.env.production` and a persisted `BACKUP_KEY_FILE`, which do not exist on this
   host; and the three environment-bound items from drill 2 (off-host object storage with retention,
   restore on a staging host, `update.sh rollback-*` on a deployed target) remain open.
+## DR drill 4 — the product's own scripts (`backup.sh` → `restore.sh`), 2026-11-02 02:12 UTC (acceptance PostGIS 17)
+
+Drills 2 and 3 covered the mechanics (ad-hoc openssl chain, then unit tests of the crypto primitive).
+This drill runs the recovery path exactly as an operator would: the shipped scripts, no hand-built pipeline.
+
+- Env overrides only, nothing written into the repo: `MARSHGO_ENV_FILE=/tmp/…` (0600, deleted with the drill),
+  `MARSHGO_PROJECT_NAME=marshgo-acceptance`, `BACKUP_KEY_FILE=/tmp/…/pass.key` (0600, `openssl rand -hex 32`).
+- `bash ops/scripts/backup.sh` exit 0 → `/tmp/…/marshgo-postgres-20261102T021147Z.dump.gpg`, 4 147 200 B,
+  produced by `compose exec -T db pg_dump -U marshgo -d marshgo -Fc | backup-crypto.mjs encrypt -`.
+- Fail-closed guard proven before any restore: `restore.sh <archive> marshgo` -> `exit 3`,
+  "Refusing restore: target database 'marshgo' contains 115 application relations". The live database was
+  never a restore target, and no plaintext was written.
+- `restore.sh <archive> marshgo_dr_20261102f` (fresh empty scratch DB) exit 0 in 3.49 s.
+  Note: `createdb --locale=C` fails on this image (cluster collation is `en_US.utf8`) — an operator
+  provisioning a target must copy the source collation, or the restore will not even start.
+- Validation (probe validity checked first, then the verdict): per-table `count(*)` +
+  `md5(string_agg(row::text,'|' order by row::text))` for all 31 public tables with rows, run identically
+  against live and restored. 31 rows of output on both sides, 0 malformed/NULL hashes, `live == restored`,
+  17 873 rows total restored. The first attempt at this probe produced two empty files that `diff` called
+  identical; that is recorded here as a harness fault caught by asserting non-emptiness, not as evidence.
+- Spatial smoke on the restored copy: `postgis_version()` = `3.5 USE_GEOS=1 USE_PROJ=1 USE_STATS=1` and the
+  app's own geography predicate `ST_Distance(origin::geography, destination::geography) > 100000` returns 968.
+- Residue: scratch database dropped (only `marshgo` and the earlier drill's `marshgo_dr_20261101` remain);
+  `/tmp` archive, key and env file removed together so no readable ciphertext is left next to its passphrase.
+  Unlike drill 2, this archive *was* decryptable by design — the key existed for the duration of the drill.
+- Gate wording after this drill: backup/restore is PASS(local, through the shipped scripts). Still open and
+  environment-bound: off-host object storage with a retention schedule, restore on the staging host, and
+  `ops/scripts/update.sh rollback-*` image rollback on a deployed target.

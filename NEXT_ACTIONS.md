@@ -3468,3 +3468,10 @@ Site `qoder/v41-ui-20261101`: `9de6537` (мітка дати відправле�
 - Виправлено в `cf5e283`: не відкривати ciphertext-stream при нульовій довжині payload. Додано 8 кейсів (2 MB roundtrip, порожній вхід, stdin `-`, хибний пароль, підміна одного байта, обрізаний архів, чужий magic, пароль <32 B, usage exit 2) і `npm run test:ops`, причеплений до `check:production`, щоб тести не були мертвим кодом.
 - Доказ: tests 12 / pass 12 / fail 0; eslint 0 problems. ROLLBACK_RUNBOOK.md → «DR drill 3».
 - Наступне в цьому гейті (BLOCKED, не через код): `backup.sh`/`restore.sh` end-to-end потребують справжнього `.env.production` і збереженого `BACKUP_KEY_FILE`; off-host сховище з retention, restore на staging-хості й `update.sh rollback-*` на задеплоєному таргеті — потребують схваленого середовища. Статус: **NOT_RELEASED**.
+## RESUME BLOCK 2026-11-02 02:12 UTC — DR drill 4: бекап і відновлення прогано ВЛАСНИМИ скриптами продукту
+
+- `ops/scripts/backup.sh` (exit 0, 4 147 200 B) → `ops/scripts/restore.sh` у порожню scratch-БД (exit 0, 3.49 s) без жодного ад-hoc ланцюга; overrides лише через `MARSHGO_ENV_FILE` / `MARSHGO_PROJECT_NAME=marshgo-acceptance` / `BACKUP_KEY_FILE` (усе в /tmp, видалено).
+- Гейт fail-closed доведений: `restore.sh <archive> marshgo` → `exit 3` («contains 115 application relations») — живої БД ніхто не чіпав, plaintext не записаний.
+- Валідація: 31/31 таблиць (count + md5 відсортованих рядків) live == restored, 17 873 рядки; PostGIS 3.5 і географічний предикат дають 968 на відновленій копії. Перший прохід харнеса видав два порожні файли, які `diff` назвав «ідентичними» — спростовано перевіркою непорожності, а не зараховано.
+- Пастка для оператора: `createdb --locale=C` не проходить на цьому образі (коллація кластера `en_US.utf8`), цільова БД має успадковувати колацію джерела.
+- Залишок гейту (BLOCKED, середовище): off-host сховище з retention-політикою, restore на staging-хості, `update.sh rollback-*` на задеплоєному таргеті. Статус: **NOT_RELEASED**.
