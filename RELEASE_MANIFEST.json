@@ -2641,5 +2641,32 @@
       "Live chat socket through the zrok preview (blocked by the tunnel, see findings)."
     ]
   },
-  "checked_at_utc_cross_browser": "2026-11-02T20:20:00Z"
+  "checked_at_utc_cross_browser": "2026-11-02T20:20:00Z",
+  "portal_rc_smoke_2026_11_02": {
+    "what": "Admin and Partner portals on the canonical RC-2026-11-02-mainmerge.1 images: register through the public email/password API, sign in through the real login form, open every section, and assert a heading plus no load failure.",
+    "images": {
+      "admin": "marshgo/admin:RC-2026-11-02-mainmerge.1 (MarshGO-Admin main, sha256:78ee2f3e...)",
+      "partner": "marshgo/partner:RC-2026-11-02-mainmerge.1 (MarshGO-Partner main, sha256:b190af2c...)",
+      "api": "marshgo/api:RC-2026-11-02-mainmerge.1 (MarshGO-Server a632d873252c6d51687918f831e39bdb77240cb9) on :3902"
+    },
+    "admin": {
+      "login": "PASS",
+      "sections": ["Огляд — Доброго дня", "Партнери", "Модерація авто — Перевірка водіїв та автомобілів", "Провайдери", "Інтеграції — Центр керування інтеграціями", "Журнал аудиту"],
+      "sections_ok": 6,
+      "load_failures": 0,
+      "observed_data": "Огляд: 0 активних партнерів, 3 заявки на перевірці, 4 джерела провайдерів, 0 інтеграцій. Інтеграції: 52 технічні джерела, 7 операторів, 1 live-оператор, 33 потребують дії."
+    },
+    "partner": {
+      "login": "PASS",
+      "sections": ["Огляд — Вітаємо у MARSHGO Partner", "Організація", "Підключення — Інтеграції", "Налаштування"],
+      "sections_ok": 4,
+      "load_failures": 0,
+      "observed_data": "Новий акаунт без організації: чесний порожній стан «Організацій ще немає» з CTA «Подати заявку». Повний цикл заявки партнера вже доведено окремим браузерним гейтом PARTNER-GATE-UI-1."
+    },
+    "access_control": "Fresh passenger account on the Admin portal is refused with «У цього акаунта немає адміністративної ролі» (fail-closed); access required an explicit user_roles admin grant, matching the RBAC dual-source contract.",
+    "accounts": "Two throwaway accounts per run, deleted transactionally after the run (4 removed, 0 residue).",
+    "artifacts": ".release/portal-rc-20261102/ (report.json + admin-0*.png + partner-0*.png)",
+    "not_claimed": ["physical-device verification", "production deployment"]
+  },
+  "checked_at_utc_portal_rc": "2026-11-02T20:18:00Z"
 }
