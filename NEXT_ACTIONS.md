@@ -3461,3 +3461,10 @@ Site `qoder/v41-ui-20261101`: `9de6537` (мітка дати відправле�
 - Корінь дефекту не «рецепт без лейблів», а **два шляхи збірки**: канонічний `ops/docker/Dockerfile.server` має LABEL, а репозиторний `MarshGO-Server/Dockerfile` (ним збирали retention.*/boardgate.*/dqlabel.*) — не мав узагалі → `labels null`.
 - Виправлення: PR MarshGO-Server **#66** (`0179ae6`) — додано ARG+ENV+LABEL; доведено двома локальними білдами (з аргументами → `revision=fcdf9d8bca22…`, без → `unknown`, тобто провал видимий). Вміст образу не змінився. Тестові образи і worktree прибрано.
 - NEXT (не зроблено, потребує дозволу на перезапуск спільного стеку): перевити acceptance-api на лейблований образ (`canonical.1` або білд після #66), щоб у публічному прев'ю крутився трасований пін.
+## RESUME BLOCK 2026-11-02 02:10 UTC — шлях відновлення продукту вперше під тестами; знайдено й виправлено реальний дефект
+
+- `ops/scripts/backup-crypto.mjs` (шифрування бекапів, яке використовують `backup.sh`/`restore.sh`) не мав жодного тесту — `grep -rl backup-crypto tests/` порожній, і `node --test ops/scripts/*.test.mjs` ніде не запускався.
+- Перший тест знайшов дефект: валідний архів із порожнім вмістом (53 B) не розшифровувався — `createReadStream(start: 37, end: 36)` кидає `ERR_OUT_OF_RANGE` до читання байтів. Fail-closed (plaintext не пишеться), але відновлення впало б із неконтролюваним стек-трейсом замість зрозумілої помилки.
+- Виправлено в `cf5e283`: не відкривати ciphertext-stream при нульовій довжині payload. Додано 8 кейсів (2 MB roundtrip, порожній вхід, stdin `-`, хибний пароль, підміна одного байта, обрізаний архів, чужий magic, пароль <32 B, usage exit 2) і `npm run test:ops`, причеплений до `check:production`, щоб тести не були мертвим кодом.
+- Доказ: tests 12 / pass 12 / fail 0; eslint 0 problems. ROLLBACK_RUNBOOK.md → «DR drill 3».
+- Наступне в цьому гейті (BLOCKED, не через код): `backup.sh`/`restore.sh` end-to-end потребують справжнього `.env.production` і збереженого `BACKUP_KEY_FILE`; off-host сховище з retention, restore на staging-хості й `update.sh rollback-*` на задеплоєному таргеті — потребують схваленого середовища. Статус: **NOT_RELEASED**.

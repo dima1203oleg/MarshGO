@@ -70,3 +70,30 @@ needs a deployed target and stays open.
 - Still open for this gate: off-host/encrypted *object-storage* backup with a scheduled retention
   policy, restore on the staging host, and `ops/scripts/update.sh rollback-*` image rollback on a
   deployed target. All three require an approved environment.
+## DR drill 3 — the product's own recovery primitive is now under test, 2026-11-02 02:10 UTC (local)
+
+Drill 2 encrypted with an ad-hoc `openssl` chain, not with `ops/scripts/backup-crypto.mjs` that
+`backup.sh`/`restore.sh` actually use. That primitive had **no test anywhere**: `grep -rl backup-crypto
+tests/ MarshGO-Server/tests` returned nothing and `node --test ops/scripts/*.test.mjs` was not invoked by
+any npm script or workflow. Writing the test found a real defect in the restore path.
+
+- Defect: a valid archive of an empty payload (53 B = `MGBACKUP1` + 16 B salt + 12 B IV + 16 B tag)
+  could not be decrypted — `createReadStream(inputPath, { start: headerBytes, end: stats.size - 17 })`
+  evaluates to `start 37 / end 36` and throws `ERR_OUT_OF_RANGE` before any byte is read.
+  Impact is bounded: it fails closed (no plaintext file, `.tmp` removed, exit 1) and a real `pg_dump -Fc`
+  is never empty — but a truncated/failed dump would surface as an unhandled Node stack instead of a
+  clear restore error, and the crypto path itself was unverified.
+- Fix: do not open the ciphertext stream when the payload length is zero (`ops/scripts/backup-crypto.mjs`,
+  commit `cf5e283`).
+- New tests `ops/scripts/backup-crypto.test.mjs` (8 cases): 2 MB binary roundtrip with header/format and
+  0o600-mode assertions; empty-payload roundtrip; `-` stdin roundtrip; wrong passphrase rejected with no
+  plaintext and no `.tmp`; single tampered ciphertext byte rejected with no plaintext; truncated archive
+  rejected (`Encrypted backup is truncated.`); foreign magic rejected (`unsupported format`); passphrase
+  < 32 bytes rejected for both operations; usage errors exit 2.
+- Wiring so this is not dead code: `npm run test:ops` added and chained into `check:production`.
+- Evidence: `node --test ops/scripts/*.test.mjs` -> tests 12, pass 12, fail 0 (also runs the previously
+  unwired `release-build-metadata.test.mjs`); `eslint ops/scripts/backup-crypto.mjs ops/scripts/backup-crypto.test.mjs` -> 0 problems.
+- Still NOT exercised end-to-end through the product scripts themselves: `ops/scripts/backup.sh` and
+  `restore.sh` need a real `.env.production` and a persisted `BACKUP_KEY_FILE`, which do not exist on this
+  host; and the three environment-bound items from drill 2 (off-host object storage with retention,
+  restore on a staging host, `update.sh rollback-*` on a deployed target) remain open.
