@@ -34,3 +34,39 @@ separate empty database exactly as step 5 requires, never over the live one.
   `select count(*) from journeys` returns 1087, a geography distance between Lviv and Kyiv stops returns
   469 km, and the public-table count matches the source database (55 both sides). The restored copy is
   queryable by the app's own spatial SQL, not merely structurally equal.
+
+## DR drill 2 — encrypted off-container backup, 2026-11-02 01:56 UTC (acceptance PostGIS 17, local)
+
+Closes the second item of the previous "not yet exercised" list: a restore of an *encrypted*
+off-container copy. The first drill's remaining item (app-image rollback on a deployed host) still
+needs a deployed target and stays open.
+
+- Dump of the running `marshgo` database → copied out of the container (`docker cp`) → the copy
+  inside the container deleted. Plain archive 4 022 562 B, sha256
+  `4fd6b77e99d8bced47364cbe665eebe096ed81949f9c954844bb56982fde4bce`.
+- Encrypt: `openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -salt`, passphrase = `openssl rand -hex 32`
+  held only in the shell variable of that one command, never printed and never written to disk.
+  Artifact: `.release/backups/marshgo-acceptance-20261102-dr.enc`, 4 147 168 B, header `Salted__` verified.
+- Roundtrip: decrypt → sha256 `4fd6b77e…4bce` (identical to plain) and `cmp` reports byte-identical.
+- Restore of the decrypted copy into a fresh scratch database `marshgo_dr_20261102e`
+  (`pg_restore` exit 0, 2.4 s, no errors) — never over the live database.
+- Validation (order-independent, exact): for all 31 public tables with rows, `count(*)` plus
+  `md5(string_agg(row::text, '|' order by row::text))` compared between live and restored —
+  **31/31 identical, 0 mismatches** (largest: `spatial_ref_sys=8500`, `journey_legs=5763`,
+  `journeys=1147`, `journey_preferences=1147`, `sessions=748`).
+- Spatial smoke on the restored copy: `postgis_version()` = `3.5 USE_GEOS=1 USE_PROJ=1 USE_STATS=1`;
+  `select count(*) from journeys where ST_Distance(origin::geography, destination::geography) > 100000`
+  returns 968 — the app's own geography SQL runs against the recovered data.
+- A byte-level `pg_dump --data-only` comparison was attempted first and showed a diff at byte 2056682;
+  that is a probe fault, not a data fault: `--data-only` dumps reflect physical heap order and the live
+  database keeps receiving feed-refresh writes, so file identity is not a valid equivalence test. The
+  sorted per-table content hash above is the valid test and it passed.
+- Key-management note, stated honestly: the `.enc` artifact is kept but is **permanently unreadable**,
+  because the passphrase was deliberately never persisted. For production the ciphertext and the key
+  must be stored separately (KMS/escrow with split custody) — this drill proves the crypto+restore
+  mechanics, not an operable key process.
+- Residue: scratch database `marshgo_dr_20261102e` dropped (only `marshgo` and the previous drill's
+  `marshgo_dr_20261101` remain); container temp dumps removed; host plaintext copies removed.
+- Still open for this gate: off-host/encrypted *object-storage* backup with a scheduled retention
+  policy, restore on the staging host, and `ops/scripts/update.sh rollback-*` image rollback on a
+  deployed target. All three require an approved environment.

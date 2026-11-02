@@ -3446,3 +3446,11 @@ Site `qoder/v41-ui-20261101`: `9de6537` (мітка дати відправле�
 - Висновок: запущений образ — дерево MarshGO-Server `44f954b` («resolve a trip group's retention tier in one candidate pass»), він **передує** `a5ec118` / `959e547` / `fcdf9d8b`.
 - Це висновок із двох файлів, а не машинний читабельний білд-лейбл → на наступному RC обов'язково додавати `--label org.opencontainers.image.revision=$SHA` (процесний дефект GATE-05, не дефект продукту).
 - Залишаються лише власницькі розв'язки: secret `MARSHGO_REPOS_READ_TOKEN` для CI порталів; #79/#78/#67/#33; дозвіл на staging/production deploy. Статус: **NOT_RELEASED**.
+
+## RESUME BLOCK 2026-11-02 01:57 UTC — DR drill 2: зашифрована копія поза контейнером відновлена і звірена
+
+- Повний ланцюг пройдено без перебудов: `pg_dump` → `docker cp` → `openssl aes-256-cbc -pbkdf2` → `cmp` (ідеднентно) → `pg_restore` у scratch-БД → **31/31 таблиць збігаються.count(*) + md5 відсортованих рядків**.
+- Артеша: `.release/backups/marshgo-acceptance-20261102-dr.enc` (не читабельна — пароль свідомо не збережено; у продакшні ключ і шифртекст мають жити окремо).
+- Спростовано хибний пробник: побайтовий `pg_dump --data-only` diff ≠ дефект відновлення (heap order + живі записи фідів).
+- Гейк backup/restore тепер PASS(local, twice); залишок — off-host сховище з retention, restore на staging-хості, `update.sh rollback-*` на задеплоєному таргеті (BLOCKED: немає схваленого середовища).
+- Residue прибрано: `marshgo_dr_20261102e` dropнуто, тимчасові дампи видалено. Статус: **NOT_RELEASED**.
