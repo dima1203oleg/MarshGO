@@ -3566,3 +3566,22 @@ Site `qoder/v41-ui-20261101`: `9de6537` (мітка дати відправле�
 2. Схвалити merge PR Server #68 у `codex/server-canonical-rc-20261030` і перезапустити CI для #62–#67 (сам злиття в `codex/*` не виконую).
 
 Ворота: `ci_gate` = PARTIAL (Server-фікс зелений на своей гілці, база не покрита; корінь блокований секретом). Production = `NOT_RELEASED`.
+
+## 2026-11-02 03:25 — SEARCH-COLD-SHARE-1: знайдено виміряний корінь cold-затримки пошуку
+
+Спостереження (публічний URL, не localhost): три реальні пошуки від `Залізничний вокзал (118)` = HTTP 200 із 8 / 12 / 10 маршрутами, але 13.1 s / 7.5 s / 6.9 s. Різниця cold проти warm ≈ 6.2 s — це phase побудови planner-мереж.
+
+Ланцюг причинно-наслідковий, усі кроки прочитані в коді:
+- `source_version` для провайдера = `mp.last_report->>'sourceVersion'` ([server/index.ts:764](https://github.com/dima1203oleg/MarshGO)).
+- `cachedNetwork` ([server/mobility/transportLayers.ts:194](file:///Users/dima1203/Desktop/MarshGO/MarshGO-Server/server/mobility/transportLayers.ts#L194)): `shared = Boolean(sourceVersion)`, `l1TtlMs = sourceVersion ? 10 хв : 60 с`. Тобто без версії мережа не потрапляє в L2 і живе в L1 лише хвилину.
+- Фоновий warmer ([server/index.ts:6702-6722](file:///Users/dima1203/Desktop/MarshGO/MarshGO-Server/server/index.ts#L6702)) гріє лише `cachedGtfsRouteTypes` (індекс типів для живої карти), а не planner-мережі.
+
+Вимір на acceptance-стеку (`marshgo/api:RC-2026-11-01-retention.2`): 15 увімкнених healthy/degraded GTFS `public_transit` провайдерів, з них лише 7 мають `last_report.sourceVersion`. Решта 8 (53%) перекачуються і перебудовуються на шляху запиту. Redis-cache: `dbsize = 10`, усі ключі — `gtfs_network`, тобто/shared-шлях працює, але лише для частини провайдерів.
+
+Два варіанти виправлення (обидва потребують рішення про допустиму застарілість даних — не имітувати свіжість):
+1. Заповнити `last_report.sourceVersion` (ETag / Last-Modified / `feed_version.txt`) для 8 провайдерів → вмикає L2-shared і 10-хв L1.
+2. Додати фоновий warm planner-мереж за тим самим дисциплінованим шаблоном (один провайдер за раз, `unref()`, без шуму в логах).
+
+Не реалізовано в цьому циклі: потрібен окремий прохід із rebuild образу й before/after вимірюванням (єдиний heavy-процес на 8 GB Mac). Задача в трекері: SEARCH-COLD-SHARE-1 (#90), пов'язана з #35/#36.
+
+Ворота: `search_latency` = відкрито з атрибуцією; production = `NOT_RELEASED`.
