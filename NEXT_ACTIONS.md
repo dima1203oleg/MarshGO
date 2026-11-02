@@ -3378,3 +3378,62 @@ realtime рахувався як 0, бо `wss://` порівнювався з п
 Наступний крок за цим пунктом: рішення власника щодо `PICKER-LOCALITY-1` (додавати `lat/lon`+`viewbox` у контракт
 `/places/suggest` чи ні) і `HOME-HERO-CLIP-1` (правити в наступному Site RC). Статус продакшну — `NOT_RELEASED`;
 це докази публічного прев'ю, не стейджинг і не продакшн.
+
+## 2026-11-02 — PICKER-LOCALITY-1 реалізовано й доведено публічно; знайдено LIVEMAP-BASEMAP-SILENT-1
+
+Рішення власника чекати не стало: дефект №1 із UI-FULL-PUBLIC-1 закритий end-to-end, пошук місця тепер
+знає локацію пасажира.
+
+1. **Сервер** (`MarshGO-Server`, `qoder/place-suggest-locality-20261102` → PR **#70**, коміти `b4db20b` + `9f696d0`):
+   `suggestPlaces(query, bias?)` додає Nominatim `viewbox` навколо точки викликача. Порядок параметрів
+   перевірено емпірично: `left,top,right,bottom` (`minLon,maxLat,maxLon,minLat`); без `bounded` Nominatim
+   **віддає перевагу**, а не фільтрує — тож «хрещатик» із львівським bias все одно київський (5/5 тестів geocoding).
+   `/places/suggest` не обгорнутий у smartCache, тому упередена відповідь не може перетікти в інше місто.
+   Вхідні дані: `lat`/`lon` тільки парою, інакше 400 `invalid_coordinate`; порожній рядок не стає нулем
+   (дірка, знайдена зондом живого ендпоінту, закрита в `9f696d0`).
+2. **Клієнт** (`MarshGO-Site`, `qoder/place-bias-20261102` → PR **#37**, commit `9c4c042`):
+   `src/platform/placeBias.ts` читає позицію ТІЛЬКИ якщо `navigator.permissions.query({name:'geolocation'})`
+   вже `granted` (`maximumAge` 5 хв, `timeout` 2 с, без промпту); навігація бере власний GPS-фікс.
+   5 точок вводу (пошук маршруту, marketplace, offer, два пікери навігації) передають bias.
+   Тести: `tests/place-bias.test.ts` (3) — без дозволу не читаємо, з дозволом читаємо, відмова мовчки.
+   255 pass / 0 fail, `tsc` і `eslint` чисто.
+3. **Доказ на публічному URL** (`https://marshgo-dima.shares.zrok.io`, запит «залізничний вокзал» з львівською
+   GPS-точкою): дозвіл є → запит несе `lat=49.8397&lon=24.0297`, топ-3 суто Львів, Криму 0; дозволу немає →
+   `lat/lon` відсутні, Феодосія знову перша, і **0 викликів `/places/reverse`** (ні промпту, ні зонда).
+   Скріншоти `shots/picker-biased.png` / `shots/picker-plain.png`.
+
+### Побічно знайдений дефект: LIVEMAP-BASEMAP-SILENT-1 (Site PR **#38**, commit `4b64e81`)
+
+Регресія після першої передовидачі дала 18/19: `4-map-open` мав `canvas:1, tileOk:0` і порожню мапу.
+Корінь НЕ в продукті: `MarshGO-Site/vite.config.ts:14` задає `envDir: path.resolve(rootDir, '..')`, тобто
+мапа бере `VITE_MAP_STYLE_URL`/`VITE_MAP_TILE_URL` з `.env` **кореня воркспейсу** (`MarshGO/.env:66-67`).
+У git worktree поза `Desktop/MarshGO/` такого `.env` немає → збірка мовчки віддає стиль без жодного
+джерела тайлів. Свіжий clone і CI мають той самий пастку.
+
+Справжній UI-дефект: `MapLibreAdapter` публікує статус `unconfigured` (`MapLibreAdapter.ts:118,270,637`),
+екран деталей маршруту його показує (`JourneyRouteMapScreen.tsx:629`), а жива карта реагувала лише на
+`failed` (`TransportMapView.tsx:81`) — пасажир залишався на порожньому фоні без жодного пояснення.
+Виправлено: чесне `role="alert"` «Не налаштовано базову карту — фон мапи порожній.» + 2 тести.
+
+Докази (обидва стани на публічному URL, one image per state):
+- негативний: `marshgo/web:RC-2026-11-02-mapnotice.2-noenv`, bundle `index-DmbE5qhK.js` — 0 тайлів,
+  `alerts = ["Не налаштовано базову карту — фон мапи порожній."]`, `shots/basemap-noenv-final.png`;
+- позитивний: `marshgo/web:RC-2026-11-02-mapnotice.2`, bundle `index-kgsq-57P.js` — 17/17 тайлів 200,
+  `alerts = []`, `shots/basemap-configured.png`;
+- повна регресія на `mapnotice.2`: **19/19 ok**, `evidence.json` `startedAt 2026-11-02T05:10:40Z`, `failed: []`.
+
+Методична нотатка (щоб не повторити): `gl.readPixels` з canvas дає 1 колір і в пустому, і в робочому стані —
+maplibre рендерить без `preserveDrawingBuffer`. Це не доказ порожньої мапи; доказ — лічильник тайлів,
+`role="alert"` і скріншот.
+
+### Поточний preview-стек
+`marshgo/api:RC-2026-11-02-placebias.2` (Server `9f696d0`) + `marshgo/web:RC-2026-11-02-mapnotice.2`
+(локальне scratch-дерево `e93629f` = `9c4c042` + cherry-pick `4b64e81`; жоден із цих двох комітів ще
+не злитий у canonical-гілки). Продакшн — `NOT_RELEASED`; це докази публічного прев'ю, не стейджинг.
+
+### Наступні кроки
+1. Рішення власника: `envDir: '..'` — або фолбек у репозиторій, або фатальна перевірка `VITE_MAP_*` на білді
+   (зараз неправильна збірка виглядає як «працює, але мапа порожня»).
+2. Рішення власника: ліцензований базовий шар для продакшну (маніфест 4 векторних стилів замість OpenFreeMap).
+3. Рішення власника щодо `HOME-HERO-CLIP-1` (#92) і `PROFILE-NEGATIVE-GREEN-1` (#93) — обидва дрібні, чекають
+   дозволу на правку в наступному Site RC.
