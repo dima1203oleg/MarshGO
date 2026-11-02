@@ -3331,3 +3331,9 @@ IN_PROGRESS: V41-D3 три ранкінги (клієнтський перера
 - Крок 3: before/after холодного публічного пошуку (`node .release/public-smoke-20261102b.mjs` на зрок-URL) після скидання L1/L2. Базова лінія: cold 13.1 s / warm 6.9 s. Виграш заявляється тільки за цим виміром.
 - Незмінні блокери власника: #88 (Actions-секрет `MARSHGO_REPOS_READ_TOKEN` — у `dima1203oleg/MarshGO` нуль секретів, тому materialize/docker-build/e2e/browser-compat у CI не виконувались), #89 (злиття Server #68), iOS на фізичному пристрої.
 - Production: `NOT_RELEASED`. `ci_gate = PARTIAL`.
+## 2026-11-02 03:41 — ПОПРАВКА до RESUME-POINT: CI Server #69 НЕ зелений
+- Обидва runs завершилися `failure`: `41384188972` і `41384185229` (гілка `qoder/health-source-version-20261102`), крок `verify / Run npm test`.
+- Сигнатура: `TypeError: fetch failed` з `cause: Error: connect ECONNREFUSED 127.0.0.1:3002` — тест у `npm test` звертається до живого локального сервера, якого в CI-контейнері не піднято.
+- Це суперечить очікуванню, бо PR #68 на тій самій canonical-базі був `SUCCESS`. Гіпотези (не підтверджені): (а) flaky/умовний тест, який пропускає запит, лише коли задано конкретний env; (б) порядок запусків/паралелізм; (в) моя зміна — малоймовірна, бо патч лише SQL-рядок у `healthMonitor.ts` і не відкриває сокетів.
+- Наступний діагностичний крок (зроби першим): `grep -rn "127.0.0.1:3002\|localhost:3002" tests/` у гілці #69 і `gh run view 41384188972 --repo dima1203oleg/MarshGO-Server --log-failed` повністю; порівняти з логином успішного run #68. Зробити re-run, щоб відрізнити flaky від deterministic, ПЕРЕД тим, як щось змінювати.
+- Поки що статус фікса: код перевірено локально (typecheck, eslint, tsx-тест 15/15, реальний Postgres 12/12), але CI-гейт #69 = ЧЕРВОНИЙ, тому злиття не пропонується.
