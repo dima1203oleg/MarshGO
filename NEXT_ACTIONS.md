@@ -3548,3 +3548,21 @@ Site `qoder/v41-ui-20261101`: `9de6537` (мітка дати відправле�
 - **Чесні межі**: зелений CI доводить, що набори виконуються в CI і проходять на свіжій PostGIS+Redis, **але не** що вони перевіряють прод-конфігурацію — раннер крутить `NODE_ENV=development AUTH_DEV_BYPASS=true`. PR #62–#67 лишатимуться червоними, доки не отримають цей коміт (rebase/merge — рішення власника); це не шість окремих дефектів продуктового коду. Цей PR продуктову логіку не змінює.
 - **Супровідний дефект у коді продукту, знайдений раніше й досі не змерджений**: `ops/scripts/restore.sh` у `FETCH_HEAD` все ще резолвить `BACKUP_KEY_FILE` лише як `$ROOT_DIR/.backup-key` і не читає його з env-файла, хоча `backup.sh` читає — тобто штатний зашифрований архів штатним `restore.sh` не розшифровується. Файл відновлено в цьому ж чекоiнті (+4 рядки).
 - Продакшн: `NOT_RELEASED`; деплою не було; у acceptance-стані нічого не змінено. Наступний крок цієї лінії — змерджити #68, потім #67 (єдине джерело ролей), #66, #65 і перерізати канонічний RC-образ.
+
+## 2026-11-02 03:18 — CI-GATE-2: корінь упирається у відсутній секрет, фікс Server ще не злитий
+
+Факти вимірювання (не плани):
+- Run `41381496488` (workflow `CI`, гілка `qoder/checkpoint-20261031`, 2026-11-02T03:09Z, 1 хв 40 с). Усі кроки до приватних репозиторіїв зелені: `bun install --frozen-lockfile`, `bun audit --audit-level=high`, `npm run lint:all`, `npm run typecheck`, `npm test`, `db:migrate`, `npm run test:integration`, `npm run build`, `npm run check:bundle`.
+- Зупин на кроці `Configure read-only access to private Admin and Partner repositories`: `##[error]Set the MARSHGO_REPOS_READ_TOKEN Actions secret…`, exit 1.
+- Перевірка блокувача: `gh secret list` у `dima1203oleg/MarshGO` повертає порожній список — жодного Action-секрета в репозиторії немає. Видимість: `MarshGO`, `MarshGO-Site`, `MarshGO-Server` = PUBLIC; `MarshGO-Admin`, `MarshGO-Partner` = PRIVATE.
+- Наслідок: гейт чесний, а не зламаний. Без токена `ops/scripts/materialize-release.mjs` не може склонувати пінні SHA порталів, тому кроки `docker compose build api web admin partner`, `npm run test:e2e` і `npm run test:browser-compat` у CI не виконувалися жодного разу.
+
+Статус фікса Server (CI-GATE-1):
+- PR #68 `qoder/ci-integration-gate-20261102` → base `codex/server-canonical-rc-20261030`: `SUCCESS SUCCESS`, `mergeable=MERGEABLE`, `mergeStateStatus=CLEAN`.
+- Коміти `0f6606b` і `b4c210f` відсутні на канонічній гілці (`git branch -r --contains` → 0 збігів). Через це PR #62–#67 лишаються червоні з того самого попереднього кореня, аж поки #68 не буде злито в базу.
+
+Дії власника (обидві поза моїм доступом за правилами репозиторію):
+1. Створити fine-grained PAT з read-only Contents на `MarshGO-Admin` і `MarshGO-Partner`, додати його як Actions-секрет `MARSHGO_REPOS_READ_TOKEN` у `dima1203oleg/MarshGO`, потім перезапустити `CI`.
+2. Схвалити merge PR Server #68 у `codex/server-canonical-rc-20261030` і перезапустити CI для #62–#67 (сам злиття в `codex/*` не виконую).
+
+Ворота: `ci_gate` = PARTIAL (Server-фікс зелений на своей гілці, база не покрита; корінь блокований секретом). Production = `NOT_RELEASED`.
