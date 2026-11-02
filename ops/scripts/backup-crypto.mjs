@@ -57,8 +57,10 @@ if (operation === 'encrypt') {
     decipher.setAuthTag(tail);
     const output = createWriteStream(temporary, { mode: 0o600 });
     try {
-      const ciphertext = createReadStream(inputPath, { start: headerBytes, end: stats.size - 17 });
-      for await (const chunk of ciphertext) await writeChunk(output, decipher.update(chunk));
+      if (stats.size > headerBytes + 16) {
+        const ciphertext = createReadStream(inputPath, { start: headerBytes, end: stats.size - 17 });
+        for await (const chunk of ciphertext) await writeChunk(output, decipher.update(chunk));
+      }
       await writeChunk(output, decipher.final());
       output.end();
       await once(output, 'finish');
