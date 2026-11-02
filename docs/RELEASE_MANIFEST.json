@@ -1,6 +1,16 @@
 {
   "schema_version": 1,
   "product": "MARSHGO",
+  "acceptance_running_pins_2026_11_02": {
+    "recordedAt": "2026-11-02T01:48:00Z",
+    "environment": "container acceptance stack behind marshgo-proxy:8080, public via https://a602584pesfa.shares.zrok.io and https://marshgo-dima.shares.zrok.io",
+    "api": { "image": "marshgo/api:RC-2026-11-01-retention.2", "imageCreatedUtc": "2026-11-01T17:08:59Z", "sourceRevision": null, "provenanceGap": "org.opencontainers.image.revision label is EMPTY on this image, so the running server build is not machine-traceable to a MarshGO-Server SHA; the manifest top-level server_sha (7bc1bcfb) is 18 commits behind the verified local HEAD fcdf9d8b and must not be presented as the running pin" },
+    "web": { "image": "marshgo/web:RC-2026-11-02-popupdate.2", "imageCreatedUtc": "2026-11-02T00:20:32Z", "sourceRevision": "3f2c9be87b3f92f695ba1d7abc4128ab2a1d74d9", "sourceRepository": "MarshGO-Site" },
+    "admin": { "image": "marshgo/admin:RC-2026-11-01-portalsec.1", "sourceRevision": null },
+    "partner": { "image": "marshgo/partner:RC-2026-11-01-portalsec.1", "sourceRevision": null },
+    "publicJourneyEvidence": [".release/public-smoke-20261102-evidence.json", ".release/picker-e2e-20261102-evidence.json"],
+    "productionStatus": "NOT_RELEASED"
+  },
   "release_candidate": "RC-2026-10-24-review.1",
   "status": "NOT_RELEASED",
   "ready_for_server_deployment": false,
