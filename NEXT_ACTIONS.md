@@ -3322,3 +3322,12 @@ IN_PROGRESS: V41-D3 три ранкінги (клієнтський перера
 - Ще НЕ перевірено: побудова acceptance-образу з цим комітом і before/after вимір холодного публічного пошуку. До цих вимірів латенс-виграш не заявляється.
 - Тестового покриття самої `refreshProviderHealth` не додано (потребує реального пулу); доказ — гарнес, описаний вище.
 - Статус гейтів: `ci_gate = PARTIAL`, production = `NOT_RELEASED`. BLOCKED_EXTERNAL: #88 (`MARSHGO_REPOS_READ_TOKEN`), #89 (злиття Server #68 у canonical), iOS на фізичному пристрої.
+## 2026-11-02 03:40 — RESUME-POINT (бюджет цілей вичерпується; важких задач не запускав)
+- Запарковано: Server PR #69 (`66b76dd`) — CI runs `41384185229` і `41384188972` на 03:40 UTC досі `pending`. Нічого не рерун і не скасовано.
+- Крок 1 після `/goal resume`: `gh pr checks 69 --repo dima1203oleg/MarshGO-Server`. Якщо green — фікс готовий до злиття, але злиття в `codex/server-canonical-rc-20261030` є рішенням власника ( той самий клас, що #89 для #68).
+- Крок 2 (доказ ефекту, ще НЕ зроблено): зібрати acceptance-образ із цим комітом, дочекатися одного фонового health-проходу, і порахувати мережі з версією:
+  `select count(*) from mobility_providers where source_type='gtfs' and status='enabled' and access='open' and last_report->>'sourceVersion' is not null`
+  базова лінія 7 із 15; фікс має підняти без версії лише за умови, що проба реально отримала фід (Dozor-подібні феди без валідації можуть лишитися без версії — це не регресія).
+- Крок 3: before/after холодного публічного пошуку (`node .release/public-smoke-20261102b.mjs` на зрок-URL) після скидання L1/L2. Базова лінія: cold 13.1 s / warm 6.9 s. Виграш заявляється тільки за цим виміром.
+- Незмінні блокери власника: #88 (Actions-секрет `MARSHGO_REPOS_READ_TOKEN` — у `dima1203oleg/MarshGO` нуль секретів, тому materialize/docker-build/e2e/browser-compat у CI не виконувались), #89 (злиття Server #68), iOS на фізичному пристрої.
+- Production: `NOT_RELEASED`. `ci_gate = PARTIAL`.
