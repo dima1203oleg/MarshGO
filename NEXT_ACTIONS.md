@@ -3454,3 +3454,10 @@ Site `qoder/v41-ui-20261101`: `9de6537` (мітка дати відправле�
 - Спростовано хибний пробник: побайтовий `pg_dump --data-only` diff ≠ дефект відновлення (heap order + живі записи фідів).
 - Гейт backup/restore тепер PASS(local, twice); залишок — off-host сховище з retention, restore на staging-хості, `update.sh rollback-*` на задеплоєному таргеті (BLOCKED: немає схваленого середовища).
 - Residue прибрано: `marshgo_dr_20261102e` dropнуто, тимчасові дампи видалено. Статус: **NOT_RELEASED**.
+
+## RESUME BLOCK 2026-11-02 02:03 UTC — provenance запущеного білда закрито машинно, а не інферентно
+
+- Знайдено лейблований двійник: `marshgo/api:RC-2026-11-01-canonical.1` = `org.opencontainers.image.revision 44f954b3ce…`; три файли `/app` байт-в-байт збігаються з запущеним `retention.2` (`2f69d674…`, `32ff43bc…`, `922c9439…`). Пін running-білда = `44f954b`, тепер із машинним підтвердженням.
+- Корінь дефекту не «рецепт без лейблів», а **два шляхи збірки**: канонічний `ops/docker/Dockerfile.server` має LABEL, а репозиторний `MarshGO-Server/Dockerfile` (ним збирали retention.*/boardgate.*/dqlabel.*) — не мав узагалі → `labels null`.
+- Виправлення: PR MarshGO-Server **#66** (`0179ae6`) — додано ARG+ENV+LABEL; доведено двома локальними білдами (з аргументами → `revision=fcdf9d8bca22…`, без → `unknown`, тобто провал видимий). Вміст образу не змінився. Тестові образи і worktree прибрано.
+- NEXT (не зроблено, потребує дозволу на перезапуск спільного стеку): перевити acceptance-api на лейблований образ (`canonical.1` або білд після #66), щоб у публічному прев'ю крутився трасований пін.
