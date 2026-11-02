@@ -10,6 +10,10 @@ if [[ $# -ne 2 ]]; then
 fi
 archive="$1"
 target_database="$2"
+# Resolve the passphrase exactly like backup.sh: explicit env wins, then the
+# configured env file, then the default path. Diverging here makes archives
+# produced with BACKUP_KEY_FILE in the env file undecryptable during restore.
+BACKUP_KEY_FILE="${BACKUP_KEY_FILE:-$(sed -n 's/^BACKUP_KEY_FILE=//p' "$ENV_FILE" | tail -n 1)}"
 BACKUP_KEY_FILE="${BACKUP_KEY_FILE:-$ROOT_DIR/.backup-key}"
 [[ -r "$archive" ]] || { echo "Backup archive is not readable: $archive" >&2; exit 2; }
 [[ -r "$BACKUP_KEY_FILE" ]] || { echo "BACKUP_KEY_FILE is not readable." >&2; exit 2; }
