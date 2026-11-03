@@ -67,8 +67,8 @@ async function acquireLock(kind = 'dispatch') {
     } catch (error) {
       if (error.code !== 'EEXIST') throw error;
       let lock;
-      try { lock = JSON.parse(await readFile(lockPath, 'utf8')); } catch { throw new Error(`${lockLabel} lock exists and cannot be verified; leave it untouched.`); }
-      if (processExists(lock.pid)) throw new Error(`${lockLabel} lock is held by PID ${lock.pid}.`);
+      try { lock = JSON.parse(await readFile(lockPath, 'utf8')); } catch (lockError) { throw new Error(`${lockLabel} lock exists and cannot be verified; leave it untouched.`, { cause: lockError }); }
+      if (processExists(lock.pid)) throw new Error(`${lockLabel} lock is held by PID ${lock.pid}.`, { cause: error });
       await unlink(lockPath);
     }
   }
@@ -143,7 +143,7 @@ async function runTask(task) {
   const allowedPaths = task.allowed_paths ?? [];
   if (!Array.isArray(allowedPaths) || (mode === 'accept-edits' && allowedPaths.length === 0)) throw new Error('Edit tasks must declare allowed_paths.');
   if (typeof task.prompt !== 'string' || task.prompt.length < 30 || task.prompt.length > 4000) throw new Error('Prompt must be 30–4000 characters.');
-  const { repoRoot, worktree, branch } = await validateWorktree(task);
+  const { worktree, branch } = await validateWorktree(task);
   task = await updateQueue((queue) => {
     const entry = queue.tasks.find((item) => item.task_id === task.task_id);
     if (!entry || entry.status !== 'READY') throw new Error('Queue task changed before claim.');

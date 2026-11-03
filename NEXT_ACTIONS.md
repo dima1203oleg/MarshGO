@@ -3506,6 +3506,210 @@ Site `qoder/v41-ui-20261101`: `9de6537` (мітка дати відправле�
 
 Гіпотеза «6 зелених Site-PR проти 6 червоних Server-PR = системний дефект CI» підтвердилась вимірюванням.
 
+## RESUME BLOCK 2026-11-02 01:44 UTC — PUBLIC-SMOKE-2: нуль-кандидатний пошук на публічному URL спростовано як дефект продукту; це була помилка харнеса
+
+- **Симптом і діагноз.** Перший прохід через `https://a602584pesfa.shares.zrok.io` дав `200` із `journeys:0, candidateCount:0, partial:true` за 0,8–3,0 s (раніше той самий URL давав 12 реальних поїздок). Логи `marshgo-acceptance-api-1` показали причину за один крок: `{"stage":"stops-selected","originStops":0,"destinationStops":6}` — у пошуку не було початкової зупинки, тобто Platt-пошук коректно повернув порожньо.
+- **Контроль, а не здогадка.** Харнес тепер бере координати не з підказки, а з шару `GET /api/v1/transport/stops?bbox=west,south,east,north&types=…` (контракт: `MarshGO-Server/server/index.ts:870`): 724 реальні зупинки Львова, `dataQuality.level=SCHEDULED`, `failedProviderCount:0`. Мій попередній origin `23.8755/49.7902` лежав за ~10 км західніше міста — «залізничний вокзал» був вигаданим, а не знайденим.
+- **Публічний journey-шлях знову доведений на живих даних** (образ `marshgo/api:RC-2026-11-01-retention.2`, веб `RC-2026-11-02-popupdate.2`, вхід через register 201 → login 200, токен у пам'яті процесу):
+  - `Залізничний вокзал (118) → Максимовича (432)`: 10 поїздок, `candidateCount:100`, ланцюг `WALK > BUS А16 > BUS Тр23 > WALK`, 9,4 s
+  - `→ Гашека (431)`: 10 поїздок, `WALK > BUS А32 > WALK`, 5,7 s
+  - `→ Скорини (430)`: 5 поїздок, `WALK > BUS А32 > WALK`, 6,9 s
+- **`partial:true` залишається чесним, а не помилкою:** API openly позначає неповноту пошуку (планувальник працює по обмеженому наборі GTFS-мереж), і клієнт це показує. Нічого не приховано.
+- **Слід прибрано повністю:** 6 тимчасових `public.smoke.*` користувачів + 59 збережених `journeys` + 12 сесій + 6 `user_roles` видалено транзакційно в FK-порядку; фінальний `residue 0`. Паролі — випадкові, в пам'яті, на диск не записувалися.
+- **Ловушки харнеса на майбутнє (коштували по запуску):** (1) `departureAt` має бути ISO з `T` і часовим поясом у будущому — `toLocaleString('sv-SE')` дає пробіл і 400; (2) `.release/*.cjs` не працює, бо кореневий `package.json` оголошує ESM — писати `.mjs`; (3) у ролі та БД acceptance-контейнера `marshgo`/`marshgo`, а не `postgres`; (4) `\gexec` не передається через `psql -c` — використовувати stdin-гередок.
+- **Статус:** production залишається `NOT_RELEASED`. Єдиний зовнішній блок CI — секрет `MARSHGO_REPOS_READ_TOKEN` для приватних репо порталів (див. блок CI-GATE-2).
+- **Продовження (01:47 UTC): перший крок канонічної user-journey перевірено через сам додаток, а не через руки.** `GET /api/v1/places/suggest` (`optionalAuth`, форма `{label, latitude, longitude, providerId}`) віддає реальні OSM-об'єкти Львова; взяті З ВІДПОВІДЮ координати подано в `POST /api/v1/journeys/search` на публічному URL:
+  - `вул. Гетьмана Петра Дорошенка → Личаківський цвинтар`: 200, 4 поїздки, `WALK > BUS:А43 > WALK`, 6,7 s
+  - `Залізничний вокзал → Львів Аеропорт`: 200, 2 поїздки, `WALK > BUS:А18 > WALK`, 8,1 s
+  - `Краківська вулиця → Підзамче`: 200, 0 поїздок — бо пікер знайшов село Підзамче за ~120 км на схід (25.397/50.071), а не львівський однойменний район. Порожній результат чесний; дефект планувальника не підтверджено.
+  - Висновок: ланцюг «ввів назву → отримав провайдерські маршрути» працює на живих даних через зовнішній HTTPS без жодних підставлених координат. Доказ: `.release/picker-e2e-20261102-evidence.json`, `.release/public-smoke-20261102-evidence.json`.
+- **Ще спростовано (дешево, два grep):** вигадані «Умань, Біла Церква» у формі попутки (`MarshGO-Site/src/views/DriverOfferNewView.tsx:54`) належать `DemoApp` (`App.tsx:38`), який збирається лише за `import.meta.env.DEV && VITE_DEMO_MODE==='true'` (`App.tsx:34`) — у продакш-шляху ці дані не потрапляють у запит, тож це не дефект продукту.
+- **Слід знову прибрано:** усі `public.smoke.*` видалено (residue 0).
+
+## RESUME BLOCK 2026-11-02 01:55 UTC — пін запущеного API відновлено без перебудови
+
+- `marshgo/api:RC-2026-11-01-retention.2` не має OCI-лейбли взагалі (`docker image inspect` → labels `null`), тож пін добуто хешем вмісту:
+  `/app/server/journey/gtfsTimetable.ts` = `2f69d674…db54` = `git show 44f954b:…`; `/app/server/index.ts` = `32ff43bc…c5f` = версія `44f954b`, але ≠ HEAD `fcdf9d8b` (`481ea92f…`).
+- Висновок: запущений образ — дерево MarshGO-Server `44f954b` («resolve a trip group's retention tier in one candidate pass»), він **передує** `a5ec118` / `959e547` / `fcdf9d8b`.
+- Це висновок із двох файлів, а не машинний читабельний білд-лейбл → на наступному RC обов'язково додавати `--label org.opencontainers.image.revision=$SHA` (процесний дефект GATE-05, не дефект продукту).
+- Залишаються лише власницькі розв'язки: secret `MARSHGO_REPOS_READ_TOKEN` для CI порталів; #79/#78/#67/#33; дозвіл на staging/production deploy. Статус: **NOT_RELEASED**.
+
+## RESUME BLOCK 2026-11-02 01:57 UTC — DR drill 2: зашифрована копія поза контейнером відновлена і звірена
+
+- Повний ланцюг пройдено без перебудов: `pg_dump` → `docker cp` → `openssl aes-256-cbc -pbkdf2` → `cmp` (ідеднентно) → `pg_restore` у scratch-БД → **31/31 таблиць: однакові count(*) + md5 відсортованих рядків**.
+- Артефакт: `.release/backups/marshgo-acceptance-20261102-dr.enc` (не читабельна — пароль свідомо не збережено; у продакшні ключ і шифртекст мають жити окремо).
+- Спростовано хибний пробник: побайтовий `pg_dump --data-only` diff ≠ дефект відновлення (heap order + живі записи фідів).
+- Гейт backup/restore тепер PASS(local, twice); залишок — off-host сховище з retention, restore на staging-хості, `update.sh rollback-*` на задеплоєному таргеті (BLOCKED: немає схваленого середовища).
+- Residue прибрано: `marshgo_dr_20261102e` dropнуто, тимчасові дампи видалено. Статус: **NOT_RELEASED**.
+
+## RESUME BLOCK 2026-11-02 02:03 UTC — provenance запущеного білда закрито машинно, а не інферентно
+
+- Знайдено лейблований двійник: `marshgo/api:RC-2026-11-01-canonical.1` = `org.opencontainers.image.revision 44f954b3ce…`; три файли `/app` байт-в-байт збігаються з запущеним `retention.2` (`2f69d674…`, `32ff43bc…`, `922c9439…`). Пін running-білда = `44f954b`, тепер із машинним підтвердженням.
+- Корінь дефекту не «рецепт без лейблів», а **два шляхи збірки**: канонічний `ops/docker/Dockerfile.server` має LABEL, а репозиторний `MarshGO-Server/Dockerfile` (ним збирали retention.*/boardgate.*/dqlabel.*) — не мав узагалі → `labels null`.
+- Виправлення: PR MarshGO-Server **#66** (`0179ae6`) — додано ARG+ENV+LABEL; доведено двома локальними білдами (з аргументами → `revision=fcdf9d8bca22…`, без → `unknown`, тобто провал видимий). Вміст образу не змінився. Тестові образи і worktree прибрано.
+- NEXT (не зроблено, потребує дозволу на перезапуск спільного стеку): перевити acceptance-api на лейблований образ (`canonical.1` або білд після #66), щоб у публічному прев'ю крутився трасований пін.
+## RESUME BLOCK 2026-11-02 02:10 UTC — шлях відновлення продукту вперше під тестами; знайдено й виправлено реальний дефект
+
+- `ops/scripts/backup-crypto.mjs` (шифрування бекапів, яке використовують `backup.sh`/`restore.sh`) не мав жодного тесту — `grep -rl backup-crypto tests/` порожній, і `node --test ops/scripts/*.test.mjs` ніде не запускався.
+- Перший тест знайшов дефект: валідний архів із порожнім вмістом (53 B) не розшифровувався — `createReadStream(start: 37, end: 36)` кидає `ERR_OUT_OF_RANGE` до читання байтів. Fail-closed (plaintext не пишеться), але відновлення впало б із неконтролюваним стек-трейсом замість зрозумілої помилки.
+- Виправлено в `cf5e283`: не відкривати ciphertext-stream при нульовій довжині payload. Додано 8 кейсів (2 MB roundtrip, порожній вхід, stdin `-`, хибний пароль, підміна одного байта, обрізаний архів, чужий magic, пароль <32 B, usage exit 2) і `npm run test:ops`, причеплений до `check:production`, щоб тести не були мертвим кодом.
+- Доказ: tests 12 / pass 12 / fail 0; eslint 0 problems. ROLLBACK_RUNBOOK.md → «DR drill 3».
+- Наступне в цьому гейті (BLOCKED, не через код): `backup.sh`/`restore.sh` end-to-end потребують справжнього `.env.production` і збереженого `BACKUP_KEY_FILE`; off-host сховище з retention, restore на staging-хості й `update.sh rollback-*` на задеплоєному таргеті — потребують схваленого середовища. Статус: **NOT_RELEASED**.
+## RESUME BLOCK 2026-11-02 02:12 UTC — DR drill 4: бекап і відновлення прогано ВЛАСНИМИ скриптами продукту
+
+- `ops/scripts/backup.sh` (exit 0, 4 147 200 B) → `ops/scripts/restore.sh` у порожню scratch-БД (exit 0, 3.49 s) без жодного ад-hoc ланцюга; overrides лише через `MARSHGO_ENV_FILE` / `MARSHGO_PROJECT_NAME=marshgo-acceptance` / `BACKUP_KEY_FILE` (усе в /tmp, видалено).
+- Гейт fail-closed доведений: `restore.sh <archive> marshgo` → `exit 3` («contains 115 application relations») — живої БД ніхто не чіпав, plaintext не записаний.
+- Валідація: 31/31 таблиць (count + md5 відсортованих рядків) live == restored, 17 873 рядки; PostGIS 3.5 і географічний предикат дають 968 на відновленій копії. Перший прохід харнеса видав два порожні файли, які `diff` назвав «ідентичними» — спростовано перевіркою непорожності, а не зараховано.
+- Пастка для оператора: `createdb --locale=C` не проходить на цьому образі (коллація кластера `en_US.utf8`), цільова БД має успадковувати колацію джерела.
+- Залишок гейту (BLOCKED, середовище): off-host сховище з retention-політикою, restore на staging-хості, `update.sh rollback-*` на задеплоєному таргеті. Статус: **NOT_RELEASED**.
+
+
+## 2026-11-02 #79 PORTAL-RBAC-DUALSOURCE-1 — виправлено, чекає злиття PR Server #67
+
+**Дефект (виміряно).** `users.roles` — дзеркальний масив, а гейти `requireRole`/`requireStaff`/`requireAdmin`
+довіряють лише `user_roles`. `Admin/src/access.ts:1` + `App.tsx:57` гейтяться по `roles` із
+`/auth/login`, `/auth/refresh`, `/users/me`. У dev-БД `marshgo`: 18 рольових рядків є в масиві, але не в
+таблиці (2 користувачі взагалі без рядків у таблиці) → портал показує розділ, API відповідає 403.
+Зворотний бік: у `+380671119999` таблиця дає `passenger`, якого масив не показує.
+Окремо: перевірка «staff не можна призупинити через репорт» читала масив, тому admin, який є в
+таблиці, але не в масиві, міг бути призупинений користувачем.
+
+**Виправлення (commit `43364e6`, PR https://github.com/dima1203oleg/MarshGO-Server/pull/67).**
+Клієнтські SELECT (`/auth/login` email і phone, `/auth/refresh`, `GET /users/me`, `GET /users/me/export`)
+повертають ролі з `user_roles`; перевірка недоторканності staff теж читає `user_roles` через `EXISTS`
+ (`FOR UPDATE` разом із `GROUP BY` PostgreSQL забороняє — перевірено на живому кластері).
+Шляхи запису (реєстрація, надання ролі, adb-admin-by-config) і далі синхронізують обидва джерела,
+тож поведінка коректних акаунтів не змінюється. Міграції, прибрали б саму колонку-дзеркало — немає.
+
+**Доказ.** `tsc --noEmit` і `eslint` — чисто; кожну SQL-форму звірено з живим PostgreSQL 17 (127.0.0.1:5434),
+включно з порожнім випадком (`{}`). Новий `tests/roles-single-source.integration.test.ts` проти API,
+запущеного з цього ж білда (порт 3913, той самий БД): 3/3 pass — дзеркало-роль не публікується, 403
+збігається з порожнім списком; роль з таблиці стає видимою і знімає 403 у driver-роуті, але не в admin;
+відкликання зникає з відповіді, попри «пам'ять» масиву; `/auth/refresh` віддає той самий набір.
+
+**Побічний інцидент (запоновано).** Для запуску тестового API використовувався `pkill -f "tsx server/index.ts"`,
+що зняв і dev-процес на :3002. Процес перезапущено з canonical-дерева MarshGO-Server, `/readyz` повертає
+`{"status":"ready","database":"connected","realtime":"connected"}`. Наступного разу вбивати за PID, не за шаблоном.
+
+**Ще не закрито.** Джерело розбіжності — зовнішні fixture-скрипти, які пишуть `users.roles` повз API (не аудитовано);
+єдиний список полів, які портал показує для Partner-ролей; злиття PR #66/#67 і перевипуск канонічного RC-образу
+після них. Статус продакшу — `NOT_RELEASED`.
+
+
+## 2026-11-02 #86 GATE-02-BUNDLE-AUTH-1: виміряно, що продакшн-білди не несуть швидкого входу або бекдору чи backdoor
+
+Раніше цей пункт гейту формулювався з коду. Тепер — з реальних артефактів, які віддають сервіси.
+
+**Порти (забіл-сесія).** У `Admin/src/api.ts:9` і `Partner/src/api.ts:3` preview увімкнено через `import.meta.env.DEV`.
+У відданих білдах згортка це підтверджено: `:3903` (assets/index-CMEEKaj2.js, 258 866 B) і `:3904`
+(assets/index-B3CaW0wS.js, 248 851 B) містять `enterDevPreviewSession:()=>null`, 0 входжень тексту
+фейкового користувача («UI preview»), 0 швидкого входу. Єдине входження літерала `admin` у Admin-білді —
+легітимний гейт `hasPlatformAdminRole`. лишився лише клас `dev-preview-banner` і текст банера: шлях, що ставить
+прапорець у true, видалений на етапі білда, тож банер недоступний.
+
+**Site.** Публічний `https://marshgo-dima.shares.zrok.io` віддає той самий хеш entry-чанка, що й локальний
+`dist` (`index-Cwp5tbC6.js`) — доказ, що дивимось саме той артефакт, що зібрано. Пошук по всіх 18 чанках
+демо-ознак (demo / guest / quick-login / «Швидкий вхід») дає 5 підрядкових входжень, і всі хибні:
+`react-codemod` і `$ZodEmoji`. Жодного демо-входу в білді немає.
+
+**Сервер.** `/api/v1/auth/guest` = 410 `guest_auth_disabled` і на acceptance `:3902`, і на публічному URL.
+Кодовий хедж `x-dev-user-id` (`server/index.ts:332,359`) вимкнений подвійно: потребує
+`NODE_ENV=development` + `AUTH_DEV_BYPASS=true` + петльового інтерфейсу без `X-Forwarded-For`.
+Диференціальний прохід одним і тим самим заголовком на :3002, :3902 і публічному URL — 401 у трьох випадках;
+у контейнері acceptance `NODE_ENV=production`, а `AUTH_DEV_BYPASS=true` у `.env` не зустрічається взагалі.
+
+**Що це закриває і що ні.** Закриває підпункт «нуль зашитих креденшелів / тестових токенів / кнопок швидкого
+входу в продакшн-білдах» для Server+Site+Admin+Partner з виміряним доказом. Не закриває решти GATE-02:
+перевірка стейджингу, нуль-даунтайм-старт і підтвердження таргета деплою від власника. Продакш — `NOT_RELEASED`.
+
+
+## 2026-11-02 03:08 — CI-GATE-1: Server CI нарешті зелений; два P0-набори взагалі не були CI-покриттям
+
+Гіпотеза «шість зелених Site-PR проти шести червоних Server-PR — це системний дефект CI, а не шість різних помилок у коді» підтвердилась вимірюванням.
+
+- **Корінь 1 (червоний `npm test` в PR #62–#67)**: юніт-глоб `tsx --test tests/*.test.ts` підхоплює також `*.integration.test.ts`. Усі інші інтеграційні набори мали конвенцію opt-in (`const enabled = Boolean(apiUrl && databaseUrl)` → `# SKIP`), а `auth-security-regressions` і `two-account-rendezvous` — ні: вони хардкодили фолбек на вручну запущений dev API `127.0.0.1:3002`, якого в CI немає (`ECONNREFUSED`), і писали в БД до кроку `db:migrate` («relation does not exist»).
+- **Корінь 2 — справжня діра гейту**: `scripts/run-integration-tests.sh` ніколи не запускав ці два набори. Тобто регресії автентифікації та двоакаунтовий життєвий цикл попутки **не входили до CI**, а локально «проходили» лише тому, що хтось тримав dev API на :3002. Це рівно той випадок «тест зелений ≠ покриття», який ми домовились не видавати за готовність.
+- **Виправлено** (`0f6606b` + `b4c210f`, PR [Server #68](https://github.com/dima1203oleg/MarshGO-Server/pull/68), base `codex/server-canonical-rc-20261030`): обидва набори дістали opt-in-гейт (валідація loopback-БД тепер лише коли набір увімкнено, бо інакше `new URL('')` кидає ще на завантаженні файлу), додані скрипти `test:integration:auth-security` / `test:integration:rendezvous` і підключені до раннера на керованому API.
+- **Реальний дефект, який CI показав щойно до нього дійшла черга**: `realtime-cluster.integration.test.ts` реєстрував учасників через `/auth/otp/request` + `/auth/otp/verify`, а продукт відповідає на них `410 Gone` (`server/index.ts:2124`, `:2133`). Тобто гейт «Redis-backed realtime через два інстанси API» не міг пройти ніколи і фактично був вимкнений. Портано на email/пароль (`/auth/register` = 201 із `data.user` + `data.accessToken`), форму відповіді перевірено живим викликом.
+- **Докази**: локально без env — обидва набори `# SKIP`; з живим API і помігрованою loopback-БД — `✔ P0 Auth Security Regressions` (531 мс) і `✔ P1 Two-Account Carpool & Rendezvous` (1342 мс); `tsc --noEmit` і `eslint` чисті, `bash -n` чистий. **CI**: `Server CI › verify` **pass 3m34–3m35s** на runs `41380863615` і `41380868414` (commit `b4c210f`) — юніти, lint, typecheck, `npm audit`, інтеграційний раннер (live-journey, bookings, partners, navigation, realtime, restart, rate-limit + тепер два P0) і збірка та smoke API-образу.
+- **Чесні межі**: зелений CI доводить, що набори виконуються в CI і проходять на свіжій PostGIS+Redis, **але не** що вони перевіряють прод-конфігурацію — раннер крутить `NODE_ENV=development AUTH_DEV_BYPASS=true`. PR #62–#67 лишатимуться червоними, доки не отримають цей коміт (rebase/merge — рішення власника); це не шість окремих дефектів продуктового коду. Цей PR продуктову логіку не змінює.
+- **Супровідний дефект у коді продукту, знайдений раніше й досі не змерджений**: `ops/scripts/restore.sh` у `FETCH_HEAD` все ще резолвить `BACKUP_KEY_FILE` лише як `$ROOT_DIR/.backup-key` і не читає його з env-файла, хоча `backup.sh` читає — тобто штатний зашифрований архів штатним `restore.sh` не розшифровується. Файл відновлено в цьому ж чекоiнті (+4 рядки).
+- Продакшн: `NOT_RELEASED`; деплою не було; у acceptance-стані нічого не змінено. Наступний крок цієї лінії — змерджити #68, потім #67 (єдине джерело ролей), #66, #65 і перерізати канонічний RC-образ.
+
+## 2026-11-02 03:18 — CI-GATE-2: корінь упирається у відсутній секрет, фікс Server ще не злитий
+
+Факти вимірювання (не плани):
+- Run `41381496488` (workflow `CI`, гілка `qoder/checkpoint-20261031`, 2026-11-02T03:09Z, 1 хв 40 с). Усі кроки до приватних репозиторіїв зелені: `bun install --frozen-lockfile`, `bun audit --audit-level=high`, `npm run lint:all`, `npm run typecheck`, `npm test`, `db:migrate`, `npm run test:integration`, `npm run build`, `npm run check:bundle`.
+- Зупин на кроці `Configure read-only access to private Admin and Partner repositories`: `##[error]Set the MARSHGO_REPOS_READ_TOKEN Actions secret…`, exit 1.
+- Перевірка блокувача: `gh secret list` у `dima1203oleg/MarshGO` повертає порожній список — жодного Action-секрета в репозиторії немає. Видимість: `MarshGO`, `MarshGO-Site`, `MarshGO-Server` = PUBLIC; `MarshGO-Admin`, `MarshGO-Partner` = PRIVATE.
+- Наслідок: гейт чесний, а не зламаний. Без токена `ops/scripts/materialize-release.mjs` не може склонувати пінні SHA порталів, тому кроки `docker compose build api web admin partner`, `npm run test:e2e` і `npm run test:browser-compat` у CI не виконувалися жодного разу.
+
+Статус фікса Server (CI-GATE-1):
+- PR #68 `qoder/ci-integration-gate-20261102` → base `codex/server-canonical-rc-20261030`: `SUCCESS SUCCESS`, `mergeable=MERGEABLE`, `mergeStateStatus=CLEAN`.
+- Коміти `0f6606b` і `b4c210f` відсутні на канонічній гілці (`git branch -r --contains` → 0 збігів). Через це PR #62–#67 лишаються червоні з того самого попереднього кореня, аж поки #68 не буде злито в базу.
+
+Дії власника (обидві поза моїм доступом за правилами репозиторію):
+1. Створити fine-grained PAT з read-only Contents на `MarshGO-Admin` і `MarshGO-Partner`, додати його як Actions-секрет `MARSHGO_REPOS_READ_TOKEN` у `dima1203oleg/MarshGO`, потім перезапустити `CI`.
+2. Схвалити merge PR Server #68 у `codex/server-canonical-rc-20261030` і перезапустити CI для #62–#67 (сам злиття в `codex/*` не виконую).
+
+Ворота: `ci_gate` = PARTIAL (Server-фікс зелений на своей гілці, база не покрита; корінь блокований секретом). Production = `NOT_RELEASED`.
+
+## 2026-11-02 03:25 — SEARCH-COLD-SHARE-1: знайдено виміряний корінь cold-затримки пошуку
+
+Спостереження (публічний URL, не localhost): три реальні пошуки від `Залізничний вокзал (118)` = HTTP 200 із 8 / 12 / 10 маршрутами, але 13.1 s / 7.5 s / 6.9 s. Різниця cold проти warm ≈ 6.2 s — це phase побудови planner-мереж.
+
+Ланцюг причинно-наслідковий, усі кроки прочитані в коді:
+- `source_version` для провайдера = `mp.last_report->>'sourceVersion'` ([server/index.ts:764](https://github.com/dima1203oleg/MarshGO)).
+- `cachedNetwork` ([server/mobility/transportLayers.ts:194](file:///Users/dima1203/Desktop/MarshGO/MarshGO-Server/server/mobility/transportLayers.ts#L194)): `shared = Boolean(sourceVersion)`, `l1TtlMs = sourceVersion ? 10 хв : 60 с`. Тобто без версії мережа не потрапляє в L2 і живе в L1 лише хвилину.
+- Фоновий warmer ([server/index.ts:6702-6722](file:///Users/dima1203/Desktop/MarshGO/MarshGO-Server/server/index.ts#L6702)) гріє лише `cachedGtfsRouteTypes` (індекс типів для живої карти), а не planner-мережі.
+
+Вимір на acceptance-стеку (`marshgo/api:RC-2026-11-01-retention.2`): 15 увімкнених healthy/degraded GTFS `public_transit` провайдерів, з них лише 7 мають `last_report.sourceVersion`. Решта 8 (53%) перекачуються і перебудовуються на шляху запиту. Redis-cache: `dbsize = 10`, усі ключі — `gtfs_network`, тобто/shared-шлях працює, але лише для частини провайдерів.
+
+Два варіанти виправлення (обидва потребують рішення про допустиму застарілість даних — не имітувати свіжість):
+1. Заповнити `last_report.sourceVersion` (ETag / Last-Modified / `feed_version.txt`) для 8 провайдерів → вмикає L2-shared і 10-хв L1.
+2. Додати фоновий warm planner-мереж за тим самим дисциплінованим шаблоном (один провайдер за раз, `unref()`, без шуму в логах).
+
+Не реалізовано в цьому циклі: потрібен окремий прохід із rebuild образу й before/after вимірюванням (єдиний heavy-процес на 8 GB Mac). Задача в трекері: SEARCH-COLD-SHARE-1 (#90), пов'язана з #35/#36.
+
+Ворота: `search_latency` = відкрито з атрибуцією; production = `NOT_RELEASED`.
+
+## 2026-11-02 03:28 — SEARCH-COLD-SHARE-1 поглиблено: 8 безверсійних фідами розпадаються на дві різні групи
+
+HEAD-запит до кожного з 8 фідів без `last_report.sourceVersion` (локальний мережевий прохід, лише заголовки, без завантаження тіла):
+- `inbus.ua — міжміські автобуси`: `etag: "92b69d2733f7cd2bfe5bccef864146c5"` + `last-modified: Tue, 23 Dec 2025 14:27:57 GMT` — сильний валідатор.
+- `track.ua-gis — Ужгород`: `etag: W/"451136-1793093701000"` + `last-modified: Tue, 27 Oct 2026 09:35:01 GMT`.
+- `track.ua-gis — Стрий`: `etag: W/"446082-1792078349000"` + `last-modified: Thu, 15 Oct 2026 15:32:29 GMT`.
+- П'ять `Dozor` (Біла Церква, Івано-Франківськ, Хмельницький, Рівне, Кам'янець-Подільський): ні `etag`, ні `last-modified` — серверного валідатора немає.
+
+Наслідок для дизайну виправлення (два різні механізми, не один):
+1. Для 3 фідів з валідатором — чесний зовнішній `sourceVersion` (etag або last-modified) можна записати без завантаження тіла → вмикає `shared` L2 і 10-хв L1 у `cachedNetwork`. Мінімальна правка в місці, де формується `last_report` (admin-проба й фоновий `refreshProviderHealth`).
+2. Для 5 Dozor-фідів — зовнішнього валідатора не існує, тому версію можна_derивувати лише з самого пакету: завантажувач у `cachedNetwork` уже розпаковує zip, тож `feed_info.txt: feed_version` є чесним значенням. Це двофазна схема (перший loads → записати похідну версію → далі shared), а не вигадана свіжість.
+
+Чого свідомо НЕ робив у цьому циклі: не записував `sourceVersion` у БД вручну й не вмикав shared для Beз версії — це зробило б кеш неузашеним з реальними змінами фіду (їжа → маршрути, що не оновлюються). Не починав rebuild+restart acceptance API заради before/after: важкий процес з впливом на публічний preview потребує повного циклу з вимірюванням, а не половини.
+
+Виміряні вхідні дані для наступного циклу: 15 увімкнених GTFS-провайдерів, 7 уже з версією, 3 = варіант 1, 5 = варіант 2. Redis-cache `dbsize=10` (усі `gtfs_network`). Публічно cold 13.1 s проти warm 6.9 s.
+
+Production залишається `NOT_RELEASED`.
+
+## 2026-11-02 03:31 — ПОПРАВКА до попередніх двох записів: гипотеза про ETag/Last-Modified спростована кодом
+
+Записи `8e1623a` і `d98deab` стверджували, що версію фиду можна чесного взяти лише з серверного валідатора (ETag/Last-Modified), а для п'яти Dozor-філів «чесного значення не існує». Це невірно. Продукт уже виводить версію з вмісту, а не з валідатора:
+- `server/mobility/gtfs.ts:160` — `sourceVersion: createHash('sha256').update(data).digest('hex')` (повна валідація статичного фіду).
+- `server/mobility/connection.ts:31` — теж sha256, але по завантаженому JSON (гілка `canonicalCacheJson(data)`).
+- `server/mobility/types.ts:36` — поле `sourceVersion?` у контракті звіту.
+
+Справжній дефект, який тепер видно в коді: `server/mobility/healthMonitor.ts` обчислює `report = probeProviderReachability(provider)`, у якому `sourceVersion` є, але `UPDATE mobility_providers SET ... last_report = COALESCE(last_report,'{}'::jsonb) || jsonb_build_object('health_probe',$4,'last_probe_at',now())` (або `checks/error/last_probe_at` для offline) **ніколи не зберігає `report.sourceVersion`**. Тобто обчислене значення викидається на шляху фонової перевірки.
+
+Чому це узгоджується з виміром: 7 провайдерів із версією — це ті, кому робили повну валідацію (`gtfs.ts:160` пише весь `last_report`, включаючи версію); решта 8 мають лише фонову пробу, яка версію обчислює й губить. Для GTFS це ще й частково принципово: фоновий прохід свідомо не завантажує повні статичні фіди («It never downloads and parses full static feeds»), тому хеш вмісту для GTFS може з'явитись лише після повної валідації або після окремого легкого завантаження.
+
+Наступний correct крок (замість incorrectly запланованого «записати ETag»):
+1. Зберігати `report.sourceVersion` у `last_report` в `healthMonitor.ts` там, де він реально обчислений — маленька правка, з тестом на злиття jsonb (щоб не перетерти `counts`/`bbox`).
+2. Для GTFS-фіди окремо визначитись: або дозволити фоновий хеш вмісту з обмеженим бюджетом, абоWarm-мережі з похідною `feed_version` із вже розпакованого пакету в `cachedNetwork`.
+3. Лише після цього — rebuild і before/after вимірювання cold-пошуку.
+
+Особисто я цю правку в цьому циклі не заводжу: change у продакшн-коді без повного циклу з тестом і вимірюванням лишив би наполовину перевірену зміну в канонічному репо. Попередні два формулювання залишаю в історії як є, цей запис їх спростовує — не переписую історію.
+
+Ворота: `search_latency` = причина перенесена на «звір губить обчислену версію»; production = `NOT_RELEASED`.
 - **Корінь 1 (червоний `npm test` у всіх PR #62–#67)**: юніт-глоб `tsx --test tests/*.test.ts` підхоплює й `*.integration.test.ts`. Усі інші інтеграційні набори мали конвенцію opt-in (`const enabled = Boolean(apiUrl && databaseUrl)` → `# SKIP`), а `auth-security-regressions` і `two-account-rendezvous` — ні: вони хардкодили фолбек на вручну запущений dev API `127.0.0.1:3002`, якого в CI немає, тому `ECONNREFUSED` + «relation does not exist» (БД ще не помігрована на цьому кроці).
 - **Корінь 2 (справжня діра гейту)**: `scripts/run-integration-tests.sh` ніколи не запускав ці два набори. Тобто тестування P0-регресій автентифікації й двоакаунтового життєвого циклу попутки **не було частиною CI**, а локально «проходило» лише тому, що хтось тримав dev API на :3002. Це рівно той випадок «зелений тест ≠ покриття», який ми обіцяли не видавати за готовність.
 - **Виправлено** (`0f6606b` + `b4c210f`, PR [Server #68](https://github.com/dima1203oleg/MarshGO-Server/pull/68), base `codex/server-canonical-rc-20261030`): обидва набори отримали opt-in-гейт (валідація loopback-БД тепер лише коли набір увімкнено, бо `new URL('')` інакше кидає на етапі завантаження), додані скрипти `test:integration:auth-security` / `test:integration:rendezvous` і підключені до раннера на керованому API.
