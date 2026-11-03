@@ -13,4 +13,4 @@ The motion system is implemented in `MarshGO-Site/src/index.css`; there is no an
 - Every animation must state why it exists: state change, continuity, or feedback. Ambient background motion is rejected.
 - The global `@media (prefers-reduced-motion: reduce)` guard in `src/index.css` wins over any local rule; add the reduced case in the same file rather than in a component.
 - Gate: entrance changes must be checked on the real device widths (320×568 … 430×932) and in both themes; long tasks and dropped frames are reported, not assumed.
-- Related: `marshgo-map-motion`, `marshgo-visual-qa`, `map-performance-tuning`.
+- Related: `marshgo-map-motion` for sheet/camera coordination, `marshgo-design-system` for timing tokens, `design-review:visual-regression-review` for screenshot evidence.

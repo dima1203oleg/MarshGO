@@ -1,10 +1,12 @@
 # MARSHGO orchestration rules
 
-- **Project mission (persistent instruction, not Codex UI Goal):** Bring MARSHGO to verified production readiness: Web/PWA first, all 12 transport modes, real provider feeds, reliable routing, ridesharing, full testing, and safe deployment.
-- Work only in the six canonical repositories: `MarshGO`, `MarshGO-Server`, `MarshGO-Site`, `MarshGO-iOS`, `MarshGO-Admin`, and `MarshGO-Partner`. Exclude `MarshGO2`.
-- Inspect the relevant repository status and diff first. Preserve pre-existing dirty files; never reset, clean, force-push, or overwrite another task's work.
-- Use isolated Git worktrees for delegated edits. Keep one heavy local build, test, browser, Docker, or GTFS process at a time on the 8 GB Mac.
-- Prefer one narrow Antigravity or Codex subagent task over duplicated reviews. Use Gemini Flash for routine tasks; escalate only when risk or prior failure warrants it. Do not claim model quotas unless the service reports them.
-- Verify real providers and capabilities; never substitute fixtures for live data without labelling them. Record tests and exact SHAs.
-- Keep production `NOT_RELEASED` until every required gate has evidence. Do not deploy without an approved target and release authorization.
-- Use `transit-data-integration` for feeds, `multimodal-routing-engine` for journey planning, and the other MARSHGO skills only when relevant. Update `CODEX_PROGRESS.md` and `NEXT_ACTIONS.md` after a meaningful checkpoint.
+Повний інженерний контракт проєкту (канонічні репозиторії та їх ролі, Git-політика, порти, тест-процедура, вибір інструментів, звітність) — у `.qoder/rules/production-readiness.md`. Цей файл лишає лише правила оркестрації, спільні для всіх агентів (Qoder, Codex, Antigravity).
+
+- **Місія:** довести MARSHGO до перевіреної production-готовності — Web/PWA першим, усі 12 категорій транспорту, реальні фіди провайдерів, надійна мультимодальна маршрутизація, попутки, повне тестування, безпечний деплой.
+- **Де що живе:** активний UI — у `MarshGO-Site/`; сервер і дані — `MarshGO-Server/`; iOS — `MarshGO-iOS/`; кореневий `MarshGO/` = оркестрація, документація стану, Playwright-e2e, acceptance-скрипти (його `src/` — застаріла копія до міграції, UI там не правити); `MarshGO-Admin/` і `MarshGO-Partner/` — sibling-каталоги на Desktop. `MarshGO2` виключити.
+- Спершу переглянути стан і diff потрібного репо. Зберігати чужі незакомічені зміни; не робити reset, clean, force-push і не перезаписувати роботу іншого завдання. Делеговані правки — в ізольованих worktree.
+- Один важкий локальний процес за раз (build, test, browser, Docker, GTFS-парсер) — це 8 GB Mac.
+- Одне вузьке делеговане завдання краще за повторний аудит. Рутину — на швидшу/дешевшу модель; ескалація лише за ризику або вже доведеної помилки. Не заявляти про квоти моделі, якщо сервіс їх не повідомляє.
+- Перевіряти реальних провайдерів і можливості; фікстури за живі дані не видавати без позначки mock/demo. Фіксувати тести й точні SHA.
+- Production лишається `NOT_RELEASED`, доки кожен гейт не має доказу. Не деплоїти без затвердженої цілі та авторизації власника.
+- Навички: `marshgo-*` у `.agents/skills/` — основні. Феди → `marshgo-provider-discovery`, планування поїздок → `marshgo-routing`, карта → `marshgo-map-motion`; `transit-data-integration`, `multimodal-routing-engine`, `map-performance-tuning`, `mobile-ux-standards` — застарілі покажчики на ці ж канонічні навички. Інші — лише за релевантністю. Після змістовного чекпоінта оновити `CODEX_PROGRESS.md` і `NEXT_ACTIONS.md`.

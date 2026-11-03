@@ -1,22 +1,10 @@
 ---
 name: mobile-ux-standards
-description: Apple Maps/Citymapper-tier ergonomics, tactile micro-interactions, responsive sheets, and typography guidelines for MARSHGO.
+description: Superseded pointer. Use marshgo-design-system, marshgo-web-ux and marshgo-motion-engine for MARSHGO mobile UI.
 ---
 
-# Mobile UX Standards Skill
+# Mobile UX standards — superseded
 
-## Overview
-Standards for world-class, premium tactile mobile interfaces in MARSHGO. Ensures thumb-friendly zones, haptic feedback hooks, high-contrast typography, and fluid sheet transitions.
+Superseded on 2026-11-03 by `marshgo-design-system` (tokens, 44 px targets, type emphasis, accessibility badges), `marshgo-web-ux` (canonical flows and viewports) and `marshgo-motion-engine` (timing). Load those instead; this stub keeps older task notes and git history resolvable.
 
-## Design Systems & Ergonomics
-1. **Visual Hierarchy & Typography**:
-   - Use dynamic font scaling with font weights `font-black` (800/900) for ETAs and route numbers, `font-bold` for stops, and `font-medium` for ancillary telemetry.
-   - Distinctive route badge contrasts (e.g. Electric Blue `#2563EB` for Bus, Vibrant Emerald `#059669` for Tram, Purple `#7C3AED` for Trolleybus, Amber `#D97706` for Marshrutka).
-2. **Bottom Sheet Dynamics**:
-   - Smooth gesture-driven spring transitions (`transition-all duration-300 ease-out`).
-   - Sticky drag handles (`w-12 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600`).
-   - Clean snap points: Peek (80px), Half-sheet (360px), Full-sheet (85vh).
-3. **Accessibility & WCAG 2.1 AA**:
-   - Minimum tap target of 44x44 points for all interactive buttons and chips.
-   - Explicit wheelchair accessibility badges (`♿`) and low-floor bus indicators.
-   - Real-time GPS status indicators with color-coded confidence (Emerald for live GPS, Slate for scheduled timetable).
+Dropped deliberately, because the code disagrees with them: the hard-coded badge palette (`#2563EB`, `#059669`, `#7C3AED`, `#D97706`) — transport colors are `--mode-*` tokens — and the sheet snap points 80 px / 360 px / 85 vh, which no current component defines. Read `MarshGO-Site/src/index.css` and `src/views/JourneyRouteMapScreen.tsx` for the real values.
