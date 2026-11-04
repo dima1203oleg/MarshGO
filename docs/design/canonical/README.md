@@ -1,6 +1,6 @@
 # MARSHGO canonical mobile design
 
-These two owner-approved boards are the visual source of truth for the MARSHGO mobile experience:
+These two owner-approved theme boards are the visual source of truth for the MARSHGO mobile experience:
 
 - [Light theme](./marshgo-light-canonical.jpg)
 - [Dark theme](./marshgo-dark-canonical.jpg)
@@ -13,6 +13,18 @@ The files are the original supplied references. Their SHA-256 digests are checke
 | Dark | `827223e04296385e55955d3689dc518ed38705c5aadde2d6cb94ea5fa600979f` | Same nine screens and same order as Light |
 
 Both boards describe the same nine-screen product flow. The light board defines the white, blue, and green visual language; the dark board is its graphite and midnight-blue adaptation.
+
+## Premium Design 3.0 board
+
+The owner's [MARSHGO Premium Design 3.0 board](./marshgo-premium-3-0-board.png) (`2bd49b725e32557e82e15c360416c863e0a9aaedd3305a57d3b55b0ce9c6bb31`) is the current refinement contract for five of those screens: Головна, Пошук маршруту, Результати маршрутів, Деталі маршруту, Навігація. It adds requirements rather than replacing the two boards above.
+
+- Search: separate «З»/«По» with date and time, passenger count, approximate budget, provider selection with «Вибрати всі», and a full stop list. Nothing existing may be dropped.
+- Transport: all 12 modes in a 4×3 grid.
+- Transport status states: реальний GPS, наближається (ETA), за розкладом, затримується (+7 хв), недоступні.
+- Map sheet: four positions — мінімальна, середня, висока, повна.
+- Design system: buttons ≥ 44–48 px, high legibility and contrast, smooth animation and gestures, WCAG 2.2 AA, one coherent Light/Dark style, 60 FPS.
+
+Track the implementation status of each panel in `NEXT_ACTIONS.md` task PREMIUM-DESIGN-3.0 (#45).
 
 The compact multimodal journey-results screen has an additional approved light/dark reference board and a light card-detail reference. See the [canonical results contract and locked references](https://github.com/dima1203oleg/MarshGO-Site/blob/11e72b4b79888985a35700a3d85f4b715023b19a/docs/design/canonical/journey-search-results/README.md). Their SHA-256 values and implementation source are recorded in [CANONICAL_DESIGN.md](../CANONICAL_DESIGN.md).
 
