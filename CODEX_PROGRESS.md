@@ -1,3 +1,41 @@
+## 2026-11-04 04:50 UTC — PREMIUM-DESIGN-4 хвиля 2 (#39): MarshPass-підпис на квитку, карта дефолтить на Львів, home на токенах; Site `492668c`, PR #58 (не злито)
+
+Сесія `0a64e4bd`. Цикл «знахідки огляду → фікс у worktree → вимірювання до/після живим харнесом → гейти → чекпоінт». Захищені гілки не чіпано; PR #58 не зливаю.
+
+- **Фікси (коміт `492668c`, 4 файли +18/−18, запушено в `qoder/design3-impl-tokens`).** (1) Панель квитка: підпис «MarshPass · Покажіть цей QR-код водієві — він сканує його камерою для підтвердження посадки» — розрив термінології «Показати квиток для посадки» ↔ MarshPass закрито; (2) `TransportMapView`: `cityId` стартує порожнім і резолвиться у «Львів» зі списку сервера замість жорсткого «kyiv»; (3) home на токенах: city-pill і заголовки на `--color-marshgo-*`, плитки дій — `--mg-blue-tint`/`--color-marshgo-border` + тон-акценти, темна тема — `--mg-surface-*`/`--mg-ink-*` замість захардкоджених hex.
+- **Живі вимірювання до→після.** Базлайн w2 знято ДО правок; після — w3 (повний дво-акаунт lifecycle, 106 кроків, 666 API, exit 0) і w4 (cancel-case, 28 кроків, 258 API, exit 0): `marshPassVisible` **0→1** з `captionVisible: true`, `mapCity` **kyiv→lviv**, обчислені стилі плиток дорівнюють токенам (`rgb(234,243,255)`=`--mg-blue-tint`, `rgb(223,231,241)`=`--color-marshgo-border`). Докази `/tmp/mg-sweep/wave2/evidence-{w2,w3,w4,w4-caption}.json`, кадри обох тем.
+- **Негативний результат (зафіксовано, не правлено):** «перекриття кнопки оцінки нижньою навігацією» не відтворилось на 430×932 — ticket-button −286 px, book-CTA −61 px до таббара (63 px), `tapHit: button`; падінг не змінювано.
+- **Чесність проб:** підпис MarshPass рендериться лише у ВІДКРИТІЙ панелі квитка (кнопка існує тільки для `confirmed`) — перший проб давав хибний 0, виправлено кліком перед підрахунком; харнес без `FROM` не логінив пасажира перед cancel-case — додано `ensureSession`. Зайві пропозиції w4 (`bebd8306…`, `79422678…`) — до прибирання прев'ю-БД.
+- **Гейти @ `492668c`:** tsc 0 · eslint 0 · npm test **314/314, 0 skipped** · vite build ✓ · check:bundle ✓. Кадри: `ui-w3-20-wave2-home-light.png`, `ui-w3-21-wave2-home-dark.png`.
+- **Статус: VERIFIED.** Продакшн — `NOT_RELEASED`.
+
+
+
+Сесія `0a64e4bd`. Цикл «дефект із carpool-огляду → причина → фікс → регрес-тест → жива верифікація на shadow-БД → чекпоінт». Гілка `qoder/uuid-guard-400-20261104` від `main 5e8cc4c`; захищені гілки не чіпано.
+
+- **Причина.** П'ять маршрутів (`GET /bookings/:id/ticket`, `GET /bookings/:id/events`, `POST /bookings/:id/cancel|start|complete`) передавали `req.params.id` прямо в SQL — Postgres віддавав помилку касту uuid, обробник мапив її в 500 `internal_error` замість 400. Доказ «до»: `/tmp/mg-carpool/probe-uuid.json` (5×500 + 4 коректні 400).
+- **Фікс.** Інлайн-гард `/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i` + `ApiError(400, 'invalid booking ID')` → авто-код `invalid_booking_id`, узгоджений з наявними `invalid_offer_id`/`invalid_booking_id` на інших маршрутах. Повний 8-4-4-4-12-гекс — рівно те, що приймає Postgres, без хибних 400 на нормальних UUID.
+- **Регрес-тест.** `tests/booking-id-validation.integration.test.ts`: 3 кривих id × 5 маршрутів → 400 `invalid_booking_id`; негативний контроль — валідний UUID → 404 `booking unavailable` (гард не ламає нормальний 404-шлях). Гейт і loopback-обмеження — як в існуючих integration-тестах.
+- **Жива верифікація (не CI).** Ізольована shadow-БД `marshgo_uuidguard` (міграції main) + справжній сервер `127.0.0.1:3019` (`API_PORT`, `AUTH_DEV_OTP=true`): **4/4 pass, 0 fail** — `/tmp/mg-uuid-guard-test-output.log`. Пороги: tsc 0 · eslint 0 · `npm test` 53/0/2 skipped.
+- **Scope:** шостий дефектний маршрут `POST /offers/:id/cancel` існує лише в RC-лінії `77566d9` (задеплоєний контейнер `mg-chain-api`; не предок main) — гард відтворити при злитті тієї лінії; зафіксовано в тілі PR #81.
+- **Прибирання shadow-БД/ролі заблоковане safety-hook'ом** (деструкція БД — тільки за схваленням власника); пароль ролі згенерований, не друкувався. Побіжних процесів немає.
+- **Статус: VERIFIED.** Продакшн — **`NOT_RELEASED`**.
+
+## 2026-11-04 03:35 UTC — CARPOOL-LIFECYCLE-1: дво-акаунт carpool-цикл пройдено живим UI до `completed`; сідлок/ідемпотентність/антиреплей доведено; знайдено 500-замість-400 на 6 маршрутах
+
+Сесія `0a64e4bd`. Цикл «живий дефект → причина → доказ → чекпоінт». Захищені гілки не чіпано; нові серверні правки поки не робились — лише виміри й фіксація.
+
+- **Живий UI-ланцюг (не CI, не фікстура).** Харнес `/tmp/mg-carpool/ui-lifecycle.mjs` на PWA :3111 → live-API :3017 → Postgres :5434, 430×932, два справжні акаунти, зареєстровані екранами застосунку. **14 етапів, 98 кроків, 587 API-викликів, exit 0**; лог `/tmp/mg-carpool/run-l4.log`, машинні докази `/tmp/mg-carpool/evidence-l4.json`. Реальні id: водій `5bf3a08d…`, авто `39d76cff…`, `offer1 5eae37f6…` (Львів→Трускавець, 12000 minor), `booking1 370b910f…` → **`completed` 2/2**; `offer2 30b7a43e…`, `booking2 774c4e05…` → **`cancelled`**.
+- **Квиток (MarshPass-сигнатура) перевірено як користувач.** «Показати квиток для посадки» → `GET /bookings/{id}/ticket` 200 → `{format: MARSHGO-HMAC-SHA256-V1, token: 232 символи, expiresAt}`; QR — справжній data-URL (alt «QR-код квитка для посадки»); розкриття `[data-testid="booking-ticket-token-reveal"]` → текст `[data-testid="booking-ticket-token"]` **дорівнює** токену з API.
+- **Шлюз посадки та антиреплей.** «Підтвердити посадку» **disabled** з пояснювальним `title`, поки водій не вставить/не відсканує токен пасажира; після вставки → `POST …/boarding` 200 `boarding`, статус «Посадку підтверджено сервером.» → `POST …/start` 200 `in_progress` (лічильник «0/2»), завершення 2-of-2 (водій 1/2 → пасажир 2/2 → `completed`). Валідний квиток на вже завершеному бронюванні → **409 `booking_cannot_enter_boarding`** (харнес `/tmp/mg-carpool/seat-check.mjs`).
+- **Сідлок + ідемпотентність — спостережувано на живому API.** `/tmp/mg-carpool/seat-lock.mjs`: бронювання 201 `c08df44f-2303-475e-bddd-60eacba2f2df` → **реплей тим самим `Idempotency-Key` → 200 той самий id `replayed:true`** → інший ключ → **409 `not_enough_available_seats`** → `GET /offers/{id}` під час сідлока → **404** (книгаємість = `published AND departure_at>now() AND available_seats>0`) → cancel 200 → знову 200 (1/1). Підтверджено, що `Idempotency-Key` (16–128) — обов'язковий заголовок контракту.
+- **НОВИЙ ДЕФЕКТ UUID-VALIDATION-1 (не правлений).** `/tmp/mg-carpool/probe-uuid.json`: на кривому `:id` **6** маршрутів віддають 500 `internal_error` (`GET /bookings/:id/ticket`, `GET /bookings/:id/events`, `POST /bookings/:id/cancel|start|complete`, `POST /offers/:id/cancel`), тоді як 4 уже мають коректні 400 (`GET /offers/:id` `invalid_offer_id`, `GET /bookings/:id/rendezvous` `invalid_booking_id`, `POST /bookings/:id/boarding` `ticket_invalid`, `PATCH /offers/:id`). Фікс — інлайн-конвенція `/^[0-9a-f-]{36}$/i` + `ApiError(400,…)` від бази `main 5e8cc4c`.
+- **Дрібні зафіксовані (не правлені):** MarshPass-термінологія розходиться (FAQ — «квиток MarshPass», картка — «Показати квиток для посадки»); `401 /auth/refresh` на холодному старті (#32); діагностика планувальника видна пасажиру на екрані результатів.
+- **Артефакти проб, не дефекти:** `GET /bookings/:id` не існує як маршрут; 404 на завершену пропозицію — задумана фильтрація; blur квитка міряти до розкриття; локатор «N варіантів» хапав чужий текст.
+- **CI-INTEGRITY-1 (#36): докази зібрано.** PR Server **#80** — OPEN, `MERGEABLE`, `verify` ×2 SUCCESS, у CI-лозі 11 фаз `run_suite()` з виконаними кількостями (разом **37 тестів**). Чекає злиття власником.
+- **Дрібні справи:** викидні прев'ю-акаунти (`drv.l1..l4`, `pax.l3..l4`) і їхні пропозиції/бронювання залишились у прев'ю-БД — прибрати окремим прибиранням; у тілі PR #79 описка «фіxtури».
+- **Статус: VERIFIED** для першого результату й carpool-гейта на живому середовищі. Продакшн — **`NOT_RELEASED`**.
+
 ## 2026-11-03 22:47 UTC — ALLOCATION-1: гарячий `scoreJourneys` переписано без аллокацій; Server `fc29e91`, PR #79 (не злито)
 
 Сесія `0a64e4bd`. Цикл «виміряний дефект → причина → фікс → тести → живий доказ → чекпоінт». Жодних змін у захищені гілки; пуш — у власну `qoder/score-journeys-allocation-20261104`; робочий каталог вимірювань повернуто до стану `d3995c7`.
