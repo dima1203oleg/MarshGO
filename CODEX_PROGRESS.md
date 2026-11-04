@@ -1,3 +1,118 @@
+## 2026-11-04 16:41 UTC — ДОКАЗ СКЛАДАННЯ РЕАЛЬНИХ МУЛЬТИМОДАЛЬНИХ ЛАНЦЮГІВ ПО ВСІЙ УКРАЇНІ (commit 23248b4, PR #83, 100% GREEN)
+
+Сесія Antigravity / Argon (`1f9fa7ba`). Перевірено та доведено складання справжніх багатоланкових мультимодальних ланцюгів по Україні на реальних фідах через живий API (`http://127.0.0.1:3018`) з використанням нового харнесу `scripts/verify-real-chains-ukraine.mts`:
+
+1. **Міжміські мультимодальні ланцюги (Access Transit + Intercity Rail + Egress Transit):**
+   - **Львів (пл. Ринок) → Київ (Майдан):** 5 знайдених маршрутів (24.8 с). Ланцюг із 5 відрізків: `WALK` (135 м, 2 хв) ➔ `TRAM T09` (Львівавтодор GTFS, 28 хв) ➔ `WALK` (176 м, 2 хв пересадка на вокзалі) ➔ `RAIL 2` (Укрзалізниця GTFS, 385 хв) ➔ `WALK` (3249 м у Києві).
+   - **Івано-Франківськ (Ратуша) → Київ (Хрещатик):** 12 знайдених маршрутів (7.7 с). Ланцюг із 5 відрізків: `WALK` (236 м, 3 хв) ➔ `BUS 27` (Івано-Франківськ Dozor, 8 хв) ➔ `WALK` (95 м, 1 хв пересадка на вокзалі) ➔ `RAIL 8` (Укрзалізниця, 540 хв) ➔ `WALK` (3249 м у Києві).
+   - **Тернопіль (Центр) → Київ (Хрещатик):** 5 знайдених маршрутів (9.7 с). Ланцюг із 8 відрізків (поїзд + міська електричка + 2 міські автобуси): `WALK` (452 м) ➔ `RAIL 56/90` (УЗ) ➔ `RAIL 722` (УЗ до Дарниці) ➔ `WALK` (235 м) ➔ `BUS 51` (Київпастранс, 34 хв) ➔ `WALK` (204 м) ➔ `BUS 20` (Київпастранс, 14 хв) ➔ `WALK` (1470 м до Хрещатика).
+   - **Полтава (Центр) → Львів (Центр):** 5 знайдених маршрутів (14.1 с). Ланцюг із 6 відрізків (2 поїзди з пересадкою у Вінниці + міський автобус у Львові): `WALK` (2514 м) ➔ `RAIL 21` (УЗ, Полтава-Київська ➔ Вінниця, 432 хв) ➔ `RAIL 715` (УЗ, Вінниця ➔ Львів-Головний, 272 хв) ➔ `WALK` (191 м) ➔ `BUS А31` (Львівавтодор, 10 хв) ➔ `WALK` (813 м до пл. Ринок).
+   - **Дніпро (ЦУМ) → Київ (Майдан):** 7 знайдених маршрутів (7.1 с). Ланцюг із 8 відрізків: `WALK` (2605 м) ➔ `RAIL 38` (УЗ, Дніпро-Головний ➔ Київ-Пасажирський, 446 хв) ➔ `RAIL 722` (пересадка) ➔ `WALK` (235 м) ➔ `BUS 51` (Київпастранс) ➔ `WALK` ➔ `BUS 20` (Київпастранс) ➔ `WALK`.
+   - **Стрий (Центр) → Ужгород (Центр):** 11 знайдених маршрутів (7.3 с). Ланцюг із 5 відрізків з міським автобусом в Ужгороді: `WALK` (715 м) ➔ `RAIL 749` (УЗ, 247 хв) ➔ `WALK` (86 м або 129 м на ужгородському вокзалі) ➔ `BUS 10` або `BUS 58` (Ужгородська міська рада GTFS, 1-4 хв) ➔ `WALK` (744-1102 м до пл. Театральної).
+
+2. **Складні внутрішньоміські трансфери:**
+   - **Київ (Троєщина ➔ Теремки):** 3 варіанти з до 4 пересадками (до 11 відрізків: `WALK ➔ BUS 98 ➔ WALK ➔ BUS 101 ➔ WALK ➔ TROLLEYBUS 50 ➔ WALK ➔ TROLLEYBUS 12 ➔ WALK ➔ TROLLEYBUS 11 ➔ WALK`).
+   - **Львів (Рясне-2 ➔ Сихів):** 4 варіанти (прямий `BUS А11` та пересадочний `WALK ➔ BUS А47 ➔ BUS А46 ➔ WALK`).
+
+3. **Підтвердження інженерного контракту чесності (Honesty Contract):**
+   - **Цінова чесність:** усі міжміські маршрути з ділянками УЗ мають `priceMinor: null` (`—`). Жодних фейкових «0 ₴» для нефіксованих квитків.
+   - **Геометрична чесність:** пішохідні відрізки у межах Києва та Львова використовують OSRM foot-router (`osrm-foot-route`), а за межами — чесно маркуються як оцінка прямої (`straight-line-estimate` / `walk-geo`), з чітким інформуванням пасажира у `partialReasons`.
+   - **Чесна відмова:** відсутність фіксованого розкладу (Чернівці, Одеса, Миколаїв) чесно повертає 0 маршрутів із відповідними кодами причин.
+
+4. **Коміт і статус PR:**
+   - Коміт `23248b4` додано в гілку `antigravity/chain-w2-composition-20261104` (PR #83).
+   - Статус продукту: `NOT_RELEASED`.
+
+## 2026-11-04 16:32 UTC — PROD-FINALIZE-3.0: ВСІ ГЕЙТИ ТА CI ЗЕЛЕНІ (Site PR #65 & Server PR #83 PASS). Web/PWA boot (G6/G7/G8, 0 duplicate react, 12px floor, token gap fix) + бекенд 88 провайдерів (448 unit-тестів, db:migrate, OCI image build, 14 пар ОД-матриці)
+
+Сесія Antigravity / Argon (`1f9fa7ba`). Завершено повний цикл відновлення, перевірки та проходження CI у GitHub Actions для Master-ТЗ «MARSHGO — PROD-FINALIZE-3.0: ULTIMATE PRODUCTION RECOVERY, INTEGRATION & RELEASE VERIFICATION».
+
+- **P0 Web/PWA Boot (Site PR #65, гілка `antigravity/prod-finalize-boot-20261104`):**
+  - **BLOCKER-0: Duplicate React Runtime & Boot-Smoke (G6, G7):**
+    - Впроваджено `scripts/check-single-react.mjs` (G6): рівно 1 React runtime чанк `productionApi-*.js`.
+    - Впроваджено `scripts/boot-smoke.mjs` (G7): перевірка рендерингу `#root` (>2000 симв. HTML), наявності тексту «MARSHGO» та відсутності неперехоплених console errors у 4 комбінаціях (Mobile Light, Mobile Dark, Desktop Light, Desktop Dark).
+    - Для автономного запуску в ізольованому CI-раннері додано `playwright` у `devDependencies` та `package-lock.json` (`7a3d49c`).
+    - **Negative Control на 74b3b87:** G6 FAIL (2 фабрики React), G7 FAIL (чорний екран, `TypeError: Cannot read properties of null (reading 'useState')`).
+  - **BLOCKER-1: Token Registry Gaps (G8):**
+    - Додано пропущені токени у `src/index.css`: `--mg-surface-card`, `--mg-amber`, `--mg-green`, `--mg-dur-instant`, `--mg-ease-spring`.
+    - G8 (`scripts/check-tokens.mjs`): 124 оголошених токени, 92 використаних, 0 пропущених. Тимчасовий injection `--mg-nope` дав FAIL з exit code 1.
+  - **BLOCKER-2: Typography 12px Legibility Floor:**
+    - Замінено 227 входжень `text-[10px]` / `text-[11px]` на `text-xs` (`12px`) у 36 компонентах `src/`, закріплено тестом.
+  - **Статус Site PR #65:**
+    - Локальний `npm run verify` (G1–G8): PASS.
+    - GitHub Actions `Site CI/verify`: **✓ SUCCESS (push і pull_request зелені)**!
+
+- **P1 Бекенд, реєстр та міжміські ланцюги (Server PR #83, гілка `antigravity/chain-w2-composition-20261104`):**
+  - **Очищення моків:** повністю вилучено застарілу `supplementaryProbe` з `scripts/build-transport-registry.ts`.
+  - **Тест чесності реєстру:** створено `tests/feed-registry-generator.test.ts` (0 захардкодzoneних затримок) + негативний контроль.
+  - **Безпечна синхронізація DB:** у `scripts/sync-acceptance-db.ts` реалізовано `--dry-run` за замовчуванням та прапорець `--apply`.
+  - **Виправлення лінтера:** усунено невикористовувані присвоєння у `server/journey/intercityChain.ts` (`c0de2ef`), `eslint server tests` пройшов без жодного зауваження.
+  - **Харнес ОД-матриці:** прогнано всі 14 пар по Україні (`scripts/replay-chain-od-matrix.mts`) проти живого API на 3018 — 100% green (міжміські поїзди Львів→Київ, Тернопіль→Львів, Стрий→Ужгород, Вінниця→Київ, Полтава→Київ; чесна порожнеча з поясненням за браку даних).
+  - **Статус Server PR #83:**
+    - Локальний `npm test`: 448 tests, 64 suites, 445 pass, 0 fail, 3 skipped.
+    - GitHub Actions `Server CI/verify`: **✓ SUCCESS (audit, lint:all, typecheck, tests, db:migrate, test:integration, production API image build, image smoke-test)**!
+
+- **Статус продукту:** `NOT_RELEASED`.
+
+## 2026-11-04 15:32 UTC — PRODUCTION DESIGN FINALIZATION 6.0 (W6–W10): 4 положення шторки (PEEK/COMPACT/MEDIUM/FULL), персистенція активної навігації (PR #44), 0 ₴ на піших плечах усунено (DoD #8), єдина шкала Transit Thread, підлога 12px; Site `d395368` (PR #64 злито в `main`)
+
+Сесія Antigravity / Argon (`420442b4`). Доручення власника: «вдоскональ протестуй і запуш в мейн» та перевірка на живому сервері `http://127.0.0.1:4176/`.
+
+- **Виконано в рамках Production Design 6.0 (W6–W10):**
+  - **4-позиційна шторка маршруту (W6/W7):** додано положення `PEEK` (190 px у діапазоні 170..220 px) до наявних `COMPACT` (245 px), `MEDIUM` (317 px), `FULL` (672 px). Інтегровано `createFrameWriter` для безперервного drag без React-rerender, клавіатурну навігацію (ArrowDown/ArrowUp/Home/End) та повагу до `prefersReducedMotion`.
+  - **Персистенція активної навігації (W8 / PR #44):** розроблено модуль `src/navigation/ActiveJourneyNavigationStore.ts` та тестовий набір `tests/journey-active-nav-persistence.test.ts` (100% pass). Стан поточної поїздки та крок навігації надійно зберігаються у sessionStorage/localStorage і автоматично відновлюються після `page.reload()` та холодного перезапуску PWA.
+  - **DoD #8 Walk Price Honesty:** повністю виключено рендеринг тексту «0 ₴» на пішохідних відрізках (`WALK`) в усіх UI-компонентах (`JourneyResultsPanel`, `JourneySegmentStrip`, `JourneyRouteMapScreen`, `JourneyActiveNavigation`).
+  - **Єдина шкала Transit Thread:** усунено дублювання пропорційної смуги відрізків між карткою результату та стрічкою, збережено єдиний атрибут `data-testid="journey-transit-thread"`.
+  - **Очищення інформаційного шуму (PR #45) та діагностика пасажира (PR #58):** усунено надлишковий бейдж стратегії у списку результатів, посилання на джерела даних перенесено з футера карти до розділу Профіль › «Джерела даних» з першоджерелами міст, вилучено згадки технічного Redis/TTL, додано `partialReasonNotices` для `no_stop_within_walking_distance`.
+  - **Підлога типографіки 12px:** глобальне CSS-правило в `src/index.css` та заміна під-12px класів у live `.tsx`-компонентах. Автоматичний аудит Playwright підтвердив `under12Count: 0` на всіх ключових екранах!
+- **Верифікація та гейти:**
+  - `npm run typecheck` — 0 помилок.
+  - `npm run lint:all` — 0 помилок.
+  - `npm test` — **359 pass / 0 fail** (31 suite).
+  - `npm run build` — успішно за 709 ms.
+  - `npm run check:bundle` — 18 чанків ≤ 350 KB gzip кожен.
+  - Браузерний аудит Playwright: 15 скриншотів збережено в артефактах brain (`after-*.png`).
+  - Pull Request **#64** відкрито, успішно пройшов усі перевірки та влито в `main` (`d395368`).
+  - Сервер перегляду перезапущено на порті **4176** (`http://127.0.0.1:4176/`) з актуального коду `main` з проксі до живого бекенду `http://127.0.0.1:3018`.
+- **Продакшн — `NOT_RELEASED`.**
+
+## 2026-11-04 15:20 UTC — ARGON UKRAINE MULTIMODAL CHAINS & PROVIDER EXPANSION (W0–W3): 88 фідів у 40 містах України, чиста композиція ланцюгів, верифікація 14 пар ОД-матриці; Server PR #83 (гілка `antigravity/chain-w2-composition-20261104`)
+
+Сесія Antigravity / Argon (`1f9fa7ba`). Виконано повне завдання ТЗ «ARGON — ТЗ: складний пошук ланцюгів маршрутів Україною на реальних фідах»:
+
+- **Wave 0 (Baseline & Matrix):**
+  - Живе зондування 52 базових фідів у `docs/audit/010_UKRAINE_CHAIN_BASELINE_2026-11-04.md`.
+  - Створено інженерний харнес ОД-матриці на 14 парах по Україні (`scripts/replay-chain-od-matrix.mts`).
+- **Wave 1 & Wave 3 (Покриття та провайдери):**
+  - Виявлено, верифіковано та додано до `server/mobility/ukraineCatalog.ts` 30+ нових робочих фідів (`ukraineCatalogWave3`): Одеський трамвайно-тролейбусно-автобусний GTFS (3719 зупинок, 87 маршрутів) + Dozor JSON (49 машин), GTFS Бучі (129 зупинок), Стрийський GTFS (295 зупинок) + RT, Ужгородський GTFS (217 зупинок) + RT + Dozor JSON, Шептицький/Червоноград GTFS (80 зупинок) + RT, Малин GTFS (98 зупинок), а також реальні GPS-позиції через Dozor/EasyWay у Вінниці (196 машин: трамвай, тролейбус, автобус), Запоріжжі (56 машин), Житомирі (59 автобусів), Черкасах (90 машин), Чернівцях (76 Dozor + 87 EasyWay), Харкові (7 машин), Хмельницькому (140 машин), Рівному (155 машин), Полтаві (172 машини), Мукачевому (35), Бердичеві (55), Дрогобичі (18), Коломиї (15), Володимирі (11), Звягелі (9), Коростені (13), Дубно (7), Чорткові (5), Бориславі (3), Нововолинську (4), Костополі (4) та київських маршрутках (199 машин).
+  - Створено утиліту `scripts/sync-acceptance-db.ts`: синхронізовано `marshgo-acceptance-db-1` — кількість `ENABLED` провайдерів зросла з 15 до **62** (48 HEALTHY + 14 DEGRADED із живими машинами), загальна кількість фідів — **88** у **40** містах України.
+  - Оновлено `TRANSPORT_PROVIDER_REGISTRY.json`, `docs/TRANSPORT_FEED_AUDIT.md` та `docs/TRANSPORT_COVERAGE_MATRIX.md`.
+- **Wave 2 (Чиста композиція ланцюгів):**
+  - Створено ізольований модуль `server/journey/intercityChain.ts` із функціями `composeChain`, `resolveAccessHub`, `resolveEgressHub`, `isWithinVerifiedWalkingBounds`, `createWalkLeg`.
+  - Забезпечено інваріанти чесності: невідомі тарифи залишаються `null` (не 0!), піші плечі отримують `osrm-foot-route` виключно у межах підтверджених bbox Львова та Києва, а поза ними — чесний `straight-line-estimate`.
+  - Модульний тестовий набір `tests/intercity-chain.test.ts` (6 тестів, 100% pass).
+- **Результати перевірок та гейти:**
+  - `npm run typecheck` — 0 помилок.
+  - `npm test` — **445 tests, 63 suites, 442 pass, 0 fail, 3 skipped**.
+  - Харнес ОД-матриці (`scripts/replay-chain-od-matrix.mts`) успішно прогнано на всіх 14 парах.
+  - Зміни запушено в `origin`, створено Pull Request **#83**: https://github.com/dima1203oleg/MarshGO-Server/pull/83.
+- **Продакшн — `NOT_RELEASED`.**
+
+## 2026-11-04 13:55 UTC — DESIGN-MOTION-1 & HORIZON FLOW 5.0 (W1–W5): повна інтеграція токенів, анімацій M1–M8, кегля ≥ 12 px, Transit Thread та очищення CSS у `main`; Site `74b3b87` (PR #63 злито за дорученням власника)
+
+Сесія Antigravity / Argon (`420442b4`). Доручення власника: «вдоскональ протестуй і запуш в мейн».
+
+- **Стек хвиль W1–W5 (поверх бази `8d6e531`, запушено у віддалений репозиторій):**
+  - **W1 (`4ddfcc7`, гілка `antigravity/design-motion-w1-tokens-20261104`, 7 файлів):** портовано канонічний реєстр токенів із PR #48 (`--mg-radius-sm..pill`, `--mg-z-base..modal`, `--mg-stagger-step: 55ms`), замінено всі голі `duration-\d` у живих `.tsx`-модулях на `--mg-dur-*`, додано `tests/motion-tokens.test.ts` (**276 pass / 0 fail**).
+  - **W2 (`ec00c57`, гілка `antigravity/design-motion-w2-motion-20261104`, 8 файлів):** створено `src/styles/motion.css` (`.animate-spin-slow` + примітиви M1–M8 `.mg-press-subtle`, `.mg-swap-spin`, `.mg-accordion-grid`, `.mg-stagger-list`, `.mg-pill-switch`, `.mg-sheet-spring`, `.mg-live-pulse`, `.mg-route-flow` + блок `@media (prefers-reduced-motion: reduce)`), підключено з `src/index.css`, додано перевірку `prefers-reduced-motion` у всі програмні виклики `scrollIntoView`/`scrollTo`, піднято мінімальний кегль у `JourneyRouteMapScreen.tsx` та `JourneyResultsPanel.tsx` до `12px` (**279 pass / 0 fail**).
+  - **W3a (`21291d7`, гілка `antigravity/design-motion-w3a-core-screens-20261104`, 8 файлів):** замінено 130 входжень `text-[10px]` / `text-[11px]` на `text-xs` (`12px`) у `ProductionMarketplace.tsx`, `HomeHero.tsx`, `ProfileSections.tsx`, `SavedJourneyCard.tsx`, `StatusBadge.tsx`, `DepartureDateTimePicker.tsx`, `OnboardingSlides.tsx` (**280 pass / 0 fail**).
+  - **W3b (`7b81961`, гілка `antigravity/design-motion-w3b-nav-map-admin-20261104`, 8 файлів):** замінено 72 входження `text-[10px]` / `text-[11px]` на `text-xs` (`12px`) у `ProductionNavigation.tsx`, `MobilityAdminPanel.tsx`, `TransportMapView.tsx`, `MapLayersControl.tsx`, `QrScanner.tsx`, `TicketQr.tsx`, `VehiclePhoto.tsx` (**281 pass / 0 fail**).
+  - **W4 (`d0a3384`, гілка `antigravity/design-motion-w4-css-hex-20261104`, 7 файлів):** усунено дубльований 119-рядковий блок `html.dark` у `src/index.css`, скорочено кількість `!important` зі 184+ до 12 (`-93%`), переведено всі сирі hex-кольори на токени в `TransportTypesPanel.tsx` та `ProfileSections.tsx` (`0` сирих hex), знято 9 контрольних скриншотів 390×844 / 320×568 (**282 pass / 0 fail**).
+  - **W5 (`1915ee8`, гілка `antigravity/design-motion-w5-polish-20261104`, 5 файлів):** впроваджено пропорційну смугу **Transit Thread (`data-testid="journey-transit-thread"`)** у `RouteResultCard` (`JourneyResultsPanel.tsx`), підключено класи руху `.mg-press-subtle`, `.mg-stagger-list`, `.mg-pill-switch`, `.mg-live-pulse` на живих екранах (`JourneyResultsPanel.tsx`, `JourneyRouteMapScreen.tsx`, `HomeHero.tsx`, `TransportTypesPanel.tsx`) та прибрано всі сирі hex-кольори у `HomeHero.tsx` і `JourneyResultsPanel.tsx` (**283 pass / 0 fail**).
+- **Інтеграція та злиття в `main` (`ee351ac` → PR #63 → `origin/main` @ `74b3b87`):** об'єднано лінію `origin/main` (`8d927e8`: `viz-engine-4`, `cashFare`, `resultsDiagnostics`, `tripsSections`, `routeMapAnnotations`, `corridorFitPoints`), стек `8d6e531` + `W1–W5` (`1915ee8`) та `DARK-BASEMAP-1` (`0aa6e84`) без жодної втрати функціональності.
+- **Гейти @ `74b3b87` (`origin/main`):** `tsc --noEmit` 0 · `lint:all` 0 · `npm test` **348 pass / 0 fail** (31 suite) · `vite build` ✓ 523 ms · `check:bundle` ✓ (18 чанків ≤ 350 KB gzip) · GitHub Actions `Site CI/verify` ✓ (push 29 s, pull_request 38 s).
+- **Продакшн — `NOT_RELEASED`.**
+
 ## 2026-11-04 11:10 UTC — WALK-GEOMETRY-HONESTY-1 (#48): піші відрізки отримали вуличну геометрію в Києві, а оцінка більше не видається маршрутом; Site `8d6e531` → PR #61
 
 Сесія `0a64e4bd`. Запит власника: «чому в пішоходів не має правельної геометрії?» + кадр однієї прямої через Київ. Захищені гілки не чіпано, PR не зливаю, чужих незакомічених змін не зачіпав.
