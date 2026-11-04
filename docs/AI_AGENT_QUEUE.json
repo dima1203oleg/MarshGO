@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "max_concurrent_antigravity_tasks": 1,
+  "tasks": [
+    {
+      "task_id": "AGY-WORKSPACE-SMOKE-20261026",
+      "owner": "antigravity-cli",
+      "repository": "MarshGO",
+      "branch": "codex/production-finalization-20261014",
+      "base_sha": "affef61e4706b2b9ce95c3ab4c2f5e2c0607e1dd",
+      "scope": ["workspace name and progress-file presence only"],
+      "acceptance_criteria": ["workspace confirmed", "no file changes"],
+      "model": "gemini-3.8-flash-medium",
+      "resource_limits": {"mode": "plan", "sandbox": true, "timeout_seconds": 45},
+      "status": "ACCEPTED",
+      "result_sha": "affef61e4706b2b9ce95c3ab4c2f5e2c0607e1dd",
+      "tests": "CLI read-only smoke; PASS",
+      "usage": {"input_tokens": 20699, "output_tokens": 141, "total_tokens": 20840, "duration_seconds": 38.165},
+      "result_summary": "Headless call returned JSON; workspace MarshGO and CODEX_PROGRESS.md were visible."
+    },
+    {
+      "task_id": "AGY-FLEX-DATE-CONTRACT-20261026",
+      "owner": "antigravity-cli",
+      "repository": "MarshGO",
+      "branch": "codex/production-finalization-20261014",
+      "base_sha": "affef61e4706b2b9ce95c3ab4c2f5e2c0607e1dd",
+      "scope": ["MarshGO-Site/src/services/productionApi.ts", "MarshGO-Site/src/views/ProductionMarketplace.tsx", "MarshGO-Server/server/journey/search.ts"],
+      "acceptance_criteria": ["confirm current departure contract", "propose compatible optional range field", "no edits"],
+      "model": "gemini-3.8-flash-medium",
+      "resource_limits": {"mode": "plan", "sandbox": true, "timeout_seconds": 60},
+      "status": "ACCEPTED",
+      "result_sha": "affef61e4706b2b9ce95c3ab4c2f5e2c0607e1dd",
+      "tests": "Read-only contract review; no code tests applicable",
+      "usage": {"input_tokens": 56882, "output_tokens": 414, "total_tokens": 57296, "duration_seconds": 58.801},
+      "result_summary": "Search accepts one departure instant; backward-compatible range needs an optional latest/departure-until instant plus validation and UI payload tests."
+    },
+    {
+      "task_id": "MARSHGO-FLEXIBLE-DEPARTURE-RANGE",
+      "owner": "codex",
+      "repository": "MarshGO-Server + MarshGO-Site",
+      "branch": null,
+      "base_sha": null,
+      "scope": ["API contract", "date-time picker", "search validation and ranking"],
+      "acceptance_criteria": ["preserve single-instant clients", "validate range order and bounds", "run focused server and UI tests", "do not imply multi-day search before end-to-end support"],
+      "model": "Codex primary",
+      "resource_limits": {"one_heavy_local_process": true, "production_changes": false},
+      "status": "BLOCKED",
+      "blocker": "Current canonical Server and Site checkouts have extensive uncommitted changes, including target search files; choose clean isolated worktrees and record exact base SHAs before implementation.",
+      "result_sha": null,
+      "tests": "NOT_RUN",
+      "result_summary": "Next product task; create isolated Server/Site worktrees and record each exact base SHA before editing."
+    },
+    {
+      "task_id": "AGY-GTFS-SAMPLER-ADVERSARIAL-TEST-20261026",
+      "owner": "antigravity-gui",
+      "repository": "MarshGO-Server",
+      "branch": "feature/transport-layer-availability",
+      "base_sha": "92a26a3f617f32d644a66c0af46cba096ccb0ce0",
+      "scope": ["tests/gtfs-route-chain-sampler-adversarial.test.ts only; new file"],
+      "acceptance_criteria": ["five distinct objective witnesses asserted", "competitive decoys contest eight sample slots", "bounded deterministic arrival orders", "run only new test file once", "no production or existing dirty file edits"],
+      "model": "Gemini 3.8 Flash Medium",
+      "resource_limits": {"one_active_antigravity_task": true, "one_local_test_process": true, "time_bounded": true},
+      "status": "ACCEPTED",
+      "result_sha": "877ac41",
+      "tests": "Antigravity: 1 PASS / 0 FAIL / 10.28 ms; Codex independent rerun: 1 PASS / 0 FAIL / 508 ms; git diff --cached --check PASS.",
+      "result_summary": "Reviewed the new adversarial fixture and verified five distinct winners plus bounded order cases. Only the new test file was committed; existing dirty Server work remains unstaged. GUI token usage was not exposed."
+    }
+  ]
+}

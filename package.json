@@ -12,13 +12,14 @@
     "lint": "npm run lint:all",
     "lint:all": "eslint src server shared tests e2e scripts ops tools playwright.config.ts playwright.compat.config.ts vite.config.ts eslint.config.js",
     "test": "tsx --test tests/*.test.ts",
+    "test:ops": "node --test ops/scripts/*.test.mjs",
     "test:e2e": "bash scripts/run-e2e.sh",
     "test:browser-compat": "bash scripts/run-browser-compat.sh",
     "check:bundle": "node scripts/check-bundle-size.mjs",
     "acceptance:live-providers": "tsx tools/live-provider-smoke.ts",
     "acceptance:transport-feeds": "tsx tools/transport-feed-smoke.ts",
     "acceptance:kiwitaxi-catalog": "tsx tools/kiwitaxi-catalog-smoke.ts",
-    "check:production": "npm run typecheck && npm run lint && npm test && npm run build && npm run check:bundle",
+    "check:production": "npm run typecheck && npm run lint && npm test && npm run test:ops && npm run build && npm run check:bundle",
     "test:integration:bookings": "tsx --test tests/api-bookings.integration.test.ts tests/trip-editing.integration.test.ts",
     "test:integration:navigation": "tsx --test tests/navigation.integration.test.ts",
     "test:integration:realtime": "tsx --test tests/realtime-cluster.integration.test.ts",
@@ -95,6 +96,7 @@
     "source-map-js": "^1.2.2",
     "@grpc/grpc-js": "1.14.6",
     "markdown-it": "^14.3.3",
+    "re2js": "^2.9.1",
     "body-parser": "1.20.9"
   }
 }

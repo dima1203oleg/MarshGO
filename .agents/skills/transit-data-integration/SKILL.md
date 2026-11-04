@@ -1,21 +1,12 @@
 ---
 name: transit-data-integration
-description: GTFS, GBFS, realtime telemetry, and open transit feed ingestion standards for Ukrainian cities in MARSHGO.
+description: Superseded pointer. Use marshgo-provider-discovery for MARSHGO feed and API evaluation.
 ---
 
-# Transit Data Integration Skill
+# Transit data integration — superseded
 
-## Overview
-This skill defines standards for ingesting, validating, and updating transit data across Ukrainian cities (Kyiv, Lviv, Dnipro, Odesa, Kharkiv, etc.).
+Superseded by `marshgo-provider-discovery` on 2026-11-03. Load that skill instead; this stub keeps older task notes and git history resolvable.
 
-## Key Responsibilities
-1. **GTFS Static Ingestion**:
-   - `routes.txt`, `trips.txt`, `stops.txt`, `stop_times.txt`, `calendar.txt`, `shapes.txt`.
-   - Normalization of route types: 3 (Bus), 0 (Tram), 800 (Trolleybus), 1 (Subway), 2 (Rail).
-2. **GTFS Realtime (GTFS-RT)**:
-   - VehiclePositions feed processing (GPS coordinates, bearing, current speed, timestamp).
-   - TripUpdates feed processing (stop arrival delays, schedule adjustments).
-3. **GBFS Micromobility**:
-   - Free-floating bikes and scooters (station status, vehicle count, battery levels).
-4. **Resilience & Fallbacks**:
-   - Detect stale telemetry (>90s) and display appropriate UX indicators without breaking journey rendering.
+Moved with code citations: the GTFS `route_type` normalisation table (`MarshGO-Server/server/mobility/gtfs.ts:10-21`, including extended values 700s bus / 800 trolleybus / 900s tram and the Ukrainian name heuristics) and the realtime freshness rule `MAX_FEED_AGE_MS = 90_000` (`MarshGO-Server/server/journey/gtfsRealtime.ts:11`).
+
+For feed registration, license and coverage work use the `transit-data-integration` entry points only as a name — the current procedure is in `marshgo-provider-discovery` and `marshgo-release`.

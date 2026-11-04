@@ -464,7 +464,7 @@ export function ProductionMarketplace() {
   }, [bookingRescues, bookings, user?.id]);
 
   useEffect(() => {
-    if (!user || tab !== 'trips') return;
+    if (!user || user.id === 'guest_user' || tab !== 'trips') return;
     // Keep the cross-device trip state fresh if a realtime connection is temporarily unavailable.
     const timer = window.setInterval(() => {
       if (document.visibilityState === 'visible') {

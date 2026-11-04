@@ -1,3 +1,9 @@
+x-api-build-args: &api-build-args
+  MARSHGO_BUILD_ID: ${MARSHGO_BUILD_ID:-unknown}
+  MARSHGO_BUILD_SHA: ${MARSHGO_BUILD_SHA:-unknown}
+  MARSHGO_BUILD_TIME: ${MARSHGO_BUILD_TIME:-unknown}
+  MARSHGO_SOURCE_STATE: ${MARSHGO_SOURCE_STATE:-unknown}
+
 services:
   db:
     image: postgis/postgis:17-3.5
@@ -36,6 +42,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.api
+      args: *api-build-args
     restart: "no"
     environment: &api-environment
       NODE_ENV: production
@@ -82,6 +89,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.api
+      args: *api-build-args
     restart: unless-stopped
     environment: *api-environment
     ports:

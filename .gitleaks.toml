@@ -1,0 +1,22 @@
+# MARSHGO gitleaks configuration.
+# The default rule set is kept in full; this file only adds one narrow allowlist.
+title = "MARSHGO gitleaks configuration"
+
+[extend]
+useDefault = true
+
+# Release journals record which image was pinned where. `marshgo/api:<tag>` and
+# `sha256:<digest>` are public integrity values, not credentials, but the
+# generic-api-key heuristic flags the digest hex as a key. Scope is deliberately
+# limited to the three journal paths; code, config and CI secrets still scan.
+[allowlist]
+description = "Docker image tags and sha256 digests inside release journals"
+regexTarget = "line"
+paths = [
+  '''^(CODEX_PROGRESS|NEXT_ACTIONS)\.md$''',
+  '''^RELEASE_MANIFEST\.json$''',
+]
+regexes = [
+  '''sha256:[0-9a-f]{12,}''',
+  '''marshgo/[a-z-]+:[A-Za-z0-9._-]+''',
+]
