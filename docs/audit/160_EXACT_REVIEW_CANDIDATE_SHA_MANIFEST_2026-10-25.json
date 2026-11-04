@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "product": "MARSHGO",
+  "candidate": "RC-2026-10-25-review.10",
+  "status": "NOT_RELEASED",
+  "productionReady": false,
+  "scope": "Exact-source review tuple across the five product repositories plus orchestration metadata. This tuple is not merged, imaged, staged, or deployed.",
+  "apiContractVersion": "v1",
+  "databaseMigrationVersion": "055",
+  "repositories": {
+    "server": {
+      "name": "dima1203oleg/MarshGO-Server",
+      "sha": "38f17b88f98c8530f8090cfc6745cd334c87e53c",
+      "pullRequest": "https://github.com/dima1203oleg/MarshGO-Server/pull/40",
+      "mergeState": "OPEN_DRAFT_STACKED",
+      "hostedChecks": "PASS",
+      "localEvidence": "Typecheck and lint pass; 315 unit tests pass; 3 opt-in tests skipped; isolated Postgres/PostGIS/Redis integration 30/30 pass.",
+      "openLimitations": [
+        "Dense Lviv GTFS search remains truncated; do not claim exhaustive optimal/fastest/cheapest search.",
+        "Local runtime used Node 25.4.0 while the project pins 24.21.0."
+      ]
+    },
+    "site": {
+      "name": "dima1203oleg/MarshGO-Site",
+      "sha": "7aed5344218058b024f5c269b36b03577d94026e",
+      "pullRequest": "https://github.com/dima1203oleg/MarshGO-Site/pull/25",
+      "mergeState": "OPEN_DRAFT_STACKED",
+      "hostedChecks": "PASS",
+      "localEvidence": "Typecheck, lint, build, bundle budget and 109/109 unit tests pass. City-scoped map-layer tests 6/6 pass. Local authenticated passenger browser walkthrough recorded in audit 159.",
+      "openLimitations": [
+        "Search correctly reports graph truncation and unavailable transit capabilities.",
+        "Production map style, tile manifest and licensed satellite imagery are not configured."
+      ]
+    },
+    "ios": {
+      "name": "dima1203oleg/MarshGO-iOS",
+      "sha": "7dfd35bf5f06169d7df82fa8d0879fcaf02431b5",
+      "pullRequest": "https://github.com/dima1203oleg/MarshGO-iOS/pull/14",
+      "mergeState": "OPEN",
+      "pins": {
+        "site": "7aed5344218058b024f5c269b36b03577d94026e",
+        "server": "38f17b88f98c8530f8090cfc6745cd334c87e53c"
+      },
+      "hostedChecks": "PASS",
+      "localEvidence": "Capacitor sync and iPhone 16 Pro Max Simulator compile/install/launch pass. Embedded manifest records the exact Site and Server SHAs, API v1, migration 055. Screenshot shows welcome screen only.",
+      "openLimitations": [
+        "Physical iPhone, authenticated native journeys, background GPS, APNs and signing/TestFlight are not tested.",
+        "Local build used Node 25.4.0 instead of the pinned Node 24.21.0."
+      ]
+    },
+    "admin": {
+      "name": "dima1203oleg/MarshGO-Admin",
+      "sha": "f39c4b74839a393f4487c830930669eabc8c0390",
+      "pullRequest": "https://github.com/dima1203oleg/MarshGO-Admin/pull/1",
+      "mergeState": "OPEN",
+      "hostedChecks": "PASS",
+      "exactShaLocalAcceptance": "NOT_TESTED",
+      "openLimitations": [
+        "Authenticated local UI acceptance was performed on a prior Admin candidate; current exact SHA has hosted CI evidence only."
+      ]
+    },
+    "partner": {
+      "name": "dima1203oleg/MarshGO-Partner",
+      "sha": "97a3727cc395dea092af6e3e24d6822370c2bc63",
+      "pullRequest": "https://github.com/dima1203oleg/MarshGO-Partner/pull/1",
+      "mergeState": "OPEN",
+      "hostedChecks": "PASS",
+      "localEvidence": "3/3 unit tests, typecheck, lint, build and isolated local onboarding/approval workflow pass.",
+      "openLimitations": [
+        "No external partner organization, live operator connection or production tenant has been accepted."
+      ]
+    },
+    "orchestrator": {
+      "name": "dima1203oleg/MarshGO",
+      "sourceCommit": "0d3ed4accecbb5623f0c20c55c69ff0f23f14a4d",
+      "note": "Documentation checkpoint commit. The orchestration working tree contains other pre-existing dirty/untracked work and is not a clean immutable production artifact."
+    }
+  },
+  "images": {
+    "status": "NOT_BUILT_FOR_THIS_EXACT_TUPLE",
+    "digests": null
+  },
+  "staging": {
+    "status": "NOT_CONFIGURED_NOT_TESTED",
+    "url": null,
+    "deployedShas": null
+  },
+  "production": {
+    "status": "NOT_RELEASED",
+    "deployedShas": null,
+    "deploymentPerformed": false
+  },
+  "blockingGates": [
+    "Required component PRs remain open and stacked; no merge was performed.",
+    "No verified staging origin, credentials, production domain or deployed SHA is configured.",
+    "No current exact-tuple production images/digests, HTTPS smoke or release rollback rehearsal exists.",
+    "Map style/tiles and satellite imagery require an approved immutable licensed source.",
+    "Provider contracts, commercial rights and live coverage/booking capability are incomplete or unverified.",
+    "Dense-feed journey search still reports truncation.",
+    "Physical-device, background location, security, load, backup/restore and recovery acceptance are open.",
+    "Owner approval is required before production deployment."
+  ],
+  "evidence": {
+    "sitePullRequestChecks": [
+      "https://github.com/dima1203oleg/MarshGO-Site/actions/runs/40163680187",
+      "https://github.com/dima1203oleg/MarshGO-Site/actions/runs/40163677847"
+    ],
+    "iosPullRequestChecks": [
+      "https://github.com/dima1203oleg/MarshGO-iOS/actions/runs/40163992039",
+      "https://github.com/dima1203oleg/MarshGO-iOS/actions/runs/40163988537"
+    ],
+    "serverPullRequestChecks": [
+      "https://github.com/dima1203oleg/MarshGO-Server/actions/runs/40157852445",
+      "https://github.com/dima1203oleg/MarshGO-Server/actions/runs/40157715218"
+    ],
+    "adminPullRequestCheck": "https://github.com/dima1203oleg/MarshGO-Admin/actions/runs/40162633629",
+    "partnerPullRequestCheck": "https://github.com/dima1203oleg/MarshGO-Partner/actions/runs/40126462889",
+    "acceptanceReport": "159_CITY_SCOPED_MAP_LAYER_AND_PASSENGER_ACCEPTANCE_2026-10-25.md"
+  }
+}
