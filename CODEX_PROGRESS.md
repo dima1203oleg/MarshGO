@@ -1,3 +1,40 @@
+## 2026-11-05 13:40 UTC — СЕСІЯ ANTIGRAVITY: CINEMATIC NAVIGATION EXPERIENCE 4.0 (Site `dd00563`, branch `antigravity/ultimate-premium-web-9`)
+
+Реалізовано систему інтелектуального анімованого огляду маршруту **MARSHGO — Cinematic Route Experience 4.0** за парадигмою `Select → Focus → Reveal → Explain → Navigate`:
+
+1. **Animated Route Reveal (промальовування лінії сегмента):**
+   - Додано геодезичні утиліти в `src/map/cinematicRouteEngine.ts`: `distanceMeters`, `interpolateLineProgress` (інтерполяція лінії за відсотком пройденої довжини 0.0..1.0).
+   - У `MapLibreAdapter.ts` додано джерело `marshgo-route-reveal` та шари `marshgo-route-reveal-glow` (неоновий ореол з blur 6px) і `marshgo-route-reveal-core`.
+   - При виборі сегмента запускається плавна анімація промальовування (`requestAnimationFrame`, 750 мс з ease-out quad), що підсвічує напрямок руху від посадки до висадки.
+   - Підтримка `prefers-reduced-motion`: миттєве відображення без затримок.
+
+2. **Smart Glass Guidance Callouts (напівпрозорі підказки на карті):**
+   - Створено `src/views/GlassGuidanceCallouts.tsx`: графітові/темно-сині картки з розмиттям `backdrop-blur-2xl`, стрілочками-покажчиками та іконками транспорту.
+   - Генерація підказок за категоріями:
+     - `BOARDING`: «ПОСАДКА» / «ПОЧАТОК ПІШКИ», час відправлення, назва зупинки.
+     - `STOPS_COUNT`: «У ДОРОЗІ», «N зупинок до висадки», тривалість.
+     - `ALIGHTING`: «ВИСАДКА» / «ПРИБУТТЯ», назва кінцевої зупинки, час.
+     - `TRANSFER`: «ПЕРЕСАДКА», наступний рейс або дистанція/час пішки.
+   - Синхронізація екранних координат підказок через `mapAdapter.project(coord)` при кожному русі/зумі карти (`onCameraMove`).
+
+3. **Smart Guidance Step Narrative у Bottom Sheet:**
+   - Над закріпленою кнопкою «Розпочати» додано компактну плаваючу картку наступного етапу (`data-testid="smart-step-guidance"`), що формує чесний та зрозумілий текст українською мовою (наприклад: *«Пройдіть 530 м (6 хв) до «Львівська політехніка (64)». Там сідайте на Т01.»*).
+
+4. **Гейти та тести:**
+   - Додано юніт-тести в `tests/cinematic-route-engine.test.ts` (покривають `distanceMeters`, `interpolateLineProgress`, `calloutIconType`, `generateSmartStepSummary`, `calculateCalloutAnchor`).
+   - `npm test`: **372 pass / 0 fail / 31 suites**.
+   - `npm run typecheck`: **0 помилок**.
+   - `npm run lint`: **0 помилок**.
+   - `check-tokens`: **PASS (140 declared / 108 referenced)**.
+   - `check:bundle`: **16 чанків ≤ 350 KB gzip (PASS)**.
+   - Playwright E2E: знято 5 скриншотів у `visual-evidence/`:
+     - `cinematic-01-overview.png`: початковий адаптивний огляд.
+     - `cinematic-02-segment-focused-callouts.png`: перший піший сегмент + підказки «ПОЧАТОК ПІШКИ» та «ПЕРЕСАДКА».
+     - `cinematic-03-second-segment-callouts.png`: трамвай Т01 з підказками «ПОСАДКА», пересадкою та повним narrative.
+     - `cinematic-04-manual-camera-recenter.png`: ручний drag карти та плаваюча кнопка повернення.
+     - `cinematic-05-recentered-overview.png`: відновлення огляду всього коридору після натискання recenter.
+   - Статус: **NOT_RELEASED**.
+
 ## 2026-11-05 13:32 UTC — СЕСІЯ QODER: STOPS-IN-SHEET-1, перелік зупинок живе всередині картки сегмента (Site `a0b6005`, PR #69)
 
 Запит власника: «зроби щоб в губі розгортались блок з зупинками а не окремо як зараз».

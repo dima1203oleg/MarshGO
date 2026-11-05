@@ -1,3 +1,24 @@
+## RESUME BLOCK 2026-11-05 13:40 UTC — CINEMATIC ROUTE EXPERIENCE 4.0 (Site `dd00563`, branch `antigravity/ultimate-premium-web-9`)
+
+Канал: Antigravity. Реалізовано повний комплекс кінематографічної мультимодальної навігації **Cinematic Route Experience 4.0** (`Select → Focus → Reveal → Explain → Navigate`):
+1. **Animated Route Reveal:** плавне промальовування лінії обраного сегмента від посадки до висадки (`interpolateLineProgress` вздовж реальних координат через `requestAnimationFrame`, 750 мс з ease-out, неоновий ореол glow 6px та біла серцевина; миттєве відображення під `prefers-reduced-motion`).
+2. **Smart Glass Guidance Callouts:** напівпрозорі графітові/темні скляні підказки на карті з розмиттям `backdrop-blur-2xl`, бейджами та іконками:
+   - `BOARDING`: «ПОСАДКА» / «ПОЧАТОК ПІШКИ», запланований час, зупинка.
+   - `STOPS_COUNT`: «У ДОРОЗІ», «N зупинок до висадки», тривалість.
+   - `ALIGHTING`: «ВИСАДКА» / «ПРИБУТТЯ», кінцева зупинка, час.
+   - `TRANSFER`: «ПЕРЕСАДКА», наступний рейс або піший перехід.
+   - Синхронізація екранних координат підказок через `mapAdapter.project(coord)` на кожному кадрі руху карти (`onCameraMove`).
+3. **Smart Step Guidance Narrative:** над закріпленою кнопкою «Розпочати» у шторці додано картку з лаконічним поясненням наступного етапу українською мовою.
+4. **Гейти та верифікація:**
+   - `tests/cinematic-route-engine.test.ts` — **PASS**.
+   - `npm test`: **372 pass / 0 fail / 31 test suites**.
+   - `typecheck`: **0 помилок**, `lint`: **0 помилок**.
+   - `check-tokens`: **PASS (140 declared / 108 referenced)**.
+   - `check:bundle`: **16 чанків ≤ 350 KB gzip (PASS)**.
+   - Playwright E2E: знято 5 скриншотів у `visual-evidence/` (`cinematic-01` по `cinematic-05`).
+   - Свіжий production-дистрибутив зібрано в `dist/` та роздається на `http://127.0.0.1:4178`.
+   - Статус: **NOT_RELEASED**.
+
 ## RESUME BLOCK 2026-11-05 13:32 UTC — STOPS-IN-SHEET-1: перелік зупинок тепер живе всередині картки сегмента (Site `a0b6005`, PR #69)
 
 Канал: Qoder (сесія `0a64e4bd`). Запит власника: «зроби щоб в губі розгортались блок з зупинками а не окремо як зараз».
