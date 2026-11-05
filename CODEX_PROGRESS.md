@@ -1,3 +1,18 @@
+## 2026-11-05 13:32 UTC — СЕСІЯ QODER: STOPS-IN-SHEET-1, перелік зупинок живе всередині картки сегмента (Site `a0b6005`, PR #69)
+
+Запит власника: «зроби щоб в губі розгортались блок з зупинками а не окремо як зараз».
+
+1. **Виміряний дефект, а не здогад:** 390×844, розгорнута шторка — тіло маршруту `scrollHeight 1848 px` при `clientHeight 71 px`; переліки зупинок усіх чотирьох розкладних сегментів були розкриті одразу, кожен як окремий блок у шторці. Наслідок — сам маршрут і кнопка «Розпочати» були недосяжні скролом.
+2. **Реалізація:**
+   - `src/views/journeyStopsPanel.ts` — `nextStopsLegId` (рівно один відкритий), `stopsDetent()` = `expanded`, `sheetNeedsRaiseForStops`.
+   - `JourneyRouteMapScreen.tsx` — замість набору відкритих сегментів один стан `stopsLegId` (за замовчуванням `null`); пілюля «Зупинки» з `aria-expanded`/`aria-controls`; панель `id=route-stops-<leg>` всередині `<li data-testid="journey-route-segment">`; відкриття піднімає шторку до FULL і загортає картку у видиме вікно.
+   - `JourneyActiveNavigation.tsx` — зупинки складені в картку етапу; відкрито лише поточний сегмент; сегмент без переліку чесно каже «Перевізник не надав список зупинок для цього рейсу.».
+   - `src/index.css` — `.mg-route-stops`: вставка на `--route-hover` (без літералів, однаково читається у світлій і темній), поява нерухома під `prefers-reduced-motion`.
+3. **Гейти (SHA `884330b`, worktree `/tmp/mg-stops`, `qoder/stops-in-sheet-20261105`):** `tests/stops-in-sheet.test.ts` 6/6 · `npm test` **399 pass / 0 fail / 36 suites** · `typecheck` 0 · `eslint` 0 · `check-tokens` PASS · `check:bundle` 16 чанків ≤350 KB gzip · GitHub CI `verify` — pass. Злито у main: **`a0b6005`**.
+4. **Живий доказ (VERIFIED, не читання коду):** dev-твін `http://127.0.0.1:4184` (злитий білд, API-проксі `127.0.0.1:3019`), Chromium 390×844 dpr2, реальні GTFS-дані Львова, обидві теми. 0 панелей за замовчуванням → 1 панель у своїй картці, повністю видима, 6 рядків (09:19 Бахматюка · ПОСАДКА → 09:29 Мечникова · ВИСАДКА) → тап на сусідньому сегменті: знову рівно 1, іншої картки → зворотний тап: 0. Прокрутка тіла **800 → 989 px** замість 1848 px. Скрини `/tmp/stopsfused-dark/`, `/tmp/stopsfused-light/`.
+5. **Ризик суміщення (PARTIAL, потрібно узгодити):** Antigravity `d47c9cf` «Smart Bottom Sheet 2.0» (`mapViewportCoordinator.ts`, `routeCameraController.ts`, `STOP_FOCUS`, `adaptive-map-route-sheet.test.ts`) править той самий шар шторки. Перед інтеграцією звірити, хто тримає висоти детентів і чи `STOP_FOCUS` не конфліктує з однокартковим акордеоном. Робоче дерево канонічного `MarshGO-Site` досі містить застарілі (до-remont) копії `mapMode.ts`/`placeBias.ts`/`ProductionNavigation.tsx`, які скасовують чесність супутника й реального GPS, — тому PR #68 лишається з базою `antigravity/ultimate-premium-web-9`.
+6. **Статус:** NOT_RELEASED.
+
 ## 2026-11-05 13:20 UTC — СЕСІЯ ANTIGRAVITY: ЧИСТА ЗБІРКА ДИСТРИБУТИВА ТА ПІДТРИМКА DEEP-LINK МАРШРУТУ НА 4178 (Site `4146417`)
 
 1. **Збірка та запуск на порту 4178:**
