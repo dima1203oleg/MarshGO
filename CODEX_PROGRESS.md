@@ -1,3 +1,62 @@
+## 2026-11-05 13:05 UTC — СЕСІЯ ANTIGRAVITY: ADAPTIVE MAP, ROUTE DETAILS & SMART BOTTOM SHEET 2.0 (Site antigravity/ultimate-premium-web-9)
+
+Запит власника: повний рефакторинг екрана деталізації маршруту (`JourneyRouteMapScreen`) для раціонального використання площі мобільного екрана, усунення зайвих відступів і правильної взаємодії карти зі шторкою на 4 положення:
+1. **Adaptive Map & Dynamic Bounds Engine:**
+   - Створено модуль `src/map/mapViewportCoordinator.ts` з функціями `calculateAdaptiveMapPadding` та `computeVisibleMapArea`.
+   - Динамічний розрахунок вільних зон карти з вирахуванням ультракомпактної верхньої панелі (~84 px замість 144 px) та нижньої шторки (від PEEK до EXPANDED).
+   - Захист MapLibre від падіння (`total vertical padding < viewport height`): в стані EXPANDED гарантовано залишається $\ge 120\text{ px}$ активної карти вгорі.
+2. **Централізований контролер камери `src/map/routeCameraController.ts`:**
+   - 4 взаємоузгоджені режими: `ROUTE_OVERVIEW`, `SEGMENT_FOCUS`, `STOP_FOCUS`, `MANUAL_CAMERA`.
+   - Розрахунок азимута напрямку руху (`bearing`) для сегментів транспорту (`calculateSegmentFocusTarget`).
+   - Підтримка виявлення ручного втручання через події drag/zoom (`onCameraModeChange: FREE`), що перемикає камеру в `MANUAL_CAMERA`, блокує примусове перецентрування під час руху шторки та активує плаваючу кнопку повернення «Показати маршрут цілком».
+3. **Smart Bottom Sheet 2.0 на 4 канонічні стани:**
+   - `State 1 — Collapsed (PEEK)`: 18–20% висоти, загальний час і вартість, ланцюг транспорту, закріплена кнопка «Розпочати», нуль порожнеч.
+   - `State 2 — Compact`: 32–34% висоти, інтервали відправлення/прибуття, пересадки, скорочена посадка/висадка, без розриву перед CTA.
+   - `State 3 — Medium`: 52–54% висоти, незалежний скрол деталей маршруту, проміжні зупинки, статус руху, робоча карта у верхній половині.
+   - `State 4 — Expanded`: 82–84% висоти, повний список зупинок і подробиць, без перетворення на глухий повноекранний екран ($\ge 120\text{ px}$ карти зверху).
+4. **Інтерактивні проміжні зупинки та запуск навігації:**
+   - Оновлено `JourneyLegStops.tsx`: додано пропси `activeStopId` та `onStopSelect`. Клік на зупинку виділяє її (`ring-2 ring-[var(--mg-blue)]`) та фокусує камеру прямо на зупинці.
+   - Кнопка «Розпочати» закріплена у нижній зоні шторки у всіх 4 станах і запускає активну навігацію водія/пасажира без зайвих проміжних екранів.
+5. **Верифікація та гейти:**
+   - Додано юніт-тест `tests/adaptive-map-route-sheet.test.ts` (10 тестів TEST 1 – TEST 10).
+   - У `MarshGO-Site`: `npm test` **367 passed** (32 suite, 0 failed).
+   - У worktree `/private/tmp/mg-site-fixes`: `npm test` **400 passed** (37 suite, 0 failed).
+   - `npm run typecheck`: **0 помилок**.
+   - `npm run lint`: **0 помилок, 0 warnings**.
+   - `npm run check:bundle`: **16 чанків ≤ 350 KB gzip (PASS)**.
+   - `npm run check-single-react`: **G6 PASS**.
+   - Запущено Playwright E2E скрипт `scripts/test-adaptive-map-and-sheet-states.mjs` на мобільному профілі iPhone 14 (390×844 dpr2).
+   - Зафіксовано 9 скриншотів: `state-1-collapsed-peek.png`, `state-2-compact.png`, `state-3-medium-half.png`, `state-4-expanded-full.png`, `segment-focus-bearing.png`, `stop-focus-point.png`, `manual-camera-mode.png`, `overview-recentered.png`, `active-navigation-handover.png`.
+   - Оновлено артефакт `visual-verification-report.md`.
+   - Статус: **NOT_RELEASED**.
+
+## 2026-11-05 12:35 UTC — СЕСІЯ ANTIGRAVITY: ВІЗУАЛЬНИЙ РЕНДЕРИНГ МАРШРУТІВ, ТРАНСПОРТНІ ГЛІФИ, СТАБІЛЬНА КАМЕРА ШТОРКИ ТА СТИЛІЗАЦІЯ BOTTOM SHEET (Site antigravity/ultimate-premium-web-9)
+
+Запит власника: кращий рендеринг маршрутів транспорту і пішоходів, красивіші іконки транспорту на карті, точна фокусація камери без тремтіння при зміні положення губи, плавна та естетична шторка і загальне вдосконалення візуалу.
+
+1. **Рендеринг маршрутів транспорту та пішоходів:**
+   - Чіткий неоновий точковий пунктир пішохода: `line-dasharray: [0.15, 1.7]`, `line-cap: round`, неоновий ореол `line-blur: 4` (`#0284C7`/`#0369A1`).
+   - Контрастний casing (`#FFFFFF` у світлій, `#0A0F1D` у темній) та halo активного відрізка транзитних ліній (ширина до 36px, `line-blur: 8`).
+2. **Іконки руху транспорту на карті:**
+   - 2D Canvas гліфи для tram (з пантографом), trolleybus (зі штангами), train (швидкісний ніс), minibus, bus (лобове скло, фари).
+   - Оновлені параметри halo ТЗ (`vehicleHaloRadius`: `[11: 11, 16: 17]`, `vehicleRadius`: `[11: 4.5, 16: 10]`, `circle-stroke-width: 2.5`).
+   - Контрастні бейджі номера маршруту (`text-halo-width: 2.5`, `text-size: 10.5`).
+   - Оновлений 3D navigation puck водія/пасажира (44px) з градієнтом `#258AFF` → `#0058D6` та фільтром м'якого пульсу `mgPuckGlow`.
+3. **Фокусація камери при зміні положення губи (bottom sheet):**
+   - Зменшено бічний padding камери з 96px до збалансованих 36px (звільнено 120px ширини карти на мобільних пристроях).
+   - Прив'язка розрахунку `mapPadding.bottom` до зафіксованого стану (`settledHeight = snapHeight(sheetSnap)`), що усунуло дрижання камери під час свайпу шторки.
+   - Плавне доведення камери (`duration: 520`) у вільну зону над шторкою.
+4. **Плавніша та привабливіша губа (bottom sheet) та візуальна частина:**
+   - Шторка отримала `backdrop-blur-2xl` (28px), закруглені верхні кути `rounded-t-[2rem]`, стилізований матовий grabber із реактивною підсвіткою при дотику/наведенні.
+   - Оновлені пігулки стрічки етапів (ribbon): збережено дизайн-контракт висоти 26px (`tests/route-ribbon-touch.test.ts`), додано неонове кільце активного сегмента (`ring-2 ring-[var(--mg-action)]`, scale 1.02, drop-shadow).
+5. **Верифікація та гейти:**
+   - Worktree `/private/tmp/mg-site-fixes`: `npm test` **393/393 PASS**.
+   - `MarshGO-Site`: `npm test` **360/360 PASS**.
+   - `npm run check:bundle`: **16 чанків ≤ 350 KB gzip (PASS)**.
+   - Запущено та верифіковано Vite preview з `API_PROXY_TARGET=http://127.0.0.1:3019` на порті `4178`.
+   - Знімки екрана збережено в `visual-evidence/polish-01...05.png`, оновлено артефакт `visual-verification-report.md`.
+   - Статус: **NOT_RELEASED**.
+
 ## 2026-11-05 11:30 UTC — СЕСІЯ QODER: SAT-HONESTY-1 + TOGGLE-3D-2D + MARSHPASS-CONTRAST закрито браузерними замірами (Site `690bf1b`, PR #68)
 
 Три питання власника виміряно в живому браузері (dev-твін `127.0.0.1:4199`, Chromium 390×844 dpr2, API `127.0.0.1:3019`, темна і світла теми; харнес `/tmp/mg-sat-verify.cjs` → `/tmp/mg-sat-verify.json`, скрини `/tmp/mgshots17/`). Робоче дерево Site, прев'ю 4176 і процеси Аргона не чіпав.
