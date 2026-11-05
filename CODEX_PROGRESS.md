@@ -1,4 +1,20 @@
-## 2026-11-05 13:05 UTC — СЕСІЯ ANTIGRAVITY: ADAPTIVE MAP, ROUTE DETAILS & SMART BOTTOM SHEET 2.0 (Site antigravity/ultimate-premium-web-9)
+## 2026-11-05 13:20 UTC — СЕСІЯ ANTIGRAVITY: ЧИСТА ЗБІРКА ДИСТРИБУТИВА ТА ПІДТРИМКА DEEP-LINK МАРШРУТУ НА 4178 (Site `4146417`)
+
+1. **Збірка та запуск на порту 4178:**
+   - Зібрано свіжий production-дистрибутив (`npm run build` у `MarshGO-Site`).
+   - Перезапущено `vite preview` на порту `4178` з проксі `API_PROXY_TARGET=http://127.0.0.1:3019`.
+2. **Маршрутизація deep-link `/journeys/:id`:**
+   - У `ProductionMarketplace.tsx` перехід за посиланням на маршрут тепер безпосередньо відкриває екран карти маршруту `JourneyRouteMapScreen` (`setSelectedRouteMap(storedJourneyToApiJourney(journey))`) замість примусового старту режиму навігації водія чи скидання у 404.
+   - Маршрут `ab73fa4c-0561-446d-aa3a-2ad30a4f12b2` (Львів → Стрий, 9 сегментів) прив'язано до облікового запису `dima@marshgo.local` у Postgres (`UPDATE 1`).
+3. **Панель «Шари» (MAP LAYERS SYSTEM 3.0, крок 1):**
+   - Усунено дублювання режимів карти: з висувної панелі `MapLayersControl.tsx` видалено перемикачі «Схема / Супутник» та «2D / 3D», оскільки вони вже присутні як окремі плаваючі контролери на карті.
+4. **Гейти:**
+   - `npm test`: **367 pass / 0 fail / 31 test suites**.
+   - `npm run typecheck`: **0 помилок**.
+   - `npm run lint`: **0 помилок**.
+   - `npm run check:bundle`: **16 чанків ≤ 350 KB gzip (PASS)**.
+   - Підтверджено завантаження через Playwright: збережено `user-requested-journey-screen.png` та `layers-panel-no-duplicates.png`.
+   - Статус: **NOT_RELEASED**.
 
 Запит власника: повний рефакторинг екрана деталізації маршруту (`JourneyRouteMapScreen`) для раціонального використання площі мобільного екрана, усунення зайвих відступів і правильної взаємодії карти зі шторкою на 4 положення:
 1. **Adaptive Map & Dynamic Bounds Engine:**
