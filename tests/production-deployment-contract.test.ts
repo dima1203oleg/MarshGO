@@ -40,9 +40,9 @@ test('bootstrap, update, and CI build and roll back the same portal set', () => 
   assert.match(ci, /read-only Contents access to MarshGO-Admin and MarshGO-Partner/);
 });
 
-test('release manifest pins all five repositories and keeps the candidate unreleased', () => {
+test('release manifest pins all six repositories and keeps the candidate unreleased', () => {
   const manifest = JSON.parse(read('RELEASE_MANIFEST.json')) as Record<string, unknown>;
-  for (const component of ['server', 'site', 'admin', 'partner', 'ios']) {
+  for (const component of ['server', 'site', 'admin', 'partner', 'ios', 'integration']) {
     assert.match(String(manifest[`${component}_sha`]), /^[a-f0-9]{40}$/, `${component} SHA is immutable`);
   }
   assert.equal(manifest.status, 'NOT_RELEASED');
