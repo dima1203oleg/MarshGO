@@ -2,15 +2,17 @@
 // Real user flow against the live CP10 API (:3310, bbox walking config) through the Site dev server proxy.
 import { chromium, devices } from 'playwright';
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 const BASE = 'http://127.0.0.1:3000';
-const OUT = '/tmp/cp9/cp11';
-fs.mkdirSync(OUT, { recursive: true });
+const password = process.env.MARSHGO_CP11_TEST_PASSWORD;
+if (!password) throw new Error('Missing required environment variable: MARSHGO_CP11_TEST_PASSWORD');
+const OUT = fs.mkdtempSync(path.join(os.tmpdir(), 'marshgo-cp11-'));
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
 
 const rand = (n) => Array.from({ length: n }, () => 'abcdefghijkmnpqrstuvwxyz23456789'[(Math.random() * 31) | 0]).join('');
 const email = `cp11.ui.${rand(6)}@marshgo.ua`;
-const password = 'Password2026!';
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ ...devices['iPhone 16'], locale: 'uk-UA', timezoneId: 'Europe/Kyiv' });
