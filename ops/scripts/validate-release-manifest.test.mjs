@@ -377,6 +377,14 @@ describe('release manifest validator — status contradictions', () => {
     expectProblem(validateReleaseManifest(releasedManifest({ production_ready: false })), 'production_ready', 'status_contradiction');
   });
 
+  it('rejects production_ready without ready_for_server_deployment', () => {
+    expectProblem(
+      validateReleaseManifest(releasedManifest({ ready_for_server_deployment: false })),
+      'ready_for_server_deployment',
+      'status_contradiction',
+    );
+  });
+
   it('rejects a production claim with no deployed SHA', () => {
     expectProblem(validateReleaseManifest(releasedManifest({ deployed_site_sha: null })), 'deployed_site_sha', 'missing_evidence');
   });
@@ -389,6 +397,46 @@ describe('release manifest validator — status contradictions', () => {
     const manifest = releasedManifest();
     manifest.verification.production_deployment = 'NOT_RELEASED: no verified staging/production origin or deployed SHA.';
     expectProblem(validateReleaseManifest(manifest), 'verification.production_deployment', 'missing_evidence');
+  });
+
+  it('rejects a false-green release with NOT_TESTED staging and a denial in deployment evidence', () => {
+    const manifest = releasedManifest({
+      staging: {
+        url: 'https://staging.example',
+        provider: 'owner-managed host',
+        status: 'NOT_TESTED',
+        staging_ready: true,
+      },
+      verification: {
+        production_deployment: 'We have NOT deployed this release.',
+        staging: 'NOT_TESTED',
+      },
+    });
+    const result = validateReleaseManifest(manifest);
+
+    assert.equal(result.ok, false);
+    expectProblem(result, 'staging.status', 'missing_evidence');
+    expectProblem(result, 'verification.staging', 'missing_evidence');
+    expectProblem(result, 'verification.production_deployment', 'missing_evidence');
+  });
+
+  it('accepts explicit affirmative staging and deployment evidence prefixes', () => {
+    for (const prefix of ['PASS:', 'VERIFIED:', 'DEPLOYED:']) {
+      const manifest = releasedManifest();
+      manifest.staging.status = `${prefix} staging rehearsal completed.`;
+      manifest.verification.staging = `${prefix} staging smoke and rollback rehearsal completed.`;
+      manifest.verification.production_deployment = `${prefix} exact Site SHA is serving traffic.`;
+      assert.equal(validateReleaseManifest(manifest).ok, true, prefix);
+    }
+  });
+
+  it('requires affirmative verification evidence whenever staging_ready is true', () => {
+    const manifest = validManifest();
+    manifest.staging.url = 'https://staging.example';
+    manifest.staging.staging_ready = true;
+    manifest.staging.status = 'PASS: staging smoke completed.';
+    manifest.verification.staging = 'NOT_TESTED';
+    expectProblem(validateReleaseManifest(manifest), 'verification.staging', 'missing_evidence');
   });
 
   it('rejects a production claim without a staging rehearsal', () => {
@@ -568,7 +616,7 @@ describe('release manifest validator — CLI and diagnostics', () => {
     assert.match(result.stderr, /deployed_site_sha: \[missing_evidence\]/);
     assert.match(result.stderr, /verification\.production_deployment: \[missing_evidence\]/);
     assert.match(result.stderr, /staging\.staging_ready: \[missing_evidence\]/);
-    assert.match(result.stderr, /5 problems/);
+    assert.match(result.stderr, /6 problems/);
   });
 
   it('exits 1 on an unreadable manifest instead of passing silently', () => {

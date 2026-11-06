@@ -28,8 +28,7 @@ const URL_TOKEN = /https?:\/\/[^\s"'<>\\^`{|)}\]]*/g;
 const PLACEHOLDER_VALUE =
   /^(tbd|todo|fixme|xxx+|placeholder|unknown|pending|n\/a|na|none|null|undefined|nan|unspecified|not[_ ]?set|-+|\?+|\.{3}|…)$/i;
 const PLACEHOLDER_INLINE = /\b(tbd|todo|fixme|placeholder|lorem ipsum)\b|<[^>]+>|\?\?\?/i;
-const UNVERIFIED_EVIDENCE =
-  /^(not[_ ]released|not[_ ]tested|not[_ ]configured|blocked|fail|failed|pending|unknown|unverified|no\b)/i;
+const AFFIRMATIVE_EVIDENCE = /^(?:pass(?:ed)?|verified|deployed)\s*[:—-]/i;
 
 export const SUPPORTED_SCHEMA_VERSIONS = [1];
 export const PROFILES = ['current', 'legacy'];
@@ -58,8 +57,8 @@ function placeholderReason(value) {
   return null;
 }
 
-function isUnverifiedEvidence(value) {
-  return UNVERIFIED_EVIDENCE.test(value.trim());
+function isAffirmativeEvidence(value) {
+  return typeof value === 'string' && AFFIRMATIVE_EVIDENCE.test(value.trim());
 }
 
 function shaRule(key) {
@@ -300,6 +299,20 @@ function checkStaging(manifest, problems) {
   if (staging.staging_ready === true && !isNonEmptyString(staging.url)) {
     problems.push({ path: 'staging.url', code: 'missing_evidence', message: 'staging_ready=true requires a verified staging URL' });
   }
+  if (staging.staging_ready === true && !isAffirmativeEvidence(staging.status)) {
+    problems.push({
+      path: 'staging.status',
+      code: 'missing_evidence',
+      message: 'staging_ready=true requires affirmative status prefixed by PASS:, VERIFIED:, or DEPLOYED:',
+    });
+  }
+  if (staging.staging_ready === true && !isAffirmativeEvidence(manifest.verification?.staging)) {
+    problems.push({
+      path: 'verification.staging',
+      code: 'missing_evidence',
+      message: 'staging_ready=true requires affirmative verification evidence prefixed by PASS:, VERIFIED:, or DEPLOYED:',
+    });
+  }
 }
 
 function checkEvidence(manifest, problems) {
@@ -380,16 +393,19 @@ function checkProductionClaim(manifest, problems) {
   }
 
   const claim = manifest.verification?.production_deployment;
-  if (!isNonEmptyString(claim) || isUnverifiedEvidence(claim)) {
+  if (!isAffirmativeEvidence(claim)) {
     problems.push({
       path: 'verification.production_deployment',
       code: 'missing_evidence',
-      message: 'production_ready=true requires affirmative deployment evidence, not a NOT_RELEASED / NOT_TESTED / BLOCKED statement',
+      message: 'production_ready=true requires affirmative deployment evidence prefixed by PASS:, VERIFIED:, or DEPLOYED:',
     });
   }
 
   if (manifest.staging?.staging_ready !== true) {
     problems.push({ path: 'staging.staging_ready', code: 'missing_evidence', message: 'production_ready=true requires a verified staging rehearsal' });
+  }
+  if (manifest.ready_for_server_deployment !== true) {
+    problems.push({ path: 'ready_for_server_deployment', code: 'status_contradiction', message: 'production_ready=true requires ready_for_server_deployment=true' });
   }
 }
 
