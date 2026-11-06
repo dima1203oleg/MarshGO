@@ -287,7 +287,7 @@ function checkStaging(manifest, problems) {
   }
   checkUrl(staging.url, 'staging.url', problems, { allowProse: false, key: 'url' });
   if (staging.url !== null && staging.url !== undefined && typeof staging.url === 'string') {
-    let protocol = null;
+    let protocol;
     try {
       protocol = new URL(staging.url).protocol;
     } catch {

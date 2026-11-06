@@ -80,7 +80,6 @@ function releasedManifest(overrides = {}) {
 }
 
 const paths = (result) => result.problems.map((problem) => problem.path);
-const codes = (result) => result.problems.map((problem) => problem.code);
 const at = (result, path) => result.problems.filter((problem) => problem.path === path);
 
 function expectProblem(result, path, code) {
