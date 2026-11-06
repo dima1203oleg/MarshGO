@@ -1870,8 +1870,11 @@
     "branch": "qoder/search-latency-20261031",
     "head_sha": "1e26b9fed314e6c2d7d5585d817baa12a42c70ab",
     "commits": [
-      "48ab36b (perf(journey): stop the largest GTFS feed from evicting itself on every search)",
-      "1e26b9f (chore(journey): time GTFS feed loading and group search behind the debug flag)"
+      "1e26b9fed314e6c2d7d5585d817baa12a42c70ab"
+    ],
+    "commit_log": [
+      "48ab36b (perf(journey): stop the largest GTFS feed from evicting itself on every search) — скорочений SHA; точний 40-символьний не записано в цьому маніфесті, тому в commits[] не входить",
+      "1e26b9f (chore(journey): time GTFS feed loading and group search behind the debug flag) — розгорнуто в точний SHA з head_sha цього ж блоку, не вгадано"
     ],
     "pull_request": "https://github.com/dima1203/MarshGO-Server/pull/63",
     "deployed_acceptance_image": "marshgo/api:RC-2026-10-31-searchlat.3",
@@ -1887,8 +1890,9 @@
     "task": "SEARCH-LATENCY-1 (#36) part 2 - phase attribution of segments-built and stop-pair projection cost",
     "repository": "MarshGO-Server",
     "branch": "qoder/search-latency-20261031",
-    "head_sha": "2c2342f (local commit on qoder/search-latency-20261031, not yet pushed)",
-    "commits": [
+    "head_commit": "2c2342f (local commit on qoder/search-latency-20261031, not yet pushed)",
+    "head_sha_note": "Точний 40-символьний head_sha навмисно не заявлено: коміт не запушено, тому його неможливо перевірити з цього репозиторію. Оригінальний рядок збережено в head_commit без змін.",
+    "commit_log": [
       "2c2342f perf(journey): stop rebuilding stop-pair projections and attribute segments-built"
     ],
     "pull_request": "not opened for this commit; PR #63 still points at 1e26b9f",
@@ -1909,7 +1913,8 @@
     "task": "#35 ROUTES-COLD-PATH-1 - fresh public measurement and root cause",
     "repository": "MarshGO-Server",
     "branch": "qoder/search-latency-20261031",
-    "head_sha": "2c2342f (local commit on qoder/search-latency-20261031, not yet pushed)",
+    "head_commit": "2c2342f (local commit on qoder/search-latency-20261031, not yet pushed)",
+    "head_sha_note": "Точний 40-символьний head_sha навмисно не заявлено: коміт не запушено, тому його неможливо перевірити з цього репозиторію. Оригінальний рядок збережено в head_commit без змін.",
     "evidence": "GET /api/v1/transport/routes?bbox=23.95,49.75,24.12,49.92&types=bus,marshrutka over https://marshgo-dima.shares.zrok.io on marshgo/api:RC-2026-10-31-searchlat.7: 8.44 s cold then 2.32 s and 2.35 s warm, HTTP 200, 410502 B, 130 features, failedProviderCount=0, dataQuality=SCHEDULED. Recorded baseline was 7969 ms cold, so the defect reproduces; the warm path is also 2.3 s, so this is not only cold start.",
     "root_cause": "loadRoutes (server/index.ts:850-857) calls cachedNetwork, i.e. a fully parsed GTFS network, for every provider touching the bbox, while the adjacent live-vehicles endpoint (server/index.ts:975-988) already uses the lightweight route index only for name labels. The routes endpoint pays a full feed parse for data it needs only as line geometry, stops and type.",
     "fix": "NOT IMPLEMENTED. Planned minimal fix: serve transport/routes and transport/stops from the same route index the live map uses, guarded by a byte-equality regression on the 130-feature / 410502-byte response and a public-URL re-run.",
@@ -2415,7 +2420,9 @@
     "status": "PROVEN_LIVE",
     "date": "2026-11-01",
     "environment": "локальний продакшн-стек з пінних SHA (compose.production.yml), порт 3012, образ marshgo/api:photo-fix-1",
-    "source_sha": "44f954b3ce6099dde86cebfe7984079a078a5872 + фікс 8cc634a (.qoder гілка qoder/uploads-perm-fix-20261101)",
+    "source_sha": "44f954b3ce6099dde86cebfe7984079a078a5872",
+    "source_fix_sha": "8cc634a13a804b1c2de3d19d86c15837351ec4e8",
+    "source_commit_note": "Оригінальний рядок: «44f954b3ce6099dde86cebfe7984079a078a5872 + фікс 8cc634a (.qoder гілка qoder/uploads-perm-fix-20261101)». Скорочений 8cc634a розгорнуто в точний SHA, уже записаний у цьому маніфесті як canonical_carpool_rc2_2026_11_01.image_revision_label (той самий фікс, на який посилається remaining_gap нижче) — не вгадано.",
     "steps": [
       "водій: реєстрація -> vehicle -> фото -> trust_level=1 -> offer (OSRM route_source=osrm)",
       "пасажир: пошук allowedTransportTypes=[carpool] -> 1 реальний COMMUNITY маршрути",
