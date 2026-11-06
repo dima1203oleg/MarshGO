@@ -40,11 +40,20 @@ test('bootstrap, update, and CI build and roll back the same portal set', () => 
   assert.match(ci, /read-only Contents access to MarshGO-Admin and MarshGO-Partner/);
 });
 
-test('release manifest pins all five repositories and keeps the candidate unreleased', () => {
+test('release manifest pins all five repositories and the root integration SHA, and keeps the candidate unreleased', () => {
   const manifest = JSON.parse(read('RELEASE_MANIFEST.json')) as Record<string, unknown>;
-  for (const component of ['server', 'site', 'admin', 'partner', 'ios']) {
+  for (const component of ['server', 'site', 'admin', 'partner', 'ios', 'integration']) {
     assert.match(String(manifest[`${component}_sha`]), /^[a-f0-9]{40}$/, `${component} SHA is immutable`);
   }
+  // integration_sha is recorded in .release/materialized.json, so the
+  // materializer has to validate it instead of copying it through raw.
+  const materializer = read('ops/scripts/materialize-release.mjs');
+  assert.match(materializer, /sha\('integration_sha'\)/);
+  assert.doesNotMatch(
+    materializer,
+    /integrationSha: manifest\.integration_sha/,
+    'the recorded integration SHA must come from the validated pin, not the raw manifest field',
+  );
   assert.equal(manifest.status, 'NOT_RELEASED');
   assert.equal(manifest.production_ready, false);
   assert.equal(manifest.ready_for_server_deployment, false);

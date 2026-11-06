@@ -43,6 +43,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24.21.0
+      # Offline and dependency-free: reject a manifest that does not name exact
+      # commits before any install, build or pinned clone is attempted.
+      - name: Validate the exact-SHA release manifest
+        run: node ops/scripts/validate-release-manifest.mjs
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.5
@@ -51,6 +55,7 @@ jobs:
       - run: npm run lint:all
       - run: npm run typecheck
       - run: npm test
+      - run: npm run test:ops
       - run: DATABASE_URL="$E2E_DATABASE_URL" npm run db:migrate
       - run: API_TEST_DATABASE_URL="$E2E_DATABASE_URL" npm run test:integration
       - run: npm run build
