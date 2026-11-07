@@ -5,11 +5,18 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import process from 'node:process';
 import { assertMaterializedWorktreeClean } from './materialized-worktree.mjs';
+import { validateReleaseManifest } from './validate-release-manifest.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const manifestPath = join(root, 'RELEASE_MANIFEST.json');
 const releaseRoot = join(root, '.release');
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+const manifestValidation = validateReleaseManifest(manifest);
+if (!manifestValidation.ok) {
+  throw new Error(
+    `RELEASE_MANIFEST.json failed validation (${manifestValidation.problems.length} problems); run npm run validate:release-manifest for details`,
+  );
+}
 const sha = (name) => {
   const value = manifest[name];
   if (!/^[a-f0-9]{40}$/.test(value ?? '')) throw new Error(`RELEASE_MANIFEST.json has invalid ${name}`);
@@ -77,6 +84,7 @@ const serverSha = sha('server_sha');
 const siteSha = sha('site_sha');
 const adminSha = sha('admin_sha');
 const partnerSha = sha('partner_sha');
+const integrationSha = sha('integration_sha');
 const server = checkout('server', 'MarshGO-Server', serverSha);
 const site = checkout('site', 'MarshGO-Site', siteSha);
 const admin = checkout('admin', 'MarshGO-Admin', adminSha);
@@ -129,7 +137,7 @@ if (compose.includes('context: .\n      dockerfile: Dockerfile.') || compose.inc
 writeFileSync(join(releaseRoot, 'compose.production.yml'), compose);
 const materialization = {
   schemaVersion: 2,
-  source: { serverSha, siteSha, adminSha, partnerSha, integrationSha: manifest.integration_sha },
+  source: { serverSha, siteSha, adminSha, partnerSha, integrationSha },
   sourceTrees: {
     server: {
       generatedInputs: generatedInputs.server,

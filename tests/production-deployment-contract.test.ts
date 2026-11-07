@@ -21,6 +21,13 @@ test('production stack serves every pinned web interface through the central Ser
   assert.match(caddy, /partner\.\{\$APP_DOMAIN\}[\s\S]*reverse_proxy partner:8080/);
   assert.match(materializer, /sha\('admin_sha'\)/);
   assert.match(materializer, /sha\('partner_sha'\)/);
+  assert.match(materializer, /sha\('integration_sha'\)/, 'the root integration pin is validated as an exact SHA');
+  assert.match(materializer, /validateReleaseManifest\(manifest\)/);
+  assert.match(materializer, /integrationSha \}/, 'materialization records only the validated integration SHA');
+  assert.ok(
+    materializer.indexOf('validateReleaseManifest(manifest)') < materializer.indexOf('mkdirSync(releaseRoot'),
+    'manifest validation must happen before release output or remote clones are created',
+  );
   assert.match(materializer, /MarshGO-Admin/);
   assert.match(materializer, /MarshGO-Partner/);
 });
