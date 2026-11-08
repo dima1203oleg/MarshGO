@@ -10,7 +10,8 @@
 - **13 метрик:** картки 8 → 7 (пул 8 збережено); avg 213 → 153.5; max 247 → 202.4; min 147 → 136.4; видимих 2 → 4; overflow 0 → 0; перемикання 0 викликів/~45 мс → 0/31.7–41.1 мс; CHEAPEST journeys 7 → 7 (карток 6 через групування); «—»/«тариф невідомий» → без змін; прапорців лімітів 0 → 5 live (7 підтримано); запитів на пошук 1 → 1; `listTop` 297 → 263; карта 8/8. Next-day: 0 live-випадків, логіка покрита unit-тестами (PARTIAL).
 - **Гейти:** `npm test` **561/561** (55 suites), `tsc --noEmit` чисто, `npm run lint` чисто, `check-tokens` PASS (152 токени/123 посилання).
 - **PR:** https://github.com/dima1203oleg/MarshGO-Site/pull/111 — OPEN, head `45238b799295d00a338a7318006c6fd043d02b95`, base `main`. Мердж — за власником; self-merge і деплой не робилися.
-- **Статус:** `NOT_RELEASED`, `production_ready=false`. Наступне: CI PR #111; рішення Server щодо ідентичних дублів у пулі; за потреби — BEFORE-знімки інших розмірів із worktree на `0c9b9df`.
+- **CI PR #111 (VERIFIED):** обидва `verify`-прогони pass — run 42500865120 (1m21s) і run 42500886479 (1m57s) на head `45238b7`; у job виконано lint, typecheck, `npm test`, check-tokens, build, bundle/single-react checks, boot-smoke. PR `MERGEABLE`.
+- **Статус:** `NOT_RELEASED`, `production_ready=false`. Наступне: рішення Server щодо ідентичних дублів у пулі; за потреби — BEFORE-знімки інших розмірів із worktree на `0c9b9df`. Мердж PR #111 — за власником.
 
 ## RESUME BLOCK 2026-11-08 18:05 UTC — ТЗ «PREMIUM COMPACT ROUTE MAP & SMART BOTTOM SHEET 3.0» РЕАЛІЗОВАНО: Site PR #110 на `3d788ba`, 548/548 тестів, 50/50 браузерних записів (Site `3d788ba` + PR #110)
 
