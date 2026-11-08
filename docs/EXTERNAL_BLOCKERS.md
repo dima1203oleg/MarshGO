@@ -1,3 +1,21 @@
+# Latest per-category feed audit — 2026-11-08 12:57 UTC
+
+Scope: the dev registry was fully seeded from `server/mobility/ukraineCatalog.ts` and every enabled feed was exercised through the authenticated API (Server `dc1eae7`, Site `8650cd8`, dev Postgres 5434 / Redis 6380 / API 3002). These are external-dependency blockers only; measured local gaps are recorded in `NEXT_ACTIONS.md` / `CODEX_PROGRESS.md`, not here.
+
+| Category | Current evidence | Blocker (external) | Needed to close |
+|---|---|---|---|
+| Bus, trolleybus, tram, train | VERIFIED on live GTFS: Lviv (72 routes), Kyiv (190), Odesa (87), Bucha, Malyn, Stryi, Sheptytskyi; UZ Kyiv→Lviv RAIL. 9/9 mode probes returned real journeys | None for the current feeds | Keep feeds fresh; add licensed municipal feeds for cities still missing |
+| Bike | VERIFIED static: 317 OSM locations imported (ODbL, `availability=UNKNOWN`); Lviv route estimate 841 s / 3355 m (`STRAIGHT_LINE_ESTIMATE`) | No real-time bike-stock feed: nextbike/BikeNow/veliki have no public GBFS and no signed agreement (`mobility_operators`: BikeNow `AWAITING_AGREEMENT`) | Operator GBFS/API or commercial agreement for live availability |
+| Scooter | Live Zelectra GBFS assets VERIFIED (742 in-country vehicles; 846–849 features per request, all `AVAILABLE`) | Zelectra publishes `geofencing_zones` rules with `vehicle_type_ids: []` and `global_rules.ride_start_allowed=false`. Per GBFS 3.0 an explicit empty array matches no vehicle types, so route estimates cannot prove a legal start/end and stay at 0 (no permission is invented) | Ask Zelectra to emit real `vehicle_type_ids` (or omit the field for provider-wide rules) in `geofencing_zones.json`; re-probe after the feed fix |
+| Metro (Kyiv), funicular, city train | Registry rows exist but stay `disabled/offline`; journey search reports `no_routed_provider_in_corridor` | `gisserver.kyivcity.gov.ua` and `gisserver-stage.kyivcity.gov.ua` return NXDOMAIN (`dig` + Cloudflare DoH Status 3, 2026-11-08); the data.gov.ua resource redirects to the dead stage host, and the CKAN metadata still points there. No open GTFS declares metro, funicular or `city_train` in Ukraine | Official Kyiv GIS host restored (or a partner timetable API); a feed that actually declares these route types |
+| Marshrutka | No enabled feed declares the category; negative control returns `no_routed_provider_in_corridor` | No open licensed GTFS/JSON in the audited catalog declares marshrutka routes (Kyiv route-taxi GeoJSON is on the dead GIS host; Dozor feeds are bus-labelled and their reuse terms are unverified) | A licensed source that declares marshrutka (operator GTFS or municipal open data) |
+| Taxi | No operator rows; journey search unavailable with an explicit reason | Uklon/Bolt expose partner APIs only; no open feed or contract | Partner API credentials and commercial agreement |
+| Carsharing | No operator rows; micromobility returns 0 features | Getmancar and other Ukrainian carsharing operators have no public GBFS/API and no contract | Operator agreement/API |
+| Transfer | Kiwitaxi and Intui.travel operator rows are `AWAITING_CREDENTIALS` | No API keys / commercial agreement; no catalog or booking capability without them | Credentials and agreement for at least one transfer provider |
+| Carpool | Internal MARSHGO marketplace exists; 0 live offers in dev | No external feed; supply is user-generated | Not an external blocker; needs real user offers for a live test |
+
+Status: `NOT_RELEASED`, `production_ready=false`. No feed was enabled without a validated licence and a successful live probe; no fixture was presented as live data.
+
 ## Latest verification update — portal PR checks — 2026-10-26
 
 - Server PR #43, Admin PR #1 and Partner PR #1 exact-head `verify` checks all pass after the mobile Settings fix. Local authenticated responsive coverage is 54/54 across the six viewport widths; see audit 225.
