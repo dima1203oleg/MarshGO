@@ -1,3 +1,12 @@
+## RESUME BLOCK 2026-11-08 14:44 UTC — ГЕОМЕТРІЯ ПІШОХІДНИХ НІГ ВІДНОВЛЕНА ПЕРЕЗАПУСКОМ API З КОРЕКТНИМ `WALKING_ROUTING_URLS` (Server `dc1eae7`, Site `8650cd8`; код не змінювався)
+
+Канал: Qoder (worktree `330dd3`). 3002 тепер PID 17428, запущений з `DOTENV_CONFIG_PATH=/Users/dima1203/Desktop/MarshGO/.env`; 3007 (Codex) і 4181 не чіпано. Робочий URL: `http://127.0.0.1:4192/` (проксі → 3002).
+
+- Причина: у процесах API `WALKING_ROUTING_URLS` був без лапок навколо ключів (`[{bbox:…,url:…}]` — слід bash `source` замість `dotenv`), `JSON.parse` падав → `walkingRoutingEnabled()=false` → `server/index.ts:3346` пропускав пішохідну маршрутизацію → `saveWalkLeg` писав WALK без `routeGeometry`. У dev валідація `config.ts:84` мовчить (тільки production).
+- Доказ: Львів/Київ WALK-ноги тепер `source=osrm-foot-route` з 2–13 пунктами; Одеса — поза bbox-графами, тому чесно `walking-estimate` + `partialReasons: walking_routing_unavailable`.
+- Наступний крок: перезапустити 3007 (Codex) тим самим способом — робить Codex/власник; для Одеси додати foot-граф і bbox-правило; повторити холодний E2E-пробіг у 4192.
+- Відомий борг (без змін): boot-fallback `index.html` мовчить, якщо модульний запит висить.
+
 ## RESUME BLOCK 2026-11-08 14:35 UTC — ПРЕВ'Ю 4192 ПРАЦЮЄ; СПІЛЬНИЙ VITE-КЕШ З 4181 БУВ ПРИЧИНОЮ «Відкриваємо MARSHGO…» (Site `8650cd8`, Server `dc1eae7`)
 
 Канал: Qoder (worktree `330dd3`). Код репозиторіїв не змінювався. 4192 слухає PID 9029 з `--config /tmp/mg-site-4192.vite.config.mjs --force` (приватний `cacheDir`); 4181 (PID 68367) не чіпаний. Робочий URL: `http://127.0.0.1:4192/`.

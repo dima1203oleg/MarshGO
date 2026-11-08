@@ -1,3 +1,12 @@
+## 2026-11-08 14:44 UTC — ПІШОХІДНІ НОГИ БЕЗ ГЕОМЕТРІЇ: НЕВАЛІДНИЙ `WALKING_ROUTING_URLS` В ОТОЧЕННІ API, НЕ ДЕФЕКТ СЕРІАЛІЗАЦІЇ (Server `dc1eae7`, Site `8650cd8`, код не змінювався)
+
+1. **Симптом (VERIFIED, живі пошуки Львів/Київ/Одеса).** Транзитні ноги мали `routeGeometry` (56/48/37/120 пунктів, `metadata.routeGeometrySource=gtfs_shape`), а кожна `WALK`-нога — без `routeGeometry`, `metadata={}`.
+2. **Корінь (VERIFIED).** Обидва запущені API (3002 PID 70768, 3007 PID 69326) мали в оточенні `WALKING_ROUTING_URLS=[{bbox:[...],url:...}]` — **без лапок навколо ключів**; `JSON.parse` падає `Expected property name or '}' at position 2`. Файл `.env` завантажували через bash `source`, який знімає подвійні лапки (не через `dotenv`). Наслідок: `walkingEndpointRules()` → `[]`, `walkingRoutingEnabled()` → `false`, гілка `server/index.ts:3346-3350` повертає itinerary без пішохідної маршрутизації, і `saveWalkLeg` (`server/index.ts:4440-4468`) пише WALK-ногу без `routeGeometry`. `validateRuntimeConfig` мовчить у dev — `server/config.ts:84` виходить одразу при `NODE_ENV !== 'production'`; у проді це впало б на старті.
+3. **Сам `.env` коректний.** `Desktop/MarshGO/.env` парситься (`2 rules`: `http://127.0.0.1:3013/route/v1/foot`, `:3014`); OSRM foot 3013/3014 — 200.
+4. **Фікс (лише runtime).** Наш dev API 3002 перезапущено з `DOTENV_CONFIG_PATH=/Users/dima1203/Desktop/MarshGO/.env` (PID 17428); `DATABASE_URL`/`REDIS_URL` побайтово збігаються з `.env` (5434/6380), `/readyz` 200. **3007 (Codex) і 4181 не чіпано**, код репозиторіїв не змінювався.
+5. **Доказ після фіксу.** Львів: WALK-ноги `source=osrm-foot-route`, `routeGeometry` 13/13/3 пунктів; Київ: 8/4/2; Одеса лишається без геометрії **чесно** — місто поза bbox-графами (23.9–24.2 / 30.2–30.8), ноги `source=walking-estimate`, відповідь містить `partialReasons: ["walking_routing_unavailable", ...]`. Проксі 4192 → 3002 працює (401 без токена, не 502).
+6. **Залишок.** Codex-сервер 3007 досі зі старим невалідним значенням — після перезапуску Codex теж отримає геометрію; для Одеси потрібен окремий foot-граф і bbox-правило. Статус `NOT_RELEASED`, `production_ready=false`.
+
 ## 2026-11-08 14:35 UTC — ПРЕВ'Ю 4192 ВІДНОВЛЕНО: СПІЛЬНИЙ `.vite/deps` З 4181 ВИДАВАВ `504 Outdated Optimize Dep` (Site `8650cd8`, Server `dc1eae7`, код не змінювався)
 
 1. **Симптом.** Вкладка Codex-браузера на `http://127.0.0.1:4192/` вічно показувала «Відкриваємо MARSHGO…», тоді як `/readyz` і пошук через API — 200.
