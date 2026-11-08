@@ -1,3 +1,16 @@
+## RESUME BLOCK 2026-11-08 18:05 UTC — ТЗ «PREMIUM COMPACT ROUTE MAP & SMART BOTTOM SHEET 3.0» РЕАЛІЗОВАНО: Site PR #110 на `3d788ba`, 548/548 тестів, 50/50 браузерних записів (Site `3d788ba` + PR #110)
+
+Канал: Qoder (worktree `330dd3`). Робота — лише в `MarshGO-Site` на гілці `qoder/route-map-sheet-3` від `0c9b9df` (origin/main). Desktop-checkout (`antigravity/ultimate-premium-web-9` @ `eda449f`, 20 незакомічених змін того ж набору файлів) **не чіпано** — порядок мерджу за власником.
+
+- **Відтворено на BEFORE (0c9b9df):** плаваючі callout'и «ПЕРЕСАДКА Пересадка на А09» і «ПОСАДКА 08:10 Руська»; дублювання нарації етапів (stage chain + «Ваш 1-й етап…») ≈24.6% висоти MEDIUM; фіолетовий градієнт CTA; камера без урахування шторки. BEFORE: `/tmp/mg-map3-before-half-5e0e6d6d.png`, `/tmp/mg-map3-before-segment-5e0e6d6d.png`.
+- **Дефект вимірюванням, не припущенням:** MapLibre `_fitInternal` робить `delete options.padding`, тому `map.getPadding()` після `fitBounds` = 0 і попередній вимір фокуса бачив весь viewport. Adapter тепер зберігає `lastFitPadding` і публікує `data-marshgo-focus-measure` (проєкція реальної геометрії + bbox + insideRatio + minMargin) після кожного `moveend`.
+- **Дефект перекриття:** південний край fit-смуги (y≈519.5) лежав рівно під live-leg chip (469.5–519.5) → `extraBottomInset: 58` при видимому chip; FULL-pill «Показати на карті» переїхав у top padding, бо перекривав fit-смугу.
+- **CTA 44 vs 52:** blanket `.production-app :is(… button.w-full)` (0,2,1) перебивав `.mg-route-cta` (0,1,0) і фактично тримав кнопку на 44px попри `min-height:52px`. Виправлено `button.w-full:not(.mg-route-cta)` + регресійний assert; у браузері тепер `minHeight=52px`.
+- **Браузер (Chromium + MapLibre, живий маршрут площа Ринок → Аквапарк):** 320×568, 375×812, 390×844 dark+light, 430×932, 1280×800; **50/50 записів, 0 fails, 0 console/page errors**; `insideRatio=1` усюди, fit-смуга рівно на 8px вище шторки (390 half: 461.5 vs 527.5; expanded: 164 vs 172), перекриття з header/chip/pill від'ємні, floating callouts 0, overflow 0, 1 inline transfer + 2 walk hints усередині карток. AFTER: `/tmp/mg-map3-after-{half,expanded,segment,stop}-8f712297.png`, JSON `/tmp/mg-map3-after-results.json`.
+- **Гейти:** `npm test` **548/548** (50 suites; +10 у `tests/route-map-sheet-3.test.ts`), `tsc --noEmit` чисто, eslint на змінених файлах чисто, `check-tokens` PASS.
+- **PR:** https://github.com/dima1203oleg/MarshGO-Site/pull/110 — OPEN, head `3d788ba55fba49debf705d20271ec066c49dbb1c`, CI `verify` запущено (pending на момент запису). Мердж — за власником.
+- **Статус:** `NOT_RELEASED`, `production_ready=false`. Наступне: дочекатися CI PR #110; рішення власника про порядок мерджу з `antigravity/ultimate-premium-web-9`; прийняти ТЗ-скоуп на iOS-оболонці окремим кроком.
+
 ## RESUME BLOCK 2026-11-08 15:10 UTC — ТЕСТ ГЕОМЕТРІЇ ПІШОХОДА: OSRM-МАРШРУТИЗАЦІЯ ПРАЦЮЄ (6/6 ТОЧНИХ ЗБІГІВ, 204 ТОЧКИ В UI); ЧАСТИНА НІГ — ОЦІНКА ЧЕРЕЗ БЮДЖЕТ 120 ЗАПИТІВ І ВІДСУТНІЙ КЕШ (Server `dc1eae7`, Site `8650cd8`; код не змінювався)
 
 Канал: Qoder (worktree `330dd3`). Перевірка на 3002 (PID 17428) і прев'ю 4192; 3007 (Codex) не чіпано. Тест запитувався як «протестуй чи працює геометрія пішохода».
