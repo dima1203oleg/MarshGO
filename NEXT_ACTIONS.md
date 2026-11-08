@@ -2,7 +2,7 @@
 
 Канал: Qoder (worktree `330dd3`). 3002 тепер PID 17428, запущений з `DOTENV_CONFIG_PATH=/Users/dima1203/Desktop/MarshGO/.env`; 3007 (Codex) і 4181 не чіпано. Робочий URL: `http://127.0.0.1:4192/` (проксі → 3002).
 
-- Причина: у процесах API `WALKING_ROUTING_URLS` був без лапок навколо ключів (`[{bbox:…,url:…}]` — слід bash `source` замість `dotenv`), `JSON.parse` падав → `walkingRoutingEnabled()=false` → `server/index.ts:3346` пропускав пішохідну маршрутизацію → `saveWalkLeg` писав WALK без `routeGeometry`. У dev валідація `config.ts:84` мовчить (тільки production).
+- Причина: у процесах API `WALKING_ROUTING_URLS` був без лапок навколо ключів (`[{bbox:…,url:…}]` — слід bash `source` замість `dotenv`), `JSON.parse` падав → `walkingRoutingEnabled()=false` → `server/index.ts:3346` пропускав пішохідну маршрутизацію → `saveWalkLeg` писав WALK без `routeGeometry`. У dev валідація `config.ts:87` мовчить (тільки production).
 - Доказ: Львів/Київ WALK-ноги тепер `source=osrm-foot-route` з 2–13 пунктами; Одеса — поза bbox-графами, тому чесно `walking-estimate` + `partialReasons: walking_routing_unavailable`.
 - Наступний крок: перезапустити 3007 (Codex) тим самим способом — робить Codex/власник; для Одеси додати foot-граф і bbox-правило; повторити холодний E2E-пробіг у 4192.
 - Відомий борг (без змін): boot-fallback `index.html` мовчить, якщо модульний запит висить.
