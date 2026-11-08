@@ -1,3 +1,11 @@
+## 2026-11-08 14:35 UTC — ПРЕВ'Ю 4192 ВІДНОВЛЕНО: СПІЛЬНИЙ `.vite/deps` З 4181 ВИДАВАВ `504 Outdated Optimize Dep` (Site `8650cd8`, Server `dc1eae7`, код не змінювався)
+
+1. **Симптом.** Вкладка Codex-браузера на `http://127.0.0.1:4192/` вічно показувала «Відкриваємо MARSHGO…», тоді як `/readyz` і пошук через API — 200.
+2. **Корінь (VERIFIED).** `MarshGO-Site/node_modules` цього worktree — симлінк на `/private/tmp/marshgo-site-main-preview-20261107/node_modules`, тому 4192 і чужий dev-сервер 4181 писали в один `node_modules/.vite/deps`. Після рестарту 4192 о 14:27 (зміна `Desktop/MarshGO/.env`) сервер віддавав граф із `?v=f4f747ab`, а на диску вже лежали чанки іншого `browserHash`; свіжий Chromium отримував `504 (Outdated Optimize Dep)` на `react-dom-D_7Kwk08.js`, модульний граф не завершувався → нескінченний лоадер.
+3. **Фікс (runtime, без змін коду).** 4192 перезапущено з `--force` і власним `cacheDir` через `/tmp/mg-site-4192.vite.config.mjs` (`cacheDir: /tmp/mg-site-4192-vite-cache`); 4181 (PID 68367) не чіпав.
+4. **Доказ.** Холодний Chromium: `booted=true` за 4.4 с, повторно через 20 с — 1.15 с, 0 failed requests, 0 console errors; served `?v=d9cc7bfe`, чанк `react-dom-D_7Kwk08.js` → 200; `/readyz` 200. Site `8650cd8` (0 змін), Server `dc1eae7`.
+5. **Залишок.** Boot-fallback у `index.html` мовчить вічно, якщо модульний запит висить: `error`-слухач не в capture-фазі, а 15-с перевірка не переплановується (відтворено в Playwright). Код не правив.
+
 ## 2026-11-08 12:57 UTC — СЕСІЯ QODER: ПОВНИЙ АУДИТ ФІДІВ І 9/9 МАРШРУТНИХ ПРОБ, 317 ВЕЛОТОЧОК З OSM, САМОКАТ ЧЕСНО PARTIAL (Server `dc1eae7`, Site `8650cd8`, code unchanged)
 
 1. **Що зроблено в dev-БД (не в коді):** засіяно весь `ukraineCatalog`; 13 провайдерів `enabled` — 8 GTFS `healthy` (Львів 72 маршрути/1071 зупинка/15 141 рейс; Київ 190/1767/27 170; Одеса 87/3719/10 400; Буча 4; Малин 9; Стрий 34; Шептицький 7; УЗ 118/167), 2 GTFS-RT `healthy`, Львів-позиції `gtfs_rt` degraded, Zelectra GBFS degraded (742 ТЗ у країні, 9 файлів, `stations:0`), Дніпро iCity JSON degraded. 75 рядків `disabled` з точними причинами (insecure/credentials/licence) — без вигаданих провайдерів.

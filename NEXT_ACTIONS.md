@@ -1,3 +1,12 @@
+## RESUME BLOCK 2026-11-08 14:35 UTC — ПРЕВ'Ю 4192 ПРАЦЮЄ; СПІЛЬНИЙ VITE-КЕШ З 4181 БУВ ПРИЧИНОЮ «Відкриваємо MARSHGO…» (Site `8650cd8`, Server `dc1eae7`)
+
+Канал: Qoder (worktree `330dd3`). Код репозиторіїв не змінювався. 4192 слухає PID 9029 з `--config /tmp/mg-site-4192.vite.config.mjs --force` (приватний `cacheDir`); 4181 (PID 68367) не чіпаний. Робочий URL: `http://127.0.0.1:4192/`.
+
+- Причина: `MarshGO-Site/node_modules` → симлінк на `/private/tmp/marshgo-site-main-preview-20261107/node_modules`; два dev-сервери перезаписували один `.vite/deps` → `504 Outdated Optimize Dep` на `react-dom-D_7Kwk08.js` → модульний граф не завершувався.
+- Доказ: холодний Chromium `booted=true` 4.4 с, повтор через 20 с — 1.15 с, 0 failed requests/console errors; `/readyz` 200.
+- Наступний крок (за рішенням власника): прибрати спільний symlink або задати кожному серверу власний `cacheDir` у `vite.config.ts` — обхід зараз живе лише в `/tmp` і зникне при рестарті без `--config`.
+- Відомий борг: boot-fallback `index.html` не показує повідомлення, якщо модульний запит висить (немає capture-фази для `error` і повторної перевірки після 15 с).
+
 ## RESUME BLOCK 2026-11-08 12:57 UTC — СЕСІЯ QODER: КАТАЛОГ ФІДІВ ДОВЕДЕНИЙ ДО КІНЦЯ, 317 РЕАЛЬНИХ ВЕЛОТОЧОК З OSM, 9/9 МАРШРУТНИХ ПРОБ; 5 КАТЕГОРІЙ VERIFIED, 2 PARTIAL, 5 BLOCKED (Server `dc1eae7`, Site `8650cd8`, root `4caca53` + PR #23)
 
 Канал: Qoder (worktree `330dd3`). Код репозиторіїв **не змінювався** — це стан dev-БД (Postgres 5434 / Redis 6380 / API 3002) і виміри на живому API. Жоден фід не вигаданий: усе, що нижче, має URL з `ukraineCatalog.ts` або `© OpenStreetMap contributors, ODbL 1.0`.
