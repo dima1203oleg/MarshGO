@@ -2,10 +2,12 @@
 // Real user flow against the live CP10 API (:3310, bbox walking config) through the Site dev server proxy.
 import { chromium, devices } from 'playwright';
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 const BASE = 'http://127.0.0.1:3000';
-const OUT = '/tmp/cp9/cp11';
-fs.mkdirSync(OUT, { recursive: true });
+const OUT = fs.mkdtempSync(path.join(os.tmpdir(), 'marshgo-cp11-'));
+fs.chmodSync(OUT, 0o700);
 const log = (...a) => console.log(new Date().toISOString().slice(11, 19), ...a);
 
 const rand = (n) => Array.from({ length: n }, () => 'abcdefghijkmnpqrstuvwxyz23456789'[(Math.random() * 31) | 0]).join('');
