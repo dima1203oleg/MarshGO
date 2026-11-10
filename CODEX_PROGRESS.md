@@ -1,3 +1,18 @@
+## 2026-11-10 18:30 UTC — MASTER 10 ACCEPTANCE-ТЕСТУВАННЯ (Qoder): «продовжуй і протестуй чи всі моменти виконані». Незалежна перевірка коду+CI Codex #129; браузер BLOCKED. Оркестрація `qoder/integration-20261108` → PR #23. `NOT_RELEASED`.
+
+1. **Запит власника:** продовжити й протестувати виконання всіх пунктів MASTER 10. Acceptance на рівні коду + exact-head CI (браузер BLOCKED: RAM 14.2% < 20%, swap 10.27/11.26 GB).
+2. **Фактична реалізація:** Site PR #129 `codex/bottom-sheet-density-20261110` @ `07dbdca` (OPEN, не merge, +2999/−275, 47 файлів) містить усі 5 артефактів §42 + floatingInfo/routePreviewPath/passengerLocation/ActiveJourneyNavigationStore/12 іконок + ~20 тестів. #128 `codex/intelligent-navigation-premium` теж OPEN.
+3. **zrok досі мій** worktree `dbd670b`+15 dirty (:7777 PID 59193), НЕ #129 → приймання через zrok неможливе (§1.4, G13 BLOCKED). Codex matrix це теж фіксує.
+4. **CI exact-head VERIFIED:** run 42837053687 / job 129901949792 / 2026-11-10T14:45:17 UTC → `tests 677 · suites 58 · pass 677 · fail 0`; job `verify` pass (typecheck+lint+test+check-tokens+build+check:bundle+check-single-react+boot-smoke). Витягнуто з фактичного CI-логу, не з заяви.
+5. **Код-перевірка §17:** `floatingInfoLifecycle.ts` enter 350 / visible 4000 / dissolve 750 / dismiss 275 ms — усі в діапазонах ТЗ (250–450 / 4s / 600–900 / 200–350); фази ENTERING/VISIBLE/DISSOLVING/HIDDEN; reduced-motion пропускає enter.
+6. **§21:** `transportModeRegistry.ts` 12/12 унікальних — marshrutka=Minibus, trolleybus=Trolleybus (коментар «two current-collector poles, not bus»), carpool=Carpool, carsharing=Carsharing, transfer=Shuttle (кастомні SVG замість 4 generic). Тест «all twelve … distinct», «marshrutka, tram, trolleybus … own silhouettes». Live было 8/12.
+7. **§6–10:** `routePreviewPath.ts` `cumulativeMeters[]` + `sampleRoutePreviewPath(path, distanceMeters)` + бінарний `segmentAtDistance` + guard «long unexplained jump is not a road» → null (не вигадує дороги). FPS/тривалість NOT_TESTED.
+8. **§4/§5 safety-тести:** «accepts only a fresh, accurate fix», «rejects simulated coordinates, low accuracy, stale», «virtual camera and Scout never write a fake GPS position or route lifecycle state», «HyperFlight is a cancellable preview between confirmed adjacent geometries», «stage … never resurrects a left journey».
+9. **Матриця Codex #129 (прочитана):** G1–G9 PARTIAL (синтетичний fixture :4178, без zrok-приймання, без repo-скриншотів, basemap чорний через браку style assets); G5/G10/G11/G12/G14/G15 NOT_TESTED; G13 BLOCKED.
+10. **§25 чесно:** fixture Codex collapsed 178–186 px = −25.8…−31.1% (виконує §25 для collapsed); мій перерахунок MEDIUM +19.9%, сума детентів −3.0% лишається — §25 цілить саме collapsed.
+11. **Відповідь:** всі пункти НЕ виконані на рівні приймання; реалізовані+unit-перевірені на рівні коду. Жоден критичний gate не закритий повним доказом. `NOT_RELEASED`.
+12. **Артефакт:** `docs/MARSHGO_MASTER_10_ZROK_LIVE_BASELINE.md` §10. Не merge, не deploy, не restart :7777/:3002/DB/Docker, не вводив credentials, не запускав браузер під тиском RAM.
+
 ## 2026-11-10 17:39 UTC — MASTER SPEC 10.0: аудит і виміри ФАКТИЧНОЇ zrok-збірки (Qoder). Оркестрація `qoder/integration-20261108` @ `0aef5e1`, новий артефакт `docs/MARSHGO_MASTER_10_ZROK_LIVE_BASELINE.md`. Статус `NOT_RELEASED`; G1–G14 не закриті.
 
 1. **Запит власника:** «вивчи цей веб інтерфейс: https://marshgo-dima.shares.zrok.io/» + «і приміни до нього це ТЗ» (attachment = MARSHGO ULTIMATE UNIFIED MASTER SPECIFICATION 10.0, 1481 рядок). Застосував ТЗ у межах, які не порушують його ж §0/§2/§43: PHASE 0 (safe audit), PHASE 1 (baseline capture), §25 (вимірювана компактність), §36 CHECKPOINT 1–3, §38 (матриця вимог), §39 (gates).

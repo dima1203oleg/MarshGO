@@ -363,3 +363,88 @@ viewport 428×843, dark; скриншоти — розділ 6.
 Чого **не** робив: не merge, не deploy, не змінював main / :7777 / :3002 / DB /
 Docker / канонічний брудний Site-репо, не вводив credentials, не вигадував GPS,
 ETA, дороги чи провайдерів, не оголошував NOT_TESTED як VERIFIED.
+
+---
+
+## 10. ACCEPTANCE-ТЕСТУВАННЯ: чи всі пункти ТЗ виконані (2026-11-10, за командою власника «продовжуй і протестуй»)
+
+### 10.1 Ресурсний стан і межі прогону
+
+- RAM **14.2 % free** (поріг 20 %), swap **10.27 GB / 11.26 GB**; Docker VM + 5
+  контейнерів (redis×2, db, walk-router×2), Qoder renderer 444 MB.
+- **Браузерний прогін BLOCKED** за resource-guard (не запускав новий браузер,
+  не restart-ив Docker/DB/API). Візуальні / live / device / touch пункти
+  лишаються BLOCKED або NOT_TESTED — це не виправлено.
+- Acceptance виконано на рівні **коду + exact-head CI**, що є реальним
+  виконанням, а не записаною заявою.
+
+### 10.2 Де живе фактична реалізація MASTER 10
+
+| PR | Репо | Гілка | Head | Стан | Роль |
+| --- | --- | --- | --- | --- | --- |
+| #129 | MarshGO-Site | `codex/bottom-sheet-density-20261110` | `07dbdca` | OPEN, не merge | основна реалізація MASTER 10 (+2999/−275, 47 файлів) |
+| #128 | MarshGO-Site | `codex/intelligent-navigation-premium-20261110` | — | OPEN, не merge | route focus evidence-safe |
+| #23 | MarshGO | `qoder/integration-20261108` | `1f6e3fb` | OPEN | цей baseline-звіт (Qoder) |
+
+**Вирішальний факт:** zrok `https://marshgo-dima.shares.zrok.io/` досі віддає
+**мій** Site-worktree `dbd670b` + 15 dirty (гілка
+`qoder/route-geometry-continuation-20261110`, :7777 PID 59193), **НЕ** #129.
+Тому MASTER 10 **не розгорнуто на zrok** — приймання через zrok неможливе
+(§1.4, G13 BLOCKED). Codex у власній матриці #129 це теж фіксує.
+
+### 10.3 Незалежно перевірені гейти (код + CI)
+
+**CI exact-head #129 `07dbdca`** (run 42837053687, job 129901949792,
+2026-11-10T14:45:17 UTC): `tests 677 · suites 58 · pass 677 · fail 0`;
+job `verify` = **pass** (typecheck + lint + test + check-tokens + build +
+check:bundle + check-single-react + boot-smoke). Другий run 42837070272 теж pass.
+Це **VERIFIED** через фактичний CI-лог, не через заяву в доку.
+
+| § ТЗ | Вимога | Доказ у коді #129 @ `07dbdca` | Статус |
+| --- | --- | --- | --- |
+| §4 | «Розпочати» = реальний GPS, без вигадок | `journey-navigation-gps.test.ts`: «accepts only a fresh, accurate fix», «rejects simulated coordinates, low accuracy, stale», «virtual camera and Scout never write a fake GPS position or route lifecycle state» | код+тест VERIFIED; live GPS NOT_TESTED |
+| §5 | «Далі» = preview, не змінює progress | «HyperFlight is a cancellable preview between confirmed adjacent route geometries»; persistence: «stage follows the passenger and never resurrects a left journey» | код+тест VERIFIED; live NOT_TESTED |
+| §6–10 | HyperFlight за cumulative distance, не point index | `routePreviewPath.ts`: `cumulativeMeters[]`, `sampleRoutePreviewPath(path, distanceMeters)`, бінарний `segmentAtDistance`, guard «long unexplained jump is not a road» → null | код VERIFIED; FPS/тривалість NOT_TESTED |
+| §17 | Smoke Dissolve 250–450 / 4 s / 600–900 / 200–350 ms | `floatingInfoLifecycle.ts`: enter **350**, visible **4000**, dissolve **750**, dismiss **275**; фази ENTERING/VISIBLE/DISSOLVING/HIDDEN; reduced-motion пропускає enter | код+тест VERIFIED (усі в діапазоні); browser timing PARTIAL |
+| §21 | 12 унікальних силуетів, маршрутка ≠ трамвай | `transportModeRegistry.ts`: marshrutka=**Minibus**, trolleybus=**Trolleybus** («two current-collector poles», не bus), carpool=**Carpool**, carsharing=**Carsharing**, transfer=**Shuttle** — усі кастомні SVG; тест «all twelve … distinct», «marshrutka, tram, trolleybus … own silhouettes» | код+тест VERIFIED **12/12** (live было 8/12); B/W матриця 16–32 px PARTIAL |
+| §3 | 4 режими камери роздільні | «keeps GPS-follow, stage preview, and full overview as separate camera actions» | код+тест VERIFIED; live переходи NOT_TESTED |
+| §25 | губа −25…35 % collapsed | fixture Codex: 320×568 240→178 (−25.8 %), 390×844 245→178 (−27.3 %), 430×932 270→186 (−31.1 %) | PARTIAL (синтетичний fixture, не zrok); мій перерахунок: MEDIUM +19.9 %, сума детентів −3.0 % |
+
+### 10.4 Матриця Codex #129 (незалежно прочитана) — чесні статуси
+
+`docs/MARSHGO_MASTER_10_REQUIREMENTS_MATRIX.md` @ `07dbdca`:
+- **G1–G9 = PARTIAL** — лише локальний синтетичний fixture `:4178`, без
+  zrok-приймання, без repository-скриншотів, basemap чорний (бракує style assets).
+- **G5** (real GPS Start), **G10** (vehicles/ETA/onboard), **G11** (touch
+  gestures), **G12** (FPS/memory), **G14** (auth end-to-end), **G15** (six-repo
+  release manifest) = **NOT_TESTED**.
+- **G13** (zrok identity) = **BLOCKED** — zrok = чужий Qoder-worktree.
+
+### 10.5 Відповідь на питання власника: чи ВСІ пункти виконані?
+
+**НІ на рівні приймання; ТАК на рівні коду + unit-тестів для реалізованої частини.**
+
+1. **Реалізовано й unit-перевірено** (677/677 CI exact-head): §4 GPS-чесність,
+   §5 preview≠progress, §6–10 HyperFlight path sampler, §17 Smoke Dissolve
+   тайминги, §21 12/12 іконок, §3 роздільні режими камери, компактна губа.
+2. **НЕ прийнято через zrok** — #129 не розгорнуто; zrok віддає мій старий
+   worktree (G13 BLOCKED). Жоден візуальний gate не закритий живим доказом.
+3. **NOT_TESTED:** реальний GPS (§4 live), vehicles/ETA/USER_ONBOARD (§18–20),
+   touch-жести на пристрої (§29), FPS/memory (§33), auth end-to-end (§35),
+   six-repo release manifest.
+4. **PARTIAL:** усі візуальні гейти — синтетичний fixture, не live-провайдер,
+   без repository-скриншотів, basemap чорний.
+
+**Жоден критичний gate не закритий повним доказом. `NOT_RELEASED`.**
+Розрив між «код написано + 677 тестів зелено» і «прийнято на живому zrok +
+пристрій + auth» — це і є залишок MASTER 10, який не можна оголосити виконаним.
+
+### 10.6 Що потрібно для закриття (блокери)
+
+- **B1** — розгорнути #129 на приймальній збірці (окремий preview або дозвіл
+  перенаправити :7777); зараз zrok = мій dirty worktree, не кандидат.
+- **B2** — авторизована сесія для GPS / пошуку / vehicles / auth end-to-end.
+- **B3** — merge #129/#128 або явне доручення Qoder rebase мого атома
+  (15 файлів, унікальне `isWalk`).
+- **B4** — RAM ≥ 20 % для браузерного / device прогону (зараз 14.2 %, swap 10 GB).
+- **B5** — §23.3 (зупинки 28–38 px) vs 44 px touch-floor (#129 кодує `min-h-11`).

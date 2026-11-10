@@ -1,3 +1,13 @@
+## RESUME BLOCK 2026-11-10 18:30 UTC — MASTER 10 ACCEPTANCE: «продовжуй і протестуй чи всі моменти виконані». Незалежно перевірено код+CI Codex #129; браузер BLOCKED (RAM 14.2%). Оркестрація `qoder/integration-20261108` → PR #23. Статус `NOT_RELEASED`; жоден gate не закритий повним доказом.
+
+- **Відповідь власнику:** всі пункти **НЕ виконані на рівні приймання**; реалізовані й unit-перевірені на рівні коду. Розрив = «677 тестів зелено» ≠ «прийнято на живому zrok + пристрій + auth».
+- **Де MASTER 10:** Site PR **#129** `codex/bottom-sheet-density-20261110` @ `07dbdca` (OPEN, не merge, +2999/−275, 47 файлів, усі 5 артефактів §42) + **#128** `codex/intelligent-navigation-premium`. zrok досі віддає **мій** worktree `dbd670b`+15 dirty (:7777 PID 59193), **НЕ #129** → G13 BLOCKED.
+- **CI exact-head #129 `07dbdca`** (run 42837053687, job 129901949792, 14:45:17 UTC): **tests 677 · suites 58 · pass 677 · fail 0**; `verify` pass (typecheck+lint+test+build+boot-smoke). VERIFIED через фактичний CI-лог.
+- **Код-перевірка §:** §17 тайминги 350/4000/750/275 ms (усі в діапазоні); §21 **12/12** унікальних іконок (Minibus/Trolleybus/Carpool/Carsharing/Shuttle кастомні SVG); §6–10 `routePreviewPath.ts` cumulative-distance sampler + gap-guard; §4/§5 safety-тести (GPS чесність, preview≠progress, «Scout never write fake GPS»).
+- **Матриця Codex #129 (прочитана):** G1–G9 PARTIAL (синтетичний fixture :4178, без zrok, basemap чорний); G5/G10/G11/G12/G14/G15 NOT_TESTED; G13 BLOCKED.
+- **Браузер BLOCKED:** RAM 14.2% (<20%), swap 10.27/11.26 GB, Docker VM+5 контейнерів. Не запускав браузер, не restart-ив нічого.
+- **Артефакт:** `docs/MARSHGO_MASTER_10_ZROK_LIVE_BASELINE.md` §10 (acceptance-результати). Блокери B1–B5. Рішення власника: B1 (розгорнути #129 на приймальній збірці), B2 (auth-сесія), B3 (merge #129/#128 або rebase мого атома), B4 (RAM≥20%), B5 (28–38px vs 44px).
+
 ## RESUME BLOCK 2026-11-10 17:39 UTC — MASTER SPEC 10.0 застосовано до ФАКТИЧНОЇ zrok-збірки: аудит + виміри, без конкурентного PR. Оркестрація `qoder/integration-20261108` @ `0aef5e1` + новий `docs/MARSHGO_MASTER_10_ZROK_LIVE_BASELINE.md`. Статус `NOT_RELEASED`; жоден gate G1–G14 не закритий.
 
 - **Головний факт (§1.4):** `https://marshgo-dima.shares.zrok.io/` → zrok PID 33510 → `127.0.0.1:7777` PID 59193 = vite у worktree `/Users/dima1203/.qoder/worktrees/app/330dd3/MarshGO-Site`, гілка `qoder/route-geometry-continuation-20261110`, HEAD `dbd670b` + **15 незакомічених файлів**. Це НЕ `main` (`895f51e`) і НЕ гілки Codex #128/#129. Тому zrok **не придатний для приймання MASTER 10** (§1.4 пряма заборона). Процес :7777 і тунель не чіпав.
