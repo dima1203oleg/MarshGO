@@ -1,3 +1,13 @@
+## RESUME BLOCK 2026-11-10 19:40 UTC — MASTER PROMPT 10.0 ІМПЛЕМЕНТАЦІЙНИЙ мандат: reconciliation. Імплементація ЗАБЛОКОВАНА обмеженнями самого власника (§0 executor, §2.1 no-duplicate, §1.4 zrok≠кандидат, RAM<20%). Свіжий аудит підтвердив: #129/#128 досі OPEN unmerged, zrok = мій dirty dbd670b. PR #23. `NOT_RELEASED`.
+
+- **Запит:** «реалізуй усі вимоги Master-ТЗ 10.0… Не залучай сторонніх кодерів… Не оголошуй завершення без перевірки, не чіпай чужі процеси.» Цикл AUDIT→IMPLEMENT→OPEN ZROK→VISUAL TEST→FIX→RETEST→VERIFY.
+- **Свіжі факти:** #129 @ `07dbdca` OPEN MERGEABLE unmerged; #128 @ `1c2811e` OPEN MERGEABLE unmerged; `main`=`895f51e` (без HyperFlight-інфри). zrok PID 33510 → :7777 PID 59193 = vite cwd **мій** worktree `dbd670b`+15 dirty (НЕ кандидат). RAM free+inactive+spec ≈1.18 GB ≈**14.8%** (<20%), swap 10.53/11.26 GB (93%) → браузер BLOCKED.
+- **Конфлікт мандату з обмеженнями власника:** (1) §2.1 забороняє дублювати #129 (Codex, 677/677); (2) §0 називає Codex єдиним виконавцем — пряма вказівка мені «реалізуй» конфліктує (B3); (3) §1.4 + «не оголошуй завершення без перевірки» — zrok visual loop BLOCKED (zrok≠кандидат, repoint :7777 заборонено без дозволу, RAM<20%).
+- **Єдина не-дублююча смуга:** §20 USER_ONBOARD (0 коду), §6.4 11-станна HyperFlight, §18.1 8-станна vehicle — усі всередині архітектури #129, якої немає в main. Реалізація на main=orphan; на базі #129=stacked PR на активний Codex-PR. Потребує B3.
+- **Розблоковує (дії власника):** B3 merge #129+#128→main або доручення розширити #129; B1 окремий preview кандидата + авторизований zrok або дозвіл repoint :7777; B4 RAM≥20%; B2 auth-сесія; B5 28–38px vs 44px.
+- **НЕ робив:** конкурентний/stacked Site PR, restart :7777/zrok/Docker, repoint порту, credentials, VISUAL VERIFIED, merge/deploy. 15 dirty збережено.
+- **Артефакт:** `docs/MARSHGO_MASTER_10_ZROK_LIVE_BASELINE.md` §12. Task #34 (BLOCKED).
+
 ## RESUME BLOCK 2026-11-10 19:05 UTC — MASTER 10: ДЕТАЛЬНА перевірка кожної вимоги ТЗ (§0–§44) проти коду #129. Знайдено підтверджені прогалини. PR #23. `NOT_RELEASED`.
 
 - **Запит:** «перевір кожну деталь згідно ТЗ». Прогін по 1481 рядку спеки, звірено з кодом Codex #129 @ `07dbdca` (gh api + gh pr diff 4604 рядки). Браузер BLOCKED (RAM 14.2%).
