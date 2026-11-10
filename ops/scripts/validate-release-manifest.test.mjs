@@ -292,6 +292,15 @@ describe('release manifest validator — malformed pins and SHAs', () => {
     );
   });
 
+  it('rejects correction objects for all six top-level release pins', () => {
+    for (const pin of REQUIRED_PINS) {
+      const manifest = validManifest({ [pin]: { was: 'previous', now_full: PINS[pin] } });
+      const result = validateReleaseManifest(manifest);
+      expectProblem(result, pin, 'invalid_type');
+      assert.equal(at(result, pin).length, 1, `${pin} should report one type error`);
+    }
+  });
+
   it('reports each release-pin violation exactly once', () => {
     const result = validateReleaseManifest(validManifest({ server_sha: '44f954b' }));
     assert.equal(at(result, 'server_sha').length, 1);

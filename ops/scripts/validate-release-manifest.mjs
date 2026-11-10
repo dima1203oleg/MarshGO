@@ -162,6 +162,12 @@ function checkShaField(key, value, path, manifest, problems) {
   }
 
   if (isRecord(value)) {
+    // The six canonical pins must always be literal commit IDs. Only nested
+    // evidence fields may use the historical { now_full } correction shape.
+    if (REQUIRED_PINS.includes(key) && path === key) {
+      problems.push({ path, code: 'invalid_type', message: `${rule.label} must be a string, got an object` });
+      return;
+    }
     if (rule.pattern !== COMMIT_SHA) {
       problems.push({ path, code: 'invalid_type', message: `${rule.label} must be a string, got an object` });
       return;
