@@ -125,11 +125,12 @@ function checkUrl(value, path, problems, { allowProse, key }) {
 }
 
 /**
- * A pin-correction record keeps the abbreviated `was`/`now` it replaced, so only
- * `now_full` claims exactness. When it corrects a release pin it must still agree
- * with the pin the release is actually built from.
+ * A pin-correction record is historical evidence: `now_full` must be an exact
+ * commit, but it need not equal today's release pin. The top-level required pin
+ * is the source of truth for the current candidate; dated correction ledgers
+ * must remain valid when a later release advances that pin.
  */
-function checkCorrectionRecord(key, value, path, manifest, problems) {
+function checkCorrectionRecord(value, path, problems) {
   if (!('now_full' in value)) {
     problems.push({ path, code: 'invalid_sha', message: 'pin correction must record an exact now_full commit SHA' });
     return;
@@ -142,13 +143,6 @@ function checkCorrectionRecord(key, value, path, manifest, problems) {
       message: `pin correction must name an exact 40-character lowercase commit SHA, got ${JSON.stringify(exact)}`,
     });
     return;
-  }
-  if (REQUIRED_PINS.includes(key) && manifest[key] !== exact) {
-    problems.push({
-      path: `${path}.now_full`,
-      code: 'pin_mismatch',
-      message: `corrected pin ${exact} disagrees with release pin ${key}=${JSON.stringify(manifest[key])}`,
-    });
   }
 }
 
@@ -172,7 +166,7 @@ function checkShaField(key, value, path, manifest, problems) {
       problems.push({ path, code: 'invalid_type', message: `${rule.label} must be a string, got an object` });
       return;
     }
-    checkCorrectionRecord(key, value, path, manifest, problems);
+    checkCorrectionRecord(value, path, problems);
     return;
   }
 

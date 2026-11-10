@@ -273,17 +273,18 @@ describe('release manifest validator — malformed pins and SHAs', () => {
     );
   });
 
-  it('rejects a pin correction whose now_full is abbreviated or stale', () => {
+  it('rejects an abbreviated correction SHA but preserves an exact historical pin after the current pin advances', () => {
     expectProblem(
       validateReleaseManifest(validManifest({ gate: { pins_corrected: { server_sha: { was: 'fc5b589', now_full: '44f954b3ce60' } } } })),
       'gate.pins_corrected.server_sha.now_full',
       'invalid_sha',
     );
-    expectProblem(
-      validateReleaseManifest(validManifest({ gate: { pins_corrected: { server_sha: { was: 'fc5b589', now_full: OTHER_SHA } } } })),
-      'gate.pins_corrected.server_sha.now_full',
-      'pin_mismatch',
-    );
+    const historical = validateReleaseManifest(validManifest({
+      gate02_materialized_release_2026_11_01: {
+        pins_corrected: { server_sha: { was: 'fc5b589ca395', now_full: OTHER_SHA } },
+      },
+    }));
+    assert.equal(historical.ok, true, formatDiagnostics(historical).join('\n'));
     expectProblem(
       validateReleaseManifest(validManifest({ gate: { pins_corrected: { server_sha: { was: 'fc5b589' } } } })),
       'gate.pins_corrected.server_sha',
@@ -399,7 +400,7 @@ describe('release manifest validator — status contradictions', () => {
     expectProblem(validateReleaseManifest(manifest), 'verification.production_deployment', 'missing_evidence');
   });
 
-  it('rejects a false-green release with NOT_TESTED staging and a denial in deployment evidence', () => {
+  it('rejects a production claim with NOT_TESTED staging even when deployment evidence is affirmative', () => {
     const manifest = releasedManifest({
       staging: {
         url: 'https://staging.example',
@@ -408,7 +409,7 @@ describe('release manifest validator — status contradictions', () => {
         staging_ready: true,
       },
       verification: {
-        production_deployment: 'We have NOT deployed this release.',
+        production_deployment: 'PASS: exact Site SHA is serving traffic.',
         staging: 'NOT_TESTED',
       },
     });
@@ -417,7 +418,8 @@ describe('release manifest validator — status contradictions', () => {
     assert.equal(result.ok, false);
     expectProblem(result, 'staging.status', 'missing_evidence');
     expectProblem(result, 'verification.staging', 'missing_evidence');
-    expectProblem(result, 'verification.production_deployment', 'missing_evidence');
+    assert.equal(at(result, 'verification.production_deployment').length, 0,
+      'the independently affirmative deployment statement is not the reason staging evidence fails');
   });
 
   it('accepts explicit affirmative staging and deployment evidence prefixes', () => {
