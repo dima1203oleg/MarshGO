@@ -1,3 +1,17 @@
+## 2026-11-10 19:05 UTC — MASTER 10: ДЕТАЛЬНА перевірка кожної деталі ТЗ проти коду #129 (Qoder). Прогін по §0–§44 (1481 рядок), знайдено підтверджені прогалини. PR #23. `NOT_RELEASED`.
+
+1. **Запит власника:** «перевір кожну деталь згідно ТЗ». Звірено кожну конкретну вимогу з фактичним кодом Codex #129 @ `07dbdca` через `gh api contents?ref` + `gh pr diff 129` (4604 рядки). Браузер BLOCKED (RAM 14.2%, swap 10GB) — code+test+CI рівень.
+2. **VERIFIED (точні константи в коді):** §4 `passengerLocation.ts:10` source==='gps' + 5 error codes; §5 кнопки `JourneyActiveNavigation.tsx:699,712,877,882`; §6.2 zoom 16.6/pitch min52/lookAhead 90-280 (`MapLibreAdapter.ts:1028,1033,1043`); §6.3 Scout 30px trail+halo+core (`index.css:1699`); §8 `max(450,min(2800,…))` (:999); §9 shortest-angle `((Δ+540)%360)-180` (:1081); §10 cumulativeMeters sampler; §13 TransitZone A/B/C exact names (`transportVisualZones.ts:7,12-14`); §16 title+distance+boarding/alighting/transfer + placement overlapArea; §17 350/4000/750/275; §18.5/19 LIVE_POSITION_MAX_AGE_MS=90_000; §21 12/12 custom SVG; §29 gesture config + manual>follow; §33 single new Map + setData reuse + rAF/cancel + 0 particles.
+3. **NOT_IMPLEMENTED §20 USER_ONBOARD:** `grep -ci onboard` по всьому diff = 2, обидва в ДОКАХ Codex (M10-G10 NOT_TESTED), **0 рядків коду**. Пасажир-у-транспорті інтелект відсутній.
+4. **PARTIAL §6.4:** 0 збігів PREPARING/IGNITING/ACCELERATING/CRUISING/CORNERING/DECELERATING/DOCKING/ARRIVAL_REVEAL у всьому diff — continuous rAF flight + isPreviewFlying boolean замість 11-станної машини.
+5. **PARTIAL §18.1:** 0 збігів APPROACHING_FAR/NEAR/AT_BOARDING/PASSED_BOARDING — модель L0–L4 + reason codes (`transportVisualZones.ts:23-25,38`) замість 8 іменованих станів.
+6. **PARTIAL §3.1:** `cameraFocusMode='gps'|'preview'|'overview'|'free'` (:121) — 4 режими є, але не канонічні імена ROUTE_DETAILS/ACTIVE_NAVIGATION/STAGE_PREVIEW/FULL_ROUTE_OVERVIEW.
+7. **PARTIAL §12.3:** `routeGeometryTokens.ts:21` core normal [3.5,6,9,10.5] по z5/12/15/17 — overview/details ✓, active 9 / navigation 10.5 вищі за орієнтири 6–8/7–9.
+8. **PARTIAL §19:** priority L3/L4 + «verified top approaches» є, явного cap slice(0,3) для vehicles не знайдено.
+9. **PARTIAL §23.3/§25/§32:** stop row 44px vs 28–38 (B5); compactness лише collapsed −25.8…31.1%, MEDIUM +19.9%; повна 13-токенна таблиця не вся явна.
+10. **Артефакт:** `docs/MARSHGO_MASTER_10_ZROK_LIVE_BASELINE.md` §11 — 3 таблиці (VERIFIED 18 рядків / PARTIAL 9 / NOT_IMPLEMENTED 7), 40 рядків загалом, доказ файл:рядок @ 07dbdca. Таблиці валідні (pipes=5).
+11. **Висновок:** «кожна деталь згідно ТЗ» НЕ виконана. Ядро є з точними константами, але §20/§6.4/§18.1/§3.1/§12.3/§19/§23.3 мають доведені відхилення/прогалини. Live/browser/device BLOCKED/NOT_TESTED. Не merge/deploy/restart, не вводив credentials, не оголошував NOT_TESTED як VERIFIED.
+
 ## 2026-11-10 18:30 UTC — MASTER 10 ACCEPTANCE-ТЕСТУВАННЯ (Qoder): «продовжуй і протестуй чи всі моменти виконані». Незалежна перевірка коду+CI Codex #129; браузер BLOCKED. Оркестрація `qoder/integration-20261108` → PR #23. `NOT_RELEASED`.
 
 1. **Запит власника:** продовжити й протестувати виконання всіх пунктів MASTER 10. Acceptance на рівні коду + exact-head CI (браузер BLOCKED: RAM 14.2% < 20%, swap 10.27/11.26 GB).

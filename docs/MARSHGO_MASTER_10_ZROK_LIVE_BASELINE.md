@@ -448,3 +448,88 @@ check:bundle + check-single-react + boot-smoke). Другий run 42837070272 т
   (15 файлів, унікальне `isWalk`).
 - **B4** — RAM ≥ 20 % для браузерного / device прогону (зараз 14.2 %, swap 10 GB).
 - **B5** — §23.3 (зупинки 28–38 px) vs 44 px touch-floor (#129 кодує `min-h-11`).
+
+---
+
+## 11. ДЕТАЛЬНА ПЕРЕВІРКА КОЖНОЇ ВИМОГИ ТЗ (за командою «перевір кожну деталь згідно ТЗ»)
+
+Прогін по повному тексту MASTER SPEC 10.0 (1481 рядок, §0–§44). Кожна
+конкретна деталь звірена з **фактичним кодом Codex #129 @ `07dbdca`**
+(через `gh api contents?ref=07dbdcabc` + `gh pr diff 129`, 4604 рядки).
+Браузер BLOCKED (RAM 14.2 %), тому це code+test+CI рівень; live/device
+приймання лишається BLOCKED/NOT_TESTED. Нижче — лише те, що реально
+підтверджено або спростовано читанням коду, без вигадок.
+
+### 11.1 VERIFIED — точні константи/символи в коді #129
+
+| § | Деталь ТЗ | Доказ (файл:рядок @ `07dbdca`) | Статус |
+| --- | --- | --- | --- |
+| §4 | GPS лише свіжий `source==='gps'`, не replay/guessed | `passengerLocation.ts:10` + коди PERMISSION_DENIED/LOW_ACCURACY/STALE/INVALID_FIX/TELEPORT_DETECTED (:6), людські retry-повідомлення (:16-19) | VERIFIED код; live NOT_TESTED |
+| §5 | Кнопки Розпочати/Далі/Назад/До навігації/Весь маршрут | `JourneyActiveNavigation.tsx:699,712,877,882`; «Назад» disabled at legIndex 0 | VERIFIED |
+| §5.2 | «Далі» не змінює GPS/progress/посадку/ETA | тест «HyperFlight is a cancellable preview…», «Scout never write a fake GPS position or route lifecycle state» | VERIFIED тест |
+| §6.2 | Близька 3D: zoom 15–17, pitch 45–60, adaptive look-ahead | `MapLibreAdapter.ts:1028` zoom 16.6 (short), :1033 pitch `min(52,…)`, :1043 lookAhead `max(90,min(280, remaining*0.12))` | VERIFIED код |
+| §6.3 | HyperLight Scout: blue core, glow, trail, не GPS | `MapLibreAdapter.ts:1019-1025` + `index.css:1699-1700` (30 px, drop-shadow blue 62 %, trail+halo+core), dissolve+remove (:1052-1056) | VERIFIED |
+| §8 | Adaptive duration 450–2800 мс | `MapLibreAdapter.ts:999` `Math.max(450, Math.min(2_800, durationMs))` — точний діапазон | VERIFIED |
+| §9.4 | Найкоротший кут, без 270–360° | `MapLibreAdapter.ts:1081` `((Δ+540)%360)-180`, exponential bearingEase (:1076) | VERIFIED |
+| §10 | Path-following за cumulative distance, не index | `routePreviewPath.ts` `cumulativeMeters[]`, `sampleRoutePreviewPath(path, distanceMeters)`, gap-guard → null | VERIFIED |
+| §13 | A/B/C = beforeBoarding/passengerSegment/afterAlighting | `transportVisualZones.ts:7,12-14,58-62` — точні імена ТЗ | VERIFIED |
+| §16.1-4 | Табло: вид+номер, час, відстань, посадка/висадка/пересадка | `floatingMapInfo.ts:26` title=baseLabel+routeName, distance/duration formatted, kinds boarding/alighting/transfer (:45,60) | VERIFIED |
+| §16.6 | Placement уникає controls/sheet/edges | `floatingInfoPlacement.ts:22,39,42` overlapArea cost, 4 anchors, «avoids map controls, sheet and viewport edges» | VERIFIED |
+| §17 | Smoke Dissolve 250–450/4 s/600–900/200–350 | `floatingInfoLifecycle.ts:4-7` enter 350 / visible 4000 / dissolve 750 / dismiss 275; 4 фази; reduced-motion | VERIFIED (усі в діапазоні) |
+| §18.5/19 | Freshness 90 s, не scheduled як LIVE | `transportQuality.ts:9` `LIVE_POSITION_MAX_AGE_MS=90_000`, status LIVE/SCHEDULED/ESTIMATED/STALE/UNKNOWN (:14), «forbids live without proof» (:5) | VERIFIED |
+| §21 | 12 унікальних силуетів, маршрутка≠трамвай | `transportModeRegistry.ts:103-114` Minibus/Trolleybus/Carpool/Carsharing/Shuttle кастомні; тест «all twelve … distinct» | VERIFIED 12/12 |
+| §29 | Pan/pinch/rotate/pitch, manual > follow | `MapLibreAdapter.ts:299` dragPan/touchZoomRotate/pitchWithRotate/dragRotate/touchPitch; :361 «only user's own gestures leave follow mode» | VERIFIED код; device NOT_TESTED |
+| §33 | Без remount per-segment, без particles, rAF cleanup | `MapLibreAdapter.ts:299` єдиний `new Map`; setData reuse (:936,1161); rAF+cancelAnimationFrame (:1049,1122,1130); particle=0 | VERIFIED код; FPS NOT_TESTED |
+| §16.5 | Glass: напівпрозорий graphite, blur, blue акцент | `index.css:72,188` surface-glass rgba; :94,133 route-floating; backdrop-blur; scout glow | VERIFIED |
+| §32 | Button press 100–160, active segment 160–260, camera 350–900 | `index.css:1400` tap 120, :1402 base 260; `cameraMotion.ts:35` FOCUS 700 | VERIFIED (базові) |
+
+### 11.2 PARTIAL / DEVIATION — реалізовано інакше або не повністю
+
+| § | Деталь ТЗ | Фактичний стан у #129 | Статус |
+| --- | --- | --- | --- |
+| §3.1 | 4 режими ROUTE_DETAILS/ACTIVE_NAVIGATION/STAGE_PREVIEW/FULL_ROUTE_OVERVIEW | `cameraFocusMode='gps'\|'preview'\|'overview'\|'free'` (`JourneyActiveNavigation.tsx:121`) — 4 режими є, але **не імена ТЗ**; ROUTE_DETAILS = окремий екран | PARTIAL |
+| §3.2 | 9 незалежних станів (navigationSession, actualJourneyProgress, cameraMode, previewStageIndex, selectedStage, sheetDetent, vehicleState, floatingInfoState, hyperflightState) | cameraFocusMode/legIndex/sheetDetent/floatingInfoPhase є; **hyperflightState і vehicleState як іменовані enum — відсутні** | PARTIAL |
+| §6.4 | 11 станів HyperFlight (IDLE…CANCELLED) через єдиний controller | **0 збігів** PREPARING/IGNITING/ACCELERATING/CRUISING/CORNERING/DECELERATING/DOCKING/ARRIVAL_REVEAL у всьому diff; continuous rAF flight + `isPreviewFlying` boolean замість state-machine | PARTIAL (немає іменованої машини) |
+| §12.3 | Товщина: overview 3–4, details 5–6, active 6–8, navigation 7–9 px | `routeGeometryTokens.ts:21` core normal `[3.5,6,9,10.5]` по z5/z12/z15/z17: overview 3.5 ✓, details 6 ✓, **active 9 і navigation 10.5 — вищі за орієнтири** | PARTIAL (zoom-adaptive, але focus перевищує) |
+| §18.1 | 8 станів vehicle (BACKGROUND…USER_ONBOARD…STALE) | **0 збігів** APPROACHING_FAR/NEAR/AT_BOARDING/PASSED_BOARDING; натомість модель L0–L4 + reason (`transportVisualZones.ts:23-25,38`) | PARTIAL (інша модель) |
+| §19 | Максимум 3 ТЗ з ETA | priority L3/L4 + «verified top approaches» є; **явного cap `slice(0,3)` для vehicles не знайдено** | PARTIAL |
+| §23.3 | Stop row 28–38 px, segment chip 32–40, transit card 56–72, CTA 44–50 | `JourneyLegStops.tsx` min-h-11 (44 px interactive) / min-h-7 (28 px static); **44 px конфліктує з 28–38** (B5); інше в Tailwind | PARTIAL + конфлікт цілей |
+| §25 | −25…35 % сумарної висоти контенту | fixture collapsed −25.8…−31.1 % ✓; але **MEDIUM +19.9 %, сума детентів −3.0 %, scrollHeight 1260 без змін** | PARTIAL |
+| §32 | Повна таблиця 13 токенів (Stop Halo 350–700, Route Pulse 400–900, Stage transition 450–950, Route Reveal 300–1100, Sheet Morph 220–400…) | базові tap/base/fast/slow + camera 700 + floating 350/4000/750/275 є; **спеціалізовані route-pulse/stop-halo/stage-transition/route-reveal/sheet-morph не всі явні як токени** | PARTIAL |
+
+### 11.3 NOT_IMPLEMENTED / NOT_TESTED — чесні прогалини
+
+| § | Деталь ТЗ | Доказ | Статус |
+| --- | --- | --- | --- |
+| §20 | USER_ONBOARD intelligence (підтверджений пасажир у ТЗ → найвиразніший, наступна зупинка, відстань до висадки) | **0 рядків коду** у всьому diff #129; 2 збіги «onboard» — лише в доках Codex як `M10-G10 … NOT_TESTED` | **NOT_IMPLEMENTED** |
+| §18.4 | PASSED_BOARDING плавне згасання (не за одним GPS-стрибком) | reason `stale_position`/`other_route` є, але **PASSED_BOARDING як окремий стан відсутній** | NOT_IMPLEMENTED |
+| §33.1 | FPS, long frames, input responsiveness, camera settling, CPU, пам'ять, memory growth | жодних вимірів; браузер BLOCKED | NOT_TESTED |
+| §4 live | Реальна GPS-сесія «Розпочати» на пристрої | код-логіка є, live-сесії не було (немає дозволу/пристрою) | NOT_TESTED |
+| §28 | 12 категорій + 3 стратегії сортування (Оптимальний/Найшвидший/Найдешевший) | **не в diff #129** — pre-existing base-код, окрема перевірка потрібна | NOT_VERIFIED цим прогоном |
+| §36 CP1-10 | zrok-чекпоінти після кожного етапу | zrok = чужий worktree (G13 BLOCKED), браузер RAM BLOCKED | BLOCKED |
+| §38/§42 | Скриншоти/відео кожного пункту, repository evidence | Codex matrix: «no repository screenshot file yet», basemap чорний | BLOCKED / NOT_TESTED |
+
+### 11.4 Підсумок детальної перевірки
+
+- **Ядро реалізовано добре:** GPS-чесність (§4), preview≠progress (§5),
+  близька камера + Scout (§6.2/6.3), duration 450–2800 (§8), curve
+  shortest-angle (§9), cumulative-distance (§10), A/B/C (§13), floating
+  контент+placement (§16), Smoke Dissolve тайминги (§17), freshness 90 s
+  (§18.5/19), 12/12 іконок (§21), gesture config (§29), performance bans
+  (§33) — **VERIFIED у коді з точними константами**.
+- **Але конкретні деталі ТЗ НЕ виконані буквально:**
+  1. **§20 USER_ONBOARD — повністю відсутній у коді** (лише NOT_TESTED у доках).
+  2. **§6.4 — немає 11-станної машини HyperFlight** (continuous flight замість).
+  3. **§18.1 — немає 8-станної машини vehicle** (L0–L4 замість).
+  4. **§3.1 — режими названі gps/preview/overview/free, не канонічними іменами ТЗ.**
+  5. **§12.3 — товщина на focus-zoom перевищує орієнтири** (core 9/10.5 vs 6–8/7–9).
+  6. **§23.3 — stop row 44 px конфліктує з 28–38 px** (свідомий a11y-floor, B5).
+  7. **§19 — явний cap «рівно 3 ТЗ» не підтверджений.**
+- **Усе live/browser/device приймання — BLOCKED/NOT_TESTED** (RAM 14.2 %,
+  zrok ≠ кандидат, немає auth-сесії).
+
+**Висновок: «кожна деталь згідно ТЗ» — НЕ виконана.** Код #129 покриває
+більшість ядра з точними константами, але §20 (USER_ONBOARD), §6.4 (11 станів),
+§18.1 (8 станів), §3.1 (імена режимів), §12.3 (ширини), §23.3 (stop row)
+мають підтверджені відхилення або прогалини. Жоден критичний gate не закритий
+живим доказом. `NOT_RELEASED`. Це чесний результат читання коду, не здогад.
