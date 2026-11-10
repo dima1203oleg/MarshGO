@@ -1,0 +1,365 @@
+# MARSHGO MASTER 10.0 — базлайн ФАКТИЧНОЇ zrok-збірки
+
+Статус: **аудит + виміри (PHASE 0 / PHASE 1 / §25 / §36 CHECKPOINT 1–3)**.
+Це не acceptance нового коду. Це доказовий зріз того інтерфейсу, який власник
+фактично відкриває через zrok, зіставлений із MASTER SPEC 10.0.
+
+Дата: 2026-11-10. Виконавець аудиту: Qoder (головний інтегратор).
+Продукт залишається `NOT_RELEASED`; жоден gate нижче не оголошений готовим без доказу.
+
+---
+
+## 0. Ідентичність zrok-збірки (§1.4, §36, §42 п.1–4)
+
+| Поле | Фактичне значення | Як перевірено |
+|---|---|---|
+| Публічний URL | `https://marshgo-dima.shares.zrok.io/` | відкрито у під'єднаному Chrome |
+| zrok-процес | PID 33510, `zrok share public --headless -n public:marshgo-dima http://127.0.0.1:7777`, старт Mon 15:00 | `ps aux` |
+| Локальний target | `127.0.0.1:7777`, PID 59193 | `lsof -nP -iTCP -sTCP:LISTEN` |
+| Команда target | `node …/MarshGO-Site/node_modules/.bin/vite --port=3000 --host=0.0.0.0 --host 127.0.0.1 --port 7777 --strictPort` | `ps -o command -p 59193` |
+| Worktree | `/Users/dima1203/.qoder/worktrees/app/330dd3/MarshGO-Site` | `lsof -a -p 59193 -d cwd` |
+| Гілка | `qoder/route-geometry-continuation-20261110` | `git branch --show-current` |
+| HEAD | `dbd670b` (2026-11-10 18:40:24 +0200, «fix(site): align reduced-motion checks with native scrolling») | `git log -1` |
+| Незакомічені зміни | **15 файлів** (14 змінених + 1 новий `tests/route-ribbon-density.test.ts`), 448 insertions / 101 deletions | `git status --porcelain`, `git diff --stat` |
+| Site `main` | `895f51e0e1f728c5b3ba0458b2d98e74ad5fb62f`; HEAD містить main (`rev-list --count HEAD..main` = 0) | `gh api git/ref/heads/main` |
+| API endpoint | `127.0.0.1:3002`, PID 66637, cwd `/Users/dima1203/Desktop/MarshGO/MarshGO-Server` (канонічний репо) | `lsof -a -p 66637 -d cwd` |
+| Режим авторизації | свіжий пошук закритий login-гейтом; сторінка результатів рендериться з кешу попередньої сесії. Нових credentials не вводив, акаунт не створював | спостереження UI |
+| Viewport вимірювання | **428 × 843**, dpr 1 | `window.innerWidth/innerHeight` |
+| Тема | **dark** (`html.className = "boot-dark dark"`) | `document.documentElement.className` |
+| Канонічний Site-репо | `/Users/dima1203/Desktop/MarshGO/MarshGO-Site`, гілка `antigravity/ultimate-premium-web-9`, HEAD `eda449f`, 28 брудних файлів — **не чіпав** | `git status` |
+
+### 0.1. Висновок §1.4 — zrok НЕ придатний для приймання MASTER 10
+
+Тунель обслуговує **сторонній Qoder-worktree з незакоміченими змінами**, а не
+`main` і не гілки Codex з MASTER 10. Жоден із PR #128 / #129 у цій збірці
+відсутній. Тому:
+
+- приймати новий код MASTER 10 через цей URL **не можна** (§1.4 пряма заборона);
+- процес :7777 і тунель **не перезапускав і не змінював** (§43);
+- окремий preview на вільному порту не піднімав і нового публічного тунеля не
+  створював без дозволу власника (§1.4).
+
+**Блокер B1:** потрібне рішення власника — або переключити :7777 на актуальну
+збірку MASTER 10, або дозволити окремий авторизований preview. До цього всі
+«zrok VERIFIED» для #128/#129 неможливі.
+
+---
+
+## 1. Маршрут, на якому знято виміри
+
+Один і той самий маршрут у тому самому viewport (§25):
+
+- Сихів, Львів → вулиця Петра Панча, Львів
+- 08:00 – 08:54, **55 хв**, **30 ₴ готівкою**, **0 пересадок**
+- Пішки 4 хв / 310 м → **Автобус А37** 42 хв / 22 зупинки (Центр Довженка → Парк 700-річчя Львова) → Пішки 4 хв / 295 м
+- дані живі з кешу попередньої авторизованої сесії; свіжий пошук не виконував (auth-блокер)
+
+---
+
+## 2. Виміряна висота губи по детентах (§25, §36 CHECKPOINT 1)
+
+`getBoundingClientRect()` на живому DOM, dark, 428 × 843.
+
+| Детент | Висота | y верху | Map strip над губою | Порожнеча між секціями |
+|---|---|---|---|---|
+| PEEK | **168 px** | 675 | 675 px | 0 |
+| COMPACT (collapsed) | **268.1 px** | 575 | 575 px | **82 px** |
+| MEDIUM (half) | **316 px** | 527 | 527 px | 0 |
+| FULL (expanded) | **671 px** | 172 | 172 px | 0 |
+
+### 2.1. Розклад FULL (671 px)
+
+| Секція | Висота |
+|---|---|
+| Drag handle (`button`, `min-h-44`) | 44 |
+| `route-details-head` | 46 |
+| `route-sheet-endpoints` | 17 |
+| `route-sheet-summary` | 24 |
+| `mg-route-ribbon--compact` | 48 |
+| `route-segment-list` (scroll) | 422 видимі / **1260 scrollHeight** / 838 slack |
+| CTA контейнер (52 button + 12 safe-area + 2 pt) | 66 |
+
+### 2.2. Розклад COMPACT (268.1 px) — дефект §24
+
+| Секція | Висота |
+|---|---|
+| Drag handle | 44 |
+| summary | 24 |
+| ribbon | 48 |
+| **порожнеча (`mt-auto` перед CTA)** | **82** |
+| CTA контейнер | 66 |
+
+82 px = **30,6 % висоти COMPACT** — суцільний незаповнений градієнтний
+прямокутник. Це саме той випадок, який §24 забороняє, і §23.2 називає
+першопричиною (`margin-top: auto` + snap point, що не рахується від контенту).
+
+### 2.3. Кількість видимих сегментів
+
+- У стрічці: **3 з 3** етапи видимі одночасно (91 + 142 + 91 px у 394 px),
+  горизонтальний scroll працює (`overflow:auto`, slack 0).
+- У списку деталей при MEDIUM: видно **130 px із 1260 px** (≈10 % контенту).
+- У списку деталей при FULL: видно **422 px із 1260 px** (≈33 %).
+
+---
+
+## 3. Порівняння з цільовими параметрами §23.3
+
+| Елемент | Live (виміряно) | §23.3 орієнтир | Відхилення | Статус |
+|---|---|---|---|---|
+| Горизонтальний padding списку | **16 px** (`px-4`) | 12–14 px | +2…+4 | FAILED |
+| Drag handle area | **44 px** | 14–20 px | +24…+30 | CONFLICT (44 px touch floor) |
+| Gap після handle | 0 px | 4–6 px | −4…−6 | FAILED |
+| Section gap (summary→ribbon) | 0 px | 6–10 px | −6…−10 | FAILED |
+| Segment chip (`mg-route-ribbon__item`) | **44 px** | 32–40 px | +4…+12 | FAILED |
+| Walking row (картка «Пішки») | **62 px** (inner 60, py 4/4) | 40–52 px | +10…+22 | FAILED |
+| Transit card (шапка «Автобус А37») | **92 px** (py 4/4) | 56–72 px | +20…+36 | FAILED |
+| Stop row | **44 px × 22 = 968 px** | 28–38 px | +6…+16 | CONFLICT (див. §3.1) |
+| Primary CTA (FULL/MEDIUM/COMPACT) | **52 px** | 44–50 px | +2…+8 | FAILED |
+| Primary CTA (PEEK) | **48 px** | 44–50 px | 0 | VERIFIED |
+| Waiting row | «Очікування · 5 хв» inline | без великої порожньої картки | — | VERIFIED |
+| Transfer row | немає (0 пересадок) | — | — | NOT_APPLICABLE |
+
+### 3.1. Корінь 44 px у рядках зупинок — знайдено точно
+
+`JourneyLegStops.tsx` задає кнопці зупинки `min-h-9` (= 36 px), але computed
+`min-height` у браузері = **44 px**. Причина — глобальна підлога:
+
+```
+src/index.css:851
+.production-app :is(.journey-search-card button, .journey-offer-card,
+                    button.w-full:not(.mg-route-cta)) { min-height: 2.75rem; }
+```
+
+Селектор має специфічність (0,3,1) і перемагає Tailwind `.min-h-9` (0,1,0).
+Кнопка зупинки має `w-full` і не є `.mg-route-cta` → потрапляє під правило.
+
+Наслідок: 22 × (44 − 36) = **176 px** зайвої висоти лише на зупинках цього
+маршруту (14 % від scrollHeight 1260).
+
+**Це конфлікт, а не односторонній дефект.** §23.3 вимагає 28–38 px, але й
+«не порушувати мінімальні зручні touch targets»; проєктна преміум-підлога —
+44 × 44 px. Codex у PR #129 свідомо кодифікує цей вибір: інтерактивні рядки
+`min-h-9 → min-h-11` (44 px), неінтерактивні `min-h-9 → min-h-7` (28 px).
+Тобто для **клікабельних** зупинок ціль 28–38 px не буде досягнуто ні в live,
+ні в #129. Потрібне окреме рішення власника, якщо 28–38 px обов'язкові й для
+клікабельних рядків (тоді 44 px hit-area доведеться робити через padding/hit-slop,
+а не через висоту рядка).
+
+### 3.2. Скільки дає ущільнення контенту
+
+Якщо картки й рядки стиснути до середини діапазонів §23.3
+(walk 46 × 2 = 92, transit 64, stop 33 × 22 = 726, gaps ≈ 40):
+**≈ 922 px проти фактичних 1260 px = −26,8 %** — у межах цілі §25 (25–35 %).
+Саме цього шару (картки + рядки зупинок) у #129 **немає**: він змінює detents,
+safe-area, tab bar і іконки, але `scrollHeight` маршруту лишається 1260 px.
+
+---
+
+## 4. Що вже робить Codex (не дублювати, §2 / §43)
+
+PR **#129** `codex/bottom-sheet-density-20261110`, head `07dbdca`, base `main`,
+MERGEABLE, +2999 / −275, 49 файлів. Перевірив його фактичний diff, не лише опис.
+
+PR **#128** `codex/intelligent-navigation-premium-20261110`, head `1c2811e`, OPEN.
+PR **#123** — MERGED (`a9d7d9a`, 2026-11-09 22:43).
+PR **#127** `qoder/site-mobile-touch-gestures-20261110` — OPEN, head `dbd670b`
+(той самий SHA, що й live-збірка; його коміти `b7a0316`, `d8e813d`, `dbd670b`
+уже в live).
+PR **#121** — CONFLICTING.
+
+### 4.1. Перерахунок detentів #129 проти live (чиста функція, не вимір у браузері)
+
+Виконав обидві версії `routeSheetHeights` через `tsx` на 5 viewport.
+`safeAreaBottom = 0`; «+tabbar» = `routeSheetViewportHeights(..., reserveBottomNavigation = true)`,
+inset = 57 + max(7.2, safe) = **64.2 px**.
+
+| Viewport | Детент | Live | #129 | Δ | Δ% | #129 + tabbar |
+|---|---|---|---|---|---|---|
+| 320×568 | peek | 168 | 146 | −22 | −13,1 % | 146 |
+| | collapsed | 220 | 178 | −42 | −19,1 % | 178 |
+| | half | 260 | 284 | **+24** | +9,2 % | 252 |
+| | expanded | 396 | 396 | 0 | 0 % | 331.8 |
+| 375×667 | peek | 168 | 146 | −22 | −13,1 % | 146 |
+| | collapsed | 220 | 178 | −42 | −19,1 % | 178 |
+| | half | 260 | 334 | **+74** | +28,5 % | 301 |
+| | expanded | 495 | 495 | 0 | 0 % | 430.8 |
+| 390×844 | peek | 168 | 152 | −16 | −9,5 % | 146 |
+| | collapsed | 268.5 | 178 | −90.5 | **−33,7 %** | 178 |
+| | half | 316.5 | 380 | **+63.5** | +20,1 % | 351 |
+| | expanded | 672 | 672 | 0 | 0 % | 607.8 |
+| **428×843 (виміряний)** | peek | 168 | 152 | −16 | −9,5 % | 146 |
+| | collapsed | **268.1** | **178** | **−90.1** | **−33,6 %** | 178 |
+| | half | 316.1 | 379 | **+62.9** | +19,9 % | 350 |
+| | expanded | 671 | 671 | 0 | 0 % | 606.8 |
+| 430×932 | peek | 168 | 162 | −6 | −3,6 % | 154 |
+| | collapsed | 300 | 186 | −114 | **−38,0 %** | 178 |
+| | half | 349.5 | 419 | **+69.5** | +19,9 % | 391 |
+| | expanded | 760 | 760 | 0 | 0 % | 695.8 |
+
+Чесний підсумок для G1:
+
+- **COMPACT** ущільнюється на 33,6–38 % при висоті ≥ 843 px → ціль §25 досягнута
+  саме для цього детента; 82-px порожнеча зникає.
+- **PEEK** лише −3,6…−13,1 % → ціль §25 не досягнута.
+- **MEDIUM** навпаки **виростає** на 9–28 % (більше контенту, §24.2) — це
+  свідома зміна, але «сумарна висота» по чотирьох детентах падає лише на
+  **−3,0 %** (1423.2 → 1380 при 428×843).
+- **FULL** не змінюється для довгого маршруту; content-fit helper допоможе
+  лише коротким.
+- Монтування глобальної панелі (§3) забирає **64.2 px** доступної висоти.
+
+### 4.2. Інше, підтверджене у diff #129
+
+- `transportModeRegistry.ts`: власні SVG-силуети `Minibus`, `Shuttle`, `Carpool`,
+  `Carsharing` замість `Caravan`, `ArrowLeftRight`, `CarFront`, `Car` → закриває G3.
+- `JourneyLegStops.tsx`: `min-h-11` для клікабельних / `min-h-7` для статичних рядків.
+- нові модулі `routePreviewPath.ts`, `floatingInfoLifecycle.ts`,
+  `floatingInfoPlacement.ts`, `floatingMapInfo.ts`, `useFloatingMapInfo.tsx`
+  → HyperFlight + Floating Glass + Smoke Dissolve.
+- глобальна 5-пунктова панель в `route-immersive-shell` → закриває §3.
+- `routeSheet.ts`: safe-area рахується **один раз**, додано tab-bar inset.
+- **НЕ торкається** `src/map/journeyRouteModel.ts` — тому єдина унікальна частина
+  мого незакоміченого атома (прапорець `isWalk` замість крихкого порівняння
+  `modeColor === '#91A6BB'`) не продубльована в #129.
+
+### 4.3. Конфлікт файлів — чому я не відкриваю конкурентний PR
+
+Мій незакомічений атом і #129/#128 перетинаються по файлах:
+`src/index.css`, `src/map/MapAdapter.ts`, `src/map/MapLibreAdapter.ts`,
+`src/map/routeGeometryTokens.ts`, `src/map/transportVisualZones.ts`,
+`src/views/JourneyRouteMapScreen.tsx`, `src/views/routeSheet.ts`,
+`tests/route-geometry-intelligence.test.ts`, `tests/route-map-sheet-3.test.ts`,
+`tests/transport-visual-zones.test.ts`.
+
+За §2 («не дублювати реалізовані функції») і §43 («не перезаписувати чужі
+незбережені зміни») **не створюю конкурентний PR на ці файли**. Мої 15 файлів
+лишаються збереженими й незакоміченими; рішення про їхню долю — за власником
+після merge #129/#128 (тоді атом можна перебазувати й лишити тільки унікальне).
+
+---
+
+## 5. Матриця вимог MASTER 10.0 (§38)
+
+Спільні поля для **кожного** рядка: zrok URL і SHA — з розділу 0
+(`https://marshgo-dima.shares.zrok.io/`, worktree `…/330dd3/MarshGO-Site`,
+гілка `qoder/route-geometry-continuation-20261110`, HEAD `dbd670b` + 15 dirty);
+viewport 428×843, dark; скриншоти — розділ 6.
+
+| ID | Вимога ТЗ | Компонент у live-збірці | Тест | Браузерний сценарій | Фактичний результат | Статус | Закриває |
+|---|---|---|---|---|---|---|---|
+| M10-01 | §1.4 ідентичність zrok-збірки | vite :7777 у Qoder-worktree | — | `ps`, `lsof`, `git` | zrok показує сторонній worktree + dirty, не main і не #129 | **VERIFIED** (факт встановлено) / **FAILED** (придатність для приймання) | блокер B1 |
+| M10-02 | §1.2 безперервний цикл ANALYZE→…→RETEST | — | — | CHECKPOINT 1–3 | цикл виконано для губи й геометрії; для навігації/HyperFlight ні | PARTIAL | — |
+| M10-03 | §3 глобальна нижня навігація в усіх режимах | немає в `route-map-screen` | — | `document.querySelectorAll('nav')` | **0** елементів `<nav>`; 5 пунктів відсутні | **FAILED** | #129 |
+| M10-04 | §3.1 чотири режими | `JourneyRouteMapScreen`, вибір етапа | `tests/map-focus-mode.test.ts` | клік по стрічці, «Показати маршрут цілком» | DETAILS ✓, FULL_OVERVIEW ✓, STAGE_PREVIEW частково (вибір є, «Далі»/«Назад» немає), ACTIVE_NAVIGATION не перевірено | PARTIAL | #129 |
+| M10-05 | §4 «Розпочати» = справжня GPS-навігація | кнопка `mg-route-cta` present | `tests/journey-navigation-gps.test.ts` (у #129) | клік «Розпочати» | кнопка є (52 px); сесію не запускав — auth + GPS дозвіл | **BLOCKED** | B2 |
+| M10-06 | §5 «Далі» / «Назад» / «До навігації» | відсутні | — | інвентаризація всіх `button`/`aria-label` | знайдено лише «Назад до результатів»; «Далі», «До навігації» — **0** | **FAILED** | #129 |
+| M10-07 | §6–10 HyperFlight, Scout, speed engine, curve anticipation, path-following | немає `routePreviewPath` у live | — | пошук контролів і станів | жодного контрола польоту, жодної світлової мітки | **FAILED** | #129 |
+| M10-08 | §11 Magnetic Camera, правильний overview | `routeCameraController.ts`, `routeCameraFocus.ts`, `cameraMotion.ts` | `tests/map-focus-mode.test.ts` (проєкція у visible rect) | відкрити маршрут 55 хв | масштаб карти **«50 м»** на старті для 55-хв маршруту; sheet-aware fit є, але стартовий overview занадто близький | **FAILED** (композиція) / PARTIAL (solver) | #128 / мій атом |
+| M10-09 | §12 Living Ribbon, адаптивна товщина, round caps/joins | `MapLibreAdapter.ts` halo/casing/core; `routeGeometryTokens.ts` | `tests/route-ribbon-density.test.ts`, `tests/route-geometry-intelligence.test.ts` | відкрити карту мультимодального маршруту | шари є; пішки — пунктир без casing, стики — білі крапки; незакомічені токени звужують лінії | PARTIAL | мій атом (незакомічений) |
+| M10-10 | §12.2 не вигадувати дороги; §10.3 розриви | `journeyRouteModel.ts` (2-точковий fallback лише для approximate) | `tests/journey-route-map.test.ts` | — | routed-walk без геометрії **відкидається** (дірка), фальшивих з'єднувачів немає | VERIFIED (чесність) / PARTIAL (суцільність) | — |
+| M10-11 | §13 focused A/B/C | `transportVisualZones.ts` | `tests/transport-visual-zones.test.ts` (57/57 у наборі) | карта маршруту | зони є в коді й тестах; live-візуально не підтверджено (0 vehicle-вузлів) | PARTIAL / NOT_TESTED візуально | #128 |
+| M10-12 | §14 фірмові анімації (Pulse, Trail, Turn Lens, Transfer Bridge…) | `SEGMENT_REVEAL_TOKENS` (850/400/260 ms) | `tests/route-geometry-intelligence.test.ts` | перемикання етапа | reveal сегмента є; Route Pulse / Light Trail / Turn Lens / Transfer Bridge — відсутні | PARTIAL | #129 |
+| M10-13 | §15 Precision Arrival Docking | немає | — | — | не реалізовано в live | **FAILED** | #129 |
+| M10-14 | §16 Floating Glass Info | немає | — | `[class*="floating"]`, `[data-testid*="floating"]` | **0** вузлів | **FAILED** | #129 |
+| M10-15 | §17 Smoke Dissolve, 4 с, tap-dismiss | немає | — | — | **0** вузлів; таймерів немає | **FAILED** | #129 |
+| M10-16 | §18 Smart Live Transport Visibility | `VEHICLE_PRIORITY_TOKENS` L0–L4 | `tests/transport-visual-zones.test.ts` | інвентаризація map-маркерів | **0** vehicle-вузлів на цьому маршруті | NOT_TESTED | B2 / #128 |
+| M10-17 | §19 до трьох ТЗ із підтвердженим ETA | — | — | пошук ETA-рядків у DOM | **0** рядків ETA; немає даних про живі ТЗ у цій сесії | NOT_TESTED | B2 |
+| M10-18 | §20 USER_ONBOARD | — | — | — | не перевірено; потрібна авторизована сесія | **BLOCKED** | B2 |
+| M10-19 | §21 12 унікальних піктограм | `transportModeRegistry.ts` | `tests/transport-icon-registry.test.ts` (у #129) | читання реєстру + DOM | **8/12** відповідають силуету; `marshrutka=Caravan`, `carpool=CarFront`, `carsharing=Car`, `transfer=ArrowLeftRight` — generic; carpool/carsharing/taxi майже однакові | **FAILED** (G3) | #129 (4 власні SVG) |
+| M10-20 | §21.3 читабельність 16/20/24/32 px, обидві теми | — | — | — | матрицю 4×3 не знімав; світлу тему не перемикав | NOT_TESTED | — |
+| M10-21 | §22 одна форма губи в усіх режимах | один `route-bottom-sheet`, radius 32px, один градієнт | `tests/route-map-sheet-3.test.ts` | 4 детенти | форма однакова в DETAILS; ACTIVE_NAVIGATION не порівняно | PARTIAL | #129 |
+| M10-22 | §23 ultra-compact P0 | `JourneyRouteMapScreen.tsx`, `routeSheet.ts`, `index.css` | 57/57 цільових | виміри §3 | 8 із 12 параметрів поза діапазоном; 2 — конфлікт із 44 px підлогою | **FAILED** | #129 + §3.2 цього документа |
+| M10-23 | §24 zero wasted blue space | CTA контейнер `mt-auto` | — | COMPACT | **82 px порожнечі = 30,6 %** детента | **FAILED** | #129 (collapsed 268→178) |
+| M10-24 | §25 вимірювана компактність 25–35 % | — | — | `getBoundingClientRect` + перерахунок функції | COMPACT −33,6 % у #129; PEEK −9,5 %; MEDIUM +19,9 %; FULL 0 %; сума 4 детентів −3,0 %; `scrollHeight` 1260 не змінюється | PARTIAL | #129 + §3.2 |
+| M10-25 | §26 компактний Smart HUD | — | — | — | навігація не запускалась | NOT_TESTED | B2 |
+| M10-26 | §27 прибрати технічний шум | — | — | `document.body.innerText` | текст чистий: «55 хв 30 ₴ … Розпочати»; provider/debug/жовтих технічних блоків немає | **VERIFIED** | — |
+| M10-27 | §28 пошук і результати узгоджені | 12 категорій, «Пішки» як сегмент | — | сторінка результатів | 12 категорій збережено; «Пішки» — сегмент, не категорія | VERIFIED (за реєстром і DOM) | — |
+| M10-28 | §29 touch & gesture engine | коміти `b7a0316`, `d8e813d`, `dbd670b` у live | `tests/route-map-sheet-3.test.ts` | горизонтальний scroll стрічки | нативний scroll працює (`overflow:auto`, slack 0); pinch/rotate/flick на реальному пристрої не перевіряв | PARTIAL | #127 |
+| M10-29 | §30 мобільна доступність | 44 px підлога, `env(safe-area-inset-bottom)` | `tests/canonical-design.test.ts` | вимір CTA і рядків | CTA 52/48 px ≥ 44; рядки 44 px; safe-area 12 px один раз | VERIFIED (428 px) / NOT_TESTED (320/375/390/430, WebKit) | — |
+| M10-30 | §31–32 моушн-профілі й токени | `--mg-dur-*`, `--mg-ease-*` у `index.css` | `tests/route-geometry-intelligence.test.ts` | transition губи | `transition: height var(--mg-dur-base) var(--mg-ease-entrance)` — токени, не inline-числа | VERIFIED | — |
+| M10-31 | §33 performance engineering | один MapLibre instance, `setData` | — | — | FPS, long tasks, пам'ять **не вимірював** | NOT_TESTED | — |
+| M10-32 | §34 аудит реальних компонентів | усі 12 перелічених файлів існують | — | перевірка `-f` для кожного шляху §34 | `MapLibreAdapter.ts`, `MapAdapter.ts`, `MarshGoMap.tsx`, `cameraMotion.ts`, `journeyRouteModel.ts`, `transportVisualZones.ts`, `transportQuality.ts`, `JourneyRouteMapScreen.tsx`, `JourneyActiveNavigation.tsx`, `routeMapAnnotations.ts`, `productionApi.ts`, `transportModeRegistry.ts` — **12/12 OK**; назви не вигадував | **VERIFIED** | — |
+| M10-33 | §35 backend-контракти, реальні дані | `productionApi.ts` `routeGeometry?: [number,number][] \| null` | Server PR #136 (61/61) | — | геометрії по ногах; shapes Львова 15139/15141; нових полів не вигадував | VERIFIED (Server-аудит) | #136 |
+| M10-34 | §37 автоматизовані тести | `tests/*.test.ts` | **57/57 pass**, `tsc --noEmit` exit 0 | — | цільовий набір зелений на live-збірці; повний suite не запускав | PARTIAL | — |
+| M10-35 | §36 CHECKPOINT 1 (губа) | — | — | 4 детенти, висоти, порожнеча, скриншоти | виконано, розділи 2–3 | **VERIFIED** | — |
+| M10-36 | §36 CHECKPOINT 2 (іконки) | — | — | реєстр прочитано, матрицю 4×3 не знято | 8/12; візуальної матриці немає | PARTIAL | #129 |
+| M10-37 | §36 CHECKPOINT 3 (геометрія) | — | — | карта маршруту | A/B/C і стики візуально не підтверджені в цій сесії | PARTIAL | — |
+| M10-38 | §36 CHECKPOINT 4–10 | — | — | — | GPS, HyperFlight, Floating Info, Live Transport, Unified UI, Mobile, Full Journey — не пройдено | **BLOCKED** / NOT_TESTED | B1, B2 |
+
+---
+
+## 6. Скриншоти
+
+Збережені локально (не закомічені в репо):
+
+- `/tmp/marshgo-master10-evidence/01-peek-428x843.png` — PEEK 168 px, dark, 428×843
+- `/tmp/marshgo-master10-evidence/02-expanded-428x843.png` — FULL 671 px, список 422/1260
+
+Обидва зняті з `https://marshgo-dima.shares.zrok.io/` на HEAD `dbd670b` + 15 dirty.
+Скриншот COMPACT із 82-px порожнечею в цій сесії не збережено окремо — дефект
+підтверджений числовим виміром (`ribbon.bottom = 692`, `CTA.y = 774`).
+
+---
+
+## 7. Acceptance gates (§39)
+
+| Gate | Стан у live-збірці | Стан після #129/#128 (за diff, не за виміром) |
+|---|---|---|
+| G1 UI Density | **FAILED** — 82 px порожнечі, 8/12 параметрів поза ціллю | PARTIAL — COMPACT −33,6 %, але scrollHeight 1260 без змін |
+| G2 Unified Sheet | PARTIAL — одна форма в DETAILS | NOT_TESTED — навігацію не перевірено |
+| G3 Icons | **FAILED** — 8/12, 4 generic-силуети | очікує VERIFIED після візуальної матриці 4×3 |
+| G4 Geometry | PARTIAL — шари є, стики й casing дефектні | NOT_TESTED |
+| G5 GPS | **BLOCKED** (B2) | BLOCKED |
+| G6 Preview | **FAILED** — «Далі» немає | NOT_TESTED |
+| G7 HyperFlight | **FAILED** — відсутній | NOT_TESTED (код є в #129, політ не спостерігав) |
+| G8 Camera | **FAILED** — «50 м» на 55-хв маршруті | NOT_TESTED |
+| G9 Floating Info | **FAILED** — 0 вузлів | NOT_TESTED |
+| G10 Vehicles | NOT_TESTED — 0 маркерів, 0 ETA | NOT_TESTED |
+| G11 Touch | PARTIAL — native scroll ✓, реальний пристрій ні | NOT_TESTED |
+| G12 Performance | NOT_TESTED — FPS/пам'ять не міряв | NOT_TESTED |
+| G13 zrok Browser QA | PARTIAL — CHECKPOINT 1–3 частково; zrok вказує на сторонню збірку | **BLOCKED (B1)** |
+| G14 Final E2E | **BLOCKED** (B1 + B2) | BLOCKED |
+
+**Жоден критичний gate не закритий. Повна готовність MASTER 10.0 не оголошується.**
+
+---
+
+## 8. Блокери
+
+- **B1 — zrok identity.** Тунель :7777 обслуговує Qoder-worktree `dbd670b` + 15
+  dirty, а не main і не #129/#128. §1.4 забороняє приймати новий код через таку
+  збірку. Процес і тунель не чіпав. Потрібне рішення власника.
+- **B2 — auth + GPS.** Свіжий пошук, «Розпочати», GPS-follow, live-транспорт,
+  ETA і USER_ONBOARD потребують авторизованої сесії та реального дозволу
+  геолокації. Credentials не вводив, тестовий акаунт не створював, GPS не
+  підміняв. Сценарії позначені BLOCKED, не VERIFIED.
+- **B3 — конкуренція виконавців.** §0/§44 ТЗ називає CODEX єдиним виконавцем і
+  забороняє передавати роботу Qoder; власник водночас прямо доручив застосувати
+  ТЗ до інтерфейсу мені. Codex фактично вже виконує ТЗ (#129 містить усі п'ять
+  артефактів §42). Щоб не порушити §2 і §43, я обмежився аудитом і вимірами
+  live-збірки та **не відкривав конкурентний PR** на ті самі файли.
+- **B4 — viewport matrix.** Під'єднаний Chrome не дає керувати розміром вікна,
+  тому виміряно лише 428×843. 320/375/390/430 і WebKit — NOT_TESTED
+  (числа для них у §4.1 — **розрахунок функції**, не вимір).
+- **B5 — конфлікт цілей §23.3 vs 44 px.** Див. §3.1: потрібне рішення власника.
+
+---
+
+## 9. Що я фактично виконав у цій сесії
+
+1. Встановив точну ідентичність zrok-збірки (§1.4) — розділ 0.
+2. Зняв базлайнові виміри губи в чотирьох детентах (§25, §36 CP1) — розділ 2.
+3. Знайшов і числово довів 82-px порожнечу COMPACT (§24) — розділ 2.2.
+4. Знайшов точну першопричину 44 px у рядках зупинок: `src/index.css:851`
+   проти `min-h-9` у `JourneyLegStops.tsx` — розділ 3.1.
+5. Звірив 12 піктограм із §21: 8/12, чотири generic — розділ 5, M10-19.
+6. Прочитав фактичний diff #129 і перерахував обидві версії `routeSheetHeights`
+   на 5 viewport — розділ 4.1 (чесно: COMPACT −33,6 %, MEDIUM +19,9 %, сума −3,0 %).
+7. Запустив цільові тести на live-збірці: **57/57 pass, 0 fail**;
+   `tsc --noEmit` — **exit 0, 0 помилок**.
+8. Зафіксував конфлікт файлів і **не створив конкурентний PR**; мої 15
+   незакомічених файлів збережені без змін.
+
+Чого **не** робив: не merge, не deploy, не змінював main / :7777 / :3002 / DB /
+Docker / канонічний брудний Site-репо, не вводив credentials, не вигадував GPS,
+ETA, дороги чи провайдерів, не оголошував NOT_TESTED як VERIFIED.
