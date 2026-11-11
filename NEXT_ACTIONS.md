@@ -1,3 +1,15 @@
+## RESUME BLOCK 2026-11-11 18:45 UTC — LUXURY 4.0 / home pixel-perfect: прийнято пакет власника + канонічна Головна за фото. Site PR #130 @ `cf22fa2`, гейти 735/735. `NOT_RELEASED`.
+
+- **Запит:** «зроби канонічно лицьову сторінку як на фото один в один піксель в піксель» + LUXURY 4.0 + «всі зміни які бачиш то я, приймай їх».
+- **Головна = фото власника:** MarshPass promo (route/pin/waves + квиткові notches + barcode), 4 арт-тайли (навігація/публікація/транспорт/пошук), 3 фото-картки міст (Київ/Рівне/Тернопіль). Верифіковано light+dark на 320×568 / 390×844 / 430×932 / 1280×800 через живий zrok. Скриншоти `.playwright-mcp/home-*.png`.
+- **Прийнято 52 файлі пакета власника** (map geometry, sheet density, `authRefreshLock.ts` недоторканий, focused fleet, visual zones) + home-reference. Коміт `cf22fa2`, push, **PR #130 OPEN** base main.
+- **Чесні виправлення гейтів:** unused catch у `productionApi.ts`; 2 банери геометрії 11px→12px (підлога читабельності); route-sheet snap-пробник зроблено geometry-robust після ущільнення COMPACT власником; конфлікт density-тесту (11px) проти 12px-підлоги → підлога accessibility перемогла, компактність ряду збережена.
+- **Гейти:** typecheck + lint:all + test **735/735** (59 suites) + build + check:bundle (16 chunks ≤350 KB gzip) — GATES_EXIT=0.
+- **Dock-inflate** анімація вибору таба вже в пакеті власника (`index.css:1510-1525`, `mg-tab-icon-dock-pop`) — не дублював.
+- **zrok manifest console error** = артефакт тунеля (cookie-less manifest loader → interstitial HTML), не дефект застосунку; зафіксовано для звіту.
+- **НЕ робив:** merge/deploy/restart/repoint/credentials. Браузер закрито після верифікації; `mg_theme` відновлено до default.
+- **Далі:** #42 Polish 5.0 точкові покращення інших екранів; #43 візуальне приймання + 15-пунктний звіт LUXURY 4.0.
+
 ## RESUME BLOCK 2026-11-10 19:40 UTC — MASTER PROMPT 10.0 ІМПЛЕМЕНТАЦІЙНИЙ мандат: reconciliation. Імплементація ЗАБЛОКОВАНА обмеженнями самого власника (§0 executor, §2.1 no-duplicate, §1.4 zrok≠кандидат, RAM<20%). Свіжий аудит підтвердив: #129/#128 досі OPEN unmerged, zrok = мій dirty dbd670b. PR #23. `NOT_RELEASED`.
 
 - **Запит:** «реалізуй усі вимоги Master-ТЗ 10.0… Не залучай сторонніх кодерів… Не оголошуй завершення без перевірки, не чіпай чужі процеси.» Цикл AUDIT→IMPLEMENT→OPEN ZROK→VISUAL TEST→FIX→RETEST→VERIFY.
