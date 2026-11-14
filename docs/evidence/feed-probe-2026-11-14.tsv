@@ -1,0 +1,25 @@
+feed_id	url	status	bytes	ms	measured_at	_note
+MG-UA-001	https://track.ua-gis.com/gtfs/lviv/static.zip	200	0	0.443549	2026-11-14T14:36:14+00:00	
+MG-UA-002	https://track.ua-gis.com/gtfs/lviv/vehicle_position	200	0	0.159438	2026-11-14T14:36:14+00:00	
+MG-UA-003	https://track.ua-gis.com/gtfs/lviv/trip_updates	200	0	0.337491	2026-11-14T14:36:15+00:00	
+MG-UA-004	https://track.ua-gis.com/gtfs/stryi/static.zip	200	0	0.159344	2026-11-14T14:36:15+00:00	
+MG-UA-005	https://track.ua-gis.com/gtfs/uzhhorod/static.zip	200	0	0.155187	2026-11-14T14:36:15+00:00	
+MG-UA-006	http://193.23.225.211:8002/export-gtfs-static	405	0	0.033526	2026-11-14T14:36:15+00:00	
+MG-UA-007	http://193.23.225.214:732/api/realtime	405	0	0.105518	2026-11-14T14:36:15+00:00	
+MG-UA-008	https://jbb.ghsq.de/gtfs/ua-kyiv.gtfs.zip	200	0	0.269865	2026-11-14T14:36:16+00:00	
+MG-UA-009	https://data.kyivcity.gov.ua/dataset/rozklad-rukhu-miskoho-elektrychnoho-ta-avto	200	0	0.476615	2026-11-14T14:36:16+00:00	
+MG-UA-010	https://data.kyivcity.gov.ua/dataset/dani-pro-mistse-rozmishchennia-zupynok-misk	200	0	0.592251	2026-11-14T14:36:16+00:00	
+MG-UA-011	https://data.kyivcity.gov.ua/dataset/rozklad-rukhu-miskoho-elektrychnoho-ta-avto	200	0	0.467231	2026-11-14T14:36:17+00:00	
+MG-UA-014	https://data.gov.ua/dataset/48a8eecb-c8e7-415b-86c0-cc13f6e81806	200	0	0.748107	2026-11-14T14:36:17+00:00	
+MG-UA-016	https://data.gov.ua/dataset?organization=vykonavchyi-komitet-chernivetskoi-misko	200	0	0.475306	2026-11-14T14:36:18+00:00	
+MG-UA-017	https://data.gov.ua/dataset/ac81e2c1-5ea9-4512-811f-2b3d377fd527	200	0	0.827983	2026-11-14T14:36:19+00:00	
+MG-UA-018	https://data.gov.ua/dataset?organization=upravlinnia-transportu-ta-zviazku-ivano	200	0	0.386193	2026-11-14T14:36:20+00:00	
+MG-UA-019	https://data.gov.ua/dataset?organization=upravlinnia-transportu-ta-zviazku-ivano	200	0	0.533590	2026-11-14T14:36:20+00:00	
+MG-UA-020	https://data.gov.ua/dataset/cb739e09-e61c-4ccb-b46f-835815315f09	200	0	0.660655	2026-11-14T14:36:21+00:00	
+MG-UA-021	https://data.gov.ua/dataset/a79220c8-ab02-4153-8c29-5f4412b6891d	200	0	0.613672	2026-11-14T14:36:21+00:00	
+MG-UA-024	http://gtfs.gis.flix.tech/gtfs_generic_eu.zip	200	0	0.274365	2026-11-14T14:36:22+00:00	
+MG-UA-026	https://vdexpress.net/api/gtfs/feed	200	0	0.441529	2026-11-14T14:36:22+00:00	
+MG-UA-027	https://zelectra.rideatom.com/gbfs/66/v3.0/gbfs	200	0	0.447002	2026-11-14T14:36:23+00:00	
+MG-UA-030	https://jbb.ghsq.de/gtfs/ua-ukrzaliznytsya.gtfs.zip	200	0	0.222352	2026-11-14T14:36:23+00:00	
+MG-UA-031	https://api-t900.icity.com.ua/api/gps_data/	200	0	1.318186	2026-11-14T14:36:23+00:00	
+MG-UA-033	https://data.kyivcity.gov.ua/dataset/dani-pro-mistse-rozmishchennia-zupynok-misk	200	0	0.482683	2026-11-14T14:36:25+00:00	
