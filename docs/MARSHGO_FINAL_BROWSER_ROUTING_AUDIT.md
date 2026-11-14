@@ -1,6 +1,20 @@
 # MARSHGO — Final User Experience & National Routing Audit
 
-## Поточний вердикт: PARTIAL / NOT_RELEASED — 2026-11-15, U05 Odesa bike-only
+## Поточний вердикт: PARTIAL / NOT_RELEASED — 2026-11-15, R08 Kyiv→Lviv inter-oblast
+
+### R08 — Київ, Вокзальна площа 1 → Львів, площа Ринок, усі 12 категорій (міжобласний ланцюжок)
+
+Native Qoder in-app browser https://marshgo-dima.shares.zrok.io, 445×843 dark. Exact autocomplete OD: Вокзальна площа, 1, Київ n:2644051429 30.4884813/50.4400123 → площа Ринок, Львів r:2166192 24.0323731/49.8419316 (~540 км); 15.11.2026 09:00 Europe/Kyiv, 1 пасажир, unlimited budget, no-transfers=false; усі 12 категорій pressed=true. **8 маршрутів**: поїзди УЗ №715 (6 год 58 хв), №40749 (6 год 15 хв), №45 (8 год 23 хв) + львівський last-mile: автобус №А29 (12/14 хв) або трамвай №Т01 (17 хв) або фінальна пішка (40/21 хв). Header «15.11, 09:00 · усі види транспорту · 8 маршрутів»; Оптимальний pressed·8 / Найшвидший·8 / Найдешевший disabled·0 (невідомі ціни ≠ zero).
+
+Details (картка 2): очікування 2 год 28 хв (09:00→11:28) явно labelled; Поїзд 715 РОЗКЛАД Київ-Пасажирський 11:28 → Вінниця 13:51 → Хмельницький 15:27 → Тернопіль 16:52 → Львів-Головний 18:26 (5 зупинок); Пішки 2 хв · 191 м Львів-Головний → Залізничний вокзал (ОРІЄНТОВНО, у межах transfer cap 400 м); очікування 16 хв; Автобус А29 РОЗКЛАД Залізничний вокзал → Театр ляльок 12 хв; Пішки 4 хв Театр ляльок → площа Ринок; прибуття 19:00, разом 10 год 0 хв, 1 пересадка, «Ціна уточнюється». Карта рендерить міжобласну полілінію Київ→Львів із чіпами Посадка/Висадка; five-item nav intact.
+
+Evidence: [results PNG](evidence/final-browser-r08-kyiv-lviv.png)/[AX](evidence/final-browser-r08-kyiv-lviv-ax.txt), [details PNG](evidence/final-browser-r08-kyiv-lviv-details.png)/[AX](evidence/final-browser-r08-kyiv-lviv-details-ax.txt) — native saved і Read-viewed. Navigation/booking/GPSconsent не запускалися.
+
+Verdict: **перший перевірений міжобласний мультимодальний ланцюжок** (rail + міський автобус/трамвай last-mile), структурно коректний і чесно маркований (РОЗКЛАД/ОРІЄНТОВНО, очікування, невідома ціна). PARTIAL, не fully accepted: source calendar/geometry/fare для цього OD не attested; відкрите питання Codex — картки 1/8 фінальна пішка 40/21 хв (≈2.9/1.5 км): якщо це GTFS egress, перевищує cap 1000 м; потрібна engine final-walk policy; minor — метри пішки видимі візуально, але відсутні в AX-label сегмента.
+
+Сукупно **14 exact OD, 34 transport searches + 1 empty-mode negative, 0 fully accepted**; matrix **20 PARTIAL / 304 NOT_TESTED** (kyiv train executed=true, succ0). Server/DB/3002 unchanged; 7777/zrok живі; no import/restart/deploy. DATE-01 hunk ACK досі немає; PR161 review VERIFIED чекає merge. NOT_RELEASED.
+
+## Попередній checkpoint — U05 Odesa bike-only
 
 ### U05 — Одеса, Дерибасівська → Аркадія, BIKE-only (Nextbike rental)
 
