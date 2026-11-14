@@ -1,3 +1,8 @@
+## RESUME BLOCK 2026-11-15 — U06 DNIPRO URBAN EMPTY / PARTIAL / NOT_RELEASED
+
+- Base Root9aa07c9. Native Qoder in-app public zrok: Вокзальна площа, Дніпро n:12351552626 (lat48.4780763/lon35.0149877) → проспект Дмитра Яворницького, 75, Дніпро r:1208751 (lat48.4666825/lon35.0398884), 15Nov2026 09:00 Kyiv, 1passenger, unlimited budget, no-transfers=false. TRAM-only →0; TRAM+BUS+TROLLEYBUS+METRO →0. Native results PNG/AX + city selection AX saved; both PNGs Read-viewed (489×843 dark). No details/map available; source/calendar/runtime cause NOT_VERIFIED, not proof city has no transport.
+- Totals15exactOD39searches+1empty-mode negative0accepted. Matrix24PARTIAL300NOT_TESTED; four Dnipropetrovsk mode rows executed, zero accepted. Codex reproduction handoff issue26 comment6885573898 published/read-verified: map exact OD/date through sources→ingestion→calendar→planner; resolve already-reported tripUid ambiguity, no arbitrary join. GitHub reports Server PR167 MERGED a9d904ea exact-head CI PASS, post-merge43650752533 pending at last observation; runtime unchanged. Site URL atom/DATE01 still awaiting overlap ACK. No Server/Site/DB/7777/zrok writes/restarts/builds/tests/deploy. NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-15 — TRANSPORT URL PARITY DEFECT / PARTIAL / NOT_RELEASED
 
 - Base Root47da61e. R08 native Qoder same-tab reload11modes/BUSfalse→4routes; returning form confirms BUSfalse. Toggle only BUStrue, open identical saved URL→8routes incl4А29. Local persistence VERIFIED; independent URL transport round-trip FAIL. Native reload + url-all-modes PNG/AX saved/Read-viewed. Totals14OD37searches+1negative0accepted; matrix20PARTIAL304NOT_TESTED unchanged.

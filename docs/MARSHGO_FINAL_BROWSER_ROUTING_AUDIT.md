@@ -1,6 +1,19 @@
 # MARSHGO — Final User Experience & National Routing Audit
 
-## Поточний вердикт: PARTIAL / NOT_RELEASED — 2026-11-15, R08 Kyiv→Lviv inter-oblast
+## Поточний вердикт: PARTIAL / NOT_RELEASED — 2026-11-15, U06 Dnipro urban
+
+### U06 — Дніпро, Вокзальна площа → проспект Дмитра Яворницького 75
+
+Native Qoder in-app browser на чинному публічному zrok, фактичні PNG489×843 dark. Exact autocomplete: Вокзальна площа, Дніпро n:12351552626 lat48.4780763/lon35.0149877 → проспект Дмитра Яворницького, 75, Дніпро r:1208751 lat48.4666825/lon35.0398884. Date picker явно перевірено: 15.11.2026 09:00 Europe/Kyiv; 1 пасажир, unlimited budget, no-transfers=false.
+
+1. Вимкнено всі категорії через UI, увімкнено лише **Трамвай** → **0 маршрутів**. [PNG](evidence/final-browser-u06-dnipro-tram.png)/[AX](evidence/final-browser-u06-dnipro-tram-ax.txt).
+2. На тому самому OD/date додано **Автобус + Тролейбус + Метро** (решта8false) → **0 маршрутів**. [Selection AX](evidence/final-browser-u06-dnipro-city-selection-ax.txt), [PNG](evidence/final-browser-u06-dnipro-city.png)/[AX](evidence/final-browser-u06-dnipro-city-ax.txt).
+
+Обидва PNG native saved і Read-viewed; стабільний empty-state, стратегії disabled, five-item navigation збережена. Деталі/карта/геометрія/очікування/вартість **NOT_TESTED**, бо жодного маршруту немає. Це виконана перевірка з нульовим результатом, **не доказ відсутності реального міського руху**. Причина на source→ingestion→calendar→planner→runtime **NOT_VERIFIED**; уже встановлена суперечність tripUid джерела не оголошується причиною без Codex crosswalk. No import/restart/deploy/tests/build; shared Site/Server/DB/7777/zrok unchanged.
+
+Сукупно **15 exact OD / 39 transport searches + 1 empty-mode negative / 0 fully accepted**; matrix **24 PARTIAL / 300 NOT_TESTED**. Чотири рядки Дніпропетровської області позначено executed (tram2 attempts, bus/trolleybus/metro1); combined search не видається за окремий isolated-mode pass. Codex має відтворити точний OD/date на імпортованому наборі та надати діагностичний crosswalk. Site transport-URL atom і DATE01 чекають GitHub overlap ACK. NOT_RELEASED.
+
+## Попередній checkpoint — R08 Kyiv→Lviv inter-oblast
 
 ### R08 — Київ, Вокзальна площа 1 → Львів, площа Ринок, усі 12 категорій (міжобласний ланцюжок)
 
