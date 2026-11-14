@@ -1,6 +1,22 @@
 # MARSHGO — Final User Experience & National Routing Audit
 
-## Поточний вердикт: PARTIAL / NOT_RELEASED — 2026-11-15, U07 Vinnytsia urban
+## Поточний вердикт: PARTIAL / NOT_RELEASED — 2026-11-15, U08 Rivne urban
+
+### U08 — Рівне, Привокзальна площа 1 → Соборна 63
+
+Base Root7259ea95fa48fb4ba900dd9cc65c514472f5a91b. Existing native Qoder in-app public zrok only. Exact autocomplete Привокзальна площа, 1, Рівне w:105675898 lat50.6276986/lon26.2399112 → Соборна вулиця, 63, Рівне w:121799689 lat50.6197337/lon26.2446629. Explicit date picker15Nov2026 09:00 Europe/Kyiv (07:00Z), 1passenger, unlimited budget, no-transfers=false, no deadline, BALANCED.
+
+1. **Автобус-only** (інші11false) → **0 маршрутів**. [PNG](evidence/final-browser-u08-rivne-bus.png)/[AX](evidence/final-browser-u08-rivne-bus-ax.txt).
+2. **Тролейбус-only** (інші11false) → **0 маршрутів**. [PNG](evidence/final-browser-u08-rivne-trolleybus.png)/[AX](evidence/final-browser-u08-rivne-trolleybus-ax.txt).
+3. Same OD/date **Автобус + Тролейбус** (інші10false) → **0 маршрутів** after loading completed. [Selection AX](evidence/final-browser-u08-rivne-city-selection-ax.txt), [PNG](evidence/final-browser-u08-rivne-city.png)/[AX](evidence/final-browser-u08-rivne-city-ax.txt).
+
+Three native PNG489×843dark saved and Read-viewed; stable empty-state, disabled three strategies, five-item navigation preserved. Details/map/geometry/waits/fares NOT_TESTED because no routes returned. Zero output is not proof of absent real city movement. OSM autocomplete coordinates are not official stop/platform crosswalks. Modes are not serialized in URL; selection and rendered headers prove the actual allowlists. No marshrutka search performed.
+
+Separate source handoff [6886063708](https://github.com/dima1203oleg/MarshGO/issues/26#issuecomment-6886063708): ZIP43357B SHA56f5c077daa40777423eccc436be22614c2ba57a8b4dcbd16133ff4a2ad5f2bc encodes15Nov/3type3routes/604route-service joined trips/82stops, but agency header-only/timezone absent/endpoint commercial rights and actual dated operation NOT_VERIFIED. Source not activated; no claim these gaps caused runtime0 or type3 establishes bus vs marshrutka. [Codex U08 diagnostic handoff](https://github.com/dima1203oleg/MarshGO/issues/26#issuecomment-6886141872) requests exact source/imported hash/calendar/stop-access/direction/planner/API/runtime crosswalk, without shared refresh.
+
+Totals **17 exact OD / 44 transport searches + 1 empty-mode negative / 0 fully accepted**. Matrix **324rows/14cols, 28PARTIAL/296NOT_TESTED**; Rivne bus/trolleybus2attempts each/success0, other10 remain NOT_TESTED. Existing controls preserved. Latest resource check27%memoryfree/swap10198.88MiB/disk17GiB YELLOW; existing browser only, no new heavy process. No code/test/build/import/Server/Site/DB/7777/zrok/restart/deploy. National27×12 source-to-browser acceptance remains unmet. NOT_RELEASED.
+
+## Попередній checkpoint — U07 Vinnytsia urban
 
 ### U07 — Вінниця, Привокзальна площа 1 → Соборна 50
 
