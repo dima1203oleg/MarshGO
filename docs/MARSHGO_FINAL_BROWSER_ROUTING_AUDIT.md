@@ -1,6 +1,19 @@
 # MARSHGO — Final User Experience & National Routing Audit
 
-## Поточний вердикт: PARTIAL / NOT_RELEASED — 2026-11-15, U06 Dnipro urban
+## Поточний вердикт: PARTIAL / NOT_RELEASED — 2026-11-15, U07 Vinnytsia urban
+
+### U07 — Вінниця, Привокзальна площа 1 → Соборна 50
+
+Base Root4aaa955. Native Qoder in-app existing public zrok only. Exact autocomplete: Привокзальна площа, 1, Вінниця w:35150650 lat49.2393802/lon28.5105445 → Соборна вулиця, 50, Вінниця w:35397037 lat49.2333459/lon28.4687818. Explicit date picker15.11.2026 09:00 Europe/Kyiv (07:00Z), 1passenger, unlimited budget, no-transfers=false, no deadline, BALANCED.
+
+1. Лише **Трамвай** (інші11false) → **0 маршрутів**. [PNG](evidence/final-browser-u07-vinnytsia-tram.png)/[AX](evidence/final-browser-u07-vinnytsia-tram-ax.txt).
+2. Той самий OD/date, **Трамвай + Автобус + Тролейбус** (інші9false) → **0 маршрутів**. [Selection AX](evidence/final-browser-u07-vinnytsia-city-selection-ax.txt), [PNG](evidence/final-browser-u07-vinnytsia-city.png)/[AX](evidence/final-browser-u07-vinnytsia-city-ax.txt).
+
+Both native PNG489×843 dark saved and Read-viewed; stable empty-state, disabled strategies and five-item navigation. Details/map/geometry/waits/fares NOT_TESTED because no routes returned. Zero results are **not evidence of absent city movement**. OSM autocomplete coordinates are not an official stop/platform crosswalk. Source→ingestion→calendar→access/egress→planner→API/runtime cause NOT_VERIFIED; Depo website is not declared the cause. Its public weekend grids remain disabled pending commercial/export permission, current dated calendar and stable keys/coordinates; Codex review [6885920745](https://github.com/dima1203oleg/MarshGO/issues/26#issuecomment-6885920745) confirms these gaps.
+
+Totals **16 exact OD / 41 transport searches + 1 empty-mode negative / 0 fully accepted**. Matrix validated **324rows/14cols, 26PARTIAL/298NOT_TESTED**: U07 tram2attempts, bus1combined, trolleybus2 across V01+U07; previous V01 Soborna1→Keletska100 evidence preserved. Combined control is not isolated bus/trolleybus acceptance. [Codex reproduction handoff](https://github.com/dima1203oleg/MarshGO/issues/26#issuecomment-6886004357) requests exact imported source/SHA, dated calendar, stop-radius/direction and planner-stage diagnostics, without shared refresh or invented service. No code/test/build/import/Server/Site/DB/7777/zrok/restart/deploy. NOT_RELEASED.
+
+## Попередній checkpoint — U06 Dnipro urban
 
 ### U06 — Дніпро, Вокзальна площа → проспект Дмитра Яворницького 75
 
