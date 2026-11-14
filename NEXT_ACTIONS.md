@@ -1,3 +1,8 @@
+## RESUME BLOCK 2026-11-15 — TRANSPORT URL PARITY DEFECT / PARTIAL / NOT_RELEASED
+
+- Base Root47da61e. R08 native Qoder same-tab reload11modes/BUSfalse→4routes; returning form confirms BUSfalse. Toggle only BUStrue, open identical saved URL→8routes incl4А29. Local persistence VERIFIED; independent URL transport round-trip FAIL. Native reload + url-all-modes PNG/AX saved/Read-viewed. Totals14OD37searches+1negative0accepted; matrix20PARTIAL304NOT_TESTED unchanged.
+- Active Site b58cad91+dirty; remote main6f0707a7. searchRouteState lacks transport fields; transportPreferences persists transport_selection; no browser storage touched. SearchWorkspace returned isolated Site copy, so active files independently Read-verified. Qoder next bounded isolated URL-selection atom after OPEN deadline PR144 overlap ACK (issue26 comment6885495617); no shared edits/restarts. Codex continues source/calendar/ingestion/runtime crosswalk. NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-15 — DNIPRO STOPS + R08 TRAM / PARTIAL / NOT_RELEASED
 
 - Base Rootfe72669. R08 native Qoder: train715 arrival18:26 + walk4хв303м + wait16хв → Т01 18:46–19:03 (8 stops) + final walk1хв114м →19:04; temporal continuity VERIFIED rendered-only; transfer303м≤400м. Native tram PNG/AX + walk PNG saved/Read-viewed. Totals14OD35searches+1negative0accepted; matrix20PARTIAL304NOT_TESTED unchanged.
