@@ -1,3 +1,9 @@
+## RESUME BLOCK 2026-11-15 — KHARKIV/DNIPRO DISCOVERY / PARTIAL / NOT_RELEASED
+
+- Root e79cc9e (+наступний commit); активні Site/API/7777/zrok/sharedDB unchanged; no activation/import/restart/deploy. **Dnipro surface = найсильніший легальний lead**: офіційний CC-BY-4.0, modified 11.11, 132 routes/260 trips/132 services, 125 sunday-active, endDate null покриває 15.11; АЛЕ нестандартний (semicolon/serviceUid/windows-1251/XLSX stop_times/немає routes+stops) → кастомний Codex-адаптер; мішані vintages (trips Jul17, stopTimes Oct1). **Dnipro metro / Kharkiv metro** = лише HTML, license відсутня → UNKNOWN_RIGHTS. **Kharkiv surface DEAD** (data.kharkiv.ua / data.city.kharkiv.ua NXDOMAIN) → BLOCKED. Ledger +4 → 63 рядки. Codex handoff issue26: Dnipro adapter spec + stops source; metro scrape-with-permission або export; Kharkiv registry unavailable.
+- Попередньо: Odesa surface mirror mdb-2946 rights UNKNOWN (6885113807); U05 bike Nextbike rental PARTIAL (6885075054). Totals **13OD / 33searches + 1negative / 0accepted**; matrix **19PARTIAL / 305NOT_TESTED**.
+- Next: Codex Kyiv/Odesa/Dnipro crosswalk+rights+adapter; Qoder — наступні регіональні controls / discovery; DATE-01 після ACK; PR161 merge чекає. NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-15 — ODESA SURFACE DISCOVERY / PARTIAL / NOT_RELEASED
 
 - Root34c47e0; активні Site/API/7777/zrok/sharedDB unchanged; no activation/import/restart/deploy. Odesa surface mirror mdb-2946 PROBED_OK fresh14.11: 87 routes (18tram/62bus/7trolleybus), stops3719, shapes54872; calendar50 сервісів/48 active Sun15.11, 10354 trips; **NO feed_info**; tram+trolleybus = агрегатор «OD Depot 1» gps.x24.digital (Nimbus), bus = комунальне+9 приватних; **license відсутня → rights UNKNOWN → commercial activation BLOCKED**. Ledger +1 odesa row (59 рядків). Codex handoff issue26: rights/provenance x24.digital/Nimbus або офіційне Odesa open-data; calendar-filter; інтеграція лише після прав.

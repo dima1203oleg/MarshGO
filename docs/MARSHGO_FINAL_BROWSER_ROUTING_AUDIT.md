@@ -18,6 +18,15 @@ Verdict: ланцюжок структурно коректний і чесно 
 
 Qoder discovery lane, без активації. `https://files.mobilitydatabase.org/mdb-2946/latest.zip` HTTP200 / 8330330 bytes / 2.22 s; last-modified 14.11.2026 00:48 GMT, файли 14.11 02:25. **87 маршрутів = 18 tram(0) + 62 bus(3) + 7 trolleybus(11)**; stops 3719; shapes 54872 pts (геометрія присутня). Calendar 50 сервісів, **48 активних у нд 15.11.2026**, 10354/10370 trips; end 20261231/20261227; **feed_info ВІДСУТНІЙ** (немає rolling-expiry, на відміну від Києва). Tram+trolleybus належать агрегатору **«OD Depot 1» (gps.x24.digital)**, а не муніципальному оператору; bus = комунальне АТП міськвиконкому + 9 приватних; calendar містить `nimbus_default` → платформа Nimbus. У фіді **license немає**; дзеркало third-party → **права UNKNOWN → комерційна активація ЗАБЛОКОВАНА** до provenance/license або офіційного одеського open-data джерела. Ledger +1 рядок odesa (DOCUMENTED / PROBED_OK, rights UNKNOWN). Codex: отримати права/походження x24.digital/Nimbus або офіційне джерело; інтегрувати лише після прав; calendar-filter обов'язковий. Browser matrix без змін (**19 PARTIAL / 305 NOT_TESTED**) — це discovery, не браузерний контроль.
 
+### Kharkiv / Dnipro — discovery: Dnipro surface CC-BY-4.0 (нестандартний адаптер); Kharkiv surface DEAD
+
+Qoder discovery lane (делегований read-only research + власна верифікація зондів), без активації.
+- **Dnipro surface PROBED_OK, офіційний CC-BY-4.0**: data.dniprorada.gov.ua dataset «Розклад руху міського електричного та автомобільного транспорту міста Дніпра», metadata_modified 2026-11-11; license CC-BY-4.0 (комерційно OK з атрибуцією). calendar.zip HTTP200/4656B, trips.zip 200/8416B. **132 маршрути / 260 trips / 132 сервіси; 247 sunday-рядків / 125 sunday-uid; startDate 2026-04-01 або null, endDate null (open-ended, покриває 15.11)**. АЛЕ **нестандартний GTFS-like**: `;`-delimiter, `serviceUid`, `endDate=null`, trips у **windows-1251**; **routes.txt/stops.txt НЕМАЄ** у zip; stop_times лише **XLSX (2026-10-01)**; внутрішні snapshots trips 2026-07-17 / calendar 2026-04..07 (zip перепакований 11.11) → мішані vintages, треба content-date label. Mode з uid-імен (трамвай/тролейбус/автобус). Потрібен **кастомний Codex-адаптер + джерело stops**; не drop-in GTFS.
+- **Dnipro metro**: metro.dp.ua/timetable HTTP200/260874B — лише HTML-розклад, немає GTFS/RT; license відсутня → UNKNOWN_RIGHTS, не feed.
+- **Kharkiv metro**: metro.kharkiv.ua графіки HTTP200/23834B — JS/HTML, немає машиночитаного експорту; license відсутня → UNKNOWN_RIGHTS. Legacy metro.kharkov.ua TLS expired (не обходив).
+- **Kharkiv surface DEAD**: data.kharkiv.ua і data.city.kharkiv.ua **NXDOMAIN**; офіційного GTFS і mirror не знайдено → **BLOCKED** для легального чинного feed. Codex — registry unavailable-запис.
+Ledger +4 рядки (dnipro surface CC-BY-4.0 DOCUMENTED; dnipro metro UNKNOWN; kharkiv metro UNKNOWN; kharkiv surface DEAD) → 63 рядки. Browser matrix без змін (19 PARTIAL / 305 NOT_TESTED); це discovery, не контроль.
+
 ## Попередній checkpoint — Kyiv source discovery (static/RT probed, metro DEAD)
 
 ### Kyiv — офіційні джерела знайдені й зондовані; метро-джерело DEAD
