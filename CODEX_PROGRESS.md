@@ -1,3 +1,15 @@
+## 2026-11-14 19:08 UTC — QODER: Routing3.0 walking cache/reuse diagnostics checkpoint — PARTIAL / NOT_RELEASED
+
+Isolated Server HEAD ad981095ede883b03e58f93417faf101872c7103, qoder/multimodal-real-chains-20261114, dirty patch. Current targeted tests45/45,0 fail/skip,740.432208ms; new rejection-detail tests negative control2/2 failed before implementation. Project TypeScript6.0.3 exit0; auxiliary5.9.3 failed and is not passing evidence. ESLint correct-cwd API executed8 patch files:0 errors/0 warnings; first CLI ignored8, not a gate. git diff --check exit0.
+
+Request-budget WeakMap reuses identical foot paths within search; validated osrm-foot-route legs reused without spending budget, while geometry/boarding/passenger caps remain enforced. Exhaustive JourneyLegMode transport mapping replaces fallback bus. New invalid_geometry details distinguish timing/coordinates/metrics/endpoint_snap/distance_geometry; no thresholds loosened or private GPS logs added.
+
+Historical isolated live Kyiv→Lviv after cache:16 generated real chains,16 invalid_geometry,0 accepted real chains,52.794s. Thus live acceptance FAIL, no proven latency improvement. Static mismatch: foot provider100m endpoint tolerance vs direct-walk validator15m; current read-only Kyiv foot probe212 points/3176.2m/2293.4s, offsets11.08/12.02m, polyline3175.35m passes strict contract and does not explain16 failures.
+
+Fresh remote Server main9477b73df9d70c34c7012547bf5cdb273a612737; relevant PR155–159 still open. Active API3002 e9934ab dirty and Site7777 b58cad9 dirty overlap code work; left unchanged. zrok retained; own3019/4174 stopped. In-app browser selected search structurally shows12 controls; pointer fails hidden/unattached. Computer Use visible browser belongs another chat and was not touched. Patch canonical browser acceptance BLOCKED/NOT_TESTED; no screenshot pass.
+
+Five requested interim reports written in docs, explicitly PARTIAL. Complete per-mode stage diagnostics, exact filters/diversity,20-scenario UI/API,27-region routing evidence, safe integration, chain commit/PR and hosted checks remain open. No DB/schema/deployment/protected branch/secret/foreign dirty edits. Resources26% free,swap8590.81MiB,disk21GiB; no duplicate web/build started.
+
 ## 2026-11-14 18:45 UTC — QODER: feed coverage recheck (27×12) — НІ, повного покриття немає; M5-90s 5/12; D10 Dozor mixed TZ; routing fixes PR #157/#158/#159 + Site #141
 
 1. Owner question «чи по фідах перекрита вся Україна по всіх видах транспорту»: verified NO against matrix + fresh probes. 10/324 FULLY_VERIFIED cells (3.09%), 4/27 regions, 4/12 modes; 8 modes with zero proven cells; 28 partner-gated cells; Sevastopol 12 UNKNOWN. FULLY_VERIFIED proves a validated source (e.g. 18 Uzhhorod routes), not oblast-wide settlement coverage.

@@ -1,3 +1,12 @@
+## RESUME BLOCK 2026-11-14 19:08 UTC — ROUTING 3.0 PARTIAL: walking cache/reuse + exact geometry subreasons; 45/45 targeted; TypeScript6 exit0; lint8 files 0/0; real chains NOT ACCEPTED; canonical7777/zrok preserved; NOT_RELEASED
+
+- Isolated Server `/tmp/mgwt/chains`, qoder/multimodal-real-chains-20261114, HEAD ad981095ede883b03e58f93417faf101872c7103 plus dirty patch; no new chain commit/PR. Remote main freshly read:9477b73df9d70c34c7012547bf5cdb273a612737. Active API3002 e9934ab dirty overlaps patch; Site7777 worktree330dd3 b58cad9 dirty. No runtime transfer/restart/deploy.
+- Current fixture checks:45/45,0 fail/skip,740.432208ms; new details negative control2/2 failed. tsc via project6.0.3 exit0; auxiliary5.9.3 failed, not a gate. ESLint API correct cwd:8 files,0 errors/warnings; initial CLI ignored8 files, not evidence. diff --check clean.
+- Historical isolated live Kyiv→Lviv last probe:16 generated real chains→16 invalid_geometry→0 accepted,52.794s. Cache removed route_unavailable starvation, not geometry failure. Endpoint contracts100m upstream vs15m downstream; current real Kyiv foot probe11.08/12.02m offsets satisfies strict contract, so exact16 failures still unlocalized. Added detail counters without loosening validation.
+- Browser this chat: zrok search snapshot has12 controls; pointer BLOCKED hidden/unattached. Visible Computer Use browser belongs another chat, untouched. No screenshot/E2E pass for patch. Own3019/4174 remain stopped; only canonical7777/zrok web.
+- Five requested interim reports now in docs/MULTIMODAL_ROUTING_{ROOT_CAUSE,IMPLEMENTATION,E2E_REPORT,REMAINING_GAPS}.md and docs/TRANSPORT_MODE_COVERAGE_MATRIX.md. Explicit PARTIAL, not completion certificates.
+- Next: diagnose concrete rejected leg; complete per-mode stages, exact filters/diversity, source semantics and20-scenario canonical acceptance; safe dirty-overlap integration review; commits/PR and hosted checks. Tasks53–57 remain open. No main/DB/secrets/foreign changes touched.
+
 ## RESUME BLOCK 2026-11-14 18:45 UTC — FEED COVERAGE RECHECK: повного покриття НЕМАЄ (10/324 клітинок, 4/27 регіонів, 4/12 режимів); M5 виправлено на гейт 90 с → M5-90s 5/12; новий дефект D10 Dozor змішані TZ; D3/D6/D9 виправлено → Server PR #157/#158/#159, Site PR #141; NOT_RELEASED
 
 - Відповідь власнику «чи перекрита вся Україна по всіх видах»: НІ. 8 режимів без жодної доведеної клітинки (metro, carpool, taxi, train, bike, scooter, carsharing, transfer); 28 клітинок PARTNER_ACCESS_REQUIRED; Севастополь 12 UNKNOWN. FULLY_VERIFIED ≠ всі населені пункти області.
