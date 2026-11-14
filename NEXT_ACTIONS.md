@@ -1,3 +1,8 @@
+## RESUME BLOCK 2026-11-15 — R08 NO-BUS CONTROL / PARTIAL / NOT_RELEASED
+
+- Base Root867e065. Native Qoder browser same Kyiv→Lviv OD/date09:00: Автобус=false, other11=true → **4 routes vs8 all12**, all4 А29/BUS candidates absent; train+Т01 alternatives preserved, Cheapest disabled0. SelectionAX/resultsPNG/resultsAX final-browser-r08-no-bus* saved; PNG Read-viewed. VERIFIED rendered filter only; source/calendar/geometry/fare/runtime acceptance still PARTIAL. Totals14OD/**35searches**+1negative/0accepted; matrix20PARTIAL304NOT_TESTED unchanged (same OD; no new region/mode acceptance).
+- Codex dated-source task published issue26 comment6885343535; Root PR25 head867e065 before this checkpoint. Server/DB/7777/zrok untouched. Next: R08 rail+tram detailed stop/geometry check and transport deep-link parity (URL all12/minus-bus currently identical; reload behavior NOT_TESTED), plus remaining regional source/adapter crosswalks. NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-15 — R08 EGRESS FOLLOW-UP / PARTIAL / NOT_RELEASED
 
 - Base Root4512a06. Native Qoder browser: А29 stops18:44→18:56 підтверджують показаний зв'язок з train715 arrival18:26 + walk2 + wait16 → finish19:00. Картка1: final WALK **3,3км/40хв**, PNG+native AX final-browser-r08-egress; це не порушення effective intercity cap: Server e9934abb index.ts:3360–3362 використовує5000м для OD>30км. Гіпотезу1000м спростовано на диску; runtime parity/calendar/geometry/fare NOT_VERIFIED. Totals без змін14OD/34searches+1negative/0accepted, matrix20PARTIAL304NOT_TESTED.
