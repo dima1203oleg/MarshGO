@@ -1,3 +1,7 @@
+## 2026-11-14 17:30 UTC — QODER: BROWSER CHAIN on zrok contour (390×844) — runtime Site f88ba55 dirty / API e9934ab dirty (not main)
+
+VERIFIED: home, Kyiv→Lviv 2 rail journeys with UNKNOWN fare, Fastest tab, Cheapest disabled honestly, route detail with geometry «ЗА РОЗКЛАДОМ» and no fake GPS, «+» quick actions, driver-role guard, publish disabled without verified car, Trips 5 tabs, demand validation (no POST on empty submit), notifications, chats, token refresh after 401. DEFECT: stale driver-role banner (~15 min). Finding: 3 s polling regardless of realtime. Fixed: manifest anonymous fetch → zrok interstitial, MarshGO-Site PR #140 commit 854abf7, test negative control failed first, full `npm test` 895/895 (0 skipped). PARTIAL: notifications vs empty Active tab. Evidence: docs/evidence/browser-zrok-2026-11-14/. NOT_RELEASED.
+
 ## 2026-11-14 15:47 UTC — QODER: NATIONAL COVERAGE COMPLETION — 27×12 matrix measured (324 cells), 8 metrics with real denominators, 5 evidence artifacts; commit f5dfda6 on qoder/carpool-5-20261113
 
 Deliverable: docs/MARSHGO_NATIONAL_COVERAGE_AUDIT.md + docs/evidence/national-coverage-{matrix,gaps,metrics}-2026-11-14.{csv,json} + national-feed-{measurements,candidates}-2026-11-14.{json,csv}. Base: remote main 9477b73df9d70c34c7012547bf5cdb273a612737 read through GitHub contents API (local refs not trusted). Every status derives from a dated 2026-11-14 measurement; no status assigned from a dataset title or from memory.

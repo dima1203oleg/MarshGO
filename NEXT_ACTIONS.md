@@ -1,3 +1,12 @@
+## RESUME BLOCK 2026-11-14 17:30 UTC — BROWSER CHAIN on zrok contour (390×844) delivered: 11 screenshots, search/route/publish guards/demand validation VERIFIED; stale driver-role banner DEFECT; 3 s polling finding; manifest fix PR Site#140 (854abf7, 895/895); NOT_RELEASED
+
+- Runtime is NOT main: Site 330dd3 f88ba55 dirty (83 files), API e9934ab dirty. Evidence + index: docs/evidence/browser-zrok-2026-11-14/README.md.
+- DEFECT (task #46): «Спершу активуйте роль водія у профілі.» stays ~15 min after the role is enabled.
+- Efficiency: Trips polls /bookings + /conversation-unread-counts every 3.0 s even with realtime connected (ProductionMarketplace.tsx:831-848).
+- PARTIAL: notifications list trip-started events while Active tab is empty — needs read-only DB check of journeys.
+- NOT_TESTED: real submits, two-account booking/negotiation, 320/430 px, physical iPhone.
+- Next: #42 regional feed import (Odesa mdb-2946, Bucha mdb-2945, EasyWay Rivne/Chernivtsi/Korosten; exclude Malin — OwnNet licence, not open — and Kyiv CKAN); correct audit §7 on Malin.
+
 ## RESUME BLOCK 2026-11-14 15:47 UTC — NATIONAL COVERAGE AUDIT delivered: 324 measured cells (27×12), 8 metrics, 10 FULLY_VERIFIED / 14 FEED_FOUND_NOT_INTEGRATED / 245 gaps; M8 routing NOT_MEASURED; commit f5dfda6; NOT_RELEASED
 
 - Artifact: docs/MARSHGO_NATIONAL_COVERAGE_AUDIT.md + 5 evidence files (matrix 324 rows / gaps 245 / metrics 8 / measurements 96 URL / candidates 52 CKAN resources). Base = remote main 9477b73df9d70c34c7012547bf5cdb273a612737 (read via GitHub contents API, not local refs). All probes dated 2026-11-14, production UA MARSHGO-Mobility/1.0.
