@@ -1,3 +1,12 @@
+## RESUME BLOCK 2026-11-14 18:45 UTC — FEED COVERAGE RECHECK: повного покриття НЕМАЄ (10/324 клітинок, 4/27 регіонів, 4/12 режимів); M5 виправлено на гейт 90 с → M5-90s 5/12; новий дефект D10 Dozor змішані TZ; D3/D6/D9 виправлено → Server PR #157/#158/#159, Site PR #141; NOT_RELEASED
+
+- Відповідь власнику «чи перекрита вся Україна по всіх видах»: НІ. 8 режимів без жодної доведеної клітинки (metro, carpool, taxi, train, bike, scooter, carsharing, transfer); 28 клітинок PARTNER_ACCESS_REQUIRED; Севастополь 12 UNKNOWN. FULLY_VERIFIED ≠ всі населені пункти області.
+- Вечірні проби 18:19–18:22 UTC (17 записів, read-only): LIVE за 90-секундним гейтом — Львів/Стрий/ІФ/Рівне/Ужгород RT, Полтава JSON, Київ Zelectra GBFS (999 самокатів, не транзит). Дніпро iCity 86/388 (22.2%) невалідних координат → у M5-90s не зараховано. UZ-дзеркало 5 діб. Carpool: 0 активних пропозицій (повторний запит БД).
+- D10 (новий): Dozor devices.json змішує UTC і київський час у межах фіда — Біла Церква 46/131 fresh, Кам'янець 26/138, Ужгород JSON 6/51, Червоноград 5/12; Олександрія/Конотоп порожні. Потрібен TZ-нормалізатор разом із #43.
+- M5 (≤24 год) був м'якший за продуктовий MAX_FEED_AGE_MS=90 с → позначено superseded, додано M5-90s=5/12. Артефакти: docs/evidence/national-live-probe-2026-11-14-evening.json, оновлені metrics JSON і §14 аудиту.
+- Виправлення маршрутизації цього сеансу: D6 міжміський GTFS (PR #157, 22e4798), D3 дубль-картки однакових пересадок (PR #158, 1b6f522; 244/245, 1 відомий flaky ізольовано 3/3×3), D9 порожній вибір транспорту → 400 (PR #159, f29b189) + Site-повідомлення (PR #141, aad6115; браузер 390 px підтвердив, запиту немає).
+- Next: #43 GPS+TZ карантин, M8 браузерний аудит (триває, задача #49), CI PR #155–159. 3002/7777/zrok, чужі dirty, секрети — недоторкані. PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-14 18:30 UTC — #42 REGIONAL FEEDS: catalog already had all 5 target feeds; gap was seeding. Malyn OwnNet mislabelled «commercial use permitted» (DEFECT, fixed) + --regional-mirrors seed scope → MarshGO-Server PR #155 (6e84dff); 743/749 pass, 0 fail, 6 opt-in skipped; tsc 0; NOT_RELEASED
 
 - Read-only DB (marshgo-db-1, 85 providers): no Odesa/Bucha MDB mirror, no EasyWay Rivne/Chernivtsi/Korosten rows. Seed NOT run on the shared DB behind zrok — owner/Codex decision.

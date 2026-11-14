@@ -103,7 +103,9 @@
     "vinnytsia-oblast",
     "zakarpattia-oblast"
    ]
-  }
+  },
+  "superseded_by": "M5-90s",
+  "note": "Початковий метод рахував вік ≤24 год; продуктовий гейт — 90 с (gtfsRealtime.ts MAX_FEED_AGE_MS). Див. M5-90s."
  },
  {
   "id": "M6",
@@ -239,5 +241,36 @@
   "method": "Успішні планування / виконані O/D-пари (місто, приміська, міжобласна, мультимодальна; 3 стратегії). NOT_MEASURED — окремий прогон ще не виконано.",
   "value": null,
   "detail": "NOT_MEASURED"
+ },
+ {
+  "id": "M5-90s",
+  "name": "Realtime-покриття регіонів (гейт 90 с)",
+  "numerator": 5,
+  "denominator": 12,
+  "method": "Регіони з ≥1 транзитним RT/JSON-фідом, що проходить 90-секундний гейт свіжості без дефекту якості, / регіони з заявленим concrete RT-джерелом. Проби 2026-11-14 18:19–18:22 UTC, national-live-probe-2026-11-14-evening.json.",
+  "value": 0.4167,
+  "detail": {
+   "live": [
+    "lviv-oblast",
+    "ivano-frankivsk-oblast",
+    "poltava-oblast",
+    "rivne-oblast",
+    "zakarpattia-oblast"
+   ],
+   "excluded_defect": [
+    "dnipropetrovsk-oblast: 86/388 (22.2%) невалідних координат"
+   ],
+   "excluded_stale": [
+    "kyiv-oblast (Біла Церква 46/131 fresh, змішані TZ)",
+    "khmelnytskyi-oblast (Камʼянець 26/138 fresh)",
+    "zakarpattia JSON (Ужгород 6/51 fresh; регіон зараховано через RT)",
+    "lviv-oblast JSON (Червоноград 5/12 fresh; регіон зараховано через RT)",
+    "sumy-oblast (gps.sumy.ua 31 доба)",
+    "kirovohrad-oblast (Олександрія 0 ТЗ)",
+    "vinnytsia-oblast",
+    "kyiv (HTTP-only RT, вимкнено)"
+   ],
+   "separate": "Київ GBFS самокати Zelectra: 999 ТЗ, age 0 с — LIVE, але це не транзитний RT"
+  }
  }
 ]
