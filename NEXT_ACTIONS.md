@@ -1,3 +1,9 @@
+## RESUME BLOCK 2026-11-15 — DNIPRO STOPS + R08 TRAM / PARTIAL / NOT_RELEASED
+
+- Base Rootfe72669. R08 native Qoder: train715 arrival18:26 + walk4хв303м + wait16хв → Т01 18:46–19:03 (8 stops) + final walk1хв114м →19:04; temporal continuity VERIFIED rendered-only; transfer303м≤400м. Native tram PNG/AX + walk PNG saved/Read-viewed. Totals14OD35searches+1negative0accepted; matrix20PARTIAL304NOT_TESTED unchanged.
+- Dnipro official stops dataset6f7b20d2-bf56-4b74-bde7-7ade75719220 CC-BY-4.0; resource23396344-7425-422d-a398-0852d2299768 UTF8 comma uid/lat/lon; content01Oct, modified13Oct. stopTimes.stopId→stops.uid sample VERIFIED. BLOCKER: stopTimes.tripUid sample5e7f2e8015ad5b4c0414428b matches trips.routeuid2x and uid0x contrary schema; Codex must resolve ambiguity before ingestion. Existing ledger row updated (62 records + header =63 rows;22cols, no parallel registry); no adapter/import/restart/deploy.
+- Codex handoff published GitHub issue26 comment6885426563. Next: Codex Dnipro trip/service mapping + R08 dated-source/runtime crosswalk; Qoder transport deep-link restoration and remaining regional controls. Server/DB/7777/zrok untouched; NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-15 — R08 NO-BUS CONTROL / PARTIAL / NOT_RELEASED
 
 - Base Root867e065. Native Qoder browser same Kyiv→Lviv OD/date09:00: Автобус=false, other11=true → **4 routes vs8 all12**, all4 А29/BUS candidates absent; train+Т01 alternatives preserved, Cheapest disabled0. SelectionAX/resultsPNG/resultsAX final-browser-r08-no-bus* saved; PNG Read-viewed. VERIFIED rendered filter only; source/calendar/geometry/fare/runtime acceptance still PARTIAL. Totals14OD/**35searches**+1negative/0accepted; matrix20PARTIAL304NOT_TESTED unchanged (same OD; no new region/mode acceptance).
