@@ -1,3 +1,9 @@
+## RESUME BLOCK 2026-11-15 — ODESA SURFACE DISCOVERY / PARTIAL / NOT_RELEASED
+
+- Root34c47e0; активні Site/API/7777/zrok/sharedDB unchanged; no activation/import/restart/deploy. Odesa surface mirror mdb-2946 PROBED_OK fresh14.11: 87 routes (18tram/62bus/7trolleybus), stops3719, shapes54872; calendar50 сервісів/48 active Sun15.11, 10354 trips; **NO feed_info**; tram+trolleybus = агрегатор «OD Depot 1» gps.x24.digital (Nimbus), bus = комунальне+9 приватних; **license відсутня → rights UNKNOWN → commercial activation BLOCKED**. Ledger +1 odesa row (59 рядків). Codex handoff issue26: rights/provenance x24.digital/Nimbus або офіційне Odesa open-data; calendar-filter; інтеграція лише після прав.
+- U05 попередньо: bike-only 1 маршрут33хв Nextbike rental, чесні fare/geometry, PARTIAL; handoff 6885075054 (GBFS inventory / bike distance / hardcoded AVAILABLE). Totals **13OD / 33searches + 1negative / 0accepted**; matrix **19PARTIAL / 305NOT_TESTED**.
+- Next: Codex Kyiv+Odesa crosswalk/rights; Qoder — Kharkiv/Dnipro urban surface+metro discovery; DATE-01 після hunk ACK (досі немає); PR161 merge чекає Codex/owner. NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-15 — U05 ODESA BIKE / PARTIAL / NOT_RELEASED
 
 - Root75d9af5 (після Kyiv discovery commit); активні Site/API/7777/zrok/sharedDB unchanged, no import/restart/deploy. U05 native Qoder in-app browser: Дерибасівська вулиця Одеса w:103145385 30.7357443/46.4843134 → Аркадія Одеса n:2151201619 30.760832/46.431789, 15Nov09:00, 1пасажир, BIKE-only. **1 маршрут 33хв** = walk4(322м)+bike27+walk2(117м), 0 пересадок; fare «ціна уточнюється» (не zero), Cheapest disabled. Details: bike = **Nextbike rental station-to-station**, але generic «Nextbike» без station names / live availability; bike leg без дистанції; усі сегменти ОРІЄНТОВНО + чесний banner «частина пішої геометрії не підтверджена — лінію не домальовано». PNG+AX results і details native saved/Read-viewed.

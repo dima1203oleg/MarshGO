@@ -14,6 +14,10 @@ Verdict: ланцюжок структурно коректний і чесно 
 
 Сукупно **13 exact OD, 33 transport searches + 1 empty-mode negative, 0 fully accepted**; matrix **19 PARTIAL / 305 NOT_TESTED** (odesa bike executed=true, succ0). Server/DB/3002 unchanged; 7777/zrok живі; no import/restart/deploy. DATE-01 hunk ACK досі немає; PR161 review VERIFIED чекає merge. NOT_RELEASED.
 
+### Odesa surface — дзеркало mdb-2946 зондоване; права UNKNOWN (не активовано)
+
+Qoder discovery lane, без активації. `https://files.mobilitydatabase.org/mdb-2946/latest.zip` HTTP200 / 8330330 bytes / 2.22 s; last-modified 14.11.2026 00:48 GMT, файли 14.11 02:25. **87 маршрутів = 18 tram(0) + 62 bus(3) + 7 trolleybus(11)**; stops 3719; shapes 54872 pts (геометрія присутня). Calendar 50 сервісів, **48 активних у нд 15.11.2026**, 10354/10370 trips; end 20261231/20261227; **feed_info ВІДСУТНІЙ** (немає rolling-expiry, на відміну від Києва). Tram+trolleybus належать агрегатору **«OD Depot 1» (gps.x24.digital)**, а не муніципальному оператору; bus = комунальне АТП міськвиконкому + 9 приватних; calendar містить `nimbus_default` → платформа Nimbus. У фіді **license немає**; дзеркало third-party → **права UNKNOWN → комерційна активація ЗАБЛОКОВАНА** до provenance/license або офіційного одеського open-data джерела. Ledger +1 рядок odesa (DOCUMENTED / PROBED_OK, rights UNKNOWN). Codex: отримати права/походження x24.digital/Nimbus або офіційне джерело; інтегрувати лише після прав; calendar-filter обов'язковий. Browser matrix без змін (**19 PARTIAL / 305 NOT_TESTED**) — це discovery, не браузерний контроль.
+
 ## Попередній checkpoint — Kyiv source discovery (static/RT probed, metro DEAD)
 
 ### Kyiv — офіційні джерела знайдені й зондовані; метро-джерело DEAD
