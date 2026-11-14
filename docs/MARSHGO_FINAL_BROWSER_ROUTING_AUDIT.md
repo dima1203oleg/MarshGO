@@ -1,6 +1,20 @@
 # MARSHGO — Final User Experience & National Routing Audit
 
-## Поточний вердикт: PARTIAL / NOT_RELEASED — 2026-11-15, Kyiv source discovery
+## Поточний вердикт: PARTIAL / NOT_RELEASED — 2026-11-15, U05 Odesa bike-only
+
+### U05 — Одеса, Дерибасівська → Аркадія, BIKE-only (Nextbike rental)
+
+Native Qoder in-app browser https://marshgo-dima.shares.zrok.io, 445×843 dark. Exact autocomplete OD: Дерибасівська вулиця, Одеса w:103145385 30.7357443/46.4843134 → Аркадія, Одеса n:2151201619 30.760832/46.431789 (~6 км); 15.11.2026 09:00 Europe/Kyiv, 1 пасажир, unlimited budget, no-transfers=false; лише Велосипед pressed=true. **1 маршрут 33 хв** = Пішки 4 хв (322 м) + Велосипед 27 хв + Пішки 2 хв (117 м), 0 пересадок, 09:00→09:32. Fare «Ціна уточнюється» / «Загальна вартість: невідома» (не zero); Найдешевший disabled·0; Оптимальний pressed / Найшвидший·1. Header «15.11, 09:00 · Велосипед · 1 маршрут».
+
+Details: bike leg = **Nextbike rental station-to-station** («Nextbike до Nextbike»), НЕ own-bike; але імена станцій generic «Nextbike», **live availability / inventory не показані**; bike leg **без дистанції** (лише 27 хв). Усі 3 сегменти **ОРІЄНТОВНО**; live-status «Для частини пішого маршруту немає перевіреної геометрії — лінію не домальовано» (чесно: лінію не вигадано). Карта рендериться (Старт + фініш), five-item nav intact.
+
+Evidence: [results PNG](evidence/final-browser-u05-odesa-bike.png)/[AX](evidence/final-browser-u05-odesa-bike-ax.txt), [details PNG](evidence/final-browser-u05-odesa-bike-details.png)/[AX](evidence/final-browser-u05-odesa-bike-details-ax.txt) — native saved і Read-viewed. Navigation/booking/GPSconsent не запускалися.
+
+Verdict: ланцюжок структурно коректний і чесно маркований, але **PARTIAL**: Nextbike rental без station identity / live availability і без bike distance → Codex GBFS crosswalk (Odesa station inventory + bike-leg distance). Це виконаний контроль, не fully accepted route.
+
+Сукупно **13 exact OD, 33 transport searches + 1 empty-mode negative, 0 fully accepted**; matrix **19 PARTIAL / 305 NOT_TESTED** (odesa bike executed=true, succ0). Server/DB/3002 unchanged; 7777/zrok живі; no import/restart/deploy. DATE-01 hunk ACK досі немає; PR161 review VERIFIED чекає merge. NOT_RELEASED.
+
+## Попередній checkpoint — Kyiv source discovery (static/RT probed, metro DEAD)
 
 ### Kyiv — офіційні джерела знайдені й зондовані; метро-джерело DEAD
 
