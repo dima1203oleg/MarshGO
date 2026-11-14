@@ -1,0 +1,243 @@
+[
+ {
+  "id": "M1",
+  "name": "Адміністративне покриття (регіони з FULLY_VERIFIED)",
+  "numerator": 4,
+  "denominator": 27,
+  "method": "Регіони, де ≥1 клітинка FULLY_VERIFIED за пробами 2026-11-14. Знаменник 27 = 24 області + АР Крим + м. Київ + м. Севастополь; Севастополь відсутній у UKRAINE_REGIONS (26).",
+  "value": 0.1481,
+  "detail": [
+   "kyiv",
+   "lviv-oblast",
+   "poltava-oblast",
+   "zakarpattia-oblast"
+  ]
+ },
+ {
+  "id": "M2",
+  "name": "Модальне покриття (12 канонічних типів)",
+  "numerator": 4,
+  "denominator": 12,
+  "method": "Типи з ≥1 FULLY_VERIFIED клітинкою; знаменник = canonicalTransportTypes.length.",
+  "value": 0.3333,
+  "detail": [
+   "bus",
+   "marshrutka",
+   "tram",
+   "trolleybus"
+  ]
+ },
+ {
+  "id": "M3",
+  "name": "Покриття клітинок матриці",
+  "numerator": 10,
+  "denominator": 324,
+  "method": "FULLY_VERIFIED / (27×12=324). Каталог покриває 26×12=312; 12 клітинок Севастополя = UNKNOWN.",
+  "value": 0.0309,
+  "detail": {
+   "fully_verified": 10,
+   "partially_covered": 56,
+   "cells_total": 324,
+   "catalogued_cells": 312
+  }
+ },
+ {
+  "id": "M4",
+  "name": "Інтеграція відомих відкритих транспортних ресурсів",
+  "numerator": 86,
+  "denominator": 140,
+  "method": "Унікальні concrete-resource URL з access=OPEN (каталог 88 + регіональний каталог + транспортні ресурси CKAN, витягнуті сьогодні; фінансові/звітні набори виключені), нормалізовані. Чисельник — присутні в каталозі або mobility_providers.",
+  "value": 0.6143,
+  "detail": {
+   "not_integrated_count": 54,
+   "not_integrated_sample": [
+    "https://admin-gis.khm.gov.ua/public-api/get/data_social_object.data_location_stops?key=100580193125&limit=1000&offset=0",
+    "https://api.mycity.khm.gov.ua/api/all/listpublictransportroutes",
+    "https://api.mycity.khm.gov.ua/api/all/placingstops",
+    "https://api.mycity.khm.gov.ua/api/all/scheduledeparturearrivaltransport",
+    "https://data.gov.ua/dataset/0142d73a-0b8f-4d96-ba59-1d1f04cbc784/resource/62189f24-70c2-41c2-a938-a2da858c9129/download/rozklad_ruhu_gromadskogo_transportu.xlsx",
+    "https://data.gov.ua/dataset/10ac2784-19cd-4dc7-a172-678684fa0509/resource/5cdbc55b-8be3-46d7-8652-b413915a7f59/download/stops.csv",
+    "https://data.gov.ua/dataset/10ac2784-19cd-4dc7-a172-678684fa0509/resource/937ca90a-cb27-473a-b177-99b82d49a125/download/stops.csv",
+    "https://data.gov.ua/dataset/4311500c-6002-49f9-99a6-db5e9d1108a4/resource/18f62292-110b-48a1-afe5-61e0c68a7290/download/calendar.csv",
+    "https://data.gov.ua/dataset/4311500c-6002-49f9-99a6-db5e9d1108a4/resource/43f8d577-352d-4b92-9201-ab7473f1276a/download/trips.csv",
+    "https://data.gov.ua/dataset/4311500c-6002-49f9-99a6-db5e9d1108a4/resource/b5e4b0e2-bd8c-4e7b-8277-4a278b31d46c/download/calendardates.csv",
+    "https://data.gov.ua/dataset/4311500c-6002-49f9-99a6-db5e9d1108a4/resource/d27f0447-0b5a-4973-ac22-5fb4c4dd7119/download/stoptimes.csv",
+    "https://data.gov.ua/dataset/6c399904-828a-4b40-a10d-4a1f398f7283/resource/0cafcc0f-2193-4e80-b82c-0411f9d928aa/download/agency_pereviznykysumy_25_01_2022_bus-trolleybas1.xlsx",
+    "https://data.gov.ua/dataset/6c399904-828a-4b40-a10d-4a1f398f7283/resource/1ef378fb-8970-4155-8431-b8fb22a45ec4/download/marshrutavtobussumy_july_2019.xlsx",
+    "https://data.gov.ua/dataset/6c399904-828a-4b40-a10d-4a1f398f7283/resource/5fe1c011-0787-4e5e-9285-e751fc1c1dc8/download/routes_pereviznykysumy_25_01_2022_bus-trolleybas2.xlsx",
+    "https://data.gov.ua/dataset/6c399904-828a-4b40-a10d-4a1f398f7283/resource/801c43a6-6d93-4921-bc22-0b3ac2f122cf/download/trolleybussumy_july_2019.xlsx",
+    "https://data.gov.ua/dataset/8709b727-aab7-4ed0-a0a7-9073e32da58e/resource/10f716ff-7b04-4a29-921b-db88575dec07/download/agency.csv",
+    "https://data.gov.ua/dataset/8709b727-aab7-4ed0-a0a7-9073e32da58e/resource/4ec987ad-aa05-4f47-9cd1-0abe75b3c3c3/download/calendar.csv",
+    "https://data.gov.ua/dataset/8709b727-aab7-4ed0-a0a7-9073e32da58e/resource/c6d5bf2b-78e8-4f6d-9abe-3dff5eaefc43/download/stop_times.csv",
+    "https://data.gov.ua/dataset/8709b727-aab7-4ed0-a0a7-9073e32da58e/resource/cc85404a-9330-48e9-8c16-736376a7ffd0/download/calendar_dates.csv",
+    "https://data.gov.ua/dataset/97cddf57-fe90-4af1-b9ae-8fd06ca9a06b/resource/2e077685-6162-4b86-a34a-d9893f57e960/download/zupyn_stop_01032021.xlsx",
+    "https://data.gov.ua/dataset/97cddf57-fe90-4af1-b9ae-8fd06ca9a06b/resource/8a1d2b66-59f0-42c8-aa70-6f9613ec1a64/download/troll_stops.xlsx",
+    "https://data.gov.ua/dataset/97cddf57-fe90-4af1-b9ae-8fd06ca9a06b/resource/8e448b51-0a4a-4ccd-96eb-799c94b15d9a/download/zupyn_stop_2024-12-23.csv",
+    "https://data.gov.ua/dataset/97cddf57-fe90-4af1-b9ae-8fd06ca9a06b/resource/c3538526-826c-4fe2-ba6f-efd18f46cf51/download/troll_stops.csv",
+    "https://data.gov.ua/dataset/97cddf57-fe90-4af1-b9ae-8fd06ca9a06b/resource/fc3418f8-c963-41f3-82d7-65e816b25883/download/troll_stops_01012021.xlsx",
+    "https://data.gov.ua/dataset/98b9c8de-e84b-46a6-ae43-68acdd6fa014/resource/32f1628c-ab26-49cc-bddb-da6d16f3517d/download/perelik_pereviznyk_01062021.xls"
+   ]
+  }
+ },
+ {
+  "id": "M5",
+  "name": "Realtime-покриття регіонів",
+  "numerator": 3,
+  "denominator": 12,
+  "method": "Регіони з валідованим живим RT/JSON-фідом сьогодні (FeedHeader.ts або JSON timestamp у межах доби, без дефекту якості) / регіони, де каталог заявляє concrete RT-джерело.",
+  "value": 0.25,
+  "detail": {
+   "live": [
+    "ivano-frankivsk-oblast",
+    "lviv-oblast",
+    "poltava-oblast"
+   ],
+   "claimed_only": [
+    "dnipropetrovsk-oblast",
+    "khmelnytskyi-oblast",
+    "kirovohrad-oblast",
+    "kyiv",
+    "kyiv-oblast",
+    "rivne-oblast",
+    "sumy-oblast",
+    "vinnytsia-oblast",
+    "zakarpattia-oblast"
+   ]
+  }
+ },
+ {
+  "id": "M6",
+  "name": "Свіжість вмісту (≤24 год)",
+  "numerator": 17,
+  "denominator": 25,
+  "method": "Лише джерела з виміряною сьогодні датою вмісту (Last-Modified / FeedHeader.ts / feed_info). Фід без дати вмісту = NOT_MEASURED і в знаменник не входить.",
+  "value": 0.68,
+  "detail": {
+   "fresh": [
+    [
+     "https://track.ua-gis.com/gtfs/lviv/static.zip",
+     15.2
+    ],
+    [
+     "https://track.ua-gis.com/gtfs/lviv/trip_updates",
+     15.3
+    ],
+    [
+     "https://track.ua-gis.com/gtfs/lviv/vehicle_position",
+     15.3
+    ],
+    [
+     "https://track.ua-gis.com/gtfs/stryi/static.zip",
+     15.2
+    ],
+    [
+     "https://track.ua-gis.com/gtfs/uzhhorod/static.zip",
+     15.2
+    ],
+    [
+     "https://zelectra.rideatom.com/gbfs/66/v3.0/gbfs",
+     15.3
+    ],
+    [
+     "https://city.dozor.tech/iv-frankivsk/gtfs/vehicle_position",
+     15.3
+    ],
+    [
+     "https://public.easyway.info/gps/chervonograd.json",
+     0.2
+    ],
+    [
+     "https://api-t900.icity.com.ua/api/gps_data",
+     15.3
+    ],
+    [
+     "https://public.easyway.info/gps/poltava.json",
+     0.2
+    ],
+    [
+     "https://jbb.ghsq.de/gtfs/ua-kyiv.gtfs.zip",
+     16.3
+    ],
+    [
+     "https://track.ua-gis.com/gtfs/chervonograd/static.zip",
+     15.3
+    ],
+    [
+     "https://files.mobilitydatabase.org/mdb-2946/latest.zip",
+     14.5
+    ],
+    [
+     "https://files.mobilitydatabase.org/mdb-2945/latest.zip",
+     13.7
+    ],
+    [
+     "https://public.easyway.info/gps/chernivtsi.json",
+     0.2
+    ],
+    [
+     "https://public.easyway.info/gps/korosten.json",
+     0.2
+    ],
+    [
+     "https://public.easyway.info/gps/rivne.json",
+     0.2
+    ]
+   ],
+   "aged": [
+    [
+     "https://gtfs.fsn1.your-objectstorage.com/feeds/gtfs.zip",
+     7824.9
+    ],
+    [
+     "https://data.gov.ua/dataset/032c23f0-dbe5-4b63-8c1f-03218758ae60/resource/d997fdbf-7a25-487b-ad47-ee5541d552be/download/chornomorsk-2019-09-05-10-24-50.zip",
+     63030.8
+    ],
+    [
+     "https://public.easyway.info/gps/konotop.json",
+     6511.2
+    ],
+    [
+     "https://gps.sumy.ua/gtfs/gtfs-vehicle-positions.proto",
+     740.7
+    ],
+    [
+     "https://jbb.ghsq.de/gtfs/ua-ukrzaliznytsya.gtfs.zip",
+     112.3
+    ],
+    [
+     "https://malin.kiev.ua/transport/gtfs.zip",
+     99.7
+    ],
+    [
+     "https://data.kyivcity.gov.ua/dataset/7b958c05-43ba-4ae5-b541-01904d658030/resource/e9d7590e-55ff-4d5d-8b5a-251900ef1967/download/routes.csv",
+     2282.6
+    ],
+    [
+     "https://data.kyivcity.gov.ua/dataset/3870075f-4f65-4656-a125-4648ae220c3d/resource/269ffb2e-dac0-4978-9552-10d29a30724b/download/31725604_stops.json",
+     1082.9
+    ]
+   ]
+  }
+ },
+ {
+  "id": "M7",
+  "name": "Ліцензійна прозорість каталогу",
+  "numerator": 84,
+  "denominator": 88,
+  "method": "Записи каталогу з непорожнім license / 88. Портальні ресурси CKAN мають license_title окремо (CC-BY); data.kyivcity.gov.ua license_title = null → LICENSE_UNKNOWN.",
+  "value": 0.9545,
+  "detail": {
+   "portal_resources_with_license": 52,
+   "portal_resources_total": 52
+  }
+ },
+ {
+  "id": "M8",
+  "name": "Доведена маршрутизація на реальних фідах",
+  "numerator": null,
+  "denominator": null,
+  "method": "Успішні планування / виконані O/D-пари (місто, приміська, міжобласна, мультимодальна; 3 стратегії). NOT_MEASURED — окремий прогон ще не виконано.",
+  "value": null,
+  "detail": "NOT_MEASURED"
+ }
+]
