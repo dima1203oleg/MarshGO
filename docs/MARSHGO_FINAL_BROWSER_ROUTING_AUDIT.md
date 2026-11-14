@@ -19,6 +19,12 @@ Official full DataStore9750 reported/returned rows contains3tripUid for tram1/11
 
 [Source crosswalk JSON](evidence/dnipro-source-crosswalk-2026-11-15.json) records query/resource IDs, hashes and counts; [Codex handoff](https://github.com/dima1203oleg/MarshGO/issues/26#issuecomment-6885627443). Full downloadable XLSX parity NOT_VERIFIED (10.355MB, HTTP Range ignored200; body not read, heavy parser deferred at27%free memory). All DataStore rows does not mean all workbook rows/sheets; no claim whole source has only3routes. OfficialCC-BY-4.0 remains, no ingestion/activation/runtime changes. Browser counts unchanged; U06 running-server cause still NOT_VERIFIED.
 
+### Poltava/Kremenchuk source discovery — reachable resources, no dated-route acceptance
+
+Independent GET corrected delegated403 results: official Poltava XLSX HTTP200/175851B (Jan2025 upload), SHA256ea58b8bf0b65131399084be4be45c0d9431e02115187112aa0ba304197606639. Small workbook inspection:1sheet/1992rows with mixed blocks dated2023/2024, named Південний/Київський вокзал, Excel fractions plus text times. Portal CC-BY4 unless otherwise stated; current2026 validity/calendar/trip-stop keys/coords NOT_VERIFIED. Legacy bus/trolleybus XML reachable200 but Word.Document format and2019 content, not live transit feeds. Kremenchuk official city page endorses26А+ HTML with station name/relative timings; commercial rights/current calendar/coordinates/export UNKNOWN. No activation or new browser control; source presence does not prove coverage.
+
+Existing discovery ledger +4records (66records+header/22columns). [Codex handoff](https://github.com/dima1203oleg/MarshGO/issues/26#issuecomment-6885699147) requires publisher-confirmed current block/day calendars, stop-coordinate crosswalk and deterministic date/time-format fixtures; Kremenchuk licensed export. Counts stay15OD39searches+1negative0accepted,24PARTIAL300NOT_TESTED. No Server/Site/DB/7777/zrok changes/tests/build/import/restart/deploy. NOT_RELEASED.
+
 ## Попередній checkpoint — R08 Kyiv→Lviv inter-oblast
 
 ### R08 — Київ, Вокзальна площа 1 → Львів, площа Ринок, усі 12 категорій (міжобласний ланцюжок)
