@@ -1,9 +1,9 @@
 region_id,region_name,mode,prior_feed_status,browser_status,browser_executed,successful_od_count,attempted_od_count,od,departure_at,source_verified_for_od,evidence,blocker,measurement_date
-kyiv,місто Київ,bus,FULLY_VERIFIED,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
+kyiv,місто Київ,bus,FULLY_VERIFIED,PARTIAL,true,0,1,Вокзальна площа 1 Київ n:2644051429 30.4884813/50.4400123 → Позняки Київ n:1308284052 30.6271509/50.4107574,2026-11-15T09:00:00+02:00,NOT_VERIFIED,final-browser-u04-kyiv-bus.png;final-browser-u04-kyiv-bus-ax.txt,0 routes bus-only despite Київпастранс gtfs advertised available at origin; Codex ingestion/calendar/eligibility crosswalk,2026-11-14T21:56:00Z
 kyiv,місто Київ,marshrutka,FEED_FOUND_NOT_INTEGRATED,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
 kyiv,місто Київ,trolleybus,FULLY_VERIFIED,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
 kyiv,місто Київ,tram,FULLY_VERIFIED,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
-kyiv,місто Київ,metro,UNKNOWN,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
+kyiv,місто Київ,metro,UNKNOWN,PARTIAL,true,0,1,Вокзальна площа 1 Київ n:2644051429 30.4884813/50.4400123 → Позняки Київ n:1308284052 30.6271509/50.4107574,2026-11-15T09:00:00+02:00,NOT_VERIFIED,final-browser-u04-kyiv-metro.png;final-browser-u04-kyiv-metro-ax.txt,0 routes metro-only; no metro provider in /mobility/providers at origin; Codex registry/coverage crosswalk,2026-11-14T21:56:00Z
 kyiv,місто Київ,carpool,PARTIALLY_COVERED,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
 kyiv,місто Київ,taxi,PARTNER_ACCESS_REQUIRED,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
 kyiv,місто Київ,train,PARTIALLY_COVERED,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
@@ -25,13 +25,13 @@ lviv-oblast,Львівська область,carsharing,PARTNER_ACCESS_REQUIRED
 lviv-oblast,Львівська область,transfer,SOURCE_MISSING,PARTIAL,true,0,1,U01-N: Lviv Varshavska 24.0123672/49.8657606 -> Sykhiv 24.057585/49.794117; single-mode,2026-11-15T09:00 Europe/Kyiv UI; payload timezone not verified,NOT_VERIFIED,final-browser-u01-transfer-only.png,ZERO_RESULTS; provider availability unverified,2026-11-14T20:20:06Z
 vinnytsia-oblast,Вінницька область,bus,PARTIALLY_COVERED,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
 vinnytsia-oblast,Вінницька область,marshrutka,FEED_FOUND_NOT_INTEGRATED,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
-vinnytsia-oblast,Вінницька область,trolleybus,OUTDATED,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
+vinnytsia-oblast,Вінницька область,trolleybus,OUTDATED,PARTIAL,true,0,1,Соборна1 w:47123003 28.4790648/49.2335173 → Келецька100 w:69976089 28.4072052/49.2273233,2026-11-15T09:00:00+02:00,NOT_VERIFIED,final-browser-v01-vinnytsia-trolleybus.png;final-browser-v01-vinnytsia-trolleybus-ax.txt,0 routes trolleybus-only; providers empty; official map not calendar; no accepted chain,2026-11-14T21:17:00Z
 vinnytsia-oblast,Вінницька область,tram,OUTDATED,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
 vinnytsia-oblast,Вінницька область,metro,NOT_APPLICABLE,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
 vinnytsia-oblast,Вінницька область,carpool,SOURCE_MISSING,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
 vinnytsia-oblast,Вінницька область,taxi,PARTNER_ACCESS_REQUIRED,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
 vinnytsia-oblast,Вінницька область,train,PARTIALLY_COVERED,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
-vinnytsia-oblast,Вінницька область,bike,SOURCE_MISSING,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
+vinnytsia-oblast,Вінницька область,bike,SOURCE_MISSING,PARTIAL,true,0,1,Соборна1 w:47123003 28.4790648/49.2335173 → Келецька100 w:69976089 28.4072052/49.2273233,2026-11-15T09:00:00+02:00,NOT_VERIFIED,final-browser-v01-vinnytsia-bike.png;final-browser-v01-vinnytsia-bike-ax.txt,0 routes bike-only; empty provider list not own-bike routing proof; graph and rental constraints unverified,2026-11-14T21:17:00Z
 vinnytsia-oblast,Вінницька область,scooter,SOURCE_MISSING,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
 vinnytsia-oblast,Вінницька область,carsharing,NOT_APPLICABLE,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
 vinnytsia-oblast,Вінницька область,transfer,SOURCE_MISSING,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
@@ -203,7 +203,7 @@ zhytomyr-oblast,Житомирська область,bike,SOURCE_MISSING,NOT_TE
 zhytomyr-oblast,Житомирська область,scooter,SOURCE_MISSING,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
 zhytomyr-oblast,Житомирська область,carsharing,NOT_APPLICABLE,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
 zhytomyr-oblast,Житомирська область,transfer,SOURCE_MISSING,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
-ternopil-oblast,Тернопільська область,bus,PARTIALLY_COVERED,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
+ternopil-oblast,Тернопільська область,bus,PARTIALLY_COVERED,PARTIAL,true,0,1,Центр Чортків n:7875925116 25.7974856/49.0188988 → Біла r:3166714 25.76294/49.04091,2026-11-15T07:00:00+02:00,NOT_VERIFIED,final-browser-r07-chortkiv-bila-bus.png;final-browser-r07-chortkiv-bila-bus-ax.txt,0 routes bus-only; official route5 PDF lacks attested current validity and exact stop geometry; no accepted chain,2026-11-14T21:10:00Z
 ternopil-oblast,Тернопільська область,marshrutka,SOURCE_MISSING,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
 ternopil-oblast,Тернопільська область,trolleybus,SOURCE_MISSING,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
 ternopil-oblast,Тернопільська область,tram,NOT_APPLICABLE,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
@@ -246,7 +246,7 @@ chernivtsi-oblast,Чернівецька область,tram,NOT_APPLICABLE,NOT_
 chernivtsi-oblast,Чернівецька область,metro,NOT_APPLICABLE,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
 chernivtsi-oblast,Чернівецька область,carpool,SOURCE_MISSING,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
 chernivtsi-oblast,Чернівецька область,taxi,PARTNER_ACCESS_REQUIRED,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
-chernivtsi-oblast,Чернівецька область,train,PARTIALLY_COVERED,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
+chernivtsi-oblast,Чернівецька область,train,PARTIALLY_COVERED,PARTIAL,true,0,1,Вокзальна38Чернівці→Привокзальна1Івано-Франківськ,2026-11-15T09:00+02:00,NOT_VERIFIED,docs/evidence/final-browser-r03-arrive-by-2200-details.png,TRAIN-only arrivalBy20:00 zero;22:00 train8 19:35→21:33;deadline omitted in results;unconfirmed walk geometry;unknown fare;not full source acceptance,2026-11-14T21:26:00Z
 chernivtsi-oblast,Чернівецька область,bike,SOURCE_MISSING,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
 chernivtsi-oblast,Чернівецька область,scooter,SOURCE_MISSING,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
 chernivtsi-oblast,Чернівецька область,carsharing,NOT_APPLICABLE,NOT_TESTED,false,0,0,,,NOT_VERIFIED,,NOT_EXECUTED; initial browser surface blocker resolved,2026-11-14T19:42:00Z
