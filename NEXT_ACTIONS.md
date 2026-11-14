@@ -1,3 +1,11 @@
+## RESUME BLOCK 2026-11-14 18:30 UTC — #42 REGIONAL FEEDS: catalog already had all 5 target feeds; gap was seeding. Malyn OwnNet mislabelled «commercial use permitted» (DEFECT, fixed) + --regional-mirrors seed scope → MarshGO-Server PR #155 (6e84dff); 743/749 pass, 0 fail, 6 opt-in skipped; tsc 0; NOT_RELEASED
+
+- Read-only DB (marshgo-db-1, 85 providers): no Odesa/Bucha MDB mirror, no EasyWay Rivne/Chernivtsi/Korosten rows. Seed NOT run on the shared DB behind zrok — owner/Codex decision.
+- Malyn LICENSE.txt: source-available, share-alike, paid SaaS needs a written agreement → requires_partner_access. Negative control: old label fails the new test (13/14).
+- EasyWay labels carry no explicit commercial permission → will register disabled (LICENSE_UNVERIFIED). Real enablement needs licence evidence per feed.
+- Local env: canonical MarshGO-Server/node_modules incomplete (no zod/.bin; resolution relies on parent MarshGO/node_modules). ESLint NOT_TESTED locally.
+- Next: #43 GPS quarantine (Dnipro), #46 stale driver-role banner.
+
 ## RESUME BLOCK 2026-11-14 17:30 UTC — BROWSER CHAIN on zrok contour (390×844) delivered: 11 screenshots, search/route/publish guards/demand validation VERIFIED; stale driver-role banner DEFECT; 3 s polling finding; manifest fix PR Site#140 (854abf7, 895/895); NOT_RELEASED
 
 - Runtime is NOT main: Site 330dd3 f88ba55 dirty (83 files), API e9934ab dirty. Evidence + index: docs/evidence/browser-zrok-2026-11-14/README.md.

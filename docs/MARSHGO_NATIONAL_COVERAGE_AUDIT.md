@@ -179,12 +179,14 @@ Caveats, зафіксовані в матриці (не приховані):
 
 Це найцінніший результат аудиту: ресурси **валідовані сьогодні**, юридично відкриті, але відсутні
 в регіональних клітинках і в `mobility_providers`.
+Виняток — Малин (див. рядок нижче): ліцензія вимагає договору. EasyWay-ряди мають ліцензійну мітку без явного дозволу
+на комерційне використання, тож політика `licensePolicy.ts` зареєструє їх як `disabled` (`LICENSE_UNVERIFIED`).
 
 | Регіон | Режим(и) | Ресурс | Вимір сьогодні |
 |---|---|---|---|
 | Одеська | bus, tram, trolleybus | `files.mobilitydatabase.org/mdb-2946/latest.zip` | routes.txt 87 = 62 type=3 + 18 type=0 + 7 type=11 |
 | Київська | bus | `files.mobilitydatabase.org/mdb-2945/latest.zip` (Буча) | routes.txt 4, усі type=3 |
-| Житомирська | bus | `malin.kiev.ua/transport/gtfs.zip` | routes.txt 9, усі type=3; `feed_info` malin.kiev.ua; вік 99.7 год |
+| Житомирська | bus | `malin.kiev.ua/transport/gtfs.zip` | routes.txt 9, усі type=3; `feed_info` malin.kiev.ua; вік 99.7 год. **ВИПРАВЛЕНО 2026-11-14: НЕ юридично відкритий** — `LICENSE.txt` у mdb-3615: OwnNet Source License 1.1, source-available, share-alike, вільно лише до 100 000 USD доходу; платний SaaS — за письмовим договором → REQUIRES_PARTNERSHIP (MarshGO-Server PR #155). Прямий URL 2026-11-14 16:19 UTC віддав 0 B |
 | Житомирська | marshrutka | `public.easyway.info/gps/korosten.json` | 10 ТЗ, 10/10 валідних координат, свіжі timestamp |
 | Рівненська | bus, trolleybus | `public.easyway.info/gps/rivne.json` | 99 ТЗ, 99/99 валідних координат |
 | Чернівецька | bus, marshrutka | `public.easyway.info/gps/chernivtsi.json` | 61 ТЗ, 61/61 валідних координат |
