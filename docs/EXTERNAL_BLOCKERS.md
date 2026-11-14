@@ -1,3 +1,12 @@
+## Codex tandem integration blocked by usage limit — 2026-11-14 07:58 UTC
+
+- **Blocker (external, account quota):** Codex app (com.openai.codex, pid 1063) shows «Ліміт використання Codex і Роботи вичерпано. Ваш ліміт запитів відновиться 17 лист., 21:02.» Send button disabled, goal paused. Reset **2026-11-17 21:02** (local) unless the owner upgrades/resets. Verified by reading the live AX state this session.
+- **Effect on tandem:** Qoder cannot deliver new steer handoffs or obtain Codex ACK/review/main-merge until the limit resets. The owner's tandem directive (Codex reviews + merges main) is externally paused. Qoder still must NOT merge protected main or deploy independently (standing owner constraint).
+- **What completed before the limit:** CP5-A01 (G10/G15) PR #152 MERGED main 53b8eed0a65550d1365e54c202fab5a65dd5ed58 at 2026-11-14T07:55:26Z; post-merge main CI run 43573347454 SUCCESS (npm test 736/730/0/6; route-ordinals step 1/1 executed post-migrate; interval suite 14 executed on main). Codex's final message ACCEPTED the A01 handoff and CONFIRMED Qoder's idempotency-replay verification («replay повертає лише вже створене бронювання … не блокує A01»). A02 (PR #150) and A03 already merged earlier.
+- **Autonomous path while blocked:** continue bounded atoms in isolated qoder/* worktrees at merged main, verify locally + via GitHub CI (CI runs independently of Codex quota), push qoder/* + OPEN PRs queued for Codex review on return. Avoid inventing agreed product logic that needs Codex ACK (e.g. CP5-A04 / C11 safe-pickup walking-access contract is ambiguous and awaits ACK). Record each PR as awaiting Codex integration.
+- **Pending Codex on return:** (1) CP5-A04 / C11 safe-pickup walking-access contract ACK (proposal documented in CODEX_PROGRESS.md); (2) review/merge any new qoder/* PRs; (3) fare-UI visual check via zrok once a Site 07b1bf4 build is served (7777 currently older Qoder dirty; not restarted); (4) idempotency-replay interval-mismatch follow-up (non-blocking).
+- No merge/deploy/secret/runtime change performed. 7777/3002/zrok + чужі dirty untouched. `RELEASE_STATUS=NOT_RELEASED`.
+
 ## Latest verification update — portal PR checks — 2026-10-26
 
 - Server PR #43, Admin PR #1 and Partner PR #1 exact-head `verify` checks all pass after the mobile Settings fix. Local authenticated responsive coverage is 54/54 across the six viewport widths; see audit 225.
