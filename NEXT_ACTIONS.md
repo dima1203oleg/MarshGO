@@ -1,3 +1,8 @@
+## RESUME BLOCK 2026-11-15 — POLTAVA STOP CROSSWALK NOT_ESTABLISHED / NOT_RELEASED
+
+- Base Root44ed7cb. Delegated bounded official Poltava stop-source discovery completed without coordinate export. Independent CKAN query Полтава координати rows1 HTTP200/211B/success:true/count0; organization7fea7249-40b4-4bce-8f2a-894102f65279 HTTP200/88102B confirms39datasets. Negative bounded search is NOT evidence no coordinates/services exist. Named Південний/Київський вокзал cannot establish stop IDs/coords/platform/direction joins. Publisher stop export or explicit licensed geographic crosswalk needed; no guessed stations.
+- Existing ledger XLSX note extended,66records/22cols unchanged; Codex handoff6885767549 published. No new browser control/ingestion/activation/runtime changes. Totals15OD39searches+1negative0accepted,24PARTIAL300NOT_TESTED unchanged. SitePR144 review correction76 and transportURL71 still pending; next narrow current-source gap is Vinnytsia (existing2018CSV expired and2024map is not timetable), not another Poltava schedule reprobe. NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-15 — PR144 TIMEZONE REVIEW BLOCKER / NOT_RELEASED
 
 - Base Rootcdcfc9f. SitePR144 OPEN2ba2c215/base6f0707a7, bothCI SUCCESS but unresolved review4575767992. Exact ProductionMarketplace.tsx:82/2249 expression reproduced with two tiny Node probes: UTC Kyiv-wall inputNov15 22:00 rendersNov16 00:00, while absolute20:00Z control and Kyiv-TZ renderNov15 22:00. Extracted-expression defect VERIFIED; browser/runtime acceptance NOT_TESTED. Qoder task76: existing kyivDateTimeInputToDate conversion + UTC/Kyiv regression tests in isolated PR worktree, then canonical visual check; no edits yet.
