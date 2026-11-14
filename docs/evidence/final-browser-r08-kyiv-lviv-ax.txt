@@ -23,5 +23,5 @@ uid=48_1 RootWebArea "MARSHGO — Один пошук. Усі способи д�
 Observations:
 - Genuine cross-region composition: UZ rail Kyiv-Pasazhyrskyi → Lviv + Lviv urban last-mile (bus А29 / tram Т01) or final walk.
 - All fares "ціна уточнюється"; Cheapest strategy disabled (unknown fare must not rank as zero) — honest.
-- Card 1 final walk 40 хв (~2.7–3 km) and card 8 walk 21 хв (~1.5 km) exceed the documented egress cap 1000 m if treated as GTFS egress; need details distances to classify (final-mile walk fallback vs cap violation) — Codex crosswalk candidate.
+- Follow-up screenshot final-browser-r08-egress.png shows card1 final walk3.3km/40min. Initial default1000m hypothesis falsified on Server disk e9934abb: index.ts:3360–3362 explicitly allows5000m intercity access/egress for OD>30km. Runtime/source calendar verification still required; no cap violation established.
 - Total 10 год 0 хв vs ride 6 год 15 хв + walk 40 хв implies ~3 h station wait/access; verify departure/arrival times in details.

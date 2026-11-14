@@ -28,4 +28,4 @@ Observations:
 - Requested 09:00 departure honoured as search anchor; actual train 11:28 with explicit «Очікування · 2 год 28 хв» — honest, not fabricated earlier departure.
 - Rail and bus segments labelled РОЗКЛАД (scheduled), walks ОРІЄНТОВНО; fare «Ціна уточнюється» (unknown, not zero); Cheapest disabled on results.
 - Walk distance IS rendered visually («2 хв · 191 м», within transfer cap 400 m) but the segment AX label omits metres — minor a11y/AX parity note.
-- Results card 1 (train + walk 40 хв) and card 8 (walk 21 хв) final-mile walks likely exceed egress cap 1000 m if classified as GTFS egress; distances not exposed in AX — needs engine-side check (Codex).
+- Follow-up: card1 screenshot final-browser-r08-egress.png confirms3.3km/40min. No cap violation: Server disk e9934abb index.ts:3360–3362 overrides default1000m with5000m for intercity OD>30km. Expanded А29 stops show18:44–18:56, temporally consistent with rail18:26 + walk2 + wait16 + bus12 + walk4 = finish19:00. Rendered schedule is not proof of dated live service.
