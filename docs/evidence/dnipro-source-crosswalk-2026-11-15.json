@@ -1,0 +1,87 @@
+{
+  "status": "PARTIAL",
+  "product_status": "NOT_RELEASED",
+  "observed_at": "2026-11-14T23:04:17Z",
+  "root_base_sha": "c4e1bd96a7386401939c91c9b332d699f8ff2658",
+  "scope": "Official source crosswalk only; no adapter, ingestion, runtime or coverage acceptance",
+  "dataset": {
+    "url": "https://data.dniprorada.gov.ua/api/3/action/package_show?id=73dfe7a0-1075-4fc8-95d6-057911b56031",
+    "id": "73dfe7a0-1075-4fc8-95d6-057911b56031",
+    "title": "Розклад руху міського електричного та автомобільного транспорту міста Дніпра",
+    "license_id": "CC-BY-4.0",
+    "metadata_modified": "2026-11-11T17:51:12.244430"
+  },
+  "stop_times_datastore": {
+    "query": "https://data.dniprorada.gov.ua/api/3/action/datastore_search?resource_id=f3e79bfe-a339-4cac-b7e1-76ce188a58d4&limit=10000&sort=_id+asc",
+    "resource_id": "f3e79bfe-a339-4cac-b7e1-76ce188a58d4",
+    "response_bytes": 2843475,
+    "response_sha256": "9ef2fa04a991fdab948f900e420a3fa10f5fc0307f94e0ac40ae389ffef86d72",
+    "reported_total": 9750,
+    "returned_rows": 9750,
+    "distinct_tripUid": 3,
+    "all_keys_have_zero_trips_uid_matches": true,
+    "all_keys_have_two_trips_routeuid_matches": true,
+    "all_keys_have_repeated_stopSequence": true,
+    "keys": [
+      { "key": "5e7f2e8015ad5b4c0414428b", "rows": 4360, "matching_trip_uids": ["рейс_1_прям_трамвай_1", "рейс_1_зворот_трамвай_1"], "directions": ["0", "1"] },
+      { "key": "5e7f2ecc15ad5b4c04144306", "rows": 2840, "matching_trip_uids": ["рейс_1_прям_трамвай_11", "рейс_1_зворот_трамвай_11"], "directions": ["0", "1"] },
+      { "key": "66daaa455cc411000145c304", "rows": 2550, "matching_trip_uids": ["рейс_1_прям_трамвай_12", "рейс_1_зворот_трамвай_12"], "directions": ["0", "1"] }
+    ],
+    "full_xlsx_parity": "NOT_VERIFIED",
+    "xlsx_metadata_size_bytes": 10355128,
+    "xlsx_metadata_modified": "2026-10-01T11:16:03.061274",
+    "xlsx_range_probe": { "requested": "bytes=-131072", "http_status": 200, "range_supported": false, "response_body_read": false },
+    "limitation": "Returned all DataStore rows; this does not prove DataStore contains every worksheet or row of the downloadable XLSX."
+  },
+  "trips": {
+    "csv_resource_id": "47bc3413-5d2c-4582-8bd7-bed8de650c1c",
+    "rows": 260,
+    "distinct_uid": 260,
+    "distinct_routeuid": 132,
+    "content_sha256": "e40e5f639f6158f68a3d7506f101b6eee99170703d737e45a3ee2c02433bc154",
+    "zip_resource_id": "2d44dcad-c977-4f93-9fd4-76412bcb78f6",
+    "zip_sha256": "3c38259af51d09bdb71fc67bb66ced95fb1516e6c7d4b957bc4f0bbdf17eddac",
+    "zip_entries_with_identical_csv_hash": ["trips-2026-01-27.csv", "trips-2026-07-17.csv"],
+    "distinct_serviceUid": 1,
+    "serviceUid_values": ["пн-вт-ср-чт-пт-сб-нд"]
+  },
+  "calendar": {
+    "zip_resource_id": "aac91ba3-cd37-4b2b-9342-7c445be06c01",
+    "zip_sha256": "ad74787908b7bf41604542242a43a61b9386b6421a0cfe3eb5dab51a38f77d76",
+    "selected_entry": "calendar-2026-07-17.csv",
+    "selected_entry_sha256": "51eea3bd25fb8d4e7c2d2dc49d6668ab3f7c038434799ed324a5bbafed119847",
+    "rows": 260,
+    "distinct_serviceUid": 132,
+    "duplicate_serviceUid_keys": 128,
+    "trips_joined_by_declared_serviceUid": 0,
+    "trips_routeuid_matching_calendar_serviceUid": 260,
+    "routeuid_substitution_authorized": false,
+    "dated_trip_acceptance": "NOT_VERIFIED"
+  },
+  "calendar_dates": {
+    "zip_resource_id": "5e944ccc-26af-4ceb-ab9a-70cc203b8e10",
+    "zip_sha256": "2d6f98766e7bc8ae0edb83ddeade234f358126a388cee4e46b79c5d422ce23b2",
+    "selected_entry": "calendardates-2026-07-17.csv",
+    "selected_entry_sha256": "7d056f4a02700cdab002ce1a6bb81aeb5b70ab2c8bf5a3caf4235323dcffa8d0",
+    "rows": 260,
+    "null_date_rows": 249,
+    "nonnull_date_counts": {
+      "2026-06-22 - 2026-08-31": 2,
+      "2026-03-01 - 2026-08-31": 2,
+      "2025-08-09 - /": 2,
+      "2025-12-31-/": 4,
+      "2026-03-01-/": 1
+    },
+    "interpretation": "Not GTFS calendar_dates dates; no inferred range expansion or current-service activation."
+  },
+  "required_codex_followup": [
+    "Compare full XLSX to DataStore before treating three keys as whole-source coverage.",
+    "Obtain or verify publisher semantics for trip identity and direction; do not choose arbitrary routeuid matches.",
+    "Resolve trips.serviceUid versus calendar.serviceUid crosswalk and duplicated calendar keys explicitly.",
+    "Resolve null and textual-range calendarDates semantics; preserve exceptions and exclude unsupported inputs.",
+    "Provide exact U06 source-to-ingestion-to-dated-planner counts; source defects are not proven running-server causes."
+  ],
+  "resources": { "memory_free_percent": 27, "swap_used_mb": 9875, "disk_available_gib_reported": 18, "state": "YELLOW", "heavy_xlsx_parser_started": false },
+  "tests_builds_runtime_changes": "NONE",
+  "national_browser_totals_unchanged": { "exact_od": 15, "searches": 39, "empty_mode_negative": 1, "fully_accepted": 0, "matrix_partial": 24, "matrix_not_tested": 300 }
+}

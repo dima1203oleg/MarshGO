@@ -13,6 +13,12 @@ Native Qoder in-app browser на чинному публічному zrok, фа�
 
 Сукупно **15 exact OD / 39 transport searches + 1 empty-mode negative / 0 fully accepted**; matrix **24 PARTIAL / 300 NOT_TESTED**. Чотири рядки Дніпропетровської області позначено executed (tram2 attempts, bus/trolleybus/metro1); combined search не видається за окремий isolated-mode pass. Codex має відтворити точний OD/date на імпортованому наборі та надати діагностичний crosswalk. Site transport-URL atom і DATE01 чекають GitHub overlap ACK. NOT_RELEASED.
 
+### U06 source follow-up — declared trip/calendar joins fail (runtime cause remains unknown)
+
+Official full DataStore9750 reported/returned rows contains3tripUid for tram1/11/12 only; every key matches trips.uid0 and trips.routeuid2 (directions0/1), with repeated stopSequence. Full trips260 CSV is byte-identical to latest ZIP; trips.serviceUid is one weekday label, calendar.serviceUid132 hexkeys: direct join0/260. CalendarDates260 rows contain249null dates and11textual ranges/open ends, not GTFS dates. Earlier125Sunday calendar flags are **not dated joined-trip evidence**. Do not infer direction, replace keys or ignore exclusions to manufacture service.
+
+[Source crosswalk JSON](evidence/dnipro-source-crosswalk-2026-11-15.json) records query/resource IDs, hashes and counts; [Codex handoff](https://github.com/dima1203oleg/MarshGO/issues/26#issuecomment-6885627443). Full downloadable XLSX parity NOT_VERIFIED (10.355MB, HTTP Range ignored200; body not read, heavy parser deferred at27%free memory). All DataStore rows does not mean all workbook rows/sheets; no claim whole source has only3routes. OfficialCC-BY-4.0 remains, no ingestion/activation/runtime changes. Browser counts unchanged; U06 running-server cause still NOT_VERIFIED.
+
 ## Попередній checkpoint — R08 Kyiv→Lviv inter-oblast
 
 ### R08 — Київ, Вокзальна площа 1 → Львів, площа Ринок, усі 12 категорій (міжобласний ланцюжок)
