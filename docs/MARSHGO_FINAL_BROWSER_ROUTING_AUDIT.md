@@ -2,6 +2,14 @@
 
 ## Поточний вердикт: PARTIAL / NOT_RELEASED — 2026-11-15, U10 Ternopil urban
 
+### Lviv acceptance follow-up — temporal transfer evidence, physical walk still unverified
+
+Independent read-only review: Server4e3bd82/run43657504242 SUCCESS, artifact14138247250 JSON160663B SHA21565c4a696e360a7f93080fe33ea639ade362c681d601036dfe9672f596bfa4. Probe/planner/all23segments source hashes match32f8f5673fd7349968db792dafd8ba7e758b0be0b2484d5e1bb6fecd888c3b69 within artifact, not independent GTFS rehash. All10 per case retained: center7tram2trolleybus1bus; north7singlebus3bus→bus, cross-mode0. Missing per-leg date/hash/times blocker resolved.
+
+Rank6 A52trip26005_3_1 dep13:15/arr13:19Z → A53trip28556_2_1 dep13:25/arr14:11Z,20261115. Scheduled=effective, published_departures, not observed movement. Stop name suffixes610→609 are not IDs: actual IDs4573→4574. Transfer204m/164s plus180s buffer fits360s gap by16s; rule minimum null, inSeatfalse. Rank7gap240≥180; rank8gap180≥180, zero spare. Physical walk/pathway/provenance not serialized; coordinate-derived estimates/null geometry are permitted, thus 204m is not proof of a walkable street connection. Null rule minimum is not known zero.
+
+[Codex6886617254](https://github.com/dima1203oleg/MarshGO/issues/26#issuecomment-6886617254) requests existing provenance/geometry evidence and344s valid/343s invalid fixtures with164walk+180buffer, same-stop boundary and unknown-rule handling; no tuning without proven violation. Khmel artifact next7days noactive621trips confirms source eligibility gap only, not running API cause. No new browser OD/search or runtime changes; national counts unchanged, NOT_RELEASED.
+
 ### Source follow-up — PDF contents viewed, current-service gates remain
 
 Existing Qoder in-app browser rendered both one-page PDFs after local Read renderer failed. Bus16 Винниченка→Київська Sunday table has seven duty blocks, directional terminal grids, signatures/stamps and ordered stop names including Залізничний вокзал. Duty1 terminal08:03→08:33 and08:38→09:23 are not station boarding times or stable GTFS trips. Trolleybus2 Тролейбусна→Лесі Українки Sunday table has four blocks2.1–2.4 and Трол/Центр/Л.Укр/Центр columns; duty2.1 row06:37/06:51/07:07/07:22. Лесі Українки is not U10 Леся Курбаса; no exactOD service claim. Handwritten effective dates not confidently transcribed; Nov15 exceptions/current operation/rights/coordinates/identity still NOT_VERIFIED. Hashes unchanged, no activation.
