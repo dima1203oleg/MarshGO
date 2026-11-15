@@ -1,6 +1,28 @@
 # MARSHGO — Final User Experience & National Routing Audit
 
-## Поточний вердикт: PARTIAL / NOT_RELEASED — 2026-11-15, U09 Khmelnytskyi urban
+## Поточний вердикт: PARTIAL / NOT_RELEASED — 2026-11-15, U10 Ternopil urban
+
+### Source follow-up — PDF contents viewed, current-service gates remain
+
+Existing Qoder in-app browser rendered both one-page PDFs after local Read renderer failed. Bus16 Винниченка→Київська Sunday table has seven duty blocks, directional terminal grids, signatures/stamps and ordered stop names including Залізничний вокзал. Duty1 terminal08:03→08:33 and08:38→09:23 are not station boarding times or stable GTFS trips. Trolleybus2 Тролейбусна→Лесі Українки Sunday table has four blocks2.1–2.4 and Трол/Центр/Л.Укр/Центр columns; duty2.1 row06:37/06:51/07:07/07:22. Лесі Українки is not U10 Леся Курбаса; no exactOD service claim. Handwritten effective dates not confidently transcribed; Nov15 exceptions/current operation/rights/coordinates/identity still NOT_VERIFIED. Hashes unchanged, no activation.
+
+Native [bus screenshot](evidence/ternopil-bus16-sunday-inapp.png), [90-degree rotated reading copy](evidence/ternopil-bus16-sunday-inapp-readable.png), [trolleybus screenshot](evidence/ternopil-trolleybus2-sunday-inapp.png) saved and reading copies Read-viewed. [Codex follow-up6886553521](https://github.com/dima1203oleg/MarshGO/issues/26#issuecomment-6886553521). Ledger remains72records; no new OD/search; national totals unchanged. Prior content-unread checkpoint below is superseded only for PDF visual content, not activation gates.
+
+### U10 — Тернопіль, Привокзальний майдан → вулиця Леся Курбаса
+
+Base Rootf5eca7354efb9c4106a848b81b17fdbf80fc48a6. Existing canonical Qoder in-app zrok. Exact autocomplete n:2510575495 lat49.5539341/lon25.6001758 → w:1081246284 lat49.5726151/lon25.6372156; street-only destination, not house8. Explicit picker15Nov2026 09:00 Europe/Kyiv (07:00Z), 1passenger/unlimited budget/transfers allowed/no deadline/BALANCED.
+
+- TROLLEYBUS-only → 0: [PNG](evidence/final-browser-u10-ternopil-trolleybus.png), [AX](evidence/final-browser-u10-ternopil-trolleybus-ax.txt).
+- BUS-only → 0: [PNG](evidence/final-browser-u10-ternopil-bus.png), [AX](evidence/final-browser-u10-ternopil-bus-ax.txt).
+- BUS+TROLLEYBUS → 0: [selection](evidence/final-browser-u10-ternopil-city-selection-ax.txt), [PNG](evidence/final-browser-u10-ternopil-city.png), [AX](evidence/final-browser-u10-ternopil-city-ax.txt).
+
+Three489×843dark native PNGs Read-viewed; stable empty results, disabled strategies, five-nav intact. Details/map/waits/fares NOT_TESTED. Zero results do not establish absent movement or a source-related runtime cause. OSM points are not platform identities; modes remain absent from URL. No marshrutka search.
+
+Official linked Sunday PDF leads downloaded HTTP200: [bus16](evidence/ternopil-bus16-sunday-official-2026-11-15.pdf)260350B SHAe1a582965ff2ba027caa95d4a0cd1fb16f52d71d590d91c2acb3922a646810a7; [trolleybus2](evidence/ternopil-trolleybus2-sunday-official-2026-11-15.pdf)182821B SHA2c7d14c97963bc847136144598a031684f092e4dde99089dadee407f0995a03e. PDF content NOT_VERIFIED: Read renderer lacks pdftoppm; filenames are not dated-service evidence. Commercial rights/calendar/exceptions/timezone/stable trip-stop-sequence/coordinates remain unresolved. DeTransport public terms independently read: private use only; commercial service/movement-data use prohibited without permission. No endpoint research/activation. Delegated opendata.te.ua redirect was not followed or independently verified.
+
+[Codex diagnostic/source handoff6886529268](https://github.com/dima1203oleg/MarshGO/issues/26#issuecomment-6886529268) requests imported hash→calendar→stop access/direction→planner→API/runtime first failing stage. National19OD50searches+1negative0fullyaccepted; matrix31PARTIAL293NOT_TESTED, bus3attempts including prior Chortkiv, trolleybus2; prior evidence preserved. Ledger72records22cols, three nonduplicate leads, old bytes preserved. Resource26%free/swap10372.50MiB/disk17GiB YELLOW; no new heavy process/tests/build/import/Server/Site/DB/7777/zrok/restart/deploy. PR144/URL/DATE01 coordination pending. Full27×12 acceptance unmet.
+
+## Попередній checkpoint — U09 Khmelnytskyi urban
 
 ### Server acceptance follow-up — all10 retained; bus→bus witness, cross-mode still unproved
 
