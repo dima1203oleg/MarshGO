@@ -1,3 +1,11 @@
+## 2026-11-15 (2) — QODER: TRUST-БАТЧ І чесний MarshPass, Site `8ae19eb`+`77d2b43`, PR #145, 881/881 PASS
+
+1. **Booking outcome:** `NETWORK_FAILURE_TEXT` більше не заяляє «Бронювання перевірено за списком» (reconciliation-refresh сам може впасти офлайн) → «Сервер не відповів — бронювання не підтверджено. Перевірте список «Поїздки»…». Регресійний тест у `booking-failure-state.test.ts`.
+2. **Навігація:** unknown speed → «—» (не стоячі 0 км/год); pause-чіп «Навігація на паузі» (не «Безпечно зупинено» — застосунок не знає, чи авто безпечно стоїть); grabber шторки h-7→h-11 (44×96 verified у браузері). Новий `tests/navigation-trust-copy.test.ts` (3 тести).
+3. **Home:** MarshPass promo «Увесь міський і міжміський транспорт…» → «Квиток підтвердженої попутки завжди під рукою» (домен `marshPass.ts`: лише confirmed/boarding приватні попутки). Source-contract тест оновлено під нову копію + doesNotMatch старої.
+4. **Гейти:** повний `npm test` **881/881, 0 skip** на `77d2b43`; `tsc --noEmit` чисто; home/density suites 21+43 pass. Браузер Qoder: /navigate dark 390 (швидкість «—», GPS-пауза чесно, grabber 44), Home dark 390 (нова копія, без overflow). Сесію навігації завершено після перевірки.
+5. **Git:** пуш у `qoder/premium-redesign-checkpoint-20261115` → PR #145. Корінь: оновлені NEXT_ACTIONS/CODEX_PROGRESS + нові скрини окремим комітом. **NOT_RELEASED**.
+
 ## 2026-11-15 — QODER: FINAL SPEC ЗБЕРЕЖЕНО, РЕАЛЬНА РЕАЛІЗАЦІЯ PREVIEW + SEARCH, Site `ee41e80`, PR #145, 877/877 PASS
 
 1. **Специфікація:** `MARSHGO_PREMIUM_REDESIGN_FINAL_SPEC.md` (точне ім'я за місією) + сім документів discovery/audit/concepts/design-system/motion/matrix/plan. Напрям «Лінія подорожі»; 4×3 дошка 12 категорій на всіх ширинах; preview відокремлено від GPS-навігації; camera ownership state machine.
