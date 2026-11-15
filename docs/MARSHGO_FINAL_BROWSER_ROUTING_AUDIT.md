@@ -1,6 +1,12 @@
 # MARSHGO — Final User Experience & National Routing Audit
 
-## Поточний вердикт: PARTIAL / NOT_RELEASED — 2026-11-15, U10 Ternopil urban
+## Поточний вердикт: PARTIAL / NOT_RELEASED — 2026-11-15, U11 blocked before routing
+
+### U11 Zhytomyr — address geocoder unavailable, transport NOT_TESTED
+
+At00:39–00:41Z, existing canonical Qoder browser origin queries `Житомир Перемоги 1` and `Перемоги 1 Житомир` both returned HTTP503 from `/api/v1/places/suggest` (browser request1542/1543). Exact public curl independently returned `geocoder_unavailable` / `Geocoder request failed`, requestId7896229e-df4f-4767-a8b0-411f0c3249d7. Stable unavailable copy/retry button saved in `docs/evidence/final-browser-u11-zhytomyr-geocoder.png` and `docs/evidence/final-browser-u11-zhytomyr-geocoder-ax.txt`; PNG489×843 Read-viewed. Single-word Житомир showed local centre reference, not geocoder recovery (Site placeSearchRecovery.ts23–33). `/readyz` HTTP200/statusready during failure.
+
+No exact OD, explicit date, transport controls or journey submission completed; tram/trolleybus/combined remain NOT_TESTED, not zero-result transport cases. National19OD50transport searches+1negative0accepted and matrix31PARTIAL293NOT_TESTED unchanged. Pinned Server4e3bd82 geocoding.ts242–243 collapses network/timeout/non-2xx errors; runtime parity and underlying upstream cause unverified. [Codex6886760600](https://github.com/dima1203oleg/MarshGO/issues/26#issuecomment-6886760600) requests sanitized existing-log/requestId diagnosis and coordinated recovery, no restart/endpoint rotation or rate-limit bypass. No code/import/runtime changes.
 
 ### Lviv acceptance follow-up — temporal transfer evidence, physical walk still unverified
 
