@@ -1,8 +1,18 @@
 # MARSHGO — Final User Experience & National Routing Audit
 
-## Поточний вердикт: PARTIAL / NOT_RELEASED — 2026-11-15, R09 deadline control VERIFIED; U11 geocoder blocked
+## Поточний вердикт: PARTIAL / NOT_RELEASED — 2026-11-15, runtime mismatch: preview обслуговує Nov13 dirty sibling Server build; canonical acceptance відкладена
+
+### Runtime mismatch — усі browser-докази є rendered behavior працюючого стека, не canonical-main acceptance
+
+Read-only перевірка після Codex 6888861451/6888880229: API PID23151 (127.0.0.1:3002, start Fri Nov13 15:20:13 2026) має Root tsx loader, але RELATIVE entry `server/index.ts` і lsof cwd = `/Users/dima1203/Desktop/MarshGO/MarshGO-Server` → завантажений SIBLING canonical checkout `MarshGO-Server/server/index.ts` (SHA256 352064357d595c3b1d33c4712f1d1ec870c883dc8fc8906f9f88a0f2be93f1d1), НЕ legacy Root `server/index.ts` (af012210…). Claim Codex про legacy Root entrypoint — помилковий; висновок про розбіжність — правильний.
+
+`GET /api/v1/version` через zrok: commitSha e9934abbd8fc973177de8d7f47548739758a1b74, buildId local-e9934abbd8fc-dirty-20261113T132012Z, sourceState dirty, environment development. За Codex 6888880229 ці поля з env-змінних, не з завантажених байтів — version НЕ є атестацією джерела. Sibling disk HEAD e9934abb dirty (server/config.ts, server/geocoding.ts, server/index.ts, server/journey/gtfsFares.ts, server/journey/gtfsTimetable.ts тощо); canonical protected main f5f80c65afe3de58dc213ff16b2d196744b17d60 (gh api verified). Vite proxy default `http://127.0.0.1:3002` (vite.config.ts:12, API_PROXY_TARGET unset).
+
+Наслідок: УСІ наявні canonical-browser докази (U-серія включно U10/U11, R08, R09) — rendered behavior Nov13 dirty sibling build, не acceptance проти reviewed Server SHA. Геокодерний root-cause має цілитися в завантажене Nov13 дерево; disk/pinned читання не доводять байтів процесу; 0 рядків requestId у /private/tmp/carpool5-canonical-api.log лишається непоясненим. Узгоджений handoff-процедурою опублікований у [коментарі6888932368](https://github.com/dima1203oleg/MarshGO/issues/26#issuecomment-6888932368): Codex готує reviewed SHA + start command + sanitized env whitelist у ізольованому worktree (dirty sibling branch зберігається), Qoder як єдиний власник :7777/zrok підтверджує safe window і виконує єдину coordinated заміну API; після swap — повторний exact query set (U11 suggest, R09 deep-links) і лише тоді relabel у canonical acceptance. Жодних restart/config/runtime змін не виконано. NOT_RELEASED.
 
 ### R09 — дедлайн прибуття Київ→Львів, поїзд+трамвай: per-route exclusion VERIFIED (rendered)
+
+Caveat: доказ нижче — rendered behavior працюючого Nov13 dirty sibling build (див. runtime mismatch вище), не canonical-main acceptance.
 
 Base Root d33fb78. Existing canonical Qoder in-app browser, перевірені R08 координати без геокодера: origin Вокзальна площа 1 Київ n:2644051429 50.4400123/30.4884813 → destination площа Ринок Львів r:2166192 49.8419316/24.0323731; departure 15.11.2026 09:00 Kyiv, 1 пасажир, BALANCED; рівно Трамвай+Поїзд pressed=true, інші 10 false.
 
