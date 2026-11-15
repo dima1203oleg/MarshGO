@@ -1,6 +1,20 @@
 # MARSHGO — Final User Experience & National Routing Audit
 
-## Поточний вердикт: PARTIAL / NOT_RELEASED — 2026-11-15, U11 blocked before routing
+## Поточний вердикт: PARTIAL / NOT_RELEASED — 2026-11-15, R09 deadline control VERIFIED; U11 geocoder blocked
+
+### R09 — дедлайн прибуття Київ→Львів, поїзд+трамвай: per-route exclusion VERIFIED (rendered)
+
+Base Root d33fb78. Existing canonical Qoder in-app browser, перевірені R08 координати без геокодера: origin Вокзальна площа 1 Київ n:2644051429 50.4400123/30.4884813 → destination площа Ринок Львів r:2166192 49.8419316/24.0323731; departure 15.11.2026 09:00 Kyiv, 1 пасажир, BALANCED; рівно Трамвай+Поїзд pressed=true, інші 10 false.
+
+- arrivalBy 18:00 → **0 маршрутів**, header «Прибути до 15.11, 18:00», стратегії disabled, стабільний empty-copy. [PNG](evidence/final-browser-r09-deadline18-empty.png)/[AX](evidence/final-browser-r09-deadline18-empty-ax.txt); стан форми [PNG](evidence/final-browser-r09-deadline-form.png)/[AX](evidence/final-browser-r09-deadline-form-ax.txt).
+- arrivalBy 20:00 (позитивний контроль, той самий OD/modes/departure) → **3 маршрути**: №40749 12:05→18:20 Львів-Головний + пішки 40 хв 3,3 км ОРІЄНТОВНО, прибуття 18:59; №715 11:28→18:26 + пішки 4 хв 303 м + очікування 16 хв + Т01 18:46→19:03 + пішки 1 хв, прибуття 19:04; №40749 + пішки 4 хв + Т01 + пішки 1 хв, прибуття 19:04. Cheapest disabled (ціни невідомі). [list PNG](evidence/final-browser-r09-deadline20-list.png)/[AX](evidence/final-browser-r09-deadline20-list-ax.txt), [715 деталі PNG](evidence/final-browser-r09-deadline20-tram715.png)/[AX](evidence/final-browser-r09-deadline20-tram715-ax.txt), [40749 деталі PNG](evidence/final-browser-r09-deadline20-train40749.png)/[AX](evidence/final-browser-r09-deadline20-train40749-ax.txt).
+- arrivalBy 19:00 (межовий контроль через deep-link URL) → **рівно 1 маршрут** (№40749+пішки, 18:59); обидва ланцюжки 19:04 відсіяні. [PNG](evidence/final-browser-r09-deadline19-one.png)/[AX](evidence/final-browser-r09-deadline19-one-ax.txt).
+
+0→1→3 монотонна per-route фільтрація, узгоджена з показаними прибуттями 18:59/19:04/19:04; порожнеча при 18:00 — коректне виключення, не empty==empty. Усі PNG Read-viewed у in-app браузері. `POST /api/v1/journeys/search` 200 після одного 401→auth-refresh retry (reqid 1708–1710); тіла запитів наявними browser-інструментами не знімаються, arrivalBy доведений URL+header. Два таймаути wait_for — артефакти текстового матчінгу харнесу (картки списку рендерять пересадки числом без слова; «Етапи маршруту» — aria-label), не зависання продукту.
+
+Incidental setup: deep-link гідратація ~00:46Z автоматично виконала попередній вибір BUS+TROLLEYBUS → 0 (reqid 1705); зараховано як завершений пошук із позначкою setup, не протокольний кейс. Спостережена одинична гонка late-completion navigation при «Назад» під час завантаження (до компакції) лишається неформалізованою, без фіксу/регресійного тесту.
+
+Лічильники: 19 exact OD, **54 завершені транспортні пошуки** +1 empty-mode negative, 0 повністю прийнятих національних ланцюжків; матриця 31 PARTIAL / 293 NOT_TESTED без змін (R09 — контроль на наявному OD, нових coverage-клітинок немає). Runtime/config/import без змін; геокодерна аварія U11 не торкана — R09 обійшов геокодер збереженими координатами. NOT_RELEASED.
 
 ### U11 Zhytomyr — address geocoder unavailable, transport NOT_TESTED
 
