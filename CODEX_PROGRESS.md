@@ -1,3 +1,10 @@
+## 2026-11-15 (3) — QODER: CHAT-ТОКЕНИ, Site `fbca16a`, PR #145, 881/881 PASS
+
+1. **Chat token-first:** `ProductionMarketplace.tsx` chatScreen — back-кнопка, підзаголовок, booking-банер, load-older, вхідні бульбашки + timestamp, empty-thread, композер і input переведено з raw `bg-white`/`text-slate-*` на `--mg-surface-primary`/`--mg-ink-*`/`--mg-border-subtle`/`--mg-blue-ink`. Обидві теми тепер коректні за контрактом токенів, а не через global dark-remap shim. Семантичні amber/rose чіпи report/block лишились (покриті remap).
+2. **Гейти:** `tsc --noEmit` чисто; повний `npm test` **881/881, 0 fail, 0 skip** (на робочому дереві, ідентичному коміту `fbca16a`).
+3. **Браузер Qoder (in-app, 7777/zrok, 390×844):** /messages empty-state у dark і light — токенізована картка, читабельний контраст, без overflow/overlap (`redesign-after-chat-dark-390.png`, `redesign-after-chat-light-390.png`). Жива гілка з повідомленнями NOT_TESTED — у сесії немає підтвердженого бронювання; бульбашки/композер перевірені source+тестами.
+4. **Git:** Site `fbca16a` запушено, head PR #145 підтверджено через `gh pr view` (`fbca16ad…`, OPEN). Чужі untracked `CODEX_PROGRESS.md`/`NEXT_ACTIONS.md` у Site-worktree не чіпав і не комітив. Корінь: скрини + оновлені checkpoint-документи окремим комітом. **NOT_RELEASED**, без merge/deploy.
+
 ## 2026-11-15 (2) — QODER: TRUST-БАТЧ І чесний MarshPass, Site `8ae19eb`+`77d2b43`, PR #145, 881/881 PASS
 
 1. **Booking outcome:** `NETWORK_FAILURE_TEXT` більше не заяляє «Бронювання перевірено за списком» (reconciliation-refresh сам може впасти офлайн) → «Сервер не відповів — бронювання не підтверджено. Перевірте список «Поїздки»…». Регресійний тест у `booking-failure-state.test.ts`.
