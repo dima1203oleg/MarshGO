@@ -48,6 +48,10 @@ Existing Qoder in-app browser rendered both one-page PDFs after local Read rende
 
 Native [bus screenshot](evidence/ternopil-bus16-sunday-inapp.png), [90-degree rotated reading copy](evidence/ternopil-bus16-sunday-inapp-readable.png), [trolleybus screenshot](evidence/ternopil-trolleybus2-sunday-inapp.png) saved and reading copies Read-viewed. [Codex follow-up6886553521](https://github.com/dima1203oleg/MarshGO/issues/26#issuecomment-6886553521). Ledger remains72records; no new OD/search; national totals unchanged. Prior content-unread checkpoint below is superseded only for PDF visual content, not activation gates.
 
+### Ternopil current-calendar probe — операторські джерела історичні, гейт не закрито
+
+Обмежене веб-дослідження (WebFetch, без завантажень/активації): сторінка оператора [elektrotrans.te.ua графік маршруту №8](https://elektrotrans.te.ua/%D0%B3%D1%80%D0%B0%D1%84%D1%96%D0%BA-%D1%80%D1%83%D1%85%D1%83-%D1%82%D1%80%D0%BE%D0%BB%D0%B5%D0%B9%D0%B1%D1%83%D1%81%D0%BD%D0%BE%D0%B3%D0%BE-%D0%BC%D0%B0%D1%80%D1%88%D1%80%D1%83%D1%82%D1%83-%E2%84%968/) містить розклад, «запроваджено з 22 вересня 2012 року» — історичний; зимовий пост «Оновлено графік маршруту №8» посилається на PDF `wp-content/uploads/2017/11/8-2017-11.pdf` (листопад 2017, не завантажено). Міська сторінка 40745.html повторно перевірена: досі 14 липня 2020, жодних вкладень 2025/2026. Чинний календар route8 NOT_VERIFIED; найкраще чинне джерело лишається CC-BY XLSX 2025-02-11 (інтервали, не рейси). Два негативні lead-и додано в ledger (76 записів, 22 колонки, попередні байти збережені). Без нових OD/пошуків; лічильники без змін. NOT_RELEASED.
+
 ### U10 — Тернопіль, Привокзальний майдан → вулиця Леся Курбаса
 
 Base Rootf5eca7354efb9c4106a848b81b17fdbf80fc48a6. Existing canonical Qoder in-app zrok. Exact autocomplete n:2510575495 lat49.5539341/lon25.6001758 → w:1081246284 lat49.5726151/lon25.6372156; street-only destination, not house8. Explicit picker15Nov2026 09:00 Europe/Kyiv (07:00Z), 1passenger/unlimited budget/transfers allowed/no deadline/BALANCED.
