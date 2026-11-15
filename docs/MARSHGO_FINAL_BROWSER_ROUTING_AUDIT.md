@@ -2,6 +2,14 @@
 
 ## Поточний вердикт: PARTIAL / NOT_RELEASED — 2026-11-15, U09 Khmelnytskyi urban
 
+### Server acceptance follow-up — all10 retained; bus→bus witness, cross-mode still unproved
+
+Base Root588cd947b638bc78b6757a40d8806cef9a79ad18. Exact Servermain c7d327b573c4fb35e3ccb6cb72bcc6aa88a28bf4/run43655265863 SUCCESS; artifact14137663409 ZIP11405B/JSON112682B SHAdecb97a9d2e0853289b3c6fb981e3afeef58650622b8779eba974679a4e0c544 independently matches Codex. Recomputed88catalog/83checked/5skipped/32HEALTHY30DEGRADED21OFFLINE. Compared with prior artifact14136263580, changed labels Полтава — позиції (EasyWay JSON) and Чортків — позиції (Dozor JSON), bothDEGRADED→HEALTHY; Codex earlier Ivano-Frankivsk label needs crosswalk verification. Snapshot health is not license/calendar/routing/booking coverage.
+
+Exact scripts/transport-feed-smoke.ts:118–124/136 now exports all10 itineraries while examples remains first2. Recomputed center10=7tram/2trolleybus/1bus_unspecified, allsingletransitleg; north10=7singlebus_unspecified+3bus_unspecified→bus_unspecified. North ranks6/7 А52→А53, rank8 А51→А53; rank6 Варшавська612→ШевченківськаРА610 then ШевченківськаРА609→СихівськаРА453, total13:00Z→14:14:24Z. Different stop610/609 requires actual transfer walk/pathway evidence, not identical-name substitution. All20 returned chains have cross-mode count0. This is returned bus→bus evidence, not cross-mode/12-mode/calendar/runtime/API/browser acceptance or proof of ranking loss. Old omitted8results blocker is resolved by itineraries array, but IDs/perleg scheduled+effective times/service-date/hash/walk distances+seconds/buffers remain absent. Totaldeparture13:00Z is requested-start, not vehicle boarding time. Existing main-pool histograms160one90two/30one220two and truncation remain diagnostic, not causal rank-loss proof.
+
+[Codex6886324308](https://github.com/dima1203oleg/MarshGO/issues/26#issuecomment-6886324308) requests existing serializer fields from GtfsDirectJourney155–197/GtfsItinerary439–460, rank3+/6 retention and distinct610→609 nonzero-walk/time-buffer evidence before Engine tuning; no invented values, shared refresh or source activation. No local build/test/browser/search/import/runtime changes for this follow-up; national totals18OD47searches+1negative0fullyaccepted and30PARTIAL294NOT_TESTED unchanged. NOT_RELEASED.
+
 ### U09 — Хмельницький, Проскурівська 92 → Проскурівська 13
 
 Base Root47eafd0673861834e9ab8c73992e91249168d3a3. Existing native Qoder in-app public zrok only. Exact autocomplete Проскурівська вулиця, 92, Хмельницький w:39095264 lat49.4165545/lon27.0101981 → Проскурівська вулиця, 13, Хмельницький w:191814406 lat49.4255814/lon26.9829886. Origin chosen from station query, not an attested station/platform crosswalk. Same street name in the result header does not mean identical coordinates. Explicit date picker15Nov2026 09:00 Europe/Kyiv (07:00Z), 1passenger, unlimited budget, no-transfers=false, no deadline, BALANCED.
