@@ -1,6 +1,22 @@
 # MARSHGO — Final User Experience & National Routing Audit
 
-## Поточний вердикт: PARTIAL / NOT_RELEASED — 2026-11-15, U08 Rivne urban
+## Поточний вердикт: PARTIAL / NOT_RELEASED — 2026-11-15, U09 Khmelnytskyi urban
+
+### U09 — Хмельницький, Проскурівська 92 → Проскурівська 13
+
+Base Root47eafd0673861834e9ab8c73992e91249168d3a3. Existing native Qoder in-app public zrok only. Exact autocomplete Проскурівська вулиця, 92, Хмельницький w:39095264 lat49.4165545/lon27.0101981 → Проскурівська вулиця, 13, Хмельницький w:191814406 lat49.4255814/lon26.9829886. Origin chosen from station query, not an attested station/platform crosswalk. Same street name in the result header does not mean identical coordinates. Explicit date picker15Nov2026 09:00 Europe/Kyiv (07:00Z), 1passenger, unlimited budget, no-transfers=false, no deadline, BALANCED.
+
+1. **Тролейбус-only** (інші11false) → **0 маршрутів**. [PNG](evidence/final-browser-u09-khmelnytskyi-trolleybus.png)/[AX](evidence/final-browser-u09-khmelnytskyi-trolleybus-ax.txt).
+2. **Автобус-only** (інші11false) → **0 маршрутів**. [PNG](evidence/final-browser-u09-khmelnytskyi-bus.png)/[AX](evidence/final-browser-u09-khmelnytskyi-bus-ax.txt).
+3. Same OD/date **Автобус + Тролейбус** (інші10false) → **0 маршрутів** after loading completed. [Selection AX](evidence/final-browser-u09-khmelnytskyi-city-selection-ax.txt), [PNG](evidence/final-browser-u09-khmelnytskyi-city.png)/[AX](evidence/final-browser-u09-khmelnytskyi-city-ax.txt).
+
+Three native PNG489×843dark saved and Read-viewed; stable empty-state, three disabled strategies and five-item navigation. Details/map/geometry/waits/fares NOT_TESTED because no routes returned. Zero output is not proof of absent real movement or source defect causing runtime0. Modes absent from URL; selection AX and rendered headers prove actual allowlists. No marshrutka control or bus/marshrutka conflation.
+
+[Source handoff6886197942](https://github.com/dima1203oleg/MarshGO/issues/26#issuecomment-6886197942): municipalCC-BY508coordinate stops are not dated schedules; actual schedule resources omit calendars despite metadata description; old/shared dead API schemas unproved; municipally endorsed replacement website lacks permitted current export, stable trip-stop identity/calendar/timezone, and route403 research stopped. No source activation. [Codex U09 diagnostic handoff6886293151](https://github.com/dima1203oleg/MarshGO/issues/26#issuecomment-6886293151) requests exact source/hash→dated service→stop-access/direction→planner→API/runtime first failing stage, without shared refresh.
+
+Totals **18 exact OD / 47 transport searches + 1 empty-mode negative / 0 fully accepted**. Matrix validated **324rows/14cols, 30PARTIAL/294NOT_TESTED**; only Khmelnytskyi bus/trolleybus changed to2attempts each/success0; previous regions and other10Khmelnytskyi modes preserved. Resource check27%memoryfree/swap10263.75MiB/disk17GiB YELLOW at U09 start; existing browser only. No code/test/build/import/Server/Site/DB/7777/zrok/restart/deploy. Latest Codex correction6886211839 says tracking ref stale, not divergent; protected Servermain c7d327b573c4fb35e3ccb6cb72bcc6aa88a28bf4 and run43655265863 completedSUCCESS independently verified. Artifact semantics/runtime parity not accepted from green CI. Full27×12 objective remains unmet. NOT_RELEASED.
+
+## Попередній checkpoint — U08 Rivne urban
 
 ### U08 — Рівне, Привокзальна площа 1 → Соборна 63
 
