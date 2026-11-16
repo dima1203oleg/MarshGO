@@ -74,6 +74,26 @@
     },
     "interpretation": "Not GTFS calendar_dates dates; no inferred range expansion or current-service activation."
   },
+  "workbook_followup_2026_11_16": {
+    "root_base": "77a658ccfd5862e67f833bfb89eafe2e51d3f128",
+    "source_url": "https://data.dniprorada.gov.ua/dataset/73dfe7a0-1075-4fc8-95d6-057911b56031/resource/f3e79bfe-a339-4cac-b7e1-76ce188a58d4/download/stoptimes.xlsx",
+    "license_id_rechecked": "CC-BY-4.0",
+    "dataset_metadata_modified": "2026-11-11T17:51:12.244430",
+    "resource_modified": "2026-10-01T11:16:03.061274",
+    "download_bytes": 10355128,
+    "sha256": "8c2c7dd901fd44064a2ea0f4c516064284e107265951a9886ead822924aab7f0",
+    "worksheet": "xl/worksheets/sheet1.xml",
+    "worksheet_xml_bytes": 92627496,
+    "declared_range": "A1:J229339",
+    "actual_xml_rows": 229271,
+    "rows_with_nonempty_cell_text": 229152,
+    "count_includes_header": true,
+    "stream_parse_seconds": 3.28,
+    "method": "Python stdlib zipfile + ElementTree iterparse; completed rows removed from parent; nonempty means at least one cell has nonempty itertext; shared-string indices not decoded",
+    "resources": { "memory_free_percent_before": 30, "disk_available_gib_before": 15 },
+    "verdict": "Workbook has substantially more nonempty XML rows than archived DataStore9750; row-level parity and valid record counts remain NOT_VERIFIED",
+    "limitations": ["No shared-string decoding or column semantics validation", "No distinct trip or direction count from workbook", "No resolution of trip-calendar joins", "No import, activation or runtime changes", "Earlier DataStore observations remain historical subset evidence, not whole-workbook conclusions"]
+  },
   "required_codex_followup": [
     "Compare full XLSX to DataStore before treating three keys as whole-source coverage.",
     "Obtain or verify publisher semantics for trip identity and direction; do not choose arbitrary routeuid matches.",

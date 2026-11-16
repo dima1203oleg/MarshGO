@@ -1,3 +1,17 @@
+## RESUME BLOCK 2026-11-16 — Full Dnipro workbook exceeds DataStore sample
+
+New owner national mission captured as task104; scope27 regions/12 modes remains intact.
+Fresh7-repo main lookup: Server378eccb, Site516599b unchanged; MarshGO2 read-only
+historical inspection now permitted, never a second product. Dnipro CKAN license
+CC-BY-4.0 rechecked; full stoptimes.xlsx10355128 bytes SHA2568c2c7dd901fd44064a2ea0f4c516064284e107265951a9886ead822924aab7f0.
+Streaming XML count3.28s:229271 row elements,229152 with nonempty cell text including
+header; declaredA1:J229339. Archived DataStore9750 is not whole-workbook evidence.
+Updated docs/evidence/dnipro-source-crosswalk-2026-11-15.json preserves both observations.
+NEXT: decode shared strings/header and validate actual trip/direction/stop identities
+against trips/calendar before normalization; no inferred key substitution or activation.
+No import/Server/UI edit/restart. SOURCE structure only, ROUTING/UX unchanged.
+Resource30%free/15Gi disk; no build or test suite. PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — Qoder bus-off UI and transport-link gap (base 53549ba)
 
 Canonical Qoder in-app browser: actual geocoder selections in Lviv,17Nov08:00,

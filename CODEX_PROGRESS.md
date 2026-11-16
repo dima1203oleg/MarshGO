@@ -1,3 +1,17 @@
+## 2026-11-16 — Dnipro full workbook structure checked, not activated
+
+Base77a658c. New national owner mission task104: fresh main lookup across7repos,
+Server378eccb/Site516599b unchanged. Official Dnipro license CC-BY-4.0 rechecked.
+Downloaded10355128-byte stoptimes.xlsx; SHA2568c2c7dd901fd44064a2ea0f4c516064284e107265951a9886ead822924aab7f0.
+One sheet,92627496 XML bytes,declaredA1:J229339; streaming ElementTree count3.28s:
+229271 XML rows,229152 with nonempty cell text including header. Not valid-trip counts.
+Shared strings/identities/calendar not decoded or validated. Archived DataStore9750
+cannot stand for the entire workbook; earlier3-key observation remains subset-only.
+Existing dnipro-source-crosswalk evidence extended; no duplicate provider registry,
+import,Server/UI edit or runtime restart. Next: actual column/trip/calendar crosswalk,
+then Codex normalization only after semantics proved. No test-suite/build; PARTIAL /
+NOT_RELEASED. Resources before30%free memory/15Gi disk; bounded streaming read only.
+
 ## 2026-11-16 — Qoder bus-off UI evidence; transport URL remains incomplete
 
 Base53549ba6f736219c77e51217ec0d0b99a88fa0dd. Canonical zrok/Qoder in-app
