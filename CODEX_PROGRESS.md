@@ -5525,3 +5525,21 @@ Not claimed: payment capture, live GTFS-RT vehicle positions, anything on accept
   зупинками рендериться у продукті UI. Chain-логіка VERIFIED до 4 пересадок UI / 3 API long-haul;
   4 браузерні рендери. issue26 6912858393. Національна прогалина = інгестація/покриття +
   place-resolution (Codex), не chain-логіка. Counts/matrix без змін. NOT_RELEASED.
+
+### 2026-11-16 §15.14 — Київ→Ужгород TROLLEYBUS long-haul UI-свідок (5-й браузерний рендер), Root 0f195d3
+- In-app browser canonical zrok, deep-link curated provider kyiv/uzhhorod, 17.11 08:00 BALANCED →
+  12 маршрутів; **TROLLEYBUS surface у UI-списку** у 3 картках (№6 16хв 2-пересадки 16год44;
+  №12 28хв 3-пересадки 22год51; №16 28хв 3-пересадки 22год55) — на відміну від Одеса→Київ 15.11,
+  де тролейбус НЕ surface (лише RAIL-доміновані). Diversity-прогалина #55 = коридор/feed-залежна,
+  не універсальне UI-придушення.
+- Деталі №6 16год44/2 пересадки: sheet 08:00→00:44/—; banner walk-geometry-unconfirmed;
+  Пішки3хв·193м ОРІЄНТОВНО; wait 53хв; Тролейбус6 РОЗКЛАД 08:56 м-н Незалежності/09:12
+  ст.м.Лук'янівська; wait 6хв; Автобус50→Залізничний вокзал; wait 3год21; Поїзд749 РОЗКЛАД
+  Київ-Пас→Ужгород зупинки 13:01/18:51 Львів-Головний/20:14 Стрий/22:23 Свалява/22:47 Мукачево/
+  23:37 Чоп/00:23 Ужгород; Пішки21хв·1,6км; 5-nav. Карта: національна rail-лінія Київ-Пас→Ужгород,
+  обласні підписи VINNYTSIA/ZAKARPATTIA + прикордонні SUBCARPATHIAN/BUCHAREST/CONSTANTA.
+- Скрини docs/evidence/browser-2026-11-16-kyiv-uzhhorod-{trolleybus-details,rail-stops}.png
+  (Read-viewed). Підтверджує API 15.12 (RAIL,BUS,TROLLEYBUS maxT3); 4-й транзитний режим
+  браузерно-верифіковано у міжобласному ланцюжку. 5 браузерних рендерів. Chain-логіка VERIFIED до
+  4 пересадок UI / 3 API long-haul. Національна прогалина = інгестація/покриття + place-resolution
+  (Codex), не chain-логіка. Counts/matrix без змін. Runtime без змін. NOT_RELEASED.

@@ -1,3 +1,22 @@
+## RESUME BLOCK 2026-11-16 — §15.14 KYIV→UZHGOROD TROLLEYBUS LONG-HAUL UI-VERIFIED (5th browser render)
+
+Root 5a6db52 → **0f195d3** (PR25 OPEN, pushed). In-app browser canonical zrok, deep-link curated
+provider kyiv/uzhhorod, 17.11 08:00 BALANCED → 12 маршрутів; **TROLLEYBUS surfaces in UI list** in 3
+cards (№6 16хв 2-transfer 16год44; №12 28хв 3-transfer 22год51; №16 28хв 3-transfer 22год55) —
+unlike Odesa→Kyiv 15.11 where trolleybus did NOT surface (RAIL-dominated). So diversity gap #55 is
+corridor/feed-dependent, NOT universal UI suppression. Opened №6 details 16год44/2 пересадки:
+sheet 08:00→00:44/—; banner walk-geometry-unconfirmed; Пішки3хв·193м ОРІЄНТОВНО; wait 53хв;
+**Тролейбус6 РОЗКЛАД** stops 08:56 м-н Незалежності(Посадка)/09:12 ст.м.Лук'янівська(Висадка);
+Пішки2хв·148м; wait 6хв; Автобус50 Лук'янівська→Залізничний вокзал; wait 3год21; **Поїзд749
+РОЗКЛАД** Київ-Пас→Ужгород stops 13:01 Київ-Пас/18:51 Львів-Головний/20:14 Стрий/22:23 Свалява/
+22:47 Мукачево/23:37 Чоп/00:23 Ужгород; Пішки21хв·1,6км; Інші відправлення2; 5-nav. Map: national
+rail line Посадка Київ-Пас→Висадка Ужгород, oblast labels VINNYTSIA/ZAKARPATTIA + cross-border
+SUBCARPATHIAN/BUCHAREST/CONSTANTA. Screenshots docs/evidence/browser-2026-11-16-kyiv-uzhhorod-
+{trolleybus-details,rail-stops}.png (Read-viewed). Confirms API 15.12 RAIL,BUS,TROLLEYBUS maxT3;
+4th transit mode now browser-verified in inter-oblast chain. 5 browser renders total.
+Chain logic VERIFIED to 4 transfers UI / 3 API long-haul. National gap = ingestion/coverage +
+place-resolution (Codex), NOT chain logic. Counts/matrix unchanged. Runtime unchanged. NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — §15.13 KHARKIV→LVIV 3-TRANSFER LONG-HAUL UI-VERIFIED (4th browser render)
 
 Root d74408f → **2f205ae** (PR25 OPEN, pushed). In-app browser canonical zrok, deep-link curated
