@@ -1,0 +1,67 @@
+{
+  "witness": "qoder-kyiv-bus-recovery-ui-2026-11-16",
+  "purpose": "Наскрізна UI-верифікація відновленого runtime після третього краху API (Postgres exit code 2 → unhandled pg error). Той самий сценарій, що й оригінальний свідок qoder-kyiv-bus-trolleybus-ui-2026-11-16.json (bus-частина).",
+  "capturedAtUtc": "2026-11-16T15:42:27Z",
+  "surface": "Qoder in-app browser (mcp browser-use), канонічний Web/PWA через чинний zrok",
+  "url": "https://marshgo-dima.shares.zrok.io/journeys/search",
+  "runtime": {
+    "apiShaDirty": "e9934abbd8fc973177de8d7f47548739758a1b74",
+    "buildId": "local-e9934abbd8fc-dirty-20261116T152516Z",
+    "readyz": "200 {status:ready,database:connected,realtime:connected}",
+    "recovery": "третє відновлення тим самим канонічним лаунчером scripts/start-local-api.sh (CWD=canonical root)"
+  },
+  "scenario": {
+    "origin": "Вокзальна площа, Київ (50.4406219, 30.4907708, w:1326134749)",
+    "destination": "Ізюмська вулиця, Київ (50.4113155, 30.5168993, w:38644955)",
+    "departure": "2026-11-17T08:00 Київ (EET), UI date=2026-11-17&departure=2026-11-17T08:00",
+    "passengers": 1,
+    "strategy": "BALANCED",
+    "transport": "усі 12 категорій pressed=true",
+    "directOnly": false
+  },
+  "apiReplayBeforeUi": {
+    "http": 200,
+    "ms": 17922,
+    "journeys": 1,
+    "candidateCount": 3,
+    "modes": ["WALK", "BUS", "WALK"],
+    "geomPts": [38, 68, 6],
+    "transfers": 0,
+    "priceMinor": 3000,
+    "priceStatus": "ESTIMATED"
+  },
+  "uiResultList": {
+    "heading": "Результати маршрутів: Вокзальна площа, Київ → Ізюмська вулиця",
+    "countLabel": "1 маршрут",
+    "strategies": ["Оптимальний (pressed)", "Найшвидший", "Найдешевший"],
+    "card": "47 хв · 30 ₴ · 0 пересадок",
+    "modeStrip": "Пішки 6 хв → №12 31 хв → Пішки 5 хв",
+    "screenshot": "qoder-kyiv-bus-recovery-ui-list-2026-11-16.png"
+  },
+  "uiRouteDetails": {
+    "window": "08:00 → 08:46, 47 хв в дорозі",
+    "transfers": 0,
+    "fare": "30 ₴ готівкою (ESTIMATED, не UNKNOWN≠0)",
+    "segments": [
+      {"mode": "Пішки", "from": "Вокзальна площа", "to": "Півднний вокз", "confidence": "ОРІЄНТОВНО", "waitLabel": "Очікування · 5 хв"},
+      {"mode": "Автобус 12", "from": "Півднний вокз", "to": "вул. Ізюмська", "confidence": "РОЗКЛАД",
+       "stops": [
+         {"stop": "Півднний вокз", "time": "08:11"},
+         {"stop": "вул. Олексіївська", "time": "08:19"},
+         {"stop": "І-т цукр буряк", "time": "08:30"},
+         {"stop": "вул. Ізюмська", "time": "08:42"}
+       ]},
+      {"mode": "Пішки", "from": "вул. Ізюмська", "to": "Ізюмська вулиця", "confidence": "ОРІЄНТОВНО"}
+    ],
+    "recommendation": "Перший варіант у режимі «Оптимальний»",
+    "map": "Карта маршруту MARSHGO присутня (image), bus-стрічка не рендериться — відомий task C (Codex)",
+    "screenshot": "qoder-kyiv-bus-recovery-ui-details-2026-11-16.png"
+  },
+  "verdict": "VERIFIED — UI-свідок після третього відновлення runtime точно відтворює оригінальний київський bus-ланцюжок (WALK/BUS/WALK, 47 хв, 30 ₴ ESTIMATED, 0 пересадок, зупинки й часи 08:11/08:19/08:30/08:42).",
+  "knownLimitations": [
+    "Автобусна геометрія на карті не рендериться (Codex task C) — стрічка тролейбуса рендериться, автобуса ні.",
+    "searchTruncated/partial — повнота пошуку алгоритмічно не доведена.",
+    "Runtime лишається dirty-preview SHA e9934abbd8fc; reviewed Server SHA handoff (#87) відкритий.",
+    "Postgres exit-code-2 root cause у Docker VM не усунений (infra-розслідування, EXTERNAL_BLOCKERS)."
+  ]
+}

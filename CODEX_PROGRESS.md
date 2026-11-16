@@ -14,6 +14,10 @@ NOT_ESTABLISHED для ліцензованої route-chain (права UA-GIS Z
 ліцензовано підтверджені surface-регіони: Київ+Львівська 2/27=7.4%.
 PR25 head 61d4b5f. Merge BLOCKED (CI403 Admin/Partner + 886 файлів).
 Жодних змін серверного коду/реєстру/secrets. 100% НЕ заявлено.
+UI-свідок відновлення VERIFIED 15:42Z: Qoder in-app через zrok — Вокзальна
+площа → Ізюмська 17.11 08:00: 47 хв, 30 ₴, 0 пересадок, автобус 12 РОЗКЛАД
+(08:11/08:19/08:30/08:42). Збіг з API-replay і оригінальним свідком.
+docs/evidence/qoder-kyiv-bus-recovery-ui-2026-11-16.json + 2 PNG.
 
 ## 2026-11-16 — QODER: фінальний національний звіт (17 розділів + SOURCE/ROUTING/UX) — PARTIAL / NOT_RELEASED
 
