@@ -1,0 +1,584 @@
+{
+  "startedAt": "2026-11-16T18:54:31.994Z",
+  "completedAt": "2026-11-16T18:54:32.904Z",
+  "serverSha": "378eccbdd320ff5ddf2491dd9bc613b55237f998",
+  "sourcePath": "server/mobility/transportTariffs.ts",
+  "githubBlobSha": "38686923cd8553918fab235c1563fa490ce252e7",
+  "sourceSha256": "aafb9393bf306eb77761261aef00c8ce0199b2aee89c965e7d5c3861e9a7e49e",
+  "scope": "ISOLATED_PINNED_MODULE_NOT_LIVE_API_OR_ENGINE",
+  "verdict": "REPRODUCED_INTERNAL_EFFECTIVE_DATE_ELIGIBILITY_GAP",
+  "releaseStatus": "NOT_RELEASED",
+  "httpReachability": {
+    "evidenceKind": "PINNED_SOURCE_REVIEW_NOT_EXECUTED_HTTP",
+    "parser": "server/journey/search.ts:127-138",
+    "handler": "server/index.ts:3149-3155",
+    "historicalDepartureRejected": true,
+    "classification": "INTERNAL_CONTRACT_NOT_CURRENT_LIVE_API_WRONG_FARE"
+  },
+  "productionCaller": {
+    "location": "server/journey/gtfsTimetable.ts:4163-4195",
+    "tariffInputFields": [
+      "providerCity",
+      "mode",
+      "transportType",
+      "departureAt",
+      "arrivalAt"
+    ],
+    "gtfsFareInputIncludesProviderAndAgency": true,
+    "cityTariffFallbackReceivesProviderAndAgency": false,
+    "privateOperatorRuntimeCase": "NOT_TESTED"
+  },
+  "catalogEffectiveDates": {
+    "kyiv-communal-single-ride": "2026-07-15",
+    "kyiv-90-minute-transfer-ticket": "2026-08-01"
+  },
+  "scenarioExecutions": 12,
+  "baseline": [
+    {
+      "name": "before-single-effective-date",
+      "legs": [
+        {
+          "providerCity": "Київ",
+          "mode": "BUS",
+          "transportType": "bus",
+          "departureAt": "2026-07-14T08:00:00.000Z",
+          "arrivalAt": "2026-07-14T08:20:00.000Z"
+        }
+      ],
+      "fare": {
+        "priceMinor": 3000,
+        "currency": "UAH",
+        "allocations": [
+          {
+            "priceMinor": 3000,
+            "currency": "UAH",
+            "fareProductId": "kyiv-communal-single-ride",
+            "includedByPreviousFare": false
+          }
+        ],
+        "source": "city-tariff-registry"
+      },
+      "cash": {
+        "priceMinor": 3000,
+        "currency": "UAH",
+        "allocations": [
+          {
+            "priceMinor": 3000,
+            "currency": "UAH",
+            "fareProductId": "kyiv-communal-single-ride",
+            "city": "Київ"
+          }
+        ],
+        "source": "city-tariff-registry"
+      },
+      "observedAmounts": [
+        3000,
+        3000
+      ]
+    },
+    {
+      "name": "before-transfer-effective-date",
+      "legs": [
+        {
+          "providerCity": "Київ",
+          "mode": "BUS",
+          "transportType": "bus",
+          "departureAt": "2026-07-31T08:00:00.000Z",
+          "arrivalAt": "2026-07-31T08:20:00.000Z"
+        },
+        {
+          "providerCity": "Київ",
+          "mode": "BUS",
+          "transportType": "bus",
+          "departureAt": "2026-07-31T08:25:00.000Z",
+          "arrivalAt": "2026-07-31T08:45:00.000Z"
+        },
+        {
+          "providerCity": "Київ",
+          "mode": "BUS",
+          "transportType": "bus",
+          "departureAt": "2026-07-31T08:50:00.000Z",
+          "arrivalAt": "2026-07-31T09:10:00.000Z"
+        }
+      ],
+      "fare": {
+        "priceMinor": 6000,
+        "currency": "UAH",
+        "allocations": [
+          {
+            "priceMinor": 6000,
+            "currency": "UAH",
+            "fareProductId": "kyiv-90-minute-transfer-ticket",
+            "includedByPreviousFare": false
+          },
+          {
+            "priceMinor": 0,
+            "currency": "UAH",
+            "fareProductId": "kyiv-90-minute-transfer-ticket",
+            "includedByPreviousFare": true
+          },
+          {
+            "priceMinor": 0,
+            "currency": "UAH",
+            "fareProductId": "kyiv-90-minute-transfer-ticket",
+            "includedByPreviousFare": true
+          }
+        ],
+        "source": "city-tariff-registry"
+      },
+      "cash": {
+        "priceMinor": 9000,
+        "currency": "UAH",
+        "allocations": [
+          {
+            "priceMinor": 3000,
+            "currency": "UAH",
+            "fareProductId": "kyiv-communal-single-ride",
+            "city": "Київ"
+          },
+          {
+            "priceMinor": 3000,
+            "currency": "UAH",
+            "fareProductId": "kyiv-communal-single-ride",
+            "city": "Київ"
+          },
+          {
+            "priceMinor": 3000,
+            "currency": "UAH",
+            "fareProductId": "kyiv-communal-single-ride",
+            "city": "Київ"
+          }
+        ],
+        "source": "city-tariff-registry"
+      },
+      "observedAmounts": [
+        6000,
+        9000
+      ]
+    },
+    {
+      "name": "current-single-positive",
+      "legs": [
+        {
+          "providerCity": "Київ",
+          "mode": "BUS",
+          "transportType": "bus",
+          "departureAt": "2026-11-18T08:00:00.000Z",
+          "arrivalAt": "2026-11-18T08:20:00.000Z"
+        }
+      ],
+      "fare": {
+        "priceMinor": 3000,
+        "currency": "UAH",
+        "allocations": [
+          {
+            "priceMinor": 3000,
+            "currency": "UAH",
+            "fareProductId": "kyiv-communal-single-ride",
+            "includedByPreviousFare": false
+          }
+        ],
+        "source": "city-tariff-registry"
+      },
+      "cash": {
+        "priceMinor": 3000,
+        "currency": "UAH",
+        "allocations": [
+          {
+            "priceMinor": 3000,
+            "currency": "UAH",
+            "fareProductId": "kyiv-communal-single-ride",
+            "city": "Київ"
+          }
+        ],
+        "source": "city-tariff-registry"
+      },
+      "observedAmounts": [
+        3000,
+        3000
+      ]
+    },
+    {
+      "name": "current-transfer-positive",
+      "legs": [
+        {
+          "providerCity": "Київ",
+          "mode": "BUS",
+          "transportType": "bus",
+          "departureAt": "2026-11-18T08:00:00.000Z",
+          "arrivalAt": "2026-11-18T08:20:00.000Z"
+        },
+        {
+          "providerCity": "Київ",
+          "mode": "BUS",
+          "transportType": "bus",
+          "departureAt": "2026-11-18T08:25:00.000Z",
+          "arrivalAt": "2026-11-18T08:45:00.000Z"
+        },
+        {
+          "providerCity": "Київ",
+          "mode": "BUS",
+          "transportType": "bus",
+          "departureAt": "2026-11-18T08:50:00.000Z",
+          "arrivalAt": "2026-11-18T09:10:00.000Z"
+        }
+      ],
+      "fare": {
+        "priceMinor": 6000,
+        "currency": "UAH",
+        "allocations": [
+          {
+            "priceMinor": 6000,
+            "currency": "UAH",
+            "fareProductId": "kyiv-90-minute-transfer-ticket",
+            "includedByPreviousFare": false
+          },
+          {
+            "priceMinor": 0,
+            "currency": "UAH",
+            "fareProductId": "kyiv-90-minute-transfer-ticket",
+            "includedByPreviousFare": true
+          },
+          {
+            "priceMinor": 0,
+            "currency": "UAH",
+            "fareProductId": "kyiv-90-minute-transfer-ticket",
+            "includedByPreviousFare": true
+          }
+        ],
+        "source": "city-tariff-registry"
+      },
+      "cash": {
+        "priceMinor": 9000,
+        "currency": "UAH",
+        "allocations": [
+          {
+            "priceMinor": 3000,
+            "currency": "UAH",
+            "fareProductId": "kyiv-communal-single-ride",
+            "city": "Київ"
+          },
+          {
+            "priceMinor": 3000,
+            "currency": "UAH",
+            "fareProductId": "kyiv-communal-single-ride",
+            "city": "Київ"
+          },
+          {
+            "priceMinor": 3000,
+            "currency": "UAH",
+            "fareProductId": "kyiv-communal-single-ride",
+            "city": "Київ"
+          }
+        ],
+        "source": "city-tariff-registry"
+      },
+      "observedAmounts": [
+        6000,
+        9000
+      ]
+    },
+    {
+      "name": "unknown-city-negative",
+      "legs": [
+        {
+          "providerCity": "Невідома",
+          "mode": "BUS",
+          "transportType": "bus",
+          "departureAt": "2026-11-18T08:00:00.000Z",
+          "arrivalAt": "2026-11-18T08:20:00.000Z"
+        }
+      ],
+      "fare": null,
+      "cash": null,
+      "observedAmounts": [
+        null,
+        null
+      ]
+    },
+    {
+      "name": "marshrutka-negative",
+      "legs": [
+        {
+          "providerCity": "Київ",
+          "mode": "MARSHRUTKA",
+          "transportType": "marshrutka",
+          "departureAt": "2026-11-18T08:00:00.000Z",
+          "arrivalAt": "2026-11-18T08:20:00.000Z"
+        }
+      ],
+      "fare": null,
+      "cash": null,
+      "observedAmounts": [
+        null,
+        null
+      ]
+    }
+  ],
+  "inMemoryDateGuardControl": [
+    {
+      "name": "before-single-effective-date",
+      "legs": [
+        {
+          "providerCity": "Київ",
+          "mode": "BUS",
+          "transportType": "bus",
+          "departureAt": "2026-07-14T08:00:00.000Z",
+          "arrivalAt": "2026-07-14T08:20:00.000Z"
+        }
+      ],
+      "fare": null,
+      "cash": null,
+      "observedAmounts": [
+        null,
+        null
+      ]
+    },
+    {
+      "name": "before-transfer-effective-date",
+      "legs": [
+        {
+          "providerCity": "Київ",
+          "mode": "BUS",
+          "transportType": "bus",
+          "departureAt": "2026-07-31T08:00:00.000Z",
+          "arrivalAt": "2026-07-31T08:20:00.000Z"
+        },
+        {
+          "providerCity": "Київ",
+          "mode": "BUS",
+          "transportType": "bus",
+          "departureAt": "2026-07-31T08:25:00.000Z",
+          "arrivalAt": "2026-07-31T08:45:00.000Z"
+        },
+        {
+          "providerCity": "Київ",
+          "mode": "BUS",
+          "transportType": "bus",
+          "departureAt": "2026-07-31T08:50:00.000Z",
+          "arrivalAt": "2026-07-31T09:10:00.000Z"
+        }
+      ],
+      "fare": {
+        "priceMinor": 9000,
+        "currency": "UAH",
+        "allocations": [
+          {
+            "priceMinor": 3000,
+            "currency": "UAH",
+            "fareProductId": "kyiv-communal-single-ride",
+            "includedByPreviousFare": false
+          },
+          {
+            "priceMinor": 3000,
+            "currency": "UAH",
+            "fareProductId": "kyiv-communal-single-ride",
+            "includedByPreviousFare": false
+          },
+          {
+            "priceMinor": 3000,
+            "currency": "UAH",
+            "fareProductId": "kyiv-communal-single-ride",
+            "includedByPreviousFare": false
+          }
+        ],
+        "source": "city-tariff-registry"
+      },
+      "cash": {
+        "priceMinor": 9000,
+        "currency": "UAH",
+        "allocations": [
+          {
+            "priceMinor": 3000,
+            "currency": "UAH",
+            "fareProductId": "kyiv-communal-single-ride",
+            "city": "Київ"
+          },
+          {
+            "priceMinor": 3000,
+            "currency": "UAH",
+            "fareProductId": "kyiv-communal-single-ride",
+            "city": "Київ"
+          },
+          {
+            "priceMinor": 3000,
+            "currency": "UAH",
+            "fareProductId": "kyiv-communal-single-ride",
+            "city": "Київ"
+          }
+        ],
+        "source": "city-tariff-registry"
+      },
+      "observedAmounts": [
+        9000,
+        9000
+      ]
+    },
+    {
+      "name": "current-single-positive",
+      "legs": [
+        {
+          "providerCity": "Київ",
+          "mode": "BUS",
+          "transportType": "bus",
+          "departureAt": "2026-11-18T08:00:00.000Z",
+          "arrivalAt": "2026-11-18T08:20:00.000Z"
+        }
+      ],
+      "fare": {
+        "priceMinor": 3000,
+        "currency": "UAH",
+        "allocations": [
+          {
+            "priceMinor": 3000,
+            "currency": "UAH",
+            "fareProductId": "kyiv-communal-single-ride",
+            "includedByPreviousFare": false
+          }
+        ],
+        "source": "city-tariff-registry"
+      },
+      "cash": {
+        "priceMinor": 3000,
+        "currency": "UAH",
+        "allocations": [
+          {
+            "priceMinor": 3000,
+            "currency": "UAH",
+            "fareProductId": "kyiv-communal-single-ride",
+            "city": "Київ"
+          }
+        ],
+        "source": "city-tariff-registry"
+      },
+      "observedAmounts": [
+        3000,
+        3000
+      ]
+    },
+    {
+      "name": "current-transfer-positive",
+      "legs": [
+        {
+          "providerCity": "Київ",
+          "mode": "BUS",
+          "transportType": "bus",
+          "departureAt": "2026-11-18T08:00:00.000Z",
+          "arrivalAt": "2026-11-18T08:20:00.000Z"
+        },
+        {
+          "providerCity": "Київ",
+          "mode": "BUS",
+          "transportType": "bus",
+          "departureAt": "2026-11-18T08:25:00.000Z",
+          "arrivalAt": "2026-11-18T08:45:00.000Z"
+        },
+        {
+          "providerCity": "Київ",
+          "mode": "BUS",
+          "transportType": "bus",
+          "departureAt": "2026-11-18T08:50:00.000Z",
+          "arrivalAt": "2026-11-18T09:10:00.000Z"
+        }
+      ],
+      "fare": {
+        "priceMinor": 6000,
+        "currency": "UAH",
+        "allocations": [
+          {
+            "priceMinor": 6000,
+            "currency": "UAH",
+            "fareProductId": "kyiv-90-minute-transfer-ticket",
+            "includedByPreviousFare": false
+          },
+          {
+            "priceMinor": 0,
+            "currency": "UAH",
+            "fareProductId": "kyiv-90-minute-transfer-ticket",
+            "includedByPreviousFare": true
+          },
+          {
+            "priceMinor": 0,
+            "currency": "UAH",
+            "fareProductId": "kyiv-90-minute-transfer-ticket",
+            "includedByPreviousFare": true
+          }
+        ],
+        "source": "city-tariff-registry"
+      },
+      "cash": {
+        "priceMinor": 9000,
+        "currency": "UAH",
+        "allocations": [
+          {
+            "priceMinor": 3000,
+            "currency": "UAH",
+            "fareProductId": "kyiv-communal-single-ride",
+            "city": "Київ"
+          },
+          {
+            "priceMinor": 3000,
+            "currency": "UAH",
+            "fareProductId": "kyiv-communal-single-ride",
+            "city": "Київ"
+          },
+          {
+            "priceMinor": 3000,
+            "currency": "UAH",
+            "fareProductId": "kyiv-communal-single-ride",
+            "city": "Київ"
+          }
+        ],
+        "source": "city-tariff-registry"
+      },
+      "observedAmounts": [
+        6000,
+        9000
+      ]
+    },
+    {
+      "name": "unknown-city-negative",
+      "legs": [
+        {
+          "providerCity": "Невідома",
+          "mode": "BUS",
+          "transportType": "bus",
+          "departureAt": "2026-11-18T08:00:00.000Z",
+          "arrivalAt": "2026-11-18T08:20:00.000Z"
+        }
+      ],
+      "fare": null,
+      "cash": null,
+      "observedAmounts": [
+        null,
+        null
+      ]
+    },
+    {
+      "name": "marshrutka-negative",
+      "legs": [
+        {
+          "providerCity": "Київ",
+          "mode": "MARSHRUTKA",
+          "transportType": "marshrutka",
+          "departureAt": "2026-11-18T08:00:00.000Z",
+          "arrivalAt": "2026-11-18T08:20:00.000Z"
+        }
+      ],
+      "fare": null,
+      "cash": null,
+      "observedAmounts": [
+        null,
+        null
+      ]
+    }
+  ],
+  "limitations": [
+    "SYNTHETIC_DATES_AND_LEGS",
+    "NO_LIVE_HISTORICAL_OR_PRIVATE_OPERATOR_CASE",
+    "NO_PRIMARY_LEGAL_ACT_ATTESTATION",
+    "IN_MEMORY_GUARD_IS_NOT_A_SERVER_FIX_OR_PROPOSED_COMPLETE_DESIGN",
+    "NO_LEGACY_FARE_ASSUMED",
+    "NO_SERVER_SITE_RUNTIME_DB_MUTATION"
+  ]
+}

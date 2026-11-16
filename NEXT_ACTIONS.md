@@ -1,3 +1,24 @@
+## RESUME BLOCK 2026-11-16 — tariff effective-date reproduction, HTTP impact bounded (base 8dbfa30dbf8f62ce7092b4154f27196f945ff049)
+
+Task111: read-only remote Server/main still378eccb; PR26 stilla196132/open.
+Production gtfsTimetable4163–4195 passes city/mode/dates,not provider/agency,
+to municipal fallback/cash; provider/agency exist in GTFS fare calculation.
+Pinned module executed by tools/reproduce-city-tariff-eligibility.mjs:
+14July single gives3000/3000 before15July effective date;31July3rides gives
+6000transfer/9000cash before1Aug transfer activation. In-memory-only date guard
+changes these to null/null and9000/9000.18Nov single3000/transfer6000 unchanged;
+unknown-city/marshrutka remain null.6baseline+6control=12scenario executions.
+Parser search.ts127–138 rejects departureAt<=now; handler index3149–3155 maps
+error to400 before SQL. Thus historical cases are INTERNAL_CONTRACT,NOT current
+live API wrong-fare/P1. No unsupported private operator runtime case established.
+Artifact kyiv-tariff-eligibility-reproduction-2026-11-16.json records exactSHA,
+GitHub blob/sourceSHA256,results,control andreachability caveats. No legacy8guess.
+Targeted evidence11+auth5=16/16,0fail/skip,485.470791ms; node syntax,ESLint,
+diff-check PASS. No Server/Site/DB/7777/zrok mutation,build or browser acceptance.
+NEXT: Codex handoff for eligibility hardening with current controls preserved;
+reviewed runtime/taskE/CI403/E2E and nationwide27×12 gates remain open.
+PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — Kyiv fare provenance, no wrong-price finding (base ca340919dfb39ad9345e4022ac9bafc1644e9bce)
 
 Task110 bounded provenance audit: actual Server source pinned378eccb,

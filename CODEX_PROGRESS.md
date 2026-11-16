@@ -1,3 +1,20 @@
+## 2026-11-16 — QODER: pinned tariff eligibility execution, not live wrong-price — PARTIAL / NOT_RELEASED
+
+Base8dbfa30dbf8f62ce7092b4154f27196f945ff049. Task111 remote Server378eccb,
+no Server edits. Production fallback drops provider/agency,uses city/mode/dates.
+New bounded reproducer executes exact remote module after type stripping,not
+copied logic.14July single3000/3000 despite15July effectiveFrom;31July3ride
+6000transfer/9000cash despite1Aug transfer activation. In-memory date guards
+remove discrepancies;18Nov andunknowncity/marshrutka controls unchanged.
+12scenario executions pass,rawJSON preserves source/blob hashes and outputs.
+HTTP parser rejects past departureAt before SQL,so historical reproductions
+are INTERNAL_CONTRACT,not current live API wrongfare or confirmedP1. Private
+operator case not executed. No8UAH assumption or registry activation/patch.
+Evidence/auth regressions16/16,0fail/skip,485.470791ms; node syntax/ESLint/diffPASS.
+No runtime/API/DB/Site/build/browser acceptance. Codex receives bounded handoff;
+current30UAH sample remains ESTIMATED,primary cash/rights scope incomplete.
+National goal and release readiness unchanged; NOT_RELEASED.
+
 ## 2026-11-16 — QODER: Kyiv30UAH corroborated, primary applicability incomplete — PARTIAL / NOT_RELEASED
 
 Baseca340919dfb39ad9345e4022ac9bafc1644e9bce. Task110 read-only Server source
