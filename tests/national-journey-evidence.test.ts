@@ -151,3 +151,72 @@ test('recorded Qoder bus-only request preserves exact date and stable dirty runt
     assert.equal(journey.priceStatus, 'ESTIMATED');
   }
 });
+
+test('recorded interregional request preserves overnight chains without certifying estimated walking', () => {
+  const probe = JSON.parse(readFileSync(new URL('../docs/evidence/qoder-kharkiv-lviv-exact-request-2026-11-16.json', import.meta.url), 'utf8'));
+  assert.equal(probe.status, 'complete');
+  assert.equal(probe.http, 200);
+  assert.equal(probe.requests.length, 1);
+  assert.deepEqual(probe.runtimeBefore, probe.runtimeAfter);
+  assert.equal(probe.runtimeBefore.data.sourceState, 'dirty');
+  const request = probe.requests[0].body;
+  assert.equal(request.departureAt, '2026-11-18T06:00:00.000Z');
+  assert.deepEqual(request.origin.coordinates, [36.2304, 49.9935]);
+  assert.deepEqual(request.destination.coordinates, [24.0297, 49.8397]);
+  assert.deepEqual(request.preferences.allowedTransportTypes, ['carpool', 'marshrutka', 'bus', 'taxi', 'tram', 'trolleybus', 'metro', 'train', 'bike', 'scooter', 'carsharing', 'transfer']);
+  const data = probe.response.data;
+  assert.equal(data.returnedCount, data.journeys.length);
+  assert.equal(data.journeys.length, 12);
+  assert.equal(new Set(data.journeys.map((journey: { id: string }) => journey.id)).size, 12);
+  assert.equal(data.partial, true);
+  assert.ok(data.partialReasons.includes('walking_routing_unavailable'));
+  assert.deepEqual(data.availableStrategies, ['BALANCED', 'FASTEST']);
+  for (const journey of data.journeys) {
+    assert.equal(journey.requestedDepartureAt, request.departureAt);
+    assert.equal(journey.priceStatus, 'UNKNOWN');
+    assert.equal(journey.totalPriceMinor, null);
+    let previousArrival = Date.parse(request.departureAt);
+    let waitingSeconds = 0;
+    let walkingMeters = 0;
+    let transitLegs = 0;
+    for (const leg of journey.legs) {
+      const departure = Date.parse(leg.departureAt);
+      const arrival = Date.parse(leg.arrivalAt);
+      assert.ok(Number.isFinite(departure) && Number.isFinite(arrival));
+      assert.ok(departure >= previousArrival);
+      assert.ok(arrival >= departure);
+      assert.equal(leg.durationSeconds, (arrival - departure) / 1000);
+      waitingSeconds += (departure - previousArrival) / 1000;
+      if (leg.mode === 'WALK') {
+        assert.equal(leg.source, 'walking-grid-estimate');
+        assert.equal(leg.liveStatus, 'UNVERIFIED');
+        assert.equal(leg.routeGeometry, undefined);
+        walkingMeters += leg.distanceMeters;
+      } else {
+        transitLegs++;
+        assert.ok(['RAIL', 'TRAM', 'BUS'].includes(leg.mode));
+        assert.equal(leg.source, 'gtfs-static');
+        assert.equal(leg.liveStatus, 'SCHEDULED');
+        assert.ok(Array.isArray(leg.routeGeometry) && leg.routeGeometry.length >= 2);
+        for (const point of leg.routeGeometry) {
+          assert.equal(point.length, 2);
+          assert.ok(point.every(Number.isFinite));
+          assert.ok(Math.abs(point[0]) <= 180 && Math.abs(point[1]) <= 90);
+        }
+      }
+      previousArrival = arrival;
+    }
+    assert.equal(journey.transfers, transitLegs - 1);
+    assert.equal(journey.waitingSeconds, waitingSeconds);
+    assert.equal(journey.walkingMeters, walkingMeters);
+    assert.equal(journey.totalDurationSeconds, (previousArrival - Date.parse(request.departureAt)) / 1000);
+  }
+  const selected = data.journeys.find((journey: { id: string }) => journey.id === 'af9395af-8bac-49c3-bb9a-f47476ae7831');
+  assert.ok(selected);
+  assert.equal(selected.transfers, 4);
+  assert.deepEqual(selected.legs.map((leg: { mode: string }) => leg.mode), ['WALK', 'RAIL', 'RAIL', 'WALK', 'TRAM', 'BUS', 'WALK', 'BUS', 'WALK']);
+  assert.deepEqual(selected.legs.filter((leg: { mode: string }) => leg.mode !== 'WALK').map((leg: { routeName: string }) => leg.routeName), ['17', '43', 'Т06', 'А41', 'А05']);
+  assert.equal(selected.legs[2].departureAt, '2026-11-18T20:34:00.000Z');
+  assert.equal(selected.legs[2].arrivalAt, '2026-11-19T03:10:00.000Z');
+  assert.equal(selected.legs.at(-1).arrivalAt, '2026-11-19T05:35:31.000Z');
+});

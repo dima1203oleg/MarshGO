@@ -1,0 +1,194 @@
+{
+  "evidenceScope": {
+    "rootBaseSha": "1d297792c7ac7c9c21fc8725747fbfff704a5c56",
+    "servedSiteSha": "1fec46fe4a4b2e9523db74a8f709bf0f2204d9c3",
+    "servedSiteSourceState": "foreign-dirty-not-modified",
+    "servedApiSha": "e9934abbd8fc973177de8d7f47548739758a1b74",
+    "servedApiSourceState": "dirty",
+    "requestArtifact": "qoder-kharkiv-lviv-exact-request-2026-11-16.json",
+    "verdict": "PARTIAL",
+    "releaseStatus": "NOT_RELEASED",
+    "actualSearchCount": 1,
+    "transitGeometryArrays": 44,
+    "walkingLegsWithoutGeometry": 38,
+    "selectedTransitRouteNames": ["17", "43", "Т06", "А41", "А05"],
+    "selectedArrivalKyiv": "2026-11-19T07:35:31+02:00",
+    "uiObserved": [
+      "Results show 18.11 08:00, all transport types, 12 journeys; CHEAPEST disabled.",
+      "Selected details show 08:00 to 07:35, 23h36, four transfers and unknown price.",
+      "Train 17 and train 43 selection render blue transit lines with boarding and alighting labels.",
+      "Train 43 expanded stops show Kyiv 22:34 and Lviv 05:10, without visible day/date labels.",
+      "Walking geometry warning is visible."
+    ],
+    "limitations": [
+      "Chronology and numeric transit geometry pass recorded-evidence checks, not feed-calendar or road-legality acceptance.",
+      "Arrival next-day date is not visible in the captured detail header or overnight stop rows.",
+      "Walking-grid estimates have no raw routeGeometry; walking-router failure cause is not recorded in providerErrors.",
+      "All fares UNKNOWN; no cheapest-price, booking, live GPS or vehicle availability proof.",
+      "Search persists owned PLANNED records; no navigation, booking, save, share or runtime restart.",
+      "All 12 selected modes do not establish returned or national coverage for all 12 modes.",
+      "Dirty preview is not reviewed current-main release acceptance; no reload or camera full-fit acceptance."
+    ],
+    "captureCleanup": "Original fetch restored after the single POST; temporary page capture deleted after export."
+  },
+  "buttons": [
+    {
+      "expanded": null,
+      "label": "Назад до результатів",
+      "pressed": null
+    },
+    {
+      "expanded": "false",
+      "label": "Шари карти",
+      "pressed": null
+    },
+    {
+      "expanded": "true",
+      "label": "Згорнути деталі маршруту",
+      "pressed": null
+    },
+    {
+      "expanded": null,
+      "label": "Поділитися маршрутом",
+      "pressed": null
+    },
+    {
+      "expanded": null,
+      "label": "Зберегти маршрут",
+      "pressed": "false"
+    },
+    {
+      "expanded": null,
+      "label": "Вибрати сегмент: Пішки; Харків · центр міста до Харків-Пасажирський; ОРІЄНТОВНО; До 17",
+      "pressed": "false"
+    },
+    {
+      "expanded": null,
+      "label": "Вибрати сегмент: Поїзд 17; Харків-Пасажирський до Київ-Пасажирський; РОЗКЛАД",
+      "pressed": "false"
+    },
+    {
+      "expanded": "false",
+      "label": "Розгорнути зупинки: Поїзд",
+      "pressed": null
+    },
+    {
+      "expanded": null,
+      "label": "Показати пересадку на Поїзд 43 на карті",
+      "pressed": "false"
+    },
+    {
+      "expanded": null,
+      "label": "Вибрати сегмент: Поїзд 43; Київ-Пасажирський до Львів-Головний; РОЗКЛАД",
+      "pressed": "true"
+    },
+    {
+      "expanded": "true",
+      "label": "Згорнути зупинки: Поїзд",
+      "pressed": null
+    },
+    {
+      "expanded": null,
+      "label": "Зупинка: Київ-Пасажирський, час 22:34",
+      "pressed": "false"
+    },
+    {
+      "expanded": null,
+      "label": "Зупинка: Львів-Головний, час 05:10",
+      "pressed": "false"
+    },
+    {
+      "expanded": null,
+      "label": "Вибрати сегмент: Пішки; Львів-Головний до Залізничний вокзал; ОРІЄНТОВНО; До Т06",
+      "pressed": "false"
+    },
+    {
+      "expanded": null,
+      "label": "Вибрати сегмент: Трамвай Т06; Залізничний вокзал до Площа Кропивницького; РОЗКЛАД",
+      "pressed": "false"
+    },
+    {
+      "expanded": "false",
+      "label": "Розгорнути зупинки: Трамвай",
+      "pressed": null
+    },
+    {
+      "expanded": null,
+      "label": "Показати пересадку на Автобус А41 на карті",
+      "pressed": "false"
+    },
+    {
+      "expanded": null,
+      "label": "Вибрати сегмент: Автобус А41; Площа Кропивницького до Проспект Чорновола; РОЗКЛАД",
+      "pressed": "false"
+    },
+    {
+      "expanded": "false",
+      "label": "Розгорнути зупинки: Автобус",
+      "pressed": null
+    },
+    {
+      "expanded": null,
+      "label": "Вибрати сегмент: Пішки; Проспект Чорновола до Площа Різні; ОРІЄНТОВНО; До А05",
+      "pressed": "false"
+    },
+    {
+      "expanded": null,
+      "label": "Вибрати сегмент: Автобус А05; Площа Різні до Проспект Свободи; РОЗКЛАД",
+      "pressed": "false"
+    },
+    {
+      "expanded": "false",
+      "label": "Розгорнути зупинки: Автобус",
+      "pressed": null
+    },
+    {
+      "expanded": null,
+      "label": "Вибрати сегмент: Пішки; Проспект Свободи до Львів · центр міста; ОРІЄНТОВНО; До фінішу",
+      "pressed": "false"
+    },
+    {
+      "expanded": null,
+      "label": "Розпочати навігацію",
+      "pressed": null
+    },
+    {
+      "expanded": null,
+      "label": "Маршрут: відкрити інтерактивний перегляд",
+      "pressed": null
+    },
+    {
+      "expanded": null,
+      "label": "Головна",
+      "pressed": null
+    },
+    {
+      "expanded": null,
+      "label": "Пошук",
+      "pressed": null
+    },
+    {
+      "expanded": "false",
+      "label": "Створити поїздку або запит",
+      "pressed": null
+    },
+    {
+      "expanded": null,
+      "label": "Поїздки",
+      "pressed": null
+    },
+    {
+      "expanded": null,
+      "label": "Профіль",
+      "pressed": null
+    }
+  ],
+  "observedAt": "2026-11-16T19:03:33.880Z",
+  "selectedJourneyId": "af9395af-8bac-49c3-bb9a-f47476ae7831",
+  "url": "https://marshgo-dima.shares.zrok.io/journeys/search?mode=planner&origin=%D0%A5%D0%B0%D1%80%D0%BA%D1%96%D0%B2+%C2%B7+%D1%86%D0%B5%D0%BD%D1%82%D1%80+%D0%BC%D1%96%D1%81%D1%82%D0%B0&originLat=49.9935&originLon=36.2304&originProvider=marshgo%3Acity-reference%3Akharkiv&destination=%D0%9B%D1%8C%D0%B2%D1%96%D0%B2+%C2%B7+%D1%86%D0%B5%D0%BD%D1%82%D1%80+%D0%BC%D1%96%D1%81%D1%82%D0%B0&destinationLat=49.8397&destinationLon=24.0297&destinationProvider=marshgo%3Acity-reference%3Alviv&date=2026-11-18&passengers=1&departure=2026-11-18T08%3A00&strategy=BALANCED",
+  "viewport": {
+    "height": 843,
+    "width": 395
+  },
+  "visibleText": "Харків · центр міста — Львів · центр міста\nПосадка\nКиїв-Пасажирський\nВисадка\nЛьвів-Головний\nMARSHGO\nМаршрут · Львів · центр міста\n\nЧастина пішої геометрії не підтверджена\n\nДеталі маршруту\n08:00 → 07:35\n23 год 36 хв\nв дорозі\n4\nпересадки\n—\nПішки\n08:00–08:26 · 27 хв ·\n27 хв · 2 км\nХарків · центр міста\n—\nХарків-Пасажирський\nОчікування · 5 год 54 хв\nПоїзд 17\n14:21–21:36 · 7 год 15 хв ·\n7 год 15 хв\nХарків-Пасажирський\n—\nКиїв-Пасажирський\nПересадка\nПоїзд 43\n58 хв\nОчікування · 58 хв\nПоїзд 43\n22:34–05:10 · 6 год 36 хв ·\n6 год 36 хв\nКиїв-Пасажирський\n—\nЛьвів-Головний\n22:34\nКиїв-Пасажирський\nПосадка\n05:10\nЛьвів-Головний\nВисадка\nПішки\n05:10–05:13 · 3 хв ·\n3 хв · 243 м\nЛьвів-Головний\n—\nЗалізничний вокзал\nОчікування · 1 год 42 хв\nТрамвай Т06\n06:55–06:59 · 4 хв ·\n4 хв\nЗалізничний вокзал\n—\nПлоща Кропивницького\nПересадка\nАвтобус А41\n17 хв\nОчікування · 17 хв\nАвтобус А41\n07:16–07:23 · 7 хв ·\n7 хв\nПлоща Кропивницького\n—\nПроспект Чорновола\nПішки\n07:23–07:24 · 2 хв ·\n2 хв · 144 м\nПроспект Чорновола\n—\nПлоща Різні\nОчікування · 5 хв\nАвтобус А05\n07:30–07:34 · 4 хв ·\n4 хв\nПлоща Різні\n—\nПроспект Свободи\nПішки\n07:34–07:35 · 2 хв ·\n2 хв · 113 м\nПроспект Свободи\n—\nЛьвів · центр міста\nРозпочати навігацію\nМаршрут\nГоловна\nПошук\nПоїздки\nПрофіль"
+}

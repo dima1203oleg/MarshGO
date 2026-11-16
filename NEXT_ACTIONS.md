@@ -1,3 +1,29 @@
+## RESUME BLOCK 2026-11-16 — exact Kharkiv–Lviv four-transfer raw/UI witness (base 1d297792c7ac7c9c21fc8725747fbfff704a5c56)
+
+Task112 one Qoder in-app canonical7777/zrok POST18:58:45.894Z; exact18Nov
+08:00Kyiv→06:00Z,Kharkiv[36.2304,49.9935]→Lviv[24.0297,49.8397],all12modes.
+HTTP200/8812ms/12journeys/100candidates,partial. Full1.38MB raw capture includes
+44transit geometries and38WALK legs without geometry,walking-grid-estimate,
+UNVERIFIED; walking_routing_unavailable. Only providerError is Kyiv metro.
+All fares UNKNOWN; available BALANCED/FASTEST,UI CHEAPEST disabled. Selected
+ af9395af:WALK/RAIL17/RAIL43/WALK/TRAMТ06/BUSА41/WALK/BUSА05/WALK,
+4transfers/84931s/2489mwalk/32177swait;arrival19Nov05:35:31Z (07:35Kyiv).
+Recorded checks verify exact date,all12 modes,IDs,chronology,durations,wait/walk
+sums,transfers,numeric transit coordinates. No walking road-legality/rights proof.
+Qoder395×843: blue train17/43 lines andboarding/alighting labels,train43 stops
+22:34→05:10. Header08:00→07:35 andstop rows omit next-day date; task59 persists.
+3PNG+DOMJSON+fullrequestJSON saved;originalfetch restored,temporarycapture deleted.
+Runtime before/after stable dirty e9934ab/build154848Z/instance08e52ab1;Site7777
+foreign dirty1fec46f unchanged;readyz200 afterward. Search persists PLANNED records,
+not booking/read-only. No Server/Site patch/import/restart/build/save/share/GPS.
+Evidence12+auth5=17/17,0fail/skip,512.795333ms;ESLint/typecheck/diff-check PASS.
+Read-only pinned main378eccb walking review: endpoint coverage/timeout/budget/disabled
+all can degrade; dirty walking-grid-estimate token not explained by pinned paths.
+Cause NOT_VERIFIED,not inferred from100candidates or priorKyiv OSRM success.
+NEXT: bounded Codex fixture diagnostics/runtime handoff; task59/UI day label,
+taskE/CI403/behavioral E2E/rights/calendars/national27×12 remainopen.
+PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — tariff effective-date reproduction, HTTP impact bounded (base 8dbfa30dbf8f62ce7092b4154f27196f945ff049)
 
 Task111: read-only remote Server/main still378eccb; PR26 stilla196132/open.

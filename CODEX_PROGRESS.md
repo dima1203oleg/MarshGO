@@ -1,3 +1,25 @@
+## 2026-11-16 — QODER: exact interregional raw chain + four-transfer UI — PARTIAL / NOT_RELEASED
+
+Base1d297792c7ac7c9c21fc8725747fbfff704a5c56. Task112 actualsingleQoder search
+Kharkiv→Lviv18Nov08:00Kyiv/all12types captured18:58:45.894Z,HTTP200/8812ms.
+12journeys/100candidates,partial;44rawtransit geometries/38unconfirmedWALK legs.
+All faresUNKNOWN,CHEAPESTdisabled. Selectedaf9395af chain17→43→Т06→А41→А05,
+4transfers,84931s,2489mwalk,32177swait,19Nov07:35:31Kyivarrival. All12recorded
+journeys pass chronology/durations/counts/transfers/wait/walk/coordinatechecks.
+WALK sourcewalking-grid-estimate,UNVERIFIED,no geometry;partialwalking-unavailable,
+providerErrors onlyKyivmetro. No invented roadpath or walking completeness pass.
+Qoder395×843 train17and43 blue lines/boarding/alighting captured;train43 rows
+22:34→05:10 do not show next-day date,header08:00→07:35 also omits date(task59).
+3PNG+DOM/fullrawJSON saved;fetch restored,pagecapture removed,no repeatedPOST.
+Stable dirtyAPIe9934ab/build154848Z/instance08e52ab1,foreignSite1fec46f untouched;
+readyz200 afterquery. SearchcreatesPLANNEDrecords,no booking/GPS/save/share/restart.
+Tests17/17,0fail/skip,512.795333ms;changed-testESLint/typecheck/diffPASS.
+Pinnedmain378eccb read-onlywalkingreview distinguishes disabled/coverage/timeout/
+budget,nullnegativecache andgeometryprovenance. RuntimecauseNOT_VERIFIED;
+dirtywalking-grid-estimate token absent from reviewedmain index/walkingRoutes.
+Codex needs isolated4case fixture diagnostics,not an uncoordinated preview refresh.
+No Server/Site/import/buildpatch. Reviewedruntime/taskE/CI403/E2E/national gatesopen.
+
 ## 2026-11-16 — QODER: pinned tariff eligibility execution, not live wrong-price — PARTIAL / NOT_RELEASED
 
 Base8dbfa30dbf8f62ce7092b4154f27196f945ff049. Task111 remote Server378eccb,
