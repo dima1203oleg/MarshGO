@@ -5619,3 +5619,25 @@ docs/evidence/national-per-mode-probe-2026-11-16.json.
   Висновок/footer (+24 pure-mode пошуки). Codex-handoff = per-mode blocker matrix на issue26.
 - Рендерів 7 (без змін). Runtime без змін (API :3002 local-e9934abbd8fc-dirty; served Site
   1fec46f-dirty read-only). NOT_RELEASED.
+
+## 2026-11-16 — §15.19 Національний intra-city real-node sweep: 22 центри, Київ 3-режимна мультимодальність
+
+Root da6a3b2 → (this commit) (PR25 OPEN). POST `/journeys/search` усі режими для 22 обласних
+центрів: origin=реальний вузол (вокзал/район) → destination=центр, 17.11 08:00 BALANCED. Артефакт
+docs/evidence/national-intra-city-realnode-2026-11-16.json.
+- VALIDATE-PROBE: синтетичний center+offset (~4км) sweep дав ХИБНО-НЕГАТИВНІ (Київ offset cand=0
+  vs real-node ret=5) → offset-sweep ВІДКИНУТИЙ, не доказ покриття. cand=0 робастно = немає
+  інгестованого міського фіду навіть за наближених координат вокзалу.
+- 5/22 з ланцюжками: Київ ret=5 cand=61 maxT=3 **bus+tram+trolleybus** (Київпастранс GTFS, metro
+  blocked #62); Львів ret=4 cand=49 maxT=1 **bus+tram** (Львівавтодор GTFS); Ужгород ret=3 bus
+  (міськрада GTFS); Одеса ret=1 bike-estimate (Nextbike, наземний транзит НЕ інгестований);
+  ІФ ret=1 bike-estimate (Dozor RT є, транзит не surface).
+- 17/22 cand=0 = MISSING ingestion: Dnipro,Kharkiv,Vinnytsia,Lutsk,Zhytomyr,Zaporizhzhia,
+  Kropyvnytskyi,Mykolaiv,Poltava,Rivne,Ternopil,Khmelnytskyi,Cherkasy,Chernivtsi,Sumy,Kherson,
+  Chernihiv — усі мають каталожні джерела (рядок 378) → прогалина інгестації Codex, НЕ джерел.
+- НОВЕ: tram+trolleybus у ЧИСТИХ intra-city мультимодальних ланцюжках Києва (раніше лише mixed
+  long-haul). 2 мультимодальні intra-city міста (Київ 3-режими, Львів 2). Union cats =
+  bike,bus,tram,trolleybus (4). Режимів chain-verified real-feed 4/12 (BUS,TRAM,RAIL,TROLLEYBUS);
+  bike=estimate. Донецьк/Луганськ/Крим/Севастополь окуповані → NOT_TESTED.
+- Audit §15.19 + Висновок/footer (+22 real-node пошуки). Codex-handoff = 17-city ingestion gap +
+  Одеса/ІФ surface-transit ingestion на issue26. Рендерів 7. Runtime без змін (stale). NOT_RELEASED.

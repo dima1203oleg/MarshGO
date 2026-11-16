@@ -1,3 +1,24 @@
+## RESUME BLOCK 2026-11-16 — §15.19 NATIONAL INTRA-CITY REAL-NODE SWEEP: 22 centers, Kyiv 3-mode multimodal
+
+Root da6a3b2 → (this commit) (PR25 OPEN, pushed). POST `/journeys/search` all-modes for 22 oblast
+centers, origin=real transit node (station/district) → destination=center, 17.11 08:00 BALANCED.
+Artifact docs/evidence/national-intra-city-realnode-2026-11-16.json. VALIDATE-PROBE CATCH: primary
+synthetic center+offset (~4km) sweep gave FALSE NEGATIVES (Kyiv offset cand=0 vs real-node ret=5) →
+offset sweep DISCARDED, not coverage evidence. cand=0 robustly = no ingested urban feed even with
+approx station coords. RESULTS: 5/22 with chains — Kyiv ret=5 cand=61 maxT=3 **bus+tram+trolleybus**
+(Київпастранс GTFS, metro blocked #62); Lviv ret=4 cand=49 maxT=1 **bus+tram** (Львівавтодор GTFS);
+Uzhhorod ret=3 bus (міськрада GTFS); Odesa ret=1 bike-estimate (Nextbike, surface transit NOT
+ingested); Ivano-Frankivsk ret=1 bike-estimate (Dozor RT present, transit not surfacing). 17/22
+cand=0 = MISSING ingestion (Dnipro,Kharkiv,Vinnytsia,Lutsk,Zhytomyr,Zaporizhzhia,Kropyvnytskyi,
+Mykolaiv,Poltava,Rivne,Ternopil,Khmelnytskyi,Cherkasy,Chernivtsi,Sumy,Kherson,Chernihiv) — all have
+catalog sources (audit line 378) → Codex ingestion gap, NOT sources. NEW: tram+trolleybus confirmed
+in PURE intra-city multimodal chains (Kyiv), previously only mixed long-haul. 2 multimodal intra-city
+cities (Kyiv 3-mode, Lviv 2-mode). Union intra-city cats = bike,bus,tram,trolleybus (4). Modes
+chain-verified real-feed stays 4/12 (BUS,TRAM,RAIL,TROLLEYBUS); bike=estimate. Donetsk/Luhansk/
+Crimea/Sevastopol occupied → NOT_TESTED. Audit §15.19 + Висновок/footer (+22 real-node searches).
+7 renders unchanged. Runtime UNCHANGED (stale; new Codex merges undeployed). Codex handoff =
+17-city ingestion gap + Odesa/IF surface-transit ingestion on issue26. PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — §15.18 PER-MODE PURE-FILTER PROBE: 12 modes × 2 corridors, named blockers
 
 Root bf60a41 → (this commit) (PR25 OPEN, pushed). POST `/journeys/search` with
