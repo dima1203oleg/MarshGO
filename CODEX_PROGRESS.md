@@ -5461,3 +5461,8 @@ Not claimed: payment capture, live GTFS-RT vehicle positions, anything on accept
   ІЗ curated provider — гідратує дату/час і шукає. Геокодер 503. issue26 comment 6911854838.
 - **Висновок:** логіка побудови ланцюжків коректна до 3 пересадок і на API, і у UI; національна прогалина =
   інгестація/адаптери/покриття (Codex), не chain-construction. Counts/matrix без змін. NOT_RELEASED.
+- **Curated-прогалина (commit 55870e6):** другий регіон Ужгород→Мукачево у UI — Мукачево НЕ має curated
+  city-reference; геокодер 503 → «Не вдалося знайти місце» (лише map-picker). Підтверджені curated:
+  kyiv/lviv/stryi/uzhhorod; не покритий mukachevo. Не-curated міста недоступні у UI поки геокодер 503,
+  хоча API будує ланцюжки з координат. issue26 comment 6911931937; звіт 15.10 + screenshot. Усунення:
+  розширити curated-довідник (Codex) / відновити геокодер (Codex) / гідратувати coordinate-deep-link (Site #71).
