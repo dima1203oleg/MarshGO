@@ -1,0 +1,588 @@
+{
+  "probedAt": "2026-11-16T08:44:27.379Z",
+  "departureAt": "2026-11-16T12:43:00+02:00",
+  "results": [
+    {
+      "label": "suburban:kyiv-bila-tserkva",
+      "origin": "kyiv",
+      "destination": "bila-tserkva",
+      "http": 200,
+      "n": 0,
+      "candidateCount": 0,
+      "maxTransfers": 0,
+      "legModes": [],
+      "transitModes": [],
+      "sources": [],
+      "fares": [],
+      "resultsTruncated": true,
+      "partialReasons": [
+        "candidate_generation_truncated",
+        "provider_error",
+        "unsupported_preference"
+      ],
+      "providerErrors": [
+        "Київське метро: Київські джерела станцій, геометрії, розкладу або пересадок не зареєстровані чи вимкнені"
+      ],
+      "itineraries": []
+    },
+    {
+      "label": "suburban:kyiv-brovary",
+      "origin": "kyiv",
+      "destination": "brovary",
+      "http": 200,
+      "n": 0,
+      "candidateCount": 0,
+      "maxTransfers": 0,
+      "legModes": [],
+      "transitModes": [],
+      "sources": [],
+      "fares": [],
+      "resultsTruncated": false,
+      "partialReasons": [
+        "provider_error",
+        "unsupported_preference"
+      ],
+      "providerErrors": [
+        "Київське метро: Київські джерела станцій, геометрії, розкладу або пересадок не зареєстровані чи вимкнені"
+      ],
+      "itineraries": []
+    },
+    {
+      "label": "intra:lviv-stryi",
+      "origin": "lviv",
+      "destination": "stryi",
+      "http": 200,
+      "n": 7,
+      "candidateCount": 100,
+      "maxTransfers": 3,
+      "legModes": [
+        "WALK",
+        "TRAM",
+        "RAIL",
+        "BUS"
+      ],
+      "transitModes": [
+        "TRAM",
+        "RAIL",
+        "BUS"
+      ],
+      "sources": [
+        "walking-grid-estimate",
+        "gtfs-static"
+      ],
+      "fares": [
+        "UNKNOWN"
+      ],
+      "resultsTruncated": true,
+      "partialReasons": [
+        "candidate_generation_truncated",
+        "unsupported_preference",
+        "walking_routing_unavailable"
+      ],
+      "providerErrors": [],
+      "itineraries": [
+        {
+          "transfers": 1,
+          "modes": [
+            "WALK",
+            "TRAM",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "durationS": 25476,
+          "priceStatus": "UNKNOWN",
+          "titles": [
+            null,
+            null
+          ]
+        },
+        {
+          "transfers": 1,
+          "modes": [
+            "WALK",
+            "TRAM",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "durationS": 25476,
+          "priceStatus": "UNKNOWN",
+          "titles": [
+            null,
+            null
+          ]
+        },
+        {
+          "transfers": 1,
+          "modes": [
+            "WALK",
+            "TRAM",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "durationS": 25476,
+          "priceStatus": "UNKNOWN",
+          "titles": [
+            null,
+            null
+          ]
+        },
+        {
+          "transfers": 0,
+          "modes": [
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "durationS": 25476,
+          "priceStatus": "UNKNOWN",
+          "titles": [
+            null
+          ]
+        },
+        {
+          "transfers": 3,
+          "modes": [
+            "WALK",
+            "BUS",
+            "BUS",
+            "WALK",
+            "TRAM",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "durationS": 25476,
+          "priceStatus": "UNKNOWN",
+          "titles": [
+            null,
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "transfers": 3,
+          "modes": [
+            "WALK",
+            "BUS",
+            "BUS",
+            "WALK",
+            "TRAM",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "durationS": 25476,
+          "priceStatus": "UNKNOWN",
+          "titles": [
+            null,
+            null,
+            null,
+            null
+          ]
+        }
+      ]
+    },
+    {
+      "label": "intra:lviv-truskavets",
+      "origin": "lviv",
+      "destination": "truskavets",
+      "http": 200,
+      "n": 10,
+      "candidateCount": 100,
+      "maxTransfers": 3,
+      "legModes": [
+        "WALK",
+        "RAIL",
+        "TRAM",
+        "BUS"
+      ],
+      "transitModes": [
+        "RAIL",
+        "TRAM",
+        "BUS"
+      ],
+      "sources": [
+        "walking-grid-estimate",
+        "gtfs-static"
+      ],
+      "fares": [
+        "UNKNOWN"
+      ],
+      "resultsTruncated": true,
+      "partialReasons": [
+        "candidate_generation_truncated",
+        "unsupported_preference",
+        "walking_routing_unavailable"
+      ],
+      "providerErrors": [],
+      "itineraries": [
+        {
+          "transfers": 0,
+          "modes": [
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "durationS": 65020,
+          "priceStatus": "UNKNOWN",
+          "titles": [
+            null
+          ]
+        },
+        {
+          "transfers": 1,
+          "modes": [
+            "WALK",
+            "TRAM",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "durationS": 65020,
+          "priceStatus": "UNKNOWN",
+          "titles": [
+            null,
+            null
+          ]
+        },
+        {
+          "transfers": 1,
+          "modes": [
+            "WALK",
+            "TRAM",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "durationS": 65020,
+          "priceStatus": "UNKNOWN",
+          "titles": [
+            null,
+            null
+          ]
+        },
+        {
+          "transfers": 1,
+          "modes": [
+            "WALK",
+            "TRAM",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "durationS": 65020,
+          "priceStatus": "UNKNOWN",
+          "titles": [
+            null,
+            null
+          ]
+        },
+        {
+          "transfers": 2,
+          "modes": [
+            "WALK",
+            "BUS",
+            "WALK",
+            "TRAM",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "durationS": 65020,
+          "priceStatus": "UNKNOWN",
+          "titles": [
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "transfers": 2,
+          "modes": [
+            "WALK",
+            "BUS",
+            "WALK",
+            "TRAM",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "durationS": 65020,
+          "priceStatus": "UNKNOWN",
+          "titles": [
+            null,
+            null,
+            null
+          ]
+        }
+      ]
+    },
+    {
+      "label": "intra:uzhhorod-mukachevo",
+      "origin": "uzhhorod",
+      "destination": "mukachevo",
+      "http": 200,
+      "n": 7,
+      "candidateCount": 100,
+      "maxTransfers": 2,
+      "legModes": [
+        "WALK",
+        "RAIL",
+        "BUS"
+      ],
+      "transitModes": [
+        "RAIL",
+        "BUS"
+      ],
+      "sources": [
+        "walking-grid-estimate",
+        "gtfs-static"
+      ],
+      "fares": [
+        "UNKNOWN"
+      ],
+      "resultsTruncated": true,
+      "partialReasons": [
+        "candidate_generation_truncated",
+        "unsupported_preference",
+        "walking_routing_unavailable"
+      ],
+      "providerErrors": [],
+      "itineraries": [
+        {
+          "transfers": 0,
+          "modes": [
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "durationS": 9493,
+          "priceStatus": "UNKNOWN",
+          "titles": [
+            null
+          ]
+        },
+        {
+          "transfers": 1,
+          "modes": [
+            "WALK",
+            "BUS",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "durationS": 9493,
+          "priceStatus": "UNKNOWN",
+          "titles": [
+            null,
+            null
+          ]
+        },
+        {
+          "transfers": 1,
+          "modes": [
+            "WALK",
+            "BUS",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "durationS": 9493,
+          "priceStatus": "UNKNOWN",
+          "titles": [
+            null,
+            null
+          ]
+        },
+        {
+          "transfers": 1,
+          "modes": [
+            "WALK",
+            "BUS",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "durationS": 9493,
+          "priceStatus": "UNKNOWN",
+          "titles": [
+            null,
+            null
+          ]
+        },
+        {
+          "transfers": 2,
+          "modes": [
+            "WALK",
+            "BUS",
+            "WALK",
+            "BUS",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "durationS": 9493,
+          "priceStatus": "UNKNOWN",
+          "titles": [
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "transfers": 2,
+          "modes": [
+            "WALK",
+            "BUS",
+            "BUS",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "durationS": 28753,
+          "priceStatus": "UNKNOWN",
+          "titles": [
+            null,
+            null,
+            null
+          ]
+        }
+      ]
+    },
+    {
+      "label": "intra:ivano-frankivsk-kolomyia",
+      "origin": "ivano-frankivsk",
+      "destination": "kolomyia",
+      "http": 200,
+      "n": 7,
+      "candidateCount": 100,
+      "maxTransfers": 2,
+      "legModes": [
+        "WALK",
+        "RAIL",
+        "BUS"
+      ],
+      "transitModes": [
+        "RAIL",
+        "BUS"
+      ],
+      "sources": [
+        "walking-grid-estimate",
+        "gtfs-static"
+      ],
+      "fares": [
+        "UNKNOWN"
+      ],
+      "resultsTruncated": true,
+      "partialReasons": [
+        "candidate_generation_truncated",
+        "unsupported_preference",
+        "walking_routing_unavailable"
+      ],
+      "providerErrors": [],
+      "itineraries": [
+        {
+          "transfers": 0,
+          "modes": [
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "durationS": 66585,
+          "priceStatus": "UNKNOWN",
+          "titles": [
+            null
+          ]
+        },
+        {
+          "transfers": 1,
+          "modes": [
+            "WALK",
+            "BUS",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "durationS": 66585,
+          "priceStatus": "UNKNOWN",
+          "titles": [
+            null,
+            null
+          ]
+        },
+        {
+          "transfers": 1,
+          "modes": [
+            "WALK",
+            "BUS",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "durationS": 66585,
+          "priceStatus": "UNKNOWN",
+          "titles": [
+            null,
+            null
+          ]
+        },
+        {
+          "transfers": 1,
+          "modes": [
+            "WALK",
+            "BUS",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "durationS": 66585,
+          "priceStatus": "UNKNOWN",
+          "titles": [
+            null,
+            null
+          ]
+        },
+        {
+          "transfers": 2,
+          "modes": [
+            "WALK",
+            "BUS",
+            "BUS",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "durationS": 66585,
+          "priceStatus": "UNKNOWN",
+          "titles": [
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "transfers": 2,
+          "modes": [
+            "WALK",
+            "BUS",
+            "BUS",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "durationS": 66585,
+          "priceStatus": "UNKNOWN",
+          "titles": [
+            null,
+            null,
+            null
+          ]
+        }
+      ]
+    }
+  ]
+}
