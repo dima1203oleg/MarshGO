@@ -1,3 +1,16 @@
+## RESUME BLOCK 2026-11-16 — isolated API email-auth harness (base a8be674)
+
+Task117 offline VERIFIED: booking and realtime integration tests now use register201/login200,
+unique email/password fixtures, explicit driver/passenger roles and synthetic verified-phone
+state. Exact registered IDs retained before fixture/login failures and used for cleanup.
+Loopback marshgo_e2e DB plus HTTP API3306/secondary3307 guards run before Pool/fetch/SQL.
+Node24.21.0: 20/20 PASS,0fail/skip,1882.371167ms; same functional controls against pre-fix
+source:5pass/15expected fail,0skip,798.802666ms. Changed ESLint/full tsc/diff check PASS.
+No live API integration/browser E2E/CI acceptance for this atom: NOT_TESTED. Existing root
+integration runner still launches legacy root server; Admin403 CI materialization gate open.
+No shared API/Site/DB/7777/zrok changes. Task45 live acceptance remains open.
+National27x12/full E2E/DATE/rights/runtime integration remain PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — exact rail mirror stop gap (base f85cadc)
 
 Task115 VERIFIED archive c753015c1c9802b44da438442279ff3ee931c208f7db54d054b95fe72d596566:

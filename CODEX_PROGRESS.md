@@ -1,3 +1,17 @@
+## 2026-11-16 — QODER: API email-auth harness — PARTIAL / NOT_RELEASED
+
+Root base a8be6748f8622921c6156e173a95fdface6cc071. Task117 three-file offline atom:
+booking/realtime tests replace deprecated OTP with register201/login200; unique credentials,
+explicit roles, synthetic isolated verified-phone fixture and exact-ID failure cleanup.
+DB/API guards reject unsafe targets before Pool/fetch/SQL. Existing email-password test file
+executes actual transpiled integration guards/auth blocks with stubbed I/O, not live services.
+Node24.21.0 command: node node_modules/tsx/dist/cli.mjs --test --test-concurrency=1
+--test-reporter=tap tests/email-password-e2e.test.ts:20/20 PASS,0fail/skip,1882.371167ms.
+Negative control reads both pre-fix sources via git show HEAD in memory:5pass/15expected fail,
+0skip,798.802666ms. Changed ESLint, full tsc --noEmit and git diff --check PASS.
+Live integration/browser E2E/CI NOT_TESTED; legacy root runner and Admin403 gate remain open.
+No shared runtime/DB/7777/zrok edits or restart. National goal remains NOT_RELEASED.
+
 ## 2026-11-16 — QODER: rail stop content diagnosis — PARTIAL / NOT_RELEASED
 
 Rootbasef85cadc. Read-only current public mirror archive c753015c SHA256 evidence saved:

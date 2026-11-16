@@ -7,7 +7,25 @@ import { expireDueProposals } from '../server/proposals/expiry';
 const apiUrl = process.env.API_TEST_URL;
 const databaseUrl = process.env.API_TEST_DATABASE_URL;
 const enabled = Boolean(apiUrl && databaseUrl);
-const database = databaseUrl ? new URL(databaseUrl) : null;
+if (enabled) {
+  let database: URL;
+  let api: URL;
+  try {
+    database = new URL(databaseUrl!);
+    api = new URL(apiUrl!);
+  } catch {
+    throw new Error('API integration tests require valid isolated API_TEST_DATABASE_URL and API_TEST_URL URLs');
+  }
+  const loopback = ['127.0.0.1', 'localhost', '[::1]', '::1'];
+  if (!['postgres:', 'postgresql:'].includes(database.protocol) || !loopback.includes(database.hostname)
+    || !/^marshgo_e2e(?:_[a-z0-9_]+)?$/.test(database.pathname.slice(1)) || database.search || database.hash) {
+    throw new Error('API integration tests require an isolated loopback marshgo_e2e database');
+  }
+  if (api.protocol !== 'http:' || !loopback.includes(api.hostname) || api.port !== '3306'
+    || api.pathname !== '/' || api.search || api.hash || api.username || api.password) {
+    throw new Error('API integration tests require an isolated loopback HTTP API_TEST_URL origin on port 3306');
+  }
+}
 const journeyOfferDepartureAt = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000);
 function nextKyivScheduleWindow(hour: number, minute: number): Date {
   const formatter = new Intl.DateTimeFormat('en-GB', {
@@ -21,9 +39,6 @@ function nextKyivScheduleWindow(hour: number, minute: number): Date {
     candidate.setTime(candidate.getTime() + 60_000);
   }
   throw new Error('Could not find the next Kyiv transit schedule window');
-}
-if (enabled && database && !['127.0.0.1', 'localhost', '::1'].includes(database.hostname)) {
-  throw new Error('API integration tests are restricted to a loopback database');
 }
 
 describe('API booking transaction (opt-in local integration test)', { skip: !enabled }, () => {
@@ -48,7 +63,7 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
   const extraVehicleIds: string[] = [];
   const verificationIds: string[] = [];
   const moderationCaseIds: string[] = [];
-  let otpUserId: string | null = null;
+  let authUserId: string | null = null;
 
   before(async () => {
     const lvivProvider = await pool.query<{ enabled: boolean }>(
@@ -108,13 +123,16 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
   });
 
   after(async () => {
-    if (otpUserId) await pool.query('DELETE FROM audit_events WHERE actor_id=$1', [otpUserId]);
-    await pool.query('DELETE FROM vehicles WHERE owner_id IN (SELECT id FROM users WHERE phone_e164 LIKE $1)', [`+38099${process.pid}%`]);
-    await pool.query('DELETE FROM users WHERE phone_e164 LIKE $1', [`+38099${process.pid}%`]);
+    if (authUserId) {
+      await pool.query('DELETE FROM audit_events WHERE actor_id=$1 OR entity_id=$1 OR entity_id IN (SELECT id FROM vehicles WHERE owner_id=$1)', [authUserId]);
+      await pool.query('DELETE FROM sessions WHERE user_id=$1', [authUserId]);
+      await pool.query('DELETE FROM vehicles WHERE owner_id=$1', [authUserId]);
+      await pool.query('DELETE FROM user_roles WHERE user_id=$1', [authUserId]);
+      await pool.query('DELETE FROM users WHERE id=$1', [authUserId]);
+    }
     await pool.query('DELETE FROM sessions WHERE user_id = ANY($1::uuid[])', [[ids.driver, ...ids.passengers]]);
     await pool.query('DELETE FROM journeys WHERE user_id = ANY($1::uuid[])', [[ids.driver, ...ids.passengers]]);
     await pool.query('DELETE FROM verification_records WHERE user_id = ANY($1::uuid[]) OR id=ANY($2::uuid[])', [[ids.driver, ...ids.passengers, ids.admin], verificationIds]);
-    await pool.query('DELETE FROM otp_challenges WHERE phone_e164 LIKE $1', [`+38099${process.pid}%`]);
     await pool.query("DELETE FROM audit_events WHERE actor_id = ANY($1::uuid[]) AND action IN ('vehicle.created','offer.created','demand.created','demand.cancelled','proposal.created','proposal.countered','proposal.agreed','proposal.accepted','user.blocked','user.unblocked','journey.leg.booked','journey.replanning','journey.leg.rescued')", [[ids.driver, ...ids.passengers]]);
     await pool.query("DELETE FROM audit_events WHERE entity_id=ANY($1::uuid[]) OR (actor_id=ANY($2::uuid[]) AND action LIKE 'moderation.%')", [moderationCaseIds, [passengerA, ids.admin]]);
     await pool.query('DELETE FROM moderation_cases WHERE id=ANY($1::uuid[])', [moderationCaseIds]);
@@ -133,29 +151,35 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     await pool.end();
   });
 
-  it('registers with development OTP, persists profile, and rotates refresh sessions', async () => {
+  it('registers with email/password, persists profile, and rotates refresh sessions', async () => {
     const capacitorHealth = await fetch(`${apiUrl}/healthz`, { headers: { origin: 'capacitor://localhost' } });
     assert.equal(capacitorHealth.headers.get('access-control-allow-origin'), 'capacitor://localhost');
 
     const phone = `+38099${process.pid}${crypto.randomInt(1000, 9999)}`;
-    const requested = await fetch(`${apiUrl}/api/v1/auth/otp/request`, {
+    const email = `auth-user-${crypto.randomUUID()}@example.test`;
+    const password = `Fixture!${crypto.randomBytes(24).toString('base64url')}`;
+    const registered = await fetch(`${apiUrl}/api/v1/auth/register`, {
       method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ phone, displayName: 'OTP Integration User' }),
+      body: JSON.stringify({ email, password, displayName: 'Email Integration User' }),
     });
-    assert.equal(requested.status, 200);
-    const requestBody = await requested.json() as { developmentCode?: string };
-    assert.match(requestBody.developmentCode ?? '', /^\d{6}$/);
-    const verified = await fetch(`${apiUrl}/api/v1/auth/otp/verify`, {
+    assert.equal(registered.status, 201);
+    const registration = await registered.json() as { data: { user: { id: string; roles: string[] } } };
+    assert.ok(registration.data.user.id);
+    authUserId = registration.data.user.id;
+    assert.deepEqual(registration.data.user.roles, ['passenger']);
+    // Synthetic verified-phone fixture for this isolated scenario, not proof of identity.
+    const fixture = await pool.query('UPDATE users SET phone_e164=$1, is_verified=true WHERE id=$2', [phone, authUserId]);
+    assert.equal(fixture.rowCount, 1, 'verified-phone fixture must update exactly the registered user');
+    const loggedIn = await fetch(`${apiUrl}/api/v1/auth/login`, {
       method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ phone, code: requestBody.developmentCode }),
+      body: JSON.stringify({ email, password }),
     });
-    assert.equal(verified.status, 200);
-    const auth = await verified.json() as { data: { user: { id: string; roles: string[] }; accessToken: string } };
-    assert.ok(auth.data.user.id);
-    otpUserId = auth.data.user.id;
+    assert.equal(loggedIn.status, 200);
+    const auth = await loggedIn.json() as { data: { user: { id: string; roles: string[] }; accessToken: string } };
+    assert.equal(auth.data.user.id, authUserId);
     assert.deepEqual(auth.data.user.roles, ['passenger']);
     const authHeaders = { authorization: `Bearer ${auth.data.accessToken}`, 'content-type': 'application/json' };
-    const otpEmail = `otp-user-${crypto.randomUUID()}@example.test`;
+    const profileEmail = `email-profile-${crypto.randomUUID()}@example.test`;
     const unavailableRoute = await fetch(`${apiUrl}/api/v1/routing/route`, {
       method: 'POST', headers: authHeaders,
       body: JSON.stringify({ origin: [23.86, 49.25], destination: [24.03, 49.84] }),
@@ -174,15 +198,15 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     const me = await fetch(`${apiUrl}/api/v1/users/me`, { headers: authHeaders });
     assert.equal(me.status, 200);
     const profile = await fetch(`${apiUrl}/api/v1/users/me`, {
-      method: 'PATCH', headers: authHeaders, body: JSON.stringify({ email: otpEmail }),
+      method: 'PATCH', headers: authHeaders, body: JSON.stringify({ email: profileEmail }),
     });
-    assert.equal((await profile.json() as { data: { email: string } }).data.email, otpEmail);
+    assert.equal((await profile.json() as { data: { email: string } }).data.email, profileEmail);
     const updatedName = await fetch(`${apiUrl}/api/v1/users/me`, {
-      method: 'PATCH', headers: authHeaders, body: JSON.stringify({ displayName: 'Updated OTP User' }),
+      method: 'PATCH', headers: authHeaders, body: JSON.stringify({ displayName: 'Updated Email User' }),
     });
     const updatedProfile = await updatedName.json() as { data: { email: string; display_name: string } };
-    assert.equal(updatedProfile.data.email, otpEmail);
-    assert.equal(updatedProfile.data.display_name, 'Updated OTP User');
+    assert.equal(updatedProfile.data.email, profileEmail);
+    assert.equal(updatedProfile.data.display_name, 'Updated Email User');
 
     const enabledDriver = await fetch(`${apiUrl}/api/v1/users/me/roles`, {
       method: 'POST', headers: authHeaders, body: JSON.stringify({ role: 'driver' }),
@@ -191,7 +215,7 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     assert.equal(enabledDriver.status, 200, roleBody.error?.message);
     assert.deepEqual(roleBody.data?.roles, ['driver', 'passenger']);
     const ownCar = await fetch(`${apiUrl}/api/v1/vehicles`, {
-      method: 'POST', headers: authHeaders, body: JSON.stringify({ make: 'Test', model: 'OTP Car', modelYear: 2022, seats: 4, plate: `AA${crypto.randomUUID().slice(0, 6).toUpperCase()}` }),
+      method: 'POST', headers: authHeaders, body: JSON.stringify({ make: 'Test', model: 'Email Car', modelYear: 2022, seats: 4, plate: `AA${crypto.randomUUID().slice(0, 6).toUpperCase()}` }),
     });
     assert.equal(ownCar.status, 201);
     const createdVehicle = await ownCar.json() as { data: { id: string } };
@@ -200,9 +224,9 @@ describe('API booking transaction (opt-in local integration test)', { skip: !ena
     });
     assert.equal(blockedUpload.status, 503);
 
-    const verifyCookie = verified.headers.get('set-cookie');
-    assert.ok(verifyCookie?.includes('mg_refresh='));
-    const cookie = verifyCookie?.split(';')[0];
+    const loginCookie = loggedIn.headers.get('set-cookie');
+    assert.ok(loginCookie?.includes('mg_refresh='));
+    const cookie = loginCookie?.split(';')[0];
     const refreshed = await fetch(`${apiUrl}/api/v1/auth/refresh`, { method: 'POST', headers: { cookie: cookie ?? '' } });
     assert.equal(refreshed.status, 200);
     const rotatedCookie = refreshed.headers.get('set-cookie')?.split(';')[0];

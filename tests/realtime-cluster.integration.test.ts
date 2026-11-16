@@ -8,12 +8,32 @@ const primaryUrl = process.env.API_TEST_URL;
 const secondaryUrl = process.env.API_TEST_SECONDARY_URL;
 const databaseUrl = process.env.API_TEST_DATABASE_URL;
 const enabled = Boolean(primaryUrl && secondaryUrl && databaseUrl);
-const database = databaseUrl ? new URL(databaseUrl) : null;
-if (enabled && database && !['127.0.0.1', 'localhost', '::1'].includes(database.hostname)) {
-  throw new Error('Realtime integration tests are restricted to a loopback database');
+if (enabled) {
+  let database: URL;
+  let primary: URL;
+  let secondary: URL;
+  try {
+    database = new URL(databaseUrl!);
+    primary = new URL(primaryUrl!);
+    secondary = new URL(secondaryUrl!);
+  } catch {
+    throw new Error('Realtime integration tests require valid isolated API_TEST_DATABASE_URL, API_TEST_URL and API_TEST_SECONDARY_URL URLs');
+  }
+  const loopback = ['127.0.0.1', 'localhost', '[::1]', '::1'];
+  if (!['postgres:', 'postgresql:'].includes(database.protocol) || !loopback.includes(database.hostname)
+    || !/^marshgo_e2e(?:_[a-z0-9_]+)?$/.test(database.pathname.slice(1)) || database.search || database.hash) {
+    throw new Error('Realtime integration tests require an isolated loopback marshgo_e2e database');
+  }
+  for (const [api, port, name] of [[primary, '3306', 'API_TEST_URL'], [secondary, '3307', 'API_TEST_SECONDARY_URL']] as const) {
+    if (api.protocol !== 'http:' || !loopback.includes(api.hostname) || api.port !== port
+      || api.pathname !== '/' || api.search || api.hash || api.username || api.password) {
+      throw new Error(`Realtime integration tests require an isolated loopback HTTP ${name} origin on port ${port}`);
+    }
+  }
 }
 
-type AuthResult = { data: { user: { id: string }; accessToken: string } };
+type AuthResult = { data: { user: { id: string; roles: string[] }; accessToken: string } };
+const registeredUserIds = new Set<string>();
 type ApiResult<T> = { data: T };
 type RealtimeEvent = { type: string; data: { id?: string; booking_id?: string; candidate_id?: string; demand_id?: string; status?: string; sender_id?: string; body?: string } };
 const realtimeEventQueues = new WeakMap<WebSocket, RealtimeEvent[]>();
@@ -29,18 +49,29 @@ function trackRealtimeSocket(socket: WebSocket) {
   });
 }
 
-async function register(phone: string, displayName: string) {
-  const requested = await fetch(`${primaryUrl}/api/v1/auth/otp/request`, {
-    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ phone, displayName }),
+async function register(pool: Pool, phone: string, displayName: string, role: 'driver' | 'passenger') {
+  const email = `realtime-user-${crypto.randomUUID()}@example.test`;
+  const password = `Fixture!${crypto.randomBytes(24).toString('base64url')}`;
+  const registered = await fetch(`${primaryUrl}/api/v1/auth/register`, {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, password, displayName, role }),
   });
-  assert.equal(requested.status, 200);
-  const requestBody = await requested.json() as { developmentCode?: string };
-  assert.match(requestBody.developmentCode ?? '', /^\d{6}$/);
-  const verified = await fetch(`${primaryUrl}/api/v1/auth/otp/verify`, {
-    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ phone, code: requestBody.developmentCode }),
+  assert.equal(registered.status, 201);
+  const registration = await registered.json() as AuthResult;
+  assert.ok(registration.data.user.id);
+  // Retain the ID even if fixture setup or login fails before the before-hook receives it.
+  registeredUserIds.add(registration.data.user.id);
+  assert.ok(registration.data.user.roles.includes(role));
+  // Synthetic verified-phone fixture for the isolated booking scenario, not proof of identity.
+  const fixture = await pool.query('UPDATE users SET phone_e164=$1, is_verified=true WHERE id=$2', [phone, registration.data.user.id]);
+  assert.equal(fixture.rowCount, 1, 'verified-phone fixture must update exactly the registered user');
+  const loggedIn = await fetch(`${primaryUrl}/api/v1/auth/login`, {
+    method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email, password }),
   });
-  assert.equal(verified.status, 200);
-  return await verified.json() as AuthResult;
+  assert.equal(loggedIn.status, 200);
+  const auth = await loggedIn.json() as AuthResult;
+  assert.equal(auth.data.user.id, registration.data.user.id);
+  assert.ok(auth.data.user.roles.includes(role));
+  return auth;
 }
 
 function waitForSocketEvent(socket: WebSocket, type: string, timeoutMs = 10_000) {
@@ -106,8 +137,8 @@ describe('Redis-backed realtime across API instances', { skip: !enabled }, () =>
     assert.ok(primaryUrl && secondaryUrl && databaseUrl);
     assert.equal((await fetch(`${primaryUrl}/healthz`)).status, 200);
     assert.equal((await fetch(`${secondaryUrl}/healthz`)).status, 200);
-    const driverAuth = await register(`${phonePrefix}101`, 'Cluster driver');
-    const passengerAuth = await register(`${phonePrefix}102`, 'Cluster passenger');
+    const driverAuth = await register(pool, `${phonePrefix}101`, 'Cluster driver', 'driver');
+    const passengerAuth = await register(pool, `${phonePrefix}102`, 'Cluster passenger', 'passenger');
     driverId = driverAuth.data.user.id;
     passengerId = passengerAuth.data.user.id;
     passengerAccessToken = passengerAuth.data.accessToken;
@@ -157,18 +188,18 @@ describe('Redis-backed realtime across API instances', { skip: !enabled }, () =>
     if (navigationSessionId) await pool.query('DELETE FROM navigation_sessions WHERE id=$1', [navigationSessionId]);
     if (navigationDemandId) await pool.query('DELETE FROM passenger_demands WHERE id=$1', [navigationDemandId]);
     if (conversationId) await pool.query('DELETE FROM conversations WHERE id=$1', [conversationId]);
-    if (driverId || passengerId) await pool.query('DELETE FROM realtime_outbox WHERE recipient_ids && $1::uuid[]', [[driverId, passengerId].filter(Boolean)]);
+    const ids = [...registeredUserIds];
+    if (ids.length) await pool.query('DELETE FROM realtime_outbox WHERE recipient_ids && $1::uuid[]', [ids]);
     if (bookingId) await pool.query('DELETE FROM booking_events WHERE booking_id=$1', [bookingId]);
     if (bookingId) await pool.query('DELETE FROM bookings WHERE id=$1', [bookingId]);
     if (offerId) await pool.query('DELETE FROM offers WHERE id=$1', [offerId]);
     if (vehicleId) await pool.query('DELETE FROM vehicles WHERE id=$1', [vehicleId]);
-    if (driverId || passengerId) {
-      const ids = [driverId, passengerId].filter(Boolean);
+    if (ids.length) {
       await pool.query('DELETE FROM audit_events WHERE actor_id=ANY($1::uuid[]) OR entity_id=ANY($1::uuid[])', [ids]);
+      await pool.query('DELETE FROM sessions WHERE user_id=ANY($1::uuid[])', [ids]);
       await pool.query('DELETE FROM user_roles WHERE user_id=ANY($1::uuid[])', [ids]);
       await pool.query('DELETE FROM users WHERE id=ANY($1::uuid[])', [ids]);
     }
-    await pool.query('DELETE FROM otp_challenges WHERE phone_e164 LIKE $1', [`${phonePrefix}%`]);
     await pool.end();
   });
 
