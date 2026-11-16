@@ -55,6 +55,11 @@ buildId `local-e9934abbd8fc-dirty-20261113T132012Z`, після двох ава�
 - Регіони з **доведеною surface-маршрутизацією API+UI станом на 16.11**:
   Київ, Львівська, Закарпатська (Ужгород API) — **3/27 = 11.1%** (транзит);
   Івано-Франківська та Одеська — лише bike-оцінка + walk (не транзит).
+  **Корекція audit 364 (Codex, 16.11):** права/походження Ужгородського
+  UA-GIS ZIP не доведені (0 збігів ID з муніципальним CC-BY CSV; у реєстрі
+  ліцензії немає). Закарпатська = інженерне спостереження на preview-runtime,
+  **NOT_ESTABLISHED** для ліцензованої production route-chain. Ліцензовано
+  підтверджена surface-маршрутизація: Київ + Львівська = **2/27 = 7.4%**.
 - Регіони з валідним live RT (гейт 90 с, 14.11): 5/12 заявлених = 41.7%.
 - АР Крим і Севастополь: UNKNOWN / не зондовано (немає легального цивільного
   джерела; історичні розклади не активуються). Севастополь відсутній у
@@ -91,7 +96,11 @@ bike-оцінки та carpool-рушія — 6/12 частково, але це
 
 | Стан | Міста |
 |---|---|
-| WORKING (транзитні legs) | Київ (1 journey/20 cand), Львів (5/84), Ужгород (2/100) |
+| WORKING (транзитні legs) | Київ (1 journey/20 cand), Львів (5/84), Ужгород (2/100)* |
+
+\* Ужгород: WORKING = факт побудови маршруту на preview-runtime; ліцензійний
+статус джерела NOT_VERIFIED (audit 364 Codex 16.11) — не зараховується як
+ліцензоване production-покриття до підтвердження прав.
 | PARTIAL (лише bike/walk оцінка) | Івано-Франківськ (1/101), Одеса (1/1) |
 | MISSING (0 кандидатів, причина зафіксована) | Вінниця, Луцьк, Дніпро, Донецьк, Житомир, Запоріжжя, Кропивницький, Луганськ, Миколаїв, Полтава, Рівне, Суми, Тернопіль, Харків, Херсон, Хмельницький, Черкаси, Чернівці, Чернігів (19) |
 | Не зондовано | Сімферополь (АР Крим), Севастополь |
@@ -140,7 +149,8 @@ bike-оцінки та carpool-рушія — 6/12 частково, але це
 З проб 16.11 (targetProviders у відповідях API):
 1. **Київпастранс — розклад (GTFS)** — bus/tram/trolleybus legs (Київ).
 2. **Львів (track.ua-gis.com GTFS)** — bus/tram legs (Львів).
-3. **Ужгород (track.ua-gis.com GTFS)** — bus legs.
+3. **Ужгород (track.ua-gis.com GTFS)** — bus legs (права/походження
+   NOT_VERIFIED, audit 364; preview-спостереження, не ліцензоване приймання).
 4. **Укрзалізниця — розклад поїздів (GTFS)** — RAIL legs (міжміські/міжобласні).
 5. Static bike-network оцінки (Івано-Франківськ, Одеса) — оціночні, не live.
 6. Walking-router (grid/straight-line оцінки там, де немає підтвердженого шляху).
@@ -220,8 +230,13 @@ Qoder (UI/докази/процес):
    preferences + UTC Z) — розбіжність була помилкою проби, не продукту.
 2. Хибно-негативна геометрія: `leg.routeGeometry` — сирий масив [lon,lat],
    не GeoJSON; пробу виправлено (bus 68 т., troll 57 т.).
-3. Відновлення runtime після двох крахів API (тим самим SHA, канонічний
+3. Відновлення runtime після трьох крахів API (тим самим SHA, канонічний
    лаунчер, CWD=канонічний корінь); crash-логи збережено як докази.
+   **Root cause ланцюжок (16.11):** Postgres backend тихо завершується з
+   exit code 2 (13:33/14:16/14:51/15:01 UTC, без сигналу/OOM/сну хоста) →
+   postmaster reinitialize → обрив з'єднань → unhandled pg 'error' у API →
+   процес API падає. Усувний дефект API — обробник pg error (Codex task E);
+   стабільність самого Postgres у Docker VM — окреме infra-розслідування.
 4. Чесні UX-стани під час відмови перевірено: банер 45 с, «Пошук тимчасово
    недоступний», «Повторити пошук» — працюють.
 5. Deadline/arrivalBy deep-link (Site PR144), globalRules segment-кейс
@@ -275,11 +290,18 @@ Root-гілка `qoder/carpool-5-20261113`; чужі dirty-файли не чі�
   історичні розклади відокремлені від поточних.
 - Carpool — інвентар пропозицій 0 (потрібні реальні водії або ізольований
   labeled fixture у НЕспільній тест-БД).
+- Ужгород UA-GIS ZIP — права/походження NOT_VERIFIED (audit 364 Codex 16.11:
+  0 збігів ID з муніципальним CC-BY CSV, ліцензії в реєстрі немає);
+  Закарпаття NOT_ESTABLISHED для ліцензованої route-chain до підтвердження.
 
 **Інженерні (усувні, Codex/backlog):**
 - searchTruncated/partial майже всюди — повнота пошуку не доведена (алгоритмічно).
 - Kyiv segment-split chaining (task A); bus geometry render (task C);
   geocoder stop-level (task D); pg error-handler (task E).
+- **Postgres у Docker VM тихо крашиться** (backend exit code 2, 4 рази за
+  16.11; без сигналу/OOM/сну хоста) → reinitialize → API падає без обробника
+  pg error. API-фікс = task E; root cause БД = окреме infra-розслідування
+  (Docker Desktop VM / версія Postgres), доказ: postgres-crash-timeline.
 - Walking-router 32 cap; walk-оцінки grid/straight-line там, де немає шляху.
 - Fare ESTIMATED/UNKNOWN — UNKNOWN не дорівнює 0; точні тарифи не скрізь.
 - CI 403 materialize-release (Admin clone) + scope PR25 886 файлів.
@@ -315,7 +337,9 @@ Root-гілка `qoder/carpool-5-20261113`; чужі dirty-файли не чі�
   (3 транзит WORKING + 2 bike-оцінка PARTIAL).
 - Міжобласні коридори: 6/6 + 7/7 нових = **13/13** ненульових.
 - Приміські: 4/6. Intra-city sweep: 5/22 (з корекцією наближених координат).
-- Джерела, що формують маршрути: 4 транзитні (розділ 9).
+- Джерела, що формують маршрути: 4 транзитні (розділ 9); з них Ужгород —
+  preview-спостереження з NOT_VERIFIED правами (audit 364), ліцензовано
+  підтверджені — Київпастранс, Львів, Укрзалізниця.
 - Це **факт побудови маршруту API**, не видимість користувачу.
 
 ### USER EXPERIENCE COVERAGE — маршрути, доступні й перевірені для користувача у Web/PWA
@@ -350,7 +374,9 @@ Root-гілка `qoder/carpool-5-20261113`; чужі dirty-файли не чі�
   `qoder-kyiv-bus-trolleybus-ui-2026-11-16.json`,
   `qoder-lviv-no-bus-ui-2026-11-16.json` + PNG
 - `docs/evidence/api-crash-pg-unhandled-2026-11-16.log`,
-  `api-crash-pg-idle-pool-2026-11-16.log`
+  `api-crash-pg-idle-pool-2026-11-16.log`,
+  `api-crash-third-2026-11-16.log`,
+  `postgres-crash-timeline-2026-11-16.log`
 - `docs/NATIONAL_FEED_P0_INVENTORY_2026-11-14.md`,
   `docs/MARSHGO_NATIONAL_COVERAGE_AUDIT.md`,
   `docs/MARSHGO_FINAL_BROWSER_ROUTING_AUDIT.md`,
