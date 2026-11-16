@@ -1,3 +1,28 @@
+## 2026-11-16 — QODER: scooter catalog health — PARTIAL / NOT_RELEASED
+
+Server PR194 published13bfa1d34f4f288052461572c8ff3ed46bf5efb3 from exactmain378eccb.
+One-line scooter health eligibility change plus five fixture cases in existing tile tests.
+Authenticated live Lviv bike/Kyiv scooter nearby3000m each returned providers0 with no failures;
+Zelectra catalog available:true is inconsistent with nearby's stricter healthy filter in source.
+Runtime feed health itself is NOT_VERIFIED. Nextbike remains static, not live inventory.
+Actual SQL scalar predicate executed in isolated SQLite:13pass0fail/skip210.802417ms;
+pre-fix12pass1expectedfail248.604333ms. No PostgreSQL joins, HTTP endpoint or geometry claim.
+Missing ESLint plugin resolved by reusing installed Server dependencies (no install);
+changed lint/fulltsc/diff PASS. SharedAPI/7777/zrok untouched, CI/runtime acceptance open.
+
+## 2026-11-16 — QODER: CI403 and corrected browser probe — PARTIAL / NOT_RELEASED
+
+Base e149c12daf3d916559ccc44ca3cbbecd544dc64f. CI43962675122 FAILED on Admin clone403
+following successful Server/Site materialization; native integration never ran. Lint/typecheck/
+unit steps passed, build/E2E/browser skipped. No access bypass or manifest change.
+Qoder public Web recovered without restart. Missing originProvider/destinationProvider in
+our prior URL caused actual Site parseSearchRoute to return null, not a proven UI regression.
+Adding selected-point IDs via existing builder/parser restored both endpoints/date and ran
+Lviv centre -> Opera17Nov08:00 search. Two cards: WALK-A09-WALK10min and WALK-A01-WALK13min,
+each displays30UAH. Opened A09 details, clicked first WALK. Screenshot unavailable because
+in-app surface hidden (NATIVE_BROWSER_VIEWPORT_UNAVAILABLE,395x843); no visual geometry PASS.
+No new tests/source/runtime changes. Rental geometry/national/release acceptance still open.
+
 ## 2026-11-16 — QODER: canonical integration wrapper — PARTIAL / NOT_RELEASED
 
 Root base651cb5f3dda9d3da281676b4c021f100e3eded92. Task119 replaces legacy root integration

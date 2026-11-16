@@ -1,3 +1,33 @@
+## RESUME BLOCK 2026-11-16 — scooter catalog health (Server PR194)
+
+Task120 Server13bfa1d34f4f288052461572c8ff3ed46bf5efb3, base378eccb, isolated server-rental-120.
+Catalog scooter eligibility now requires healthy, like nearby inventory; no routing or runtime
+change. Live authenticated nearby bike Lviv49.8397,24.0297 and scooter Kyiv50.4501,30.5234,
+radius3000: providers0/assets0/stations0/failures0. Catalog still advertises Zelectra; operators
+show ACTIVE_LIVE,lastSyncnull,locations0. Nextbike ACTIVE_STATIC66locations,liveCapabilityfalse.
+These separate registry facts do not prove runtime health or provider availability nationwide.
+Node24.21.0 actual scalar SQL predicate in in-memory SQLite:13/13 PASS,0skip210.802417ms;
+before source fix12pass/1expected degraded failure248.604333ms. Not HTTP/Postgres join evidence.
+ESLint initially lacked unused-imports plugin; reused existing Server dependencies via symlink,
+then changed ESLint/fulltsc/diff PASS. No install/DB/API/restart. CI/live acceptance remains open.
+PR https://github.com/dima1203oleg/MarshGO-Server/pull/194. National27x12 NOT_RELEASED.
+
+## RESUME BLOCK 2026-11-16 — CI403 and corrected walking browser probe (base e149c12)
+
+CI43962675122 FAILURE: lint/typecheck/unit steps passed; Server44f954 and Sitefef697
+materialized, then Admin4eb5d15 clone HTTP403. Native integration did not execute;
+build/E2E/browser gates skipped. Access configuration success is not repository access proof.
+No permission/token bypass. Task119 remains blocked on repository access and unaccepted suite.
+Qoder Web eventually loaded without restart. Original probe URL omitted originProvider and
+ destinationProvider: actual Site parseSearchRoute rejected it. Corrected both to selected-point
+using existing builder/parser and history navigation; points/date restored and search ran.
+Lviv24.0297,49.8397 -> Opera24.0262,49.844,17Nov08:00 returned two WALK-BUS-WALK cards:
+A09 10min and A01 13min, each displays30UAH. Opened A09 details and clicked first WALK.
+This is UI structural evidence, not fare-rights or complete geometry acceptance. Screenshot
+failed NATIVE_BROWSER_VIEWPORT_UNAVAILABLE: hidden in-app surface395x843. Do not switch
+browser surfaces. Bike/scooter geometry, endpoint continuity and national acceptance stay open.
+No source/runtime/7777/zrok changes; no new test run. PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — canonical integration delegation (base 651cb5f)
 
 Task119 implementation offline VERIFIED: root integration wrapper now selects manifest Server
