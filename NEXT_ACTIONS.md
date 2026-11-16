@@ -1,3 +1,26 @@
+## RESUME BLOCK 2026-11-16 — CURATED DENOMINATOR 23 CITIES / ODESA-KYIV + LVIV-UZHGOROD(4-TRANSFER) UI-VERIFIED
+
+Base Root 2315e1d → commit **f592ef2** (PR25 OPEN, pushed). Read exact curated list
+`MarshGO-Site/src/domain/ukraineCities.ts`: **23 cities = 19/24 oblast centers + 4 rayon centers**
+(Uman, Stryi, Kremenchuk, Bila Tserkva). ABSENT oblast centers: Donetsk, Luhansk (occupied) +
+Sumy, Kherson, Chernihiv (government-held, real gap); Crimea/Sevastopol absent. Curated
+**short-circuits geocoder** (ProductionMarketplace.tsx:1069-1070 + debounced :1109-1114) so these 23
+always resolve; all other places need live geocoder (503) → unavailable copy / map-picker only.
+Two NEW inter-oblast UI witnesses on canonical zrok 7777 (in-app Qoder), 17.11 08:00 all-12 BALANCED:
+(1) Odesa→Kyiv = 3 routes; RAIL 106 (Odesa-Holovna→Kyiv-Pas) + BUS 114 (Zaliznychnyi→st.m.Universytet),
+1 transfer, 23год40, train wait 13год39, stops 07:18/07:23, map+banner+5-nav;
+(2) Lviv→Uzhhorod = 9 routes; **4-transfer** card BUS А05(**НАЖИВО/GPS**, stops 08:46/08:49/08:52)→
+BUS А06→TRAM Т01→RAIL 3 (Lviv-Hol→Uzhhorod)→BUS 58, 7год21, waits 44/4/6/15/20хв, map+banner+5-nav.
+Screenshots docs/evidence/browser-2026-11-16-odesa-kyiv-rail-bus-details.png +
+browser-2026-11-16-lviv-uzhhorod-4transfer-details.png (both Read-viewed); report **15.11**.
+UI-SURFACING NOTE (honest): Odesa→Kyiv at 08:00 shows only 3 RAIL-dominated Pareto routes; the API's
+T4 RAIL+BUS×3+TROLLEYBUS candidates (15.2, different departure) are NOT surfaced in UI optimal/fastest
+→ diversity-ranking #55 / resultsTruncated, not a chain-construction defect. Chain logic now confirmed
+to **4 transfers** on API AND UI. National gap = ingestion/adapters/coverage + place-resolution
+(Codex geocoder / curated expansion; Site #71 deep-link hydration), NOT chain logic. Counts/matrix
+unchanged (M3 10/324 FV; 4/12 modes). Runtime UNCHANGED (API e9934abbd8fc-dirty; served Site
+1fec46f-dirty read-only). NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — 3-TRANSFER CHAIN UI-VERIFIED / STRYI CURATED EXISTS / DEEP-LINK HYDRATION GAP
 
 Base Root 2636bb5 → commits **a1e5768 → 565ccee → 55870e6 → ee10838 → faf783e** (PR25 OPEN, pushed). Browser E2E on canonical zrok 7777 (in-app
