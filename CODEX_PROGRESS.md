@@ -1,3 +1,26 @@
+## 2026-11-16 — QODER: DATE-01 code + actual both-theme preview — PARTIAL / NOT_RELEASED
+
+Rootbase b0c472bd037513fce729fc6936884c058e6fcebb. Site feature e56f256 and
+nonrewriting main-aa157fc merge54ec7eddc7ce61b565662f41937d05e897bae107,
+qoder/overnight-route-dates-20261114, draftPR147OPEN. Seven-file date-only delta;
+105/105 tests,0fail/skip,406.853417ms; targeted lint/typecheckPASS.
+Source calendar dates/Europe-Kyiv,not clock-rollover inference; invalid/missing values
+remain unknown, same-day compact, summary uses requested departure when valid.
+Narrow patch to actual7777/zrok Site1fec46f dirty preserves foreign route metrics/UI;
+private exact source backups retained; evidence preview-only patch excludes prior dirt.
+Actual preview changed-source ESLint0.912s/typecheck7.901s both exit0.
+Qoder existing1-transfer15/43selection,NOT task1124-transfer archive,no new search:
+08:00 18Nov→05:44 19Nov summary,22:34 18Nov→05:10 19Nov train43/stops.
+Dark/light395×843 and light1605×843 readable; overnight DOM overflow=false.
+Daytime15 stop rows remain clock-only. Theme via real service API,dark restored,
+fullscreen exited. No GPS/booking/save/share/playback/restart/build/deployment.
+Collapsed foreign flight-preview hides summary; compact-date gateNOT_TESTED.
+Exact six specified widths/negativecontrol remainopen; PR147 staysdraft.
+Mobile camera showed Scandinavia,wideview includes Ukraine,causeNOT_VERIFIED.
+Walking warning/38archived geometry gaps remain; current-source investigation,
+not obsolete .release44f954b snapshot. IndependentQoder,noCodexACKdependency.
+National/runtime/taskE/CI403/rights/calendars/E2E gates remainopen.
+
 ## 2026-11-16 — QODER: exact interregional raw chain + four-transfer UI — PARTIAL / NOT_RELEASED
 
 Base1d297792c7ac7c9c21fc8725747fbfff704a5c56. Task112 actualsingleQoder search

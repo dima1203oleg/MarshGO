@@ -1,3 +1,29 @@
+## RESUME BLOCK 2026-11-16 — DATE-01 implemented, Qoder both-theme evidence (base b0c472bd037513fce729fc6936884c058e6fcebb)
+
+Task59 isolated Site qoder/overnight-route-dates-20261114: feature e56f256,
+current main aa157fc integrated without rewrite/conflict at54ec7eddc7ce61b565662f41937d05e897bae107.
+Draft SitePR147 OPEN; seven date-only files,203insertions/30deletions vs main.
+Tests105/105,0fail/skip,406.853417ms; targeted ESLint/typecheck PASS at54ec7edd.
+Dates derive only from valid supplied timestamps in Europe/Kyiv; preserve datetime,
+invalid/missing dashes, same-day compact labels, requested summary departure.
+Narrow compatible patch applied to existing7777/zrok servedSite1fec46f dirty;
+foreign route UI retained, exact pre-edit baseline backed up privately.
+Preview-only patch records baseline-to-current delta, not full foreign dirty file.
+Actual preview ESLint PASS0.912s/typecheck PASS7.901s; no build/restart/new server.
+Qoder current selection is WALK/RAIL15/RAIL43/WALK,1transfer,not task112's archived
+four-transfer chain. No new POST/search. Summary08:00 18Nov→05:44 19Nov,
+train43 22:34 18Nov→05:10 19Nov; dated stop rows and accessible labels verified.
+Dark/light395×843 and light1605×843 screenshots; no document horizontal overflow.
+Daytime15 stop list stays compact. Real themeService API used; dark restored,
+Qoder fullscreen exited. No GPS/booking/save/share/playback or deployment.
+Collapsed foreign flight-preview state hides summary; compact-date acceptance remains
+NOT_TESTED. Exact320/390/430/768/1280/1440 widths and negative-control gate remainopen.
+Mobile camera showed Scandinavia, desktop includes Ukraine; camera causeNOT_VERIFIED.
+Walking warning stays visible;38 archived WALK geometry gaps not fixed by dates.
+NEXT: finish remaining DATE acceptance; diagnose actual dirtyServer walking fallback,
+not obsolete .release snapshot; independent Qoder implementation, no Codex ACK wait.
+Runtime/taskE/CI403/E2E/rights/calendars/national27×12 remainopen. PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — exact Kharkiv–Lviv four-transfer raw/UI witness (base 1d297792c7ac7c9c21fc8725747fbfff704a5c56)
 
 Task112 one Qoder in-app canonical7777/zrok POST18:58:45.894Z; exact18Nov
