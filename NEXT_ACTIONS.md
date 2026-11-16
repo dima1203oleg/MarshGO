@@ -1,3 +1,18 @@
+## RESUME BLOCK 2026-11-16 — Exact geocoded Kyiv request: empty PARTIAL, not no-service
+
+Base 5f2d99b. Artifact docs/evidence/kyiv-geocoded-chain-2026-11-16.json stores exact geocoder
+IDs/coordinates, full request and response. Вокзальна площа → Позняки (neighborhood, not metro),
+17.11 08:00 BALANCED: HTTP200, 2137ms, 0 journeys/candidates, partial=true, resultsTruncated=true.
+searchBudget/candidateSampling/responsePage=true; walking-router limit 32 and walk rejection;
+metro registry error. This is incomplete search, not proof no valid route exists.
+/api/v1/version observed after probe: e9934abbd8fc973177de8d7f47548739758a1b74,
+build local-e9934abbd8fc-dirty-20261113T132012Z, sourceState dirty. No restart.
+UI blocker: NATIVE_BROWSER_VIEWPORT_UNAVAILABLE, visibilityState hidden; eighth witness NOT_TESTED.
+Previous deep-link used invalid departure=08:00; parser requires YYYY-MM-DDTHH:mm. Not a new UI bug.
+One bounded live request, no unit/build suite. Resources YELLOW (29% memory, 16Gi disk).
+Next Codex diagnosis: replay exact request on reviewed isolated SHA, inspect budget and walking
+rejection, preserve walk caps and mode constraints. Qoder retains UI/OD evidence. NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — CORRECTION §15.18–15.19: bounded observations, not citywide diagnosis
 
 Base d313708. Earlier §15.18–15.19 resume blocks below are historical and superseded by this correction.

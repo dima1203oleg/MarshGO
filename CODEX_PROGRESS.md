@@ -5620,6 +5620,19 @@ docs/evidence/national-per-mode-probe-2026-11-16.json.
 - Рендерів 7 (без змін). Runtime без змін (API :3002 local-e9934abbd8fc-dirty; served Site
   1fec46f-dirty read-only). NOT_RELEASED.
 
+## 2026-11-16 — Точні геокодовані O/D Києва: PARTIAL empty (base 5f2d99b)
+
+Артефакт docs/evidence/kyiv-geocoded-chain-2026-11-16.json: геокодер w:1326134749 → n:1308284052,
+Вокзальна площа → район Позняки, 17.11 08:00 BALANCED. Один live-запит HTTP200 за 2137ms:
+0 journeys/candidates, partial/resultsTruncated=true, searchBudget=true, walk limit32,
+відхилені пішохідні переходи, metro registry error. Наявність допустимого маршруту NOT_VERIFIED.
+Версія після запиту: e9934abbd8fc973177de8d7f47548739758a1b74, dirty, build 20261113T132012Z.
+Qoder screenshot: NATIVE_BROWSER_VIEWPORT_UNAVAILABLE (hidden); UI-свідок NOT_TESTED.
+Попередній departure=08:00 не відповідає URL-контракту YYYY-MM-DDTHH:mm — помилка проби.
+Ресурси YELLOW: memory29%, disk16Gi; масових прогонів/build/test не запускали. Runtime не змінювали.
+Codex: точний replay в ізольованому reviewed SHA, діагностика budget/walk, без послаблення лімітів.
+PARTIAL / NOT_RELEASED; локальну відсутність результатів не переносити на всю Україну.
+
 ## 2026-11-16 — Методологічне виправлення §15.18–15.19 (base d313708)
 
 Попередній висновок §15.18 і історичний запис §15.19 нижче частково відкликано.
