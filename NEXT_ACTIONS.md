@@ -1,3 +1,26 @@
+## RESUME BLOCK 2026-11-16 — фінальний національний звіт доставлено + CI merge-блокер діагностовано (base 770b844)
+
+MARSHGO_UKRAINE_NATIONAL_COVERAGE_FINAL_REPORT.md (корінь): 17 розділів ТЗ +
+три незалежні метрики SOURCE/ROUTING/UX. SOURCE 86/140 (61.4%), каталог 88,
+RT 5/12 (90с). ROUTING 4/12 транзитних режимів (bus/tram/trolleybus/train),
+5/24 центри ненульові (3 WORKING+2 bike), 13/13 міжобласних, 4/6 приміських,
+5/22 intra-city. UX Київ tram/bus/troll + Львів tram/no-bus + Одеса bike +
+long-haul R08/R09/Харків→Львів/Київ→Ужгород/Одеса→Київ T4 + U06–U10.
+100% НЕ заявлено; NOT_RELEASED.
+CI MERGE-БЛОКЕР ТОЧНО: run 43893143344 verify failure — materialize-release.mjs
+клонує Server 44f954b OK / Site fef697e OK, але Admin 4eb5d15 → 403 «Write access
+not granted» (Partner очікувано теж). Токен MARSHGO_REPOS_READ_TOKEN налаштований,
+та fine-grained PAT без Contents:read на Admin/Partner. ДІЯ ВЛАСНИКА: додати
+Admin+Partner до Repository access токена (Read-only). Qoder secrets не чіпає,
+fail-closed gate не послаблює. docs/EXTERNAL_BLOCKERS.md 15:10Z.
+Інцидент #105 ЗАКРИТО (2 крахи, 2 тригери task E, відновлення тим самим SHA).
+Codex tasks A–E у Server PR26 (issuecomment-6920235516); звіт+CI у PR25
+(issuecomment-6920486355). PR25 head 770b844, merge BLOCKED (credential-gap +
+886 файлів). Codex quota reset 17.11 21:02 — engine fixes чекають.
+NEXT: дія власника на токен; Codex ack A–E + engine fixes після reset;
+решта міст заблоковані зовнішньо (права/видавець/історичні/credentials).
+PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — Kyiv BUS + TROLLEYBUS UI witnesses, другий крах API, корекція геометрії (base 437fb26)
 
 Qoder in-app browser, canonical zrok/7777. BUS: Вокзальна площа → Ізюмська
