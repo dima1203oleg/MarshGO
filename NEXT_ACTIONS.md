@@ -1,3 +1,27 @@
+## RESUME BLOCK 2026-11-16 — Kyiv tram UI witness + map-geometry root cause (base 665459d)
+
+Qoder in-app browser, canonical zrok/7777: вулиця Вадима Гетьмана → Михайлівська
+Борщагівка, 17.11 08:00, усі 12 режимів pressed=true. 1 маршрут у всіх трьох
+стратегіях: Пішки 562 м → Трамвай 1 (Індустріальна 08:08 → Гната Юри 08:19 →
+Мих Борщагівка 08:35) → Пішки 595 м; 42 хв, 30 ₴ готівкою, 0 пересадок;
+карта: маркери Посадка/Висадка + чесний ярлик «ЗА РОЗКЛАДОМ».
+ДОКАЗИ: docs/evidence/qoder-kyiv-tram-ui-2026-11-16.json + 3 PNG
+(results/details/map). Runtime: API e9934ab dirty build 20261113T132012Z;
+served Site 1fec46fe dirty, bundle SHA NOT_VERIFIED.
+ПРОГАЛИНА 1 (джерело): стрічки маршруту на карті НЕМАЄ — API legs без
+routeGeometry; offline-репліка routeGeometryForTrip (gtfsTimetable.ts:1250-1282,
+cap 600 м рядок 1268) на дзеркалі SHA 7880724…: 254/254 рейсів відхилено,
+snap 759 м; форми вироджені (2332 shape, медіана 3 точки). Відмова сервера
+ПРАВИЛЬНА (no-fake-geometry); поріг не знижувати. Codex-завдання C: офіційні
+shapes Київпастранс або OSM map-matching з позначкою estimated, або явний
+UX-напис «геометрія недоступна». BOM-гіпотезу перевірено і відкинуто
+(csvRows-strip BOM gtfsTimetable.ts:691; e9934ab містить функцію).
+ПРОГАЛИНА 2 (геокодер): назва зупинки «Індустріальна» не пропонується —
+обрано перейменовану вулицю того ж коридору; stop-level place search gap.
+NEXT: Codex ack A/B/C (issue26); #103 LIVE-ярлик завтрашнього трамвая;
+решта міських свідків; merge у main BLOCKED (CI403, PR25 886 файлів).
+PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — Kyiv bus/tram/trolleybus ROUTING_VERIFIED_API + MDB crosswalk (base b8dfba5)
 
 Fresh Kyivpasstrans mirror jbb.ghsq.de/gtfs/ua-kyiv.gtfs.zip probed:1357267B

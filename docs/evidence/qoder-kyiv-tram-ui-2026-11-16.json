@@ -1,0 +1,93 @@
+{
+  "probe": "qoder-kyiv-tram-ui-2026-11-16",
+  "capturedAt": "2026-11-16T14:14:36Z",
+  "surface": "Qoder in-app browser (canonical preview only)",
+  "url": "https://marshgo-dima.shares.zrok.io/journeys/search?mode=planner&origin=%D0%B2%D1%83%D0%BB%D0%B8%D1%86%D1%8F+%D0%92%D0%B0%D0%B4%D0%B8%D0%BC%D0%B0+%D0%93%D0%B5%D1%82%D1%8C%D0%BC%D0%B0%D0%BD%D0%B0%2C+%D0%9A%D0%B8%D1%97%D0%B2&originLat=50.4445303&originLon=30.4419889&originProvider=w%3A38645002&destination=%D0%9C%D0%B8%D1%85%D0%B0%D0%B9%D0%BB%D1%96%D0%B2%D1%81%D1%8C%D0%BA%D0%B0+%D0%91%D0%BE%D1%80%D1%89%D0%B0%D0%B3%D1%96%D0%B2%D0%BA%D0%B0%2C+%D0%9A%D0%B8%D1%97%D0%B2&destinationLat=50.4071714&destinationLon=30.4150314&destinationProvider=n%3A2962023003&date=2026-11-17&passengers=1&departure=2026-11-17T08%3A00&strategy=BALANCED",
+  "runtime": {
+    "apiPid": 23151,
+    "apiPort": 3002,
+    "serverSha": "e9934abbd8fc973177de8d7f47548739758a1b74",
+    "serverDirty": true,
+    "buildId": "local-e9934abbd8fc-dirty-20261113T132012Z",
+    "servedSiteCheckout": "/Users/dima1203/.qoder/worktrees/app/330dd3/MarshGO-Site",
+    "servedSiteBranch": "codex/premium-route-details-reference-20261115",
+    "servedSiteHead": "1fec46fe",
+    "servedSiteDirty": true,
+    "servedBundleSha": "NOT_VERIFIED"
+  },
+  "form": {
+    "departure": "2026-11-17T08:00",
+    "arrivalConstraint": "none",
+    "passengers": 1,
+    "modesPressedTrue": ["CARPOOL", "MARSHRUTKA", "BUS", "TAXI", "TRAM", "TROLLEYBUS", "METRO", "TRAIN", "BIKE", "SCOOTER", "CARSHARING", "TRANSFER"],
+    "origin": {
+      "selected": "вулиця Вадима Гетьмана, Київ",
+      "providerId": "w:38645002",
+      "coordinates": [30.4419889, 50.4445303],
+      "geocoderCaveat": "tram stop name 'Індустріальна' is NOT offered by the geocoder; the renamed street on the same corridor was selected instead. Stop-level place search gap recorded."
+    },
+    "destination": {
+      "selected": "Михайлівська Борщагівка, Київ",
+      "providerId": "n:2962023003",
+      "coordinates": [30.4150314, 50.4071714]
+    }
+  },
+  "results": {
+    "journeyCount": 1,
+    "strategyTabs": { "OPTIMAL": 1, "FASTEST": 1, "CHEAPEST": 1 },
+    "strategyWitness": "all three tabs render the same single journey (42 хв / 30 ₴ / 0 transfers), consistent with API candidateCount=1 per strategy",
+    "journey": {
+      "totalDuration": "42 хв (08:00 → 08:42)",
+      "price": "30 ₴ готівкою",
+      "transfers": 0,
+      "legs": [
+        { "mode": "WALK", "window": "08:00–08:06", "duration": "7 хв", "distanceMeters": 562, "from": "вулиця Вадима Гетьмана", "to": "Індустріальна" },
+        { "mode": "WAIT", "duration": "1 хв" },
+        { "mode": "TRAM", "routeName": "1", "window": "08:08–08:35", "duration": "27 хв", "stops": [
+          { "name": "Індустріальна", "time": "08:08", "role": "Посадка" },
+          { "name": "Гната Юри", "time": "08:19", "role": "intermediate" },
+          { "name": "Мих Борщагівка", "time": "08:35", "role": "Висадка" }
+        ] },
+        { "mode": "WALK", "window": "08:35–08:42", "duration": "7 хв", "distanceMeters": 595, "from": "Мих Борщагівка", "to": "Михайлівська Борщагівка" }
+      ],
+      "recommendation": "Перший варіант у режимі «Оптимальний»"
+    }
+  },
+  "map": {
+    "markers": ["Посадка · Індустріальна", "Висадка · Мих Борщагівка"],
+    "segmentStrip": ["Пішки 7 хв", "Трамвай 27 хв", "Пішки 7 хв"],
+    "freshnessLabel": "Трамвай 1 — ЗА РОЗКЛАДОМ (honest scheduled-only label for future date)",
+    "routeRibbon": "ABSENT — no transit polyline and no dashed walk chord visible at overview or +2 zoom",
+    "screenshot": "qoder-kyiv-tram-ui-2026-11-16-map.png"
+  },
+  "geometryRootCause": {
+    "observation": "API journey legs for this Kyiv tram ride carry stops[] with coordinates but NO routeGeometry key; Site buildJourneyRouteMapModel (MarshGO-Site src/map/journeyRouteModel.ts:65-99) draws transit ribbons only from leg.routeGeometry and deliberately never invents transit geometry, so only stop waypoints render.",
+    "serverMechanism": "MarshGO-Server server/journey/gtfsTimetable.ts:1250-1282 routeGeometryForTrip snaps board/alight stop coordinates onto the trip shape and refuses when combined snap distance > 600 m (line 1268).",
+    "offlineReplication": {
+      "feed": "https://jbb.ghsq.de/gtfs/ua-kyiv.gtfs.zip",
+      "feedSha256": "788072449de1841b2c46d77fa3e3a3b38d5b36218238b14dadc440e2720b9421",
+      "method": "python replication of nearestShapeIndexes + ordering + 600 m cap over the extracted mirror, name-window [Індустріальна, Гната Юри, Мих Борщагівка]",
+      "matchingTrips": 254,
+      "geometryOk": 0,
+      "refusedSnapOver600": 254,
+      "orderingFailures": 0,
+      "snapDistanceMeters": { "min": 759, "median": 759, "max": 759 },
+      "exampleTrip": { "tripId": "1_175764_10_0", "directionId": "0", "shapeId": "1_1_0", "shapePoints": 30, "bestStartIndex": 16, "bestEndIndex": 29 },
+      "feedWideShapes": { "distinctShapeIds": 2332, "pointsPerShape": { "min": 2, "median": 3, "max": 187 } }
+    },
+    "checkedHypotheses": [
+      "UTF-8 BOM in shapes.txt/stops.txt headers: present in mirror, but current main csvRows strips BOM (gtfsTimetable.ts:691) and preview build e9934ab contains routeGeometryForTrip (3 occurrences) — NOT the cause.",
+      "Missing shape_id linkage: all 27438 trips reference shapes present in shapes.txt (0 missing) — NOT the cause.",
+      "Client-side fallback: JourneyRouteMapScreen.tsx:239 only pre-expands the stop list; no geometry fallback exists by design."
+    ],
+    "verdict": "SOURCE_QUALITY_LIMITATION — the mirror's shapes are degenerate stop-chord skeletons (median 3 points) whose endpoints sit ~759 m from the published stop coordinates; the server's 600 m refusal is CORRECT per the no-fake-geometry invariant. Lowering the threshold would draw wrong streets and is rejected.",
+    "codexTask": "Obtain real street geometry for Kyiv surface modes (official Київпастранс shapes via data.gov.ua dataset 96128887-4f36-4c19-a96e-5d4765fade16, or OSM map-matching of stop chains labelled as estimated), or keep markers-only rendering with an explicit 'geometry unavailable' UX note. Do not relax the 600 m snap cap."
+  },
+  "screenshots": [
+    "qoder-kyiv-tram-ui-2026-11-16-results.png",
+    "qoder-kyiv-tram-ui-2026-11-16-details.png",
+    "qoder-kyiv-tram-ui-2026-11-16-map.png"
+  ],
+  "verdict": "UX_VERIFIED_KYIV_TRAM_RESULTS_DETAILS_MAP_3STRATEGIES on dirty preview runtime; route ribbon absent due to degenerate mirror shapes (source-quality limitation, correct server refusal); geocoder stop-name gap recorded; scheduled-only future date; fare shown as cash estimate.",
+  "status": "PARTIAL / NOT_RELEASED"
+}

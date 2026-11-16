@@ -1,3 +1,23 @@
+## 2026-11-16 — QODER: Kyiv tram UI witness (3 strategies) + map-geometry root cause — PARTIAL / NOT_RELEASED
+
+Base665459d. Qoder in-app browser on canonical zrok/7777: street→village O/D
+(geocoder does not offer tram stop names; street substituted, caveat recorded),
+17Nov08:00, all12 modes on. 1 journey in OPTIMAL/FASTEST/CHEAPEST alike:
+WALK562m → TRAM1 Індустріальна08:08/ГнатаЮри08:19/МихБорщагівка08:35 → WALK595m;
+42min,30UAH cash,0transfers; map markers + honest «ЗА РОЗКЛАДОМ», NO route ribbon.
+Root cause proven offline: API legs lack routeGeometry because
+gtfsTimetable.ts:1250-1282 refuses snap>600m (line1268); mirror replication
+254/254 matching trips refused at exactly759m; feed shapes degenerate
+(2332 shapes, median3 points). Server refusal CORRECT (no-fake-geometry);
+threshold must NOT be lowered. BOM hypothesis checked and rejected
+(csvRows strips BOM line691; preview build e9934ab contains the function).
+Evidence qoder-kyiv-tram-ui-2026-11-16.json + results/details/map PNGs.
+CODEX TASK C: real Kyiv street geometry (official Київпастранс shapes via
+data.gov.ua 96128887-4f36-4c19-a96e-5d4765fade16 or OSM map-match labelled
+estimated) or explicit «геометрія недоступна» UX note; keep markers-only otherwise.
+Geocoder stop-level search gap logged for Site backlog. No Server/Site/runtime edits.
+PARTIAL / NOT_RELEASED.
+
 ## 2026-11-16 — QODER: Kyiv surface ROUTING_VERIFIED_API (3 modes) + MDB UA crosswalk — PARTIAL / NOT_RELEASED
 
 Baseb8dfba5. Kyiv mirror feed_version20261116 validated (192routes/1738stops/27438trips;
