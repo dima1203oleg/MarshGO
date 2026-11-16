@@ -1,0 +1,180 @@
+{
+  "harness": "absent-oblast-v1-auth",
+  "auth": "bearer-audit-account",
+  "departureAt": "2026-11-17T08:00:00+02:00",
+  "generatedAt": "2026-11-16T09:52:05.914Z",
+  "corridors": [
+    {
+      "id": "sumy",
+      "origin": "kyiv",
+      "destination": "sumy",
+      "httpStatus": 200,
+      "returned": 8,
+      "maxTransfers": 3,
+      "transitModeSet": [
+        "BUS",
+        "RAIL",
+        "TROLLEYBUS"
+      ],
+      "resultsTruncated": true,
+      "partial": true,
+      "partialReasons": [
+        "candidate_generation_truncated",
+        "provider_error",
+        "unsupported_preference",
+        "walking_routing_unavailable"
+      ],
+      "blockedProviders": [
+        "transportType:marshrutka:no-routed-provider-in-corridor",
+        "transportType:metro:no-routed-provider-in-corridor",
+        "transportType:taxi:no-routed-provider-in-corridor",
+        "transportType:carsharing:no-routed-provider-in-corridor",
+        "transportType:transfer:no-routed-provider-in-corridor",
+        "walking-transfers-between-unmatched-stops",
+        "community-intermediate-pickup:requires-explicit-driver-approved-stop"
+      ],
+      "providerErrors": [
+        "Київське метро: Київські джерела станцій, геометрії, розкладу або пересадок не зареєстровані чи вимкнені"
+      ],
+      "gtfsTruncation": {
+        "stopSelection": true,
+        "candidateGraph": false,
+        "searchBudget": true,
+        "searchStepLimit": true,
+        "candidatePoolLimit": false,
+        "candidateSampling": true,
+        "responsePage": true
+      },
+      "summaries": [
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "transfers": 0,
+          "durationS": 78931,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS)"
+        },
+        {
+          "modes": [
+            "WALK",
+            "BUS",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "transfers": 1,
+          "durationS": 78931,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+        },
+        {
+          "modes": [
+            "WALK",
+            "BUS",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "transfers": 1,
+          "durationS": 78931,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+        },
+        {
+          "modes": [
+            "WALK",
+            "BUS",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "transfers": 1,
+          "durationS": 78931,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+        }
+      ]
+    },
+    {
+      "id": "kherson",
+      "origin": "kyiv",
+      "destination": "kherson",
+      "httpStatus": 200,
+      "returned": 0,
+      "maxTransfers": 0,
+      "transitModeSet": [],
+      "resultsTruncated": false,
+      "partial": true,
+      "partialReasons": [
+        "provider_error",
+        "unsupported_preference"
+      ],
+      "blockedProviders": [
+        "transportType:marshrutka:no-routed-provider-in-corridor",
+        "transportType:metro:no-routed-provider-in-corridor",
+        "transportType:taxi:no-routed-provider-in-corridor",
+        "transportType:carsharing:no-routed-provider-in-corridor",
+        "transportType:transfer:no-routed-provider-in-corridor",
+        "walking-transfers-between-unmatched-stops",
+        "community-intermediate-pickup:requires-explicit-driver-approved-stop"
+      ],
+      "providerErrors": [
+        "Київське метро: Київські джерела станцій, геометрії, розкладу або пересадок не зареєстровані чи вимкнені"
+      ],
+      "gtfsTruncation": {
+        "stopSelection": false,
+        "candidateGraph": false,
+        "searchBudget": false,
+        "searchStepLimit": false,
+        "candidatePoolLimit": false,
+        "candidateSampling": false,
+        "responsePage": false
+      },
+      "summaries": []
+    },
+    {
+      "id": "chernihiv",
+      "origin": "kyiv",
+      "destination": "chernihiv",
+      "httpStatus": 200,
+      "returned": 0,
+      "maxTransfers": 0,
+      "transitModeSet": [],
+      "resultsTruncated": false,
+      "partial": true,
+      "partialReasons": [
+        "provider_error",
+        "unsupported_preference"
+      ],
+      "blockedProviders": [
+        "transportType:marshrutka:no-routed-provider-in-corridor",
+        "transportType:metro:no-routed-provider-in-corridor",
+        "transportType:taxi:no-routed-provider-in-corridor",
+        "transportType:carsharing:no-routed-provider-in-corridor",
+        "transportType:transfer:no-routed-provider-in-corridor",
+        "walking-transfers-between-unmatched-stops",
+        "community-intermediate-pickup:requires-explicit-driver-approved-stop"
+      ],
+      "providerErrors": [
+        "Київське метро: Київські джерела станцій, геометрії, розкладу або пересадок не зареєстровані чи вимкнені"
+      ],
+      "gtfsTruncation": {
+        "stopSelection": false,
+        "candidateGraph": false,
+        "searchBudget": false,
+        "searchStepLimit": false,
+        "candidatePoolLimit": false,
+        "candidateSampling": false,
+        "responsePage": false
+      },
+      "summaries": []
+    }
+  ]
+}

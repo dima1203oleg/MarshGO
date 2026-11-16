@@ -5543,3 +5543,17 @@ Not claimed: payment capture, live GTFS-RT vehicle positions, anything on accept
   браузерно-верифіковано у міжобласному ланцюжку. 5 браузерних рендерів. Chain-логіка VERIFIED до
   4 пересадок UI / 3 API long-haul. Національна прогалина = інгестація/покриття + place-resolution
   (Codex), не chain-логіка. Counts/matrix без змін. Runtime без змін. NOT_RELEASED.
+
+### 2026-11-16 §15.15 — Проба 3 відсутніх урядових обласних центрів (Суми/Херсон/Чернігів)
+- Authenticated coordinate-only API (без curated provider), kyiv→sumy/kherson/chernihiv,
+  17.11 08:00 BALANCED, незмінний runtime. Артефакт
+  docs/evidence/national-absent-oblast-probe-2026-11-16.json. Не-однорідні 8/0/0 фальсифікують
+  «зламаний harness».
+- **Суми 8 ret/maxT3/BUS,RAIL,TROLLEYBUS**: прямий RAIL Укрзалізниця GTFS (0 пересадок ~21год55) +
+  BUS/TROLLEYBUS-доступ Києва → національний trunk досягає Сумщини; додати Суми до curated/UI
+  (place-resolution handoff). **Херсон 0 / Чернігів 0**, trunc=false, partialReasons лише
+  provider_error+unsupported_preference → справжня відсутність сервісу/stop-match (прифронтові
+  розклади/інгестація), не truncation/chain-дефект; чесний MISSING для 2 урядових обласних центрів;
+  історичні розклади не активувати.
+- Long-haul знаменник тепер 9 (7 routable). Counts/matrix інакше без змін. 5 браузерних рендерів
+  (15.14 latest). Runtime без змін. NOT_RELEASED.

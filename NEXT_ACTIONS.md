@@ -1,3 +1,16 @@
+## RESUME BLOCK 2026-11-16 — §15.15 ABSENT GOV-HELD OBLAST CENTERS PROBED (SUMY ROUTABLE; KHERSON/CHERNIHIV NO-SERVICE)
+
+Root 1408455 → (this commit) (PR25 OPEN, pushed). Authenticated coordinate-only API probe (no curated
+provider) kyiv→sumy/kherson/chernihiv, 17.11 08:00 BALANCED, unchanged runtime. Artifact
+docs/evidence/national-absent-oblast-probe-2026-11-16.json. Non-uniform 8/0/0 falsifies broken-harness.
+**Sumy 8 ret/maxT3/BUS,RAIL,TROLLEYBUS**: real Укрзалізниця GTFS direct RAIL (0 transfers ~21год55) +
+Kyiv BUS/TROLLEYBUS access → national trunk REACHES Sumy; add Sumy to curated/UI (place-resolution
+handoff). **Kherson 0 / Chernihiv 0**, trunc=false, partialReasons only provider_error+
+unsupported_preference → genuine NO-SERVICE/stop-match gap (frontline schedules/ingestion), NOT
+truncation or chain defect; honest MISSING for 2 gov-held oblast centers; do not activate historical
+schedules. Long-haul corridor denominator now 9 (7 routable). Counts/matrix otherwise unchanged.
+5 browser renders (15.14 latest). Runtime unchanged. NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — §15.14 KYIV→UZHGOROD TROLLEYBUS LONG-HAUL UI-VERIFIED (5th browser render)
 
 Root 5a6db52 → **0f195d3** (PR25 OPEN, pushed). In-app browser canonical zrok, deep-link curated
