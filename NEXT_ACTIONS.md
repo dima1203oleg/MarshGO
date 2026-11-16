@@ -1,3 +1,19 @@
+## RESUME BLOCK 2026-11-16 — 3-TRANSFER CHAIN UI-VERIFIED / STRYI CURATED EXISTS / DEEP-LINK HYDRATION GAP
+
+Base Root 2636bb5 → commit **a1e5768** (PR25 OPEN, pushed). Browser E2E on canonical zrok 7777 (in-app
+Qoder): Львів·центр→Стрий·центр 17.11 08:00 all-12 BALANCED → 9 routes; 3-transfer card
+(BUS А05→BUS А01→TRAM Т06→RAIL 40749, 11год55) opens FULL details: real map geometry, provenance
+НАЖИВО(GPS)/РОЗКЛАД/ОРІЄНТОВНО, waits 2год20/3хв/5хв/7год51, stop times 10:22/10:25, transfer buttons,
+5-nav. Screenshot docs/evidence/browser-2026-11-16-lviv-stryi-3transfer-details.png (Read-viewed);
+report 15.10. CORRECTION: Stryi HAS curated marshgo:city-reference:stryi (prior NOT_TESTED assumption
+wrong) — multi-transfer chains reachable in UI via curated suggestions. SITE GAP (Qoder-owned, #71):
+coordinate-only deep-link WITHOUT originProvider/destinationProvider does NOT hydrate comboboxes nor
+auto-search (empty form); WITH curated provider it hydrates date/time and searches correctly. Geocoder
+still 503. issue26 comment 6911854838. Chain-construction logic confirmed correct to 3 transfers on API
+AND UI; national gap = ingestion/adapters/coverage (Codex), not chain logic. Counts/matrix unchanged
+(19OD54searches+1negative0accepted; 31PARTIAL293NOT_TESTED). Shared runtime UNCHANGED (API e9934ab-dirty,
+served 1fec46f-dirty untouched). NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — NATIONAL API-CHAIN + BROWSER E2E AUDIT / M8 MEASURED PARTIAL / CODEX HANDOFF POSTED
 
 Base Root be84870 → commit **258a97c** (PR25 OPEN, pushed). National audit 11-16 complete: 36-search API probe

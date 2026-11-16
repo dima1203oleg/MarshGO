@@ -5448,3 +5448,16 @@ Not claimed: payment capture, live GTFS-RT vehicle positions, anything on accept
 - **Статус:** M8 ВИМІРЯНО ЧАСТКОВО; національне покриття по всіх 12 видах — НІ. PARTIAL / NOT_RELEASED.
   Goal NOT complete. Наступне: Codex закриває Lviv truncation + acceptance + інгестацію 19 міст; Qoder —
   PR145 conflict + canonical zrok regression після handoff.
+
+## 2026-11-16 — Qoder: 3-пересадковий ланцюжок Львів→Стрий UI-верифіковано (commit a1e5768, PR25)
+
+- **Браузерний E2E (zrok 7777, in-app Qoder):** Львів·центр→Стрий·центр 17.11 08:00 all-12 BALANCED →
+  9 маршрутів; картка «3 пересадки, 11год55» = Пішки→А05→А01→Т06→Пішки→Поїзд40749→Пішки (BUS,BUS,TRAM,RAIL).
+  Деталі: реальна геометрія мапи, provenance НАЖИВО(GPS)/РОЗКЛАД/ОРІЄНТОВНО, очікування, зупинки 10:22/10:25,
+  кнопки пересадок, 5-nav. Доказ browser-2026-11-16-lviv-stryi-3transfer-details.png (Read-viewed), звіт 15.10.
+- **Виправлення:** Стрий МАЄ curated marshgo:city-reference:stryi; мультимодальні 3-пересадкові ланцюжки
+  доступні у UI через curated-підказки (попереднє NOT_TESTED-припущення хибне).
+- **Site-прогалина (Qoder-owned, #71):** coordinate-only deep-link БЕЗ provider не гідратує форму/авто-пошук;
+  ІЗ curated provider — гідратує дату/час і шукає. Геокодер 503. issue26 comment 6911854838.
+- **Висновок:** логіка побудови ланцюжків коректна до 3 пересадок і на API, і у UI; національна прогалина =
+  інгестація/адаптери/покриття (Codex), не chain-construction. Counts/matrix без змін. NOT_RELEASED.
