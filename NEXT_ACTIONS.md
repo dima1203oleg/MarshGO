@@ -1,3 +1,35 @@
+## RESUME BLOCK 2026-11-16 — Lviv paired walking-cap control (base edae236)
+
+Same CP11 endpoints [24.0154759,49.8347322]→[24.0537537,49.8365206],17Nov08:00,
+BALANCED. Only preference.maxWalkingMeters changed:1000→200.1000m HTTP200/4704ms
+returns BUS560m and TRAM192m;200m HTTP200/4564ms returns TRAM192m only.
+Full artifacts lviv-explicit-walk-cap-2026-11-16.json and
+lviv-explicit-walk-cap-200-2026-11-16.json under docs/evidence.
+Independent paired assertions: same request apart from cap, identical before/after runtime
+objects across both, leg sums match reported totals and fit caps; BUS absent with200m.
+Returned-journey cap behavior VERIFIED for these two probes only; both partial=true,
+candidates63→11. No claim of exhaustive search, current-main acceptance or new BUS+TRAM
+single itinerary. Runtime remains dirtye9934ab; UI NOT_TESTED, no runtime/source edit.
+Kyiv cap probe below remains INCONCLUSIVE_EMPTY. Next: reviewed-runtime/UI acceptance.
+
+## RESUME BLOCK 2026-11-16 — explicit walking cap remains inconclusive (base edae236)
+
+Task102: one authenticated Kyiv-center→Lviv-center request, 17Nov08:00 BALANCED,
+preferences.maxWalkingMeters=1000. HTTP200/7397ms, zero journeys/candidates,
+partial=true (candidate_generation_truncated, provider_error, unsupported_preference).
+Artifact docs/evidence/explicit-walk-cap-2026-11-16.json contains exact request/full response
+and before/after version: same local-e9934abbd8fc-dirty-20261113T132012Z instance.
+INCONCLUSIVE_EMPTY, not a cap PASS or proof of no service. No current-main runtime claim.
+GitHub main378eccbdd320ff5ddf2491dd9bc613b55237f998 index.ts3358–3361 permits5000m
+access/egress for OD>30km;3580–3583/3666–3668 enforce explicit total walking cap.
+Thus archived3292m walks are not inherently defects; original request is unavailable.
+Offline5 archived journeys: no temporal overlap, coordinate joins exact, duration/walk sums
+match. CP11 individual c0da5be2-5ce8-4280-aa2f-68edf8c14f5b has BUS→WALK→TRAM,
+56m/40s transfer then200s wait; structural historical evidence only, not current coverage.
+No source/runtime edits, no tests/build/browser run. Next: nonempty explicit-cap control on
+reviewed runtime; coordinate with Codex, do not loosen limits or restart shared services.
+PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — Poltava newer timetable candidate (base b32e4ba)
 
 Task75: https://pl.rozklad.in.ua/home/schedule/7 GET200/81699B independently inspected.

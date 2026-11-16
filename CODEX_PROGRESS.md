@@ -1,3 +1,30 @@
+## 2026-11-16 — Lviv positive/negative walking-cap pair
+
+Base edae236. Same CP11 endpoints/date17Nov08:00/BALANCED; only maxWalkingMeters
+1000→200. HTTP200/4704ms: BUS560m + TRAM192m; HTTP200/4564ms: TRAM192m only.
+Artifacts docs/evidence/lviv-explicit-walk-cap-2026-11-16.json and
+lviv-explicit-walk-cap-200-2026-11-16.json preserve full payloads/runtime.
+Independent assertions verify sole-input change, identical runtime objects before/after
+both requests, sums/caps and bus exclusion/tram retention. Returned cap compliance
+VERIFIED on this pair, not search completeness (both partial=true,candidates63→11).
+Not current main: runtime dirtye9934ab. No new multimodal single-itinerary claim.
+No UI/build/test-suite or runtime changes. Overall PARTIAL / NOT_RELEASED.
+
+## 2026-11-16 — explicit total walking cap: INCONCLUSIVE_EMPTY
+
+Base edae236622ff9a9dbaec9f0a689b815082b2fa5c. Task102 live bounded probe:
+Kyiv-center→Lviv-center,17Nov08:00,BALANCED,maxWalkingMeters1000; HTTP200/7397ms,
+0journeys/0candidates,partial=true. Full request/response and before/after runtime version
+in docs/evidence/explicit-walk-cap-2026-11-16.json. Runtime unchanged dirtye9934ab,
+not current-main378eccb. Empty result cannot establish cap enforcement or no service.
+Pinned GitHub main index.ts3358–3361 permits5000m access/egress for OD>30km;
+3580–3583 and3666–3668 reject routed total walking above explicit preference.
+Archived3292m access alone is therefore not a demonstrated defect. Offline5 historical
+journeys have consistent chronology, coordinate joins, elapsed durations and walk sums;
+CP11 single BUS→WALK→TRAM has56m/40s transfer plus200s residual wait. No present-day
+calendar/road-legality/completeness acceptance. Tests/build/UI not run; no runtime edit.
+Next: nonempty explicit-cap control on reviewed runtime. PARTIAL / NOT_RELEASED.
+
 ## 2026-11-15 — QODER: Site PR143 merge CI green + Server timestamp-flake fix PR176 — PARTIAL / NOT_RELEASED
 
 Base Rootd65381a (PR25 branch qoder/carpool-5-20261113). Executed Codex checkpoint 6889223350 item "fix Site #143 build/conflict". SITE PR143: head was b58cad9 (1 commit on stale base f88ba55) importing modules absent from its tree; main 6f0707a supplies sensory/fleetMotion/journeySearchReturn etc.; src/navigation/journeyCameraOwnership.ts existed in NEITHER tree — implemented minimal single-owner camera contract (stage/preview/user/follow; stage refit only when owning or follow without fresh fix). Merge edbd05beab6f539f6f235e50b673d29e573dc5cf (parents b58cad9+6f0707a) in isolated detached worktree /private/tmp/mgwt/site143; 12 conflicted files/46 hunks; policy main infrastructure + branch-unique 4x3 12-tile board, seekable preview HUD, single origin action, HyperFlight playback superset; dropped superseded horizontal rail, passive telemetry strip, parachute locate. vs main: 14 files +409/-268. Gates edbd05b: typecheck PASS 12.7s, lint:all PASS, npm test 897 pass/0 fail/0 skip (63 suites; independent Qoder rerun 9.4s), build PASS, check:bundle PASS 14 chunks ≤350KB gzip. Exact-head CI 43678675442+43678673022 both SUCCESS; PR143 OPEN/MERGEABLE (was CONFLICTING). Canonical zrok 12-tile browser regression deferred until handoff #87 (served stack still dirty Nov13 sibling); dirty served checkout 330dd3 untouched, local branch ref not moved. SERVER: Codex merged PR175 (main d374d762d0a58db75405d9652c20065fe871caa2); post-merge CI flake 6889409912 = bare |317 in empty-input guard matched Generated timestamp .317Z. Fix PR176 (qoder/feed-registry-timestamp-flake-20261115) head e345869f0a7e956df2bbdc65f45e5c190c80eb58 base d374d76, ONLY tests/feed-registry-generator.test.ts +13/-1: filter **Generated:** metadata line before guard + negative control (injected 317 routes still caught; root-cause assert .317Z matches bare 317). Deterministic proof: Date-stub VM run at 2026-11-15T04:53:12.317Z — old assertion throws, narrowed passes (/tmp/flake-proof.mjs). Gates e345869: targeted file 13/13, full npm test 775=769 pass/0 fail/6 opt-in integration skip, tsc --noEmit + ESLint clean. Exact-head CI 43678974103+43678988698 running at checkpoint time. PR138 not rebased (file already on main; narrow fix PR instead). Evidence issue26 6889414466/6889456215. PR156 faada70 still OPEN awaiting Codex accept; handoff #87 awaiting Codex tolerance ack + go — nothing applied/restarted, shared API PID23151 dirty e9934ab. Lviv corridors remain searchTruncated=true per Codex 6889356435/6889409912 — PARTIAL, Codex-owned. Counts 19OD54searches+1negative0accepted, matrix31PARTIAL293NOT_TESTED unchanged. NOT_RELEASED.

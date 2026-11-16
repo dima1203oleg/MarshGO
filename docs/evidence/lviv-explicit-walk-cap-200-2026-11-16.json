@@ -1,0 +1,723 @@
+{
+  "generatedAt": "2026-11-16T11:38:14.623Z",
+  "rootBase": "edae236622ff9a9dbaec9f0a689b815082b2fa5c",
+  "harness": "explicit-total-walk-cap-v1",
+  "note": "Lviv coordinates reused from CP11 archived response, not newly geocoded. Date differs from archive; no before/after route-count comparison. Returned-journey cap check does not prove search completeness, optimality, or current-main behavior.",
+  "runtimeBefore": {
+    "service": "MarshGO-Server",
+    "serviceVersion": "1.0.0",
+    "apiContract": "v1",
+    "buildId": "local-e9934abbd8fc-dirty-20261113T132012Z",
+    "commitSha": "e9934abbd8fc973177de8d7f47548739758a1b74",
+    "builtAt": "2026-11-13T13:20:12.000Z",
+    "environment": "development",
+    "sourceState": "dirty",
+    "instanceId": "1b635cf5-f6b3-46f3-a170-1e2d4f01ed39"
+  },
+  "runtimeAfter": {
+    "service": "MarshGO-Server",
+    "serviceVersion": "1.0.0",
+    "apiContract": "v1",
+    "buildId": "local-e9934abbd8fc-dirty-20261113T132012Z",
+    "commitSha": "e9934abbd8fc973177de8d7f47548739758a1b74",
+    "builtAt": "2026-11-13T13:20:12.000Z",
+    "environment": "development",
+    "sourceState": "dirty",
+    "instanceId": "1b635cf5-f6b3-46f3-a170-1e2d4f01ed39"
+  },
+  "request": {
+    "origin": {
+      "name": "Львівська політехніка",
+      "coordinates": [
+        24.0154759,
+        49.8347322
+      ]
+    },
+    "destination": {
+      "name": "Залізничний вокзал, Личаків",
+      "coordinates": [
+        24.0537537,
+        49.8365206
+      ]
+    },
+    "departureAt": "2026-11-17T08:00:00+02:00",
+    "passengers": 1,
+    "strategy": "BALANCED",
+    "preferences": {
+      "maxWalkingMeters": 200
+    }
+  },
+  "http": 200,
+  "durationMs": 4564,
+  "verdict": "RETURNED_JOURNEYS_WITHIN_CAP",
+  "checks": [
+    {
+      "id": "0f9fb0be-dd1f-4e99-936b-7440f53fdc64",
+      "modes": [
+        "WALK",
+        "TRAM",
+        "WALK"
+      ],
+      "reported": 192,
+      "legSum": 192,
+      "withinCap": true
+    }
+  ],
+  "response": {
+    "journeys": [
+      {
+        "id": "0f9fb0be-dd1f-4e99-936b-7440f53fdc64",
+        "offerId": null,
+        "origin": {
+          "name": "Львівська політехніка",
+          "coordinates": [
+            24.0154759,
+            49.8347322
+          ]
+        },
+        "destination": {
+          "name": "Залізничний вокзал, Личаків",
+          "coordinates": [
+            24.0537537,
+            49.8365206
+          ]
+        },
+        "source": "gtfs-static",
+        "providerName": "Львівавтодор — розклад (GTFS)",
+        "requestedDepartureAt": "2026-11-17T06:00:00.000Z",
+        "waitingSeconds": 368,
+        "strategy": "BALANCED",
+        "recommendedStrategies": [
+          "BALANCED",
+          "FASTEST",
+          "CHEAPEST"
+        ],
+        "strategyRanks": {
+          "BALANCED": 1,
+          "FASTEST": 1,
+          "CHEAPEST": 1
+        },
+        "score": 0,
+        "state": "PLANNED",
+        "totalDurationSeconds": 1766,
+        "totalPriceMinor": 2300,
+        "confirmedPriceMinor": null,
+        "estimatedPriceMinMinor": 2300,
+        "estimatedPriceMaxMinor": 2300,
+        "currency": "UAH",
+        "priceStatus": "ESTIMATED",
+        "walkingMeters": 192,
+        "transfers": 0,
+        "reliabilityScore": null,
+        "legs": [
+          {
+            "id": "aabef735-7c11-4d01-a652-e964cf9ba6ab",
+            "mode": "WALK",
+            "offerId": null,
+            "origin": {
+              "name": "Львівська політехніка",
+              "coordinates": [
+                24.0154759,
+                49.8347322
+              ]
+            },
+            "destination": {
+              "name": "Львівська політехніка (65)",
+              "coordinates": [
+                24.01614,
+                49.834613
+              ]
+            },
+            "departureAt": "2026-11-17T06:00:00.000Z",
+            "arrivalAt": "2026-11-17T06:00:52.000Z",
+            "durationSeconds": 52,
+            "distanceMeters": 73,
+            "priceMinor": null,
+            "priceStatus": "UNKNOWN",
+            "availabilityStatus": "AVAILABLE",
+            "source": "osrm-foot-route",
+            "routeGeometry": [
+              [
+                24.015476,
+                49.834733
+              ],
+              [
+                24.015627,
+                49.834734
+              ],
+              [
+                24.015628,
+                49.834746
+              ],
+              [
+                24.015629,
+                49.834792
+              ],
+              [
+                24.015723,
+                49.834793
+              ],
+              [
+                24.015724,
+                49.834757
+              ],
+              [
+                24.015724,
+                49.834729
+              ],
+              [
+                24.015725,
+                49.834694
+              ],
+              [
+                24.015725,
+                49.834668
+              ],
+              [
+                24.015726,
+                49.83463
+              ],
+              [
+                24.015964,
+                49.834606
+              ],
+              [
+                24.01614,
+                49.834608
+              ]
+            ],
+            "lastUpdatedAt": "2026-11-16T11:38:14.602Z",
+            "dataFreshnessSeconds": 0,
+            "liveStatus": "UNVERIFIED",
+            "driver": null,
+            "vehicle": null,
+            "title": "До першої зупинки"
+          },
+          {
+            "id": "0c63c0ad-8071-4f10-9142-19bb71e70236",
+            "mode": "TRAM",
+            "offerId": null,
+            "providerId": "0c38e1d3-7bd9-4395-b633-6188b21e79a7",
+            "routeId": "0c38e1d3-7bd9-4395-b633-6188b21e79a7:1627",
+            "origin": {
+              "name": "Львівська політехніка (65)",
+              "coordinates": [
+                24.01614,
+                49.834613
+              ]
+            },
+            "destination": {
+              "name": "Меморіал Героїв України (799)",
+              "coordinates": [
+                24.053203,
+                49.835588
+              ]
+            },
+            "departureAt": "2026-11-17T06:07:00.000Z",
+            "arrivalAt": "2026-11-17T06:28:00.000Z",
+            "scheduledDepartureAt": "2026-11-17T06:07:00.000Z",
+            "scheduledArrivalAt": "2026-11-17T06:28:00.000Z",
+            "durationSeconds": 1260,
+            "distanceMeters": null,
+            "priceMinor": 2300,
+            "currency": "UAH",
+            "priceStatus": "ESTIMATED",
+            "availabilityStatus": "UNKNOWN",
+            "fareProductId": "lviv-leocard-adult",
+            "fareIncludedByPreviousSegment": false,
+            "fareSource": "city-tariff-registry",
+            "stops": [
+              {
+                "id": "canonical-stop-278",
+                "name": "Львівська політехніка (65)",
+                "coordinates": [
+                  24.01614,
+                  49.834613
+                ],
+                "arrivalAt": "2026-11-17T06:07:00.000Z",
+                "departureAt": "2026-11-17T06:07:00.000Z",
+                "pickupType": 0,
+                "dropOffType": 0
+              },
+              {
+                "id": "canonical-stop-596",
+                "name": "Головна пошта (52)",
+                "coordinates": [
+                  24.022003,
+                  49.83682
+                ],
+                "arrivalAt": "2026-11-17T06:10:00.000Z",
+                "departureAt": "2026-11-17T06:10:00.000Z",
+                "pickupType": 0,
+                "dropOffType": 0
+              },
+              {
+                "id": "canonical-stop-558",
+                "name": "Дорошенка (50)",
+                "coordinates": [
+                  24.027244,
+                  49.840237
+                ],
+                "arrivalAt": "2026-11-17T06:13:00.000Z",
+                "departureAt": "2026-11-17T06:13:00.000Z",
+                "pickupType": 0,
+                "dropOffType": 0
+              },
+              {
+                "id": "canonical-stop-633",
+                "name": "Площа Ринок (61)",
+                "coordinates": [
+                  24.032271,
+                  49.841463
+                ],
+                "arrivalAt": "2026-11-17T06:15:00.000Z",
+                "departureAt": "2026-11-17T06:15:00.000Z",
+                "pickupType": 0,
+                "dropOffType": 0
+              },
+              {
+                "id": "canonical-stop-635",
+                "name": "Руська (63)",
+                "coordinates": [
+                  24.034819,
+                  49.841989
+                ],
+                "arrivalAt": "2026-11-17T06:16:00.000Z",
+                "departureAt": "2026-11-17T06:16:00.000Z",
+                "pickupType": 0,
+                "dropOffType": 0
+              },
+              {
+                "id": "canonical-stop-334",
+                "name": "Площа Митна (240)",
+                "coordinates": [
+                  24.037182,
+                  49.839773
+                ],
+                "arrivalAt": "2026-11-17T06:21:00.000Z",
+                "departureAt": "2026-11-17T06:21:00.000Z",
+                "pickupType": 0,
+                "dropOffType": 0
+              },
+              {
+                "id": "canonical-stop-335",
+                "name": "Військовий госпіталь (241)",
+                "coordinates": [
+                  24.043327,
+                  49.840221
+                ],
+                "arrivalAt": "2026-11-17T06:23:00.000Z",
+                "departureAt": "2026-11-17T06:23:00.000Z",
+                "pickupType": 0,
+                "dropOffType": 0
+              },
+              {
+                "id": "canonical-stop-336",
+                "name": "Медичний університет (243)",
+                "coordinates": [
+                  24.049845,
+                  49.839806
+                ],
+                "arrivalAt": "2026-11-17T06:25:00.000Z",
+                "departureAt": "2026-11-17T06:25:00.000Z",
+                "pickupType": 0,
+                "dropOffType": 0
+              },
+              {
+                "id": "canonical-stop-763",
+                "name": "Мечникова (246)",
+                "coordinates": [
+                  24.054002,
+                  49.838735
+                ],
+                "arrivalAt": "2026-11-17T06:27:00.000Z",
+                "departureAt": "2026-11-17T06:27:00.000Z",
+                "pickupType": 0,
+                "dropOffType": 0
+              },
+              {
+                "id": "canonical-stop-969",
+                "name": "Меморіал Героїв України (799)",
+                "coordinates": [
+                  24.053203,
+                  49.835588
+                ],
+                "arrivalAt": "2026-11-17T06:28:00.000Z",
+                "departureAt": "2026-11-17T06:28:00.000Z",
+                "pickupType": 0,
+                "dropOffType": 0
+              }
+            ],
+            "liveStatus": "SCHEDULED",
+            "dataFreshnessSeconds": 12240,
+            "source": "gtfs-static",
+            "lastUpdatedAt": "2026-11-16T08:14:14.263Z",
+            "providerName": "Львівавтодор — розклад (GTFS)",
+            "routeName": "Т01",
+            "transportType": "tram",
+            "headsign": "Погулянка (197)",
+            "scheduleSemantics": "published_departures",
+            "routeGeometry": [
+              [
+                24.01614,
+                49.834613
+              ],
+              [
+                24.01613,
+                49.83469
+              ],
+              [
+                24.01872,
+                49.83472
+              ],
+              [
+                24.02002,
+                49.83458
+              ],
+              [
+                24.02036,
+                49.83463
+              ],
+              [
+                24.02185,
+                49.8356
+              ],
+              [
+                24.02264,
+                49.8361
+              ],
+              [
+                24.02261,
+                49.83626
+              ],
+              [
+                24.02254,
+                49.83636
+              ],
+              [
+                24.02195,
+                49.83679
+              ],
+              [
+                24.02177,
+                49.83694
+              ],
+              [
+                24.02172,
+                49.83706
+              ],
+              [
+                24.02171,
+                49.83714
+              ],
+              [
+                24.02339,
+                49.83811
+              ],
+              [
+                24.02353,
+                49.83823
+              ],
+              [
+                24.02525,
+                49.83921
+              ],
+              [
+                24.02721,
+                49.84025
+              ],
+              [
+                24.02771,
+                49.84052
+              ],
+              [
+                24.02785,
+                49.84055
+              ],
+              [
+                24.02979,
+                49.84094
+              ],
+              [
+                24.03099,
+                49.8412
+              ],
+              [
+                24.03115,
+                49.84127
+              ],
+              [
+                24.03224,
+                49.84151
+              ],
+              [
+                24.03265,
+                49.8416
+              ],
+              [
+                24.03278,
+                49.84161
+              ],
+              [
+                24.03378,
+                49.84183
+              ],
+              [
+                24.03388,
+                49.84183
+              ],
+              [
+                24.0348,
+                49.84201
+              ],
+              [
+                24.03493,
+                49.84204
+              ],
+              [
+                24.03512,
+                49.84205
+              ],
+              [
+                24.0353,
+                49.84203
+              ],
+              [
+                24.03578,
+                49.84085
+              ],
+              [
+                24.03586,
+                49.84076
+              ],
+              [
+                24.03632,
+                49.84051
+              ],
+              [
+                24.03643,
+                49.84034
+              ],
+              [
+                24.036,
+                49.83978
+              ],
+              [
+                24.03718,
+                49.8398
+              ],
+              [
+                24.03968,
+                49.83986
+              ],
+              [
+                24.04146,
+                49.83992
+              ],
+              [
+                24.04183,
+                49.83995
+              ],
+              [
+                24.04258,
+                49.84008
+              ],
+              [
+                24.04329,
+                49.84027
+              ],
+              [
+                24.04439,
+                49.84052
+              ],
+              [
+                24.04467,
+                49.84057
+              ],
+              [
+                24.04564,
+                49.84071
+              ],
+              [
+                24.04601,
+                49.84075
+              ],
+              [
+                24.04644,
+                49.84073
+              ],
+              [
+                24.04668,
+                49.84071
+              ],
+              [
+                24.0469,
+                49.84067
+              ],
+              [
+                24.04722,
+                49.84059
+              ],
+              [
+                24.04877,
+                49.84011
+              ],
+              [
+                24.04987,
+                49.83987
+              ],
+              [
+                24.05128,
+                49.83958
+              ],
+              [
+                24.05403,
+                49.83878
+              ],
+              [
+                24.05425,
+                49.83872
+              ],
+              [
+                24.05496,
+                49.83848
+              ],
+              [
+                24.05504,
+                49.83836
+              ],
+              [
+                24.05503,
+                49.83831
+              ],
+              [
+                24.05397,
+                49.83676
+              ],
+              [
+                24.0532,
+                49.83558
+              ],
+              [
+                24.053203,
+                49.835588
+              ]
+            ],
+            "driver": null,
+            "vehicle": null
+          },
+          {
+            "id": "590f4201-0a26-41c2-ab4e-a9c8c23aa43d",
+            "mode": "WALK",
+            "offerId": null,
+            "origin": {
+              "name": "Меморіал Героїв України (799)",
+              "coordinates": [
+                24.053203,
+                49.835588
+              ]
+            },
+            "destination": {
+              "name": "Залізничний вокзал, Личаків",
+              "coordinates": [
+                24.0537537,
+                49.8365206
+              ]
+            },
+            "departureAt": "2026-11-17T06:28:00.000Z",
+            "arrivalAt": "2026-11-17T06:29:26.000Z",
+            "durationSeconds": 86,
+            "distanceMeters": 119,
+            "priceMinor": null,
+            "priceStatus": "UNKNOWN",
+            "availabilityStatus": "AVAILABLE",
+            "source": "osrm-foot-route",
+            "routeGeometry": [
+              [
+                24.053244,
+                49.835577
+              ],
+              [
+                24.053583,
+                49.83611
+              ],
+              [
+                24.053611,
+                49.836154
+              ],
+              [
+                24.053576,
+                49.836164
+              ],
+              [
+                24.053511,
+                49.836181
+              ],
+              [
+                24.053754,
+                49.836521
+              ]
+            ],
+            "lastUpdatedAt": "2026-11-16T11:38:14.607Z",
+            "dataFreshnessSeconds": 0,
+            "liveStatus": "UNVERIFIED",
+            "driver": null,
+            "vehicle": null,
+            "title": "Від останньої зупинки"
+          }
+        ]
+      }
+    ],
+    "requestedStrategy": "BALANCED",
+    "availableStrategies": [
+      "BALANCED",
+      "FASTEST",
+      "CHEAPEST"
+    ],
+    "candidateCount": 11,
+    "paretoCount": 1,
+    "returnedCount": 1,
+    "alternativeLimitPerStrategy": 12,
+    "gtfsTruncation": {
+      "stopSelection": false,
+      "candidateGraph": true,
+      "searchBudget": true,
+      "searchStepLimit": false,
+      "candidatePoolLimit": true,
+      "candidateSampling": true,
+      "responsePage": true
+    },
+    "resultsTruncated": true,
+    "candidateGenerationTruncated": true,
+    "resultSamplingTruncated": true,
+    "partial": true,
+    "partialReasons": [
+      "candidate_generation_truncated",
+      "provider_error",
+      "unsupported_preference"
+    ],
+    "blockedProviders": [
+      "transportType:marshrutka:no-routed-provider-in-corridor",
+      "transportType:trolleybus:no-routed-provider-in-corridor",
+      "transportType:metro:no-routed-provider-in-corridor",
+      "transportType:taxi:no-routed-provider-in-corridor",
+      "transportType:carsharing:no-routed-provider-in-corridor",
+      "transportType:transfer:no-routed-provider-in-corridor",
+      "walking-transfers-between-unmatched-stops",
+      "community-intermediate-pickup:requires-explicit-driver-approved-stop"
+    ],
+    "unsupportedPreferences": [
+      "transportType:marshrutka:not-in-route-engine",
+      "transportType:trolleybus:not-in-route-engine",
+      "transportType:metro:not-in-route-engine",
+      "transportType:taxi:not-in-route-engine",
+      "transportType:carsharing:not-in-route-engine",
+      "transportType:transfer:not-in-route-engine"
+    ],
+    "providerErrors": [
+      "Пішохідний маршрутизатор не повернув підтверджений шлях для частини варіантів; ці варіанти приховано.",
+      "Частину варіантів відхилено: фактичний час або відстань пішохідного шляху не дозволяє здійснити маршрут.",
+      "Пішохідний маршрутизатор не підтвердив шлях до точки посадки/висадки попутки; такі комбінації приховано."
+    ]
+  }
+}
