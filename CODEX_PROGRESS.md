@@ -1,3 +1,22 @@
+## 2026-11-16 — Qoder bus-off UI evidence; transport URL remains incomplete
+
+Base53549ba6f736219c77e51217ec0d0b99a88fa0dd. Canonical zrok/Qoder in-app
+browser restored after ordinary reload; no restart/build/cache wipe. Actual Lviv
+geocoder selections produced one WALK/TRAM T01/WALK with BUS disabled; map rendered.
+Three screenshots and exact selected places/cautions recorded in
+ docs/evidence/qoder-lviv-no-bus-ui-2026-11-16.json. Displayed29min,30UAH cash,
+walk73+76m,0transfers. Geocoded destination differs from archived CP11/cap pair.
+No request/response body captured, no navigation/GPS permission/booking started.
+Same-browser reload persistence is local, not cross-browser URL proof. Read-only
+Site main516599bb75285b16a80aec54f4c8ecd2bb0ee914 confirms transport IDs absent
+from serializer/hydration. Overlap PR144/145 belongs to Qoder branches; served dirty
+Site1fec46f was not edited. Fix and canonical-browser integration remain pending.
+Tomorrow T01 НАЖИВО label is NOT_VERIFIED against actual live payload/trip/date;
+normal polling200 and tokenless fetch401 cannot establish a backend defect.
+GitHub handoff6915639060 records scope, ownership and negative/legacy test criteria.
+No new Codex acknowledgement, no app edits, no test-suite/build run or nationwide
+acceptance. PARTIAL / NOT_RELEASED.
+
 ## 2026-11-16 — Lviv positive/negative walking-cap pair
 
 Base edae236. Same CP11 endpoints/date17Nov08:00/BALANCED; only maxWalkingMeters

@@ -1,3 +1,22 @@
+## RESUME BLOCK 2026-11-16 — Qoder bus-off UI and transport-link gap (base 53549ba)
+
+Canonical Qoder in-app browser: actual geocoder selections in Lviv,17Nov08:00,
+BUS disabled, one WALK/TRAM T01/WALK result; results and map rendered.
+Evidence: docs/evidence/qoder-lviv-no-bus-ui-2026-11-16.json and its three PNGs.
+Displayed walk73+76m,30UAH cash,29min,0transfers. Destination differs from CP11;
+this is not an identical replay of the walking-cap pair. No API body captured.
+Reload retains bus-off locally, but generated URL omits transport selection.
+Remote Site main516599bb75285b16a80aec54f4c8ecd2bb0ee914 also omits it.
+Task71 remains open: preserve arrivalBy, validate/round-trip transport IDs including
+explicit empty versus legacy absent selection, then prove hydration→API with opposing
+stored preferences. Overlapping PR144/145 are Qoder branches, not Codex ownership.
+Dirty served Site1fec46f checkout untouched; no competing PR or runtime restart.
+Task103: tomorrow T01 labelled НАЖИВО, actual live response/trip-date binding NOT_VERIFIED;
+normal app polling200, tokenless diagnostic401 is not an endpoint defect.
+Coordination: https://github.com/dima1203oleg/MarshGO/issues/26#issuecomment-6915639060
+Qoder owns Web/source evidence; Codex owns engine/adapters. No new acknowledgement.
+No application edits or test-suite/build run. PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — Lviv paired walking-cap control (base edae236)
 
 Same CP11 endpoints [24.0154759,49.8347322]→[24.0537537,49.8365206],17Nov08:00,
