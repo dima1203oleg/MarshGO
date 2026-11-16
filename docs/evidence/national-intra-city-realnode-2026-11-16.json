@@ -1,7 +1,7 @@
 {
   "harness": "national-intra-city-realnode-v1-auth",
   "generatedAt": "2026-11-16T10:32:37.716Z",
-  "note": "Authoritative intra-city probe with REAL transit-node O/D (station/district -> center). Supersedes synthetic center+offset sweep which produced FALSE NEGATIVES (Kyiv offset cand=0 vs real-node ret=5 bus+tram+trolleybus). All 12 modes, no filter. Geometry from real feeds. Cities not listed here = NOT_TESTED with real nodes (offset probe inconclusive); catalog sources exist -> Codex ingestion gap. Donetsk/Luhansk/Crimea/Sevastopol occupied -> NOT_TESTED. Extended to 22 centers total; station coords approximate for the 15 extension cities (cand=0 robustly indicates no ingested urban feed covering the city).",
+  "note": "CORRECTED 2026-11-16: 22 bounded all-mode queries using approximate coordinates not verified as stations against geocoder/feed data. Historical filename/harness retained, not authoritative real-node evidence. Exact coordinates were omitted from original records, limiting reproducibility. A zero candidate count does NOT prove citywide missing ingestion or rule out engine defects. Categories and maxTransfers aggregate all journeys, not one multimodal itinerary. Five nonempty and seventeen empty responses describe only these inputs/time/runtime. No live rental, geometry correctness, feed rights, or excluded-territory feed absence established. Runtime SHA not returned by readyz.",
   "departureAt": "2026-11-17T08:00:00+02:00",
   "strategy": "BALANCED",
   "cities": [

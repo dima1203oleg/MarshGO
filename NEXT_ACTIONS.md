@@ -1,4 +1,17 @@
-## RESUME BLOCK 2026-11-16 — §15.19 NATIONAL INTRA-CITY REAL-NODE SWEEP: 22 centers, Kyiv 3-mode multimodal
+## RESUME BLOCK 2026-11-16 — CORRECTION §15.18–15.19: bounded observations, not citywide diagnosis
+
+Base d313708. Earlier §15.18–15.19 resume blocks below are historical and superseded by this correction.
+22 approximate O/D searches produced 5 nonempty responses and 17 candidateCount=0; coordinates
+were not verified as stations and were omitted from original records. Zero does not prove missing
+ingestion citywide or exclude engine defects. Mode sets aggregate all journeys; a single Kyiv
+three-mode chain is NOT_VERIFIED. Catalog URLs do not prove usable/licensed/current feeds.
+readyz reported readiness, not build SHA. No runtime refresh or production changes performed.
+Current Qoder browser: suggestions visible, but click/keyboard selection did not change fields;
+eighth route witness NOT_TESTED. Next: verified geocoded endpoints, exact request capture,
+per-journey legs, calendar/ingestion diagnosis with Codex. Audit and artifact notes corrected.
+Product PARTIAL / NOT_RELEASED. Documentation-only correction; no application tests run.
+
+## HISTORICAL / SUPERSEDED — §15.19 NATIONAL INTRA-CITY REAL-NODE SWEEP
 
 Root da6a3b2 → (this commit) (PR25 OPEN, pushed). POST `/journeys/search` all-modes for 22 oblast
 centers, origin=real transit node (station/district) → destination=center, 17.11 08:00 BALANCED.
