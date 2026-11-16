@@ -1,6 +1,6 @@
 ## RESUME BLOCK 2026-11-16 — 3-TRANSFER CHAIN UI-VERIFIED / STRYI CURATED EXISTS / DEEP-LINK HYDRATION GAP
 
-Base Root 2636bb5 → commits **a1e5768 → 565ccee → 55870e6** (PR25 OPEN, pushed). Browser E2E on canonical zrok 7777 (in-app
+Base Root 2636bb5 → commits **a1e5768 → 565ccee → 55870e6 → ee10838 → faf783e** (PR25 OPEN, pushed). Browser E2E on canonical zrok 7777 (in-app
 Qoder): Львів·центр→Стрий·центр 17.11 08:00 all-12 BALANCED → 9 routes; 3-transfer card
 (BUS А05→BUS А01→TRAM Т06→RAIL 40749, 11год55) opens FULL details: real map geometry, provenance
 НАЖИВО(GPS)/РОЗКЛАД/ОРІЄНТОВНО, waits 2год20/3хв/5хв/7год51, stop times 10:22/10:25, transfer buttons,
@@ -11,8 +11,10 @@ coordinate-only deep-link WITHOUT originProvider/destinationProvider does NOT hy
 auto-search (empty form); WITH curated provider it hydrates date/time and searches correctly. Geocoder
 still 503. CURATED GAP: Mukachevo has NO curated reference (2nd-region UI attempt Uzhhorod→Mukachevo →
 «Не вдалося знайти місце», map-picker only); confirmed curated kyiv/lviv/stryi/uzhhorod, NOT mukachevo.
-Non-curated cities unusable in UI while geocoder 503 though API builds chains from coords. issue26
-comments 6911854838 + 6911931937. Chain-construction logic confirmed correct to 3 transfers on API
+Non-curated cities unusable in UI while geocoder 503 though API builds chains from coords. MAP-PICKER
+fallback present but impractical: hidden in geocoder-error state (must clear first), opens country-level
+default center (Kirovohrad), not origin-centered; confirm disabled until point chosen. issue26
+comments 6911854838 + 6911931937 + 6911993849. Chain-construction logic confirmed correct to 3 transfers on API
 AND UI; national gap = ingestion/adapters/coverage (Codex), not chain logic. Counts/matrix unchanged
 (19OD54searches+1negative0accepted; 31PARTIAL293NOT_TESTED). Shared runtime UNCHANGED (API e9934ab-dirty,
 served 1fec46f-dirty untouched). NOT_RELEASED.

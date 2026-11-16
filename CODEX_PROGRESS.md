@@ -5466,3 +5466,6 @@ Not claimed: payment capture, live GTFS-RT vehicle positions, anything on accept
   kyiv/lviv/stryi/uzhhorod; не покритий mukachevo. Не-curated міста недоступні у UI поки геокодер 503,
   хоча API будує ланцюжки з координат. issue26 comment 6911931937; звіт 15.10 + screenshot. Усунення:
   розширити curated-довідник (Codex) / відновити геокодер (Codex) / гідратувати coordinate-deep-link (Site #71).
+- **Map-picker nuance (commit faf783e):** fallback присутній, але кнопка зникає у стані помилки геокодера
+  (треба очистити поле); відкривається на country-level дефолті (Кіровоградська), не на origin; confirm
+  disabled до вибору точки. Не практичний для національного покриття. issue26 comment 6911993849; звіт 15.10.
