@@ -1,3 +1,19 @@
+## RESUME BLOCK 2026-11-16 — §15.13 KHARKIV→LVIV 3-TRANSFER LONG-HAUL UI-VERIFIED (4th browser render)
+
+Root d74408f → **2f205ae** (PR25 OPEN, pushed). In-app browser canonical zrok, deep-link curated
+provider kharkiv/lviv, 17.11 08:00 BALANCED → 12 маршрутів; UI surfaces FULL 3-transfer multimodal
+chains (RAIL17→RAIL43→TRAM Т06→BUS А46/А57/А06), unlike Odesa→Kyiv 15.11 (RAIL-dominated only).
+Opened 3-transfer details 23год20: real national map geometry (oblast labels Полтавська/Чернігівська/
+Дніпропетровська), blue line Посадка Харків-Пас→Висадка Київ-Пас; sheet 08:00→07:19/3 пересадки/—;
+banner walk-geometry-unconfirmed; Пішки27хв·2км ОРІЄНТОВНО; waits 5год54/58хв/1год42/5хв; Поїзд17
+РОЗКЛАД stops 14:21 Харків-Пас/16:40 Полтава-Київська/18:41 Миргород/19:26 Лубни/21:36 Київ-Пас;
+transfer→Поїзд43→Львів-Головний; ТрамвайТ06→Наливайка; АвтобусА46→Проспект Свободи; 5-nav.
+Screenshot docs/evidence/browser-2026-11-16-kharkiv-lviv-3transfer-details.png (Read-viewed).
+Confirms API 15.12: east→west 3-transfer chain with real inter-oblast stops renders in product UI.
+Chain logic VERIFIED to 4 transfers UI / 3 API long-haul; 4 browser renders total. issue26 6912858393.
+National gap = ingestion/coverage + place-resolution (Codex), NOT chain logic. Counts/matrix unchanged.
+Runtime unchanged. NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — §15.12 LONG-HAUL INTER-OBLAST CORRIDORS API-VERIFIED (3 TRANSFERS EAST→WEST)
 
 Base Root c028d9b → **7a78280** (PR189 root-cause) → **a2af084** (§15.12 probe, PR25 OPEN, pushed).

@@ -5511,3 +5511,17 @@ Not claimed: payment capture, live GTFS-RT vehicle positions, anything on accept
 - Стабільні прапори: Київське метро provider_error + marshrutka/metro/taxi/carsharing/transfer
   not-in-engine (6 партнерських режимів). Тарифи UNKNOWN (fail-closed). issue26 6912744988.
   Counts/matrix без змін. Runtime без змін (PR185–190 НЕ задеплоєні). NOT_RELEASED.
+
+## 2026-11-16 — Qoder: §15.13 UI-свідок long-haul Харків→Львів 3 пересадки (commit 2f205ae, PR25)
+
+- In-app browser canonical zrok, deep-link curated provider kharkiv/lviv, 17.11 08:00 BALANCED →
+  12 маршрутів; UI surface ПОВНІ 3-пересадкові мультимодальні ланцюжки
+  (Поїзд17→Поїзд43→ТрамвайТ06→АвтобусА46/А57/А06), на відміну від Одеса→Київ 15.11 (лише RAIL-доміновані).
+- Деталі 23год20: реальна національна геометрія карти (обласні підписи), Посадка Харків-Пас→Висадка
+  Київ-Пас; banner walk-geometry-unconfirmed; waits 5год54/58хв/1год42/5хв; Поїзд17 РОЗКЛАД зупинки
+  14:21/16:40 Полтава-Київська/18:41 Миргород/19:26 Лубни/21:36 Київ-Пас; 5-nav. Скрин
+  docs/evidence/browser-2026-11-16-kharkiv-lviv-3transfer-details.png (Read-viewed).
+- Підтверджує API 15.12: long-haul Схід→Захід 3-пересадковий ланцюжок з реальними міжобласними
+  зупинками рендериться у продукті UI. Chain-логіка VERIFIED до 4 пересадок UI / 3 API long-haul;
+  4 браузерні рендери. issue26 6912858393. Національна прогалина = інгестація/покриття +
+  place-resolution (Codex), не chain-логіка. Counts/matrix без змін. NOT_RELEASED.
