@@ -5573,3 +5573,30 @@ Not claimed: payment capture, live GTFS-RT vehicle positions, anything on accept
   м. Чернігів (15.15). Curated-expansion Сум = fallback при 503 + deep-link гідратація, прогалина
   вужча ніж «недосяжні». 6 браузерних рендерів; API↔UI 8=8. Counts/matrix інакше без змін.
   Runtime без змін. NOT_RELEASED.
+
+## 2026-11-16 — §15.17 CARPOOL (попутка): інтеграція VERIFIED (код), реальний inventory MISSING (7-й рендер)
+
+- Root 56e0bba → (цей коміт), PR25 OPEN/pushed. Авторизована `GET /api/v1/offers` 4 коридори
+  (Київ→Львів, Львів→Київ, Київ→Одеса, Київ→Харків) 17.11 = **0 пропозицій, HTTP 200**.
+  Позитивний контроль: 8 сирих запитів (coord/name × date/no-date, + Дніпро→Львів, Харків→Одеса)
+  усі `{"data":[]}` HTTP 200 → ендпоінт здоровий, парсинг коректний, inventory справді порожній
+  (рівномірний нуль falsified як баг харнесу).
+- КОД: carpool підключений до національного /journeys/search: index.ts:3206-3237 rows-запит offers
+  (published, вікно ±120 хв, seats, driver<>шукач, route NOT NULL, route_source<>'development_unrouted',
+  25 км/коридор) → :3250 candidates (offset<=2,5/5 км) → :3929 kind:'community'. Секція 5 рушія
+  (multimodalChainEngine.ts:1332-1384, leg COMMUNITY / source community-offer) МЕРТВА у search-шляху,
+  бо index.ts:3894-3901 не передає communityOffers; робочий шлях = rows→candidates.
+  composeUkraineMultimodalChains=composeKyivMultimodalChains (:1427, національний).
+- UI (7-й рендер): canonical zrok /journeys/search?mode=offers Київ→Львів (curated
+  marshgo:city-reference:kyiv/lviv) 17.11 08:00 → «Попутки MARSHGO / 0 варіантів / Немає попуток за
+  цими умовами / Спробуйте змінити дату або кількість пасажирів»; 5-nav ціла; гейт
+  resultsDiagnostics.ts:76 showsCarpoolSection=offerCount>0||!transitResultPresent (під транзитом
+  прихований, без транзиту empty-state). Скрин
+  docs/evidence/browser-2026-11-16-kyiv-lviv-carpool-empty.png (Read-viewed). Артефакт
+  docs/evidence/national-carpool-surface-probe-2026-11-16.json.
+- ВЕРДИКТ: інтеграція carpool VERIFIED (код); реальний published-inventory MISSING → COMMUNITY-leg
+  на реальних даних NOT_TESTED. Причина = driver-onboarding/inventory (генерується водіями, зовнішнього
+  фіду немає), НЕ дефект ланцюжкової логіки/адаптера. Codex-handoff: реальні published-пропозиції або
+  ізольований labeled-фікстур у НЕ-спільній тест-БД (ніколи shared :3002); дотриматись обмежень rows.
+- Режими chain-verified лишаються 4/12 (BUS,TRAM,RAIL,TROLLEYBUS); рендерів 7. Runtime без змін.
+  NOT_RELEASED.

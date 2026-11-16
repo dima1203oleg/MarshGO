@@ -1,3 +1,26 @@
+## RESUME BLOCK 2026-11-16 — §15.17 CARPOOL: ENGINE INTEGRATION VERIFIED (code), REAL INVENTORY MISSING (7th render)
+
+Root 56e0bba → (this commit) (PR25 OPEN, pushed). Authenticated `GET /api/v1/offers` 4 corridors
+(Kyiv→Lviv, Lviv→Kyiv, Kyiv→Odesa, Kyiv→Kharkiv) 17.11 = **0 offers, HTTP 200**. Positive control:
+8 raw queries (coord/name × date/no-date, + Dnipro→Lviv, Kharkiv→Odesa) all `{"data":[]}` HTTP 200 →
+endpoint healthy, parse correct, inventory genuinely empty (uniform-zero falsified as harness bug).
+CODE: carpool IS wired into national /journeys/search — index.ts:3206-3237 rows offers query
+(published, ±120min window, seats, driver<>searcher, route NOT NULL, route_source<>'development_unrouted',
+25km/corridor) → :3250 candidates (offset<=2.5/5km) → :3929 kind:'community'. Engine section 5
+(multimodalChainEngine.ts:1332-1384, leg COMMUNITY/community-offer) is DEAD in search path because
+index.ts:3894-3901 never passes communityOffers; live path is rows→candidates.
+composeUkraineMultimodalChains=composeKyivMultimodalChains (:1427, national). UI (7th render):
+canonical zrok /journeys/search?mode=offers Kyiv→Lviv curated marshgo:city-reference:* 17.11 08:00 →
+«Попутки MARSHGO / 0 варіантів / Немає попуток за цими умовами / Спробуйте змінити дату або кількість
+пасажирів»; 5-nav intact; gate resultsDiagnostics.ts:76 showsCarpoolSection=offerCount>0||!transitResultPresent
+(hidden under real transit, empty-state without). Screenshot
+docs/evidence/browser-2026-11-16-kyiv-lviv-carpool-empty.png (Read-viewed). Artifact
+docs/evidence/national-carpool-surface-probe-2026-11-16.json. VERDICT: carpool integration VERIFIED(code),
+real published-inventory MISSING → COMMUNITY leg on real data NOT_TESTED; root cause = driver-onboarding/
+inventory (user-generated, no external feed), NOT chain-logic/adapter. Codex handoff: seed real published
+offers OR isolated labeled fixture in NON-shared test DB (never shared :3002); respect rows constraints.
+Modes chain-verified stay 4/12 (BUS,TRAM,RAIL,TROLLEYBUS); renders now 7. Runtime unchanged. NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — §15.16 KYIV→SUMY UI-VERIFIED (6th render); GEOCODER UP, DEEP-LINK GAP NARROWER
 
 Root 0b7a866 → (this commit) (PR25 OPEN, pushed). In-app browser canonical zrok. (1) deep-link
