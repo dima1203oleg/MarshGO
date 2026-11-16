@@ -1,3 +1,21 @@
+## 2026-11-16 — QODER: BUS12 rendering correction, no app patch — PARTIAL / NOT_RELEASED
+
+Base728114c0e2225ccd18550c48e27247a814629053. Qoder in-app on existing zrok:
+BUS12 selected/collapsed/full-route/reselected expanded states visibly render blue
+bus line and boarding/alighting labels. Blanket prior non-rendering claim is
+superseded for dirty preview.3 PNG + qoder-kyiv-bus-render-correction JSON capture
+scope, actual served Site330dd3 HEAD1fec46f and API dirty e9934ab build154848Z.
+One map container; no app edits/restarts or new journey search. Full camera fit
+NOT_VERIFIED: stale measurement request460 vs461; reselected107/113 measurement
+rectangle differs from camera padding. DOM Ukrainian aria-valuetext valid;
+AX mojibake is a tool artifact, not an app defect. No GPS/navigation/auth writes.
+Task102 reconciled with already-recorded Lviv explicit-cap nonempty pair:
+1000m→BUS560m+TRAM192m,200m→TRAM192m; returned compliance VERIFIED only,
+not completeness/current-main/historical request compliance. No repeated probes.
+Task45 implementation728114c pushed to PR25; helper5/5 previously verified,
+behavioral E2E NOT_TESTED. CI43923839082 Admin clone403 before E2E; security PASS.
+National release unchanged; no protected-main merge, secrets or deployment.
+
 ## 2026-11-16 — QODER: Root E2E email/password migration — PARTIAL / NOT_RELEASED
 
 Base8611381091388adeda8c198518989a4df93e0cd5. Six specs migrated from retired

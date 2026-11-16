@@ -1,3 +1,27 @@
+## RESUME BLOCK 2026-11-16 — BUS12 render correction + walking-cap evidence reconciliation (base 728114c0e2225ccd18550c48e27247a814629053)
+
+Qoder in-app through canonical7777/zrok: selected BUS12, collapsed details,
+clicked full-route control, returned to existing results and reopened same card.
+Blue bus line and boarding/alighting labels visible in all captured map states.
+Prior blanket «bus geometry does not render» claim is superseded for this dirty
+preview; historical screenshots retained. Fresh unaided search remains NOT_TESTED.
+Camera full-fit remains NOT_VERIFIED: old focusMeasure request460 != current461;
+reselected diagnostic107/113 inside also has rectangle/padding mismatch.
+Actual DOM aria-valuetext is valid Ukrainian; AX mojibake is tool artifact.
+Evidence: docs/evidence/qoder-kyiv-bus-render-correction-2026-11-16.json +3 PNG.
+Actually served Site is foreign dirty330dd3 worktree HEAD1fec46fe4a4b2e9523db74a8f709bf0f2204d9c3,
+not Desktop Site. No app code edits/restarts, GPS start, auth/storage reads.
+API18:10Z readyz200; dirty e9934ab, build local-e9934abbd8fc-dirty-20261116T154848Z.
+Task102 bounded cap verification closed using EXISTING exact-input Lviv pair:
+cap1000→BUS560m+TRAM192m; cap200→TRAM192m only. Both partial, runtime dirty;
+returned-journey compliance VERIFIED, completeness/current-main NOT_VERIFIED.
+No repeated POST search/shared DB writes. Task45 remains behavioral NOT_TESTED.
+Root email-auth migration committed/pushed728114c; PR25 head verified. Its verify
+run43923839082 failed materialize-release on Admin403 before E2E, security PASS.
+NEXT: communicate corrected taskC evidence to Codex; preserve dirty served files;
+continue legal feed/routing gaps and reviewed-runtime handoff without CI retries
+until Admin/Partner Contents:read access is fixed. PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — Root E2E email/password migration: PARTIAL, behavioral gate NOT_TESTED (base 8611381091388adeda8c198518989a4df93e0cd5)
 
 Task #45: six E2E specs now share actual register/login UI auth; deterministic

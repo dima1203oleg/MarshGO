@@ -1,0 +1,85 @@
+{
+  "witness": "qoder-kyiv-bus-render-correction-2026-11-16",
+  "capturedAtUtc": "2026-11-16T18:10:00Z",
+  "rootBase": "728114c0e2225ccd18550c48e27247a814629053",
+  "surface": "Qoder in-app Browser; existing canonical 7777 through zrok",
+  "url": "https://marshgo-dima.shares.zrok.io/journeys/search",
+  "servedSite": {
+    "path": "/Users/dima1203/.qoder/worktrees/app/330dd3/MarshGO-Site",
+    "head": "1fec46fe4a4b2e9523db74a8f709bf0f2204d9c3",
+    "sourceState": "dirty foreign worktree; not edited"
+  },
+  "api": {
+    "commitSha": "e9934abbd8fc973177de8d7f47548739758a1b74",
+    "buildId": "local-e9934abbd8fc-dirty-20261116T154848Z",
+    "instanceId": "08e52ab1-e2f9-4a44-b6a6-ed2a72965aaf",
+    "readyz": {"status": "ready", "database": "connected", "realtime": "connected"}
+  },
+  "scenario": {
+    "origin": "Вокзальна площа, Київ",
+    "destination": "Ізюмська вулиця, Київ",
+    "departureLocal": "2026-11-17T08:00",
+    "modes": ["WALK", "BUS", "WALK"],
+    "route": "12",
+    "durationMinutes": 47,
+    "fareUah": 30,
+    "transfers": 0,
+    "stopTimes": ["08:11", "08:19", "08:30", "08:42"]
+  },
+  "actions": [
+    "Selected BUS12 in the existing expanded details; blue line and boarding/alighting labels visible.",
+    "Collapsed details; blue BUS12 line remained visible.",
+    "Clicked Показати маршрут цілком; blue BUS12 line remained visible.",
+    "Returned to existing results and reopened the same card without a new search; expanded details again showed the bus line and both labels."
+  ],
+  "fullRouteControlDiagnostics": {
+    "capturedAtUtc": "2026-11-16T18:09:07.963Z",
+    "mapCount": 1,
+    "viewport": {"width": 395, "height": 843},
+    "ready": true,
+    "idle": true,
+    "routePointCount": 118,
+    "routeSegmentCount": 3,
+    "zoom": 10.73,
+    "center": "30.490560,50.440684",
+    "padding": "106,20,282,20",
+    "requestId": 461,
+    "settledId": 461,
+    "moving": false,
+    "error": null,
+    "focusMeasureRequestId": 460,
+    "focusMeasureVerdict": "STALE: do not use its insideRatio as current fit evidence"
+  },
+  "reselectedExpandedDiagnostics": {
+    "capturedAtUtc": "2026-11-16T18:09:51.026Z",
+    "mapCount": 1,
+    "ready": true,
+    "requestId": 3,
+    "settledId": 3,
+    "zoom": 10.41,
+    "focusMeasureRequestId": 3,
+    "insideCount": 107,
+    "pointCount": 113,
+    "insideRatio": 0.9469026548672567,
+    "bboxInside": false,
+    "minMarginPx": -1.1766989142253124,
+    "note": "Diagnostic rectangle differs from current camera padding; full fit remains NOT_VERIFIED, not a proven rendering failure."
+  },
+  "accessibilityProbe": {
+    "actualDomAriaValueText": "0%, залишилось 476 м",
+    "verdict": "Ukrainian DOM text valid; mojibake in AX snapshot is tool output artifact"
+  },
+  "screenshots": [
+    "qoder-kyiv-bus-route-visible-2026-11-16.png",
+    "qoder-kyiv-bus-full-route-control-2026-11-16.png",
+    "qoder-kyiv-bus-reselected-expanded-2026-11-16.png"
+  ],
+  "verdict": "VERIFIED selected/reselected BUS12 rendering; prior blanket bus geometry non-rendering claim superseded for this dirty preview",
+  "limitations": [
+    "No fresh route search, API payload equality assertion, or initial unaided state verification.",
+    "No current reviewed release/main acceptance, nationwide coverage proof, or FPS measurement.",
+    "No Site/Server edits, restarts, GPS/navigation start, token/storage reads, or test-account mutation.",
+    "Camera full-fit correctness remains NOT_VERIFIED; stale metrics cannot prove it.",
+    "National status remains PARTIAL / NOT_RELEASED."
+  ]
+}
