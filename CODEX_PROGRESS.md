@@ -5423,3 +5423,28 @@ Not claimed: payment capture, live GTFS-RT vehicle positions, anything on accept
 - **Харнес:** три власні дефекти виправлено до вироку (назва кнопки реєстрації, клік вкладки «Пошук», подвійний `await` на `waitForResponse`; `reload()` лишив порожню сцену → повторний драйв через planner deep link). Порожній `role=status` визнано значущим лише після збіжки 79 з payload'ом.
 - **Дрібне виправлення запису минулого:** у блоці DR-гейту прибрано два зіпсовані фрагменти тексту (`одного实例-бекапу` → `одного instance-бекапу`, `бракує these двох` → `бракує цих двох`) — вада мого ж формулювання, не продукту.
 - **Далі:** корінь `journeys 5→1`/атриції `candidateCount` і хибного `provider_error`; потім `journeys=0` на Площа Ринок → Оперний театр і Срібляне → Винникова без розголошення. Продакшн — `NOT_RELEASED`.
+
+## 2026-11-16 — Qoder: національний API-chain + браузерний E2E аудит (commit 258a97c, PR25)
+
+- **SHA/гілки:** Root be84870 → 258a97c (qoder/carpool-5-20261113, PR25 OPEN, pushed). Server main 378eccb
+  (Codex PR183/184/187/188 merged; PR189 draft). Site main 516599b; served 1fec46f-dirty. Runtime Nov13-dirty
+  e9934ab UNCHANGED (нічого не застосовано/перезапущено; handoff #87 без Codex ack).
+- **Виміри (36 пошуків, усі HTTP 200, 76 маршрутів):** urban WORKING 3 (kyiv bus ESTIMATED 6000, lviv bus+tram,
+  uzhhorod bus UNKNOWN), PARTIAL 2 (ivano-frankivsk/odesa bike static-estimate), MISSING 19 (cand=0,
+  unsupported_preference; УСІ мають каталожні джерела → інгестація, не джерела). Intercity 6/6 WORK, усі
+  trunc=true. Стратегії: FASTEST доступний, CHEAPEST fail-closed kyiv-lviv (rail UNKNOWN); свідки FASTEST vs
+  BALANCED різні. Режими в ніжках: WALK236/BUS68/RAIL62/TRAM31/TROLLEYBUS5/BICYCLE3 → 4/12 розкладних;
+  7 режимів 0 ніжок. confirmedPriceMinor=0. Walk: 46 оцінок vs 30 OSRM. liveStatus SCHEDULED73/UNVERIFIED76/LIVE0.
+- **Геокодер:** 503 24/24; Web curated fallback «місто · центр міста» рятує пошук за назвою.
+- **Браузер (Qoder in-app, канонічний zrok marshgo-dima):** kyiv→lviv 17.11 08:00 усі-12 → 2 маршрути;
+  Найдешевший disabled; route1 Пішки40(ОРІЄНТОВНО,3.3км)→очікування3г25→Поїзд40749 12:05→18:20(РОЗКЛАД)→
+  Пішки38(ОРІЄНТОВНО,3.2км), arr18:57, 0 пересадок, ціна «—»; реальна геометрія залізниці на карті; 5-nav intact.
+  Скриншоти browser-2026-11-16-{home,kyiv-lviv-results,kyiv-lviv-map-details}.png.
+- **Артефакти:** national-api-chain-probe-2026-11-16.json, national-routing-matrix-2026-11-16.csv (24×15),
+  розділ 15 + M8 update у MARSHGO_NATIONAL_COVERAGE_AUDIT.md, +8 рядків national-feed-candidates-2026-11-14.csv.
+- **Codex handoff issue26 comment 6911537067:** acceptance FAILURE 43805319421 (main 378eccb, lviv-route
+  DEGRADED + searchTruncated, routeBudgetDiscardedSegments 134840) = Codex Lviv truncation; геокодер; 19-city
+  ingestion; 7-mode adapters; Ternopil CC-BY XLSX / Uzhhorod mirror freshness.
+- **Статус:** M8 ВИМІРЯНО ЧАСТКОВО; національне покриття по всіх 12 видах — НІ. PARTIAL / NOT_RELEASED.
+  Goal NOT complete. Наступне: Codex закриває Lviv truncation + acceptance + інгестацію 19 міст; Qoder —
+  PR145 conflict + canonical zrok regression після handoff.

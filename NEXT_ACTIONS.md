@@ -1,3 +1,25 @@
+## RESUME BLOCK 2026-11-16 — NATIONAL API-CHAIN + BROWSER E2E AUDIT / M8 MEASURED PARTIAL / CODEX HANDOFF POSTED
+
+Base Root be84870 → commit **258a97c** (PR25 OPEN, pushed). National audit 11-16 complete: 36-search API probe
+(24 urban + 6 intercity + 2 strategies + 3 mode controls + 1 negative, all HTTP 200, 76 itineraries) →
+`docs/evidence/national-api-chain-probe-2026-11-16.json`; routing matrix 24×15 →
+`docs/evidence/national-routing-matrix-2026-11-16.csv` (WORKING 3 / PARTIAL 2 / MISSING 19); report section 15 +
+M8 update in `docs/MARSHGO_NATIONAL_COVERAGE_AUDIT.md`; 3 browser PNGs. Runtime UNCHANGED Nov13-dirty e9934ab;
+served Site 1fec46f-dirty (codex/premium-route-details-reference-20261115); canonical zrok marshgo-dima live.
+**M8 measured partial:** urban WORKING kyiv/lviv/uzhhorod, PARTIAL ivano-frankivsk/odesa (bike-estimate),
+MISSING 19 (all have catalog sources → INGESTION gap not source gap); intercity 6/6 WORK all trunc=true;
+4/12 modes produce legs (bus/tram/trolleybus/train), 7 modes 0 legs (marshrutka/metro/taxi/carpool/carsharing/
+transfer/scooter); confirmedPriceMinor=0, CHEAPEST fail-closed kyiv-lviv; 46 walk legs estimates vs 30 OSRM.
+Geocoder 503 24/24 but Web curated city-center fallback keeps name-search usable. Browser E2E (Qoder in-app,
+zrok): kyiv→lviv 17.11 08:00 all-12 modes → 2 routes, Найдешевший disabled, route1 WALK40(ОРІЄНТОВНО)→wait3h25→
+RAIL40749 12:05→18:20(РОЗКЛАД)→WALK38, arr18:57, real map geometry, 5-nav intact. **Codex handoff issue26
+comment 6911537067:** acceptance FAILURE 43805319421 on main 378eccb (lviv-route DEGRADED + searchTruncated,
+routeBudgetDiscardedSegments 134840) = Codex-owned Lviv truncation (PR189 draft); geocoder outage; 19-city
+ingestion gap; 7-mode adapter gap; Ternopil CC-BY XLSX + Uzhhorod mirror freshness caveats. Handoff #87 still
+NO Codex ack/go (nothing applied/restarted). Site PR145 OPEN/CONFLICTING vs 516599b (my branch, pending).
+Worktrees site143+srvflake cleanup possible (PRs merged). Counts: 36 searches 11-16, 0 fully-accepted exhaustive
+national chains. PARTIAL / NOT_RELEASED. Goal NOT complete.
+
 ## RESUME BLOCK 2026-11-15 — SITE PR143 CI GREEN / SERVER FLAKE FIX PR176 / HANDOFF STILL PENDING
 
 Base Rootd65381a (PR25). SITE PR143 conflict+TS failure CLOSED: merge edbd05beab6f539f6f235e50b673d29e573dc5cf (parents b58cad9 + Site main 6f0707a) in isolated worktree /private/tmp/mgwt/site143; root cause = branch imported src/sensory/fleetMotion/journeySearchReturn absent from its tree (main supplies them) + journeyCameraOwnership.ts absent from BOTH trees (implemented minimal single-owner camera contract). 12 conflicted files/46 hunks resolved: main infrastructure + branch-unique 4x3 board/seekable HUD/single origin/HyperFlight playback superset; dropped superseded horizontal rail/passive telemetry strip/parachute locate. Gates edbd05b: typecheck/lint/build/check:bundle PASS, npm test 897/897 (independent rerun), exact-head CI 43678675442+43678673022 both SUCCESS. PR143 OPEN/MERGEABLE; canonical zrok 12-tile regression deferred until handoff #87 (served stack still dirty Nov13). Dirty served checkout 330dd3 untouched; local branch ref not moved (detached HEAD push). SERVER post-merge flake (Codex 6889409912, main d374d76 run 43678384236): bare |317 guard matched Generated timestamp .317Z. Fix PR176 head e345869f0a7e956df2bbdc65f45e5c190c80eb58 (base d374d76, only tests/feed-registry-generator.test.ts +13/-1): filter **Generated:** metadata line + negative control (injected 317 routes still caught); deterministic Date-stub VM proof old assertion throws / new passes. Gates e345869: targeted 13/13, full npm test 775=769 pass/0 fail/6 opt-in skip, tsc+eslint clean; exact-head CI 43678974103+43678988698 running. PR138 NOT rebased (file already on main; narrow fix PR instead). Evidence issue26 6889414466/6889456215. Codex merged Server PR175 (main d374d76); Lviv corridors still searchTruncated=true — PARTIAL, Codex-owned. PR156 faada70 still OPEN awaiting Codex accept; handoff #87 still awaiting Codex tolerance ack + go (nothing applied/restarted; shared API PID23151 dirty e9934ab). Worktrees kept: site143 (for post-handoff regression), srvflake (until PR176 merged). Counts 19OD54searches+1negative0accepted; matrix31PARTIAL293NOT_TESTED unchanged. NOT_RELEASED.
