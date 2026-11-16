@@ -1,3 +1,17 @@
+## 2026-11-16 — QODER: strict JSON GPS coordinate boundary — PARTIAL / NOT_RELEASED
+
+Rootbaseab7cfce. Isolated Server e2391ea74a54ff5283e67d15ca7e2e356290a3cf,
+PR193 OPEN/head verified,base/current remote main378eccb. Two-file scalar validation
+atom rejects blank strings/booleans/arrays/objects; preserves numeric strings,valid
+single-zero global coordinates,route matching,range/(0,0),90s/+30s freshness guards.
+Pre-fix actual parser8pass/7fail708.650291ms; parent21/21,0fail/skip845.461708ms.
+Changed ESLint/full tsc/diffPASS. No exact historical111/404 replay or live proof.
+Current main already drops out-of-range/stale positions; dirty runtime country/privacy
+work reviewed and left intact. CI43947663389/43947617821 IN_PROGRESS at e2391ea.
+No shared runtime/API/Site/7777/zrok/DB changes/restarts/main merge/deploy.
+PR192 both verifyPASS6754608; DATE screenshot surface hidden,compact/exactwidth gates
+open; transport deep-link omission reconfirmed but own PR144 overlaps. NOT_RELEASED.
+
 ## 2026-11-16 — QODER: early rental WALK evaluation — PARTIAL / NOT_RELEASED
 
 Rootbase5f50b7a. Isolated Server67546086fa4977098e469b8f4726176b7550c74b,

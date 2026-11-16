@@ -1,3 +1,17 @@
+## RESUME BLOCK 2026-11-16 — reject coerced JSON GPS coordinates (base ab7cfce)
+
+Task43 isolated server-gps-43/qoder at e2391ea74a54ff5283e67d15ca7e2e356290a3cf,
+PR193 OPEN/head verified,base/current remote main378eccb. JSON map parser now rejects
+blank/boolean/array/object coordinates rather than Number-coercing them; valid numeric
+strings/single-zero global coordinates and range/(0,0)/90s/+30s guards retained.
+Negative control8pass/7fail708.650291ms; parent21/21,0fail/skip845.461708ms,
+changedlint/fulltypecheck/diffPASS. Actual parse→select fixture,not live acceptance.
+CI43947663389/43947617821 IN_PROGRESS. Historical iCity111/404 replay NOT_VERIFIED;
+reviewedmain already rejects out-of-range and stale positions, so do not duplicate it.
+Shared dirty country/privacy changes inspected,not copied. No API/Site/DB/7777/zrok
+edit/restart/deploy/main merge. NEXT: CI + authorized runtime acceptance; DATE native
+surface remains hidden,transport URL atom overlaps own PR144. PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — rental WALK metrics before ranking (base 5f50b7a)
 
 Task114 Server67546086fa4977098e469b8f4726176b7550c74b, PR192 OPEN at exact SHA,
