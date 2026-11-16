@@ -1,3 +1,17 @@
+## 2026-11-16 — QODER: фінальний національний звіт (17 розділів + SOURCE/ROUTING/UX) — PARTIAL / NOT_RELEASED
+
+Base5602811. Створено MARSHGO_UKRAINE_NATIONAL_COVERAGE_FINAL_REPORT.md (корінь):
+17 розділів ТЗ + три незалежні метрики. SOURCE: 86/140 OPEN-ресурсів (61.4%),
+88 каталог, 17/25 свіжі, RT 5/12 (90с). ROUTING: 4/12 транзитних режимів
+(bus/tram/trolleybus/train), 5/24 центри ненульові (3 WORKING+2 bike PARTIAL),
+13/13 міжобласних, 4/6 приміських, 5/22 intra-city (корекція наближених координат).
+UX: Київ tram/bus/troll + Львів tram/no-bus + Одеса bike + long-haul R08/R09/
+Харків→Львів/Київ→Ужгород/Одеса→Київ T4 + U06–U10; село Михайлівська Борщагівка.
+Інцидент #105 закрито (2 крахи, 2 тригери task E, відновлення тим самим SHA).
+PR25 head 5602811 (CI in_progress), коментар tasks C/E у Server PR26
+(issuecomment-6920235516). Merge BLOCKED (CI403+886 файлів). 100% НЕ заявлено.
+PARTIAL / NOT_RELEASED.
+
 ## 2026-11-16 — QODER: Kyiv BUS + TROLLEYBUS UI witnesses, другий крах API, корекція геометрії — PARTIAL / NOT_RELEASED
 
 Base437fb26. Runtime: той самий dirty SHA e9934abbd8fc973177de8d7f47548739758a1b74,
