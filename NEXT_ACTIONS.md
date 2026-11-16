@@ -1,3 +1,25 @@
+## RESUME BLOCK 2026-11-16 — Kyiv bus/tram/trolleybus ROUTING_VERIFIED_API + MDB crosswalk (base b8dfba5)
+
+Fresh Kyivpasstrans mirror jbb.ghsq.de/gtfs/ua-kyiv.gtfs.zip probed:1357267B
+SHA25678807244…, Last-Modified15Nov23:00Z, feed_version20261116,192 routes
+(129bus/46troll/17tram),1738 valid stops,27438 trips,115360 stop_times, shapes;
+Tue17Nov active811 services/15111 trips/188 routes. Mirror ALREADY registered
+(ukraineCatalog wave2) and imported: live /api/v1/mobility/providers reports
+Київпастранс available bus/tram/trolleybus. Three authenticated journeys/search
+probes17Nov08:00 BALANCED on unchanged dirty runtime e9934ab: TRAM route1
+Індустріальна→МихБорщагівка1journey/28cand/20.9s; BUS route5 Вокзал→Ізюмська
+2journeys(WALK/BUS/WALK + direct)/9cand/18.3s; TROLLEYBUS route11 Багриновагора→
+Музей1journey/100cand/3.0s. All partial=true (budget/sampling truncation, walk-router
+32 cap, metro NXDOMAIN provider error). Fares30UAH ESTIMATED. Evidence
+kyiv-surface-routing-2026-11-16.json + two raw probe files. Feed caveat: every trip
+only2-8 stops, block_id empty — segment-split export; Codex to evaluate chaining.
+MDB crosswalk (mobility-db-ua-crosswalk-2026-11-16.json):10/11 UA feeds already
+registered; only NEW candidate Malyn mdb-3615 fresh+complete but OwnNet Source
+License1.1 conditional ($100k revenue threshold, share-alike, attribution) →
+owner/Codex legal decision, NOT activated. Pishchanska still lacks stops/routes/
+agency. No UI check yet, no current-main claim, no runtime/Server edits.
+NEXT: Qoder-browser Kyiv UI witness; Codex handoff posted issue26. PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — Dnipro workbook decoded: BLOCKED_IDENTITY_CROSSWALK (base 26e007b)
 
 Full stoptimes.xlsx decoded by bounded streaming parse3.87s (same SHA8c2c7dd9…):

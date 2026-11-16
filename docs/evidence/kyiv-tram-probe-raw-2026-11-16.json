@@ -1,0 +1,238 @@
+{
+ "generatedAt": "2026-11-16T13:52:25Z",
+ "request": {
+  "origin": {
+   "name": "Індустріальна",
+   "coordinates": [
+    30.444232940673828,
+    50.44447708129883
+   ]
+  },
+  "destination": {
+   "name": "Мих Борщагівка",
+   "coordinates": [
+    30.407514572143555,
+    50.407894134521484
+   ]
+  },
+  "departureAt": "2026-11-17T08:00:00+02:00",
+  "passengers": 1,
+  "strategy": "BALANCED",
+  "preferences": {
+   "maxWalkingMeters": 1000
+  }
+ },
+ "http": 200,
+ "durationMs": 20925,
+ "runtimeBefore": {
+  "data": {
+   "service": "MarshGO-Server",
+   "serviceVersion": "1.0.0",
+   "apiContract": "v1",
+   "buildId": "local-e9934abbd8fc-dirty-20261113T132012Z",
+   "commitSha": "e9934abbd8fc973177de8d7f47548739758a1b74",
+   "builtAt": "2026-11-13T13:20:12.000Z",
+   "environment": "development",
+   "sourceState": "dirty",
+   "instanceId": "1b635cf5-f6b3-46f3-a170-1e2d4f01ed39"
+  }
+ },
+ "runtimeAfter": {
+  "data": {
+   "service": "MarshGO-Server",
+   "serviceVersion": "1.0.0",
+   "apiContract": "v1",
+   "buildId": "local-e9934abbd8fc-dirty-20261113T132012Z",
+   "commitSha": "e9934abbd8fc973177de8d7f47548739758a1b74",
+   "builtAt": "2026-11-13T13:20:12.000Z",
+   "environment": "development",
+   "sourceState": "dirty",
+   "instanceId": "1b635cf5-f6b3-46f3-a170-1e2d4f01ed39"
+  }
+ },
+ "response": {
+  "data": {
+   "journeys": [
+    {
+     "id": "9a6e2525-90d3-4162-bc3e-cc0fbac8448a",
+     "offerId": null,
+     "origin": {
+      "name": "Індустріальна",
+      "coordinates": [
+       30.444232940673828,
+       50.44447708129883
+      ]
+     },
+     "destination": {
+      "name": "Мих Борщагівка",
+      "coordinates": [
+       30.407514572143555,
+       50.407894134521484
+      ]
+     },
+     "source": "gtfs-static",
+     "providerName": "Київпастранс — розклад (GTFS)",
+     "requestedDepartureAt": "2026-11-17T06:00:00.000Z",
+     "waitingSeconds": 60,
+     "strategy": "BALANCED",
+     "recommendedStrategies": [
+      "BALANCED",
+      "FASTEST",
+      "CHEAPEST"
+     ],
+     "strategyRanks": {
+      "BALANCED": 1,
+      "FASTEST": 1,
+      "CHEAPEST": 1
+     },
+     "score": 0,
+     "state": "PLANNED",
+     "totalDurationSeconds": 1680,
+     "totalPriceMinor": 3000,
+     "confirmedPriceMinor": null,
+     "estimatedPriceMinMinor": 3000,
+     "estimatedPriceMaxMinor": 3000,
+     "currency": "UAH",
+     "priceStatus": "ESTIMATED",
+     "walkingMeters": 0,
+     "transfers": 0,
+     "reliabilityScore": null,
+     "legs": [
+      {
+       "id": "ae1efb69-1c85-4541-b295-d489cac961e0",
+       "mode": "TRAM",
+       "offerId": null,
+       "providerId": "cd6398e5-3f1e-4b68-b954-0a826093e5e0",
+       "routeId": "cd6398e5-3f1e-4b68-b954-0a826093e5e0:1_1",
+       "origin": {
+        "name": "Індустріальна",
+        "coordinates": [
+         30.444232940673828,
+         50.44447708129883
+        ]
+       },
+       "destination": {
+        "name": "Мих Борщагівка",
+        "coordinates": [
+         30.407514572143555,
+         50.407894134521484
+        ]
+       },
+       "departureAt": "2026-11-17T06:01:00.000Z",
+       "arrivalAt": "2026-11-17T06:28:00.000Z",
+       "scheduledDepartureAt": "2026-11-17T06:01:00.000Z",
+       "scheduledArrivalAt": "2026-11-17T06:28:00.000Z",
+       "durationSeconds": 1620,
+       "distanceMeters": null,
+       "priceMinor": 3000,
+       "currency": "UAH",
+       "priceStatus": "ESTIMATED",
+       "availabilityStatus": "UNKNOWN",
+       "fareProductId": "kyiv-communal-single-ride",
+       "fareIncludedByPreviousSegment": false,
+       "fareSource": "city-tariff-registry",
+       "stops": [
+        {
+         "id": "canonical-stop-556",
+         "name": "Індустріальна",
+         "coordinates": [
+          30.444232940673828,
+          50.44447708129883
+         ],
+         "arrivalAt": "2026-11-17T06:01:00.000Z",
+         "departureAt": "2026-11-17T06:01:00.000Z",
+         "pickupType": 0,
+         "dropOffType": 0
+        },
+        {
+         "id": "canonical-stop-184",
+         "name": "Гната Юри",
+         "coordinates": [
+          30.38565444946289,
+          50.429473876953125
+         ],
+         "arrivalAt": "2026-11-17T06:12:00.000Z",
+         "departureAt": "2026-11-17T06:12:00.000Z",
+         "pickupType": 0,
+         "dropOffType": 0
+        },
+        {
+         "id": "canonical-stop-12",
+         "name": "Мих Борщагівка",
+         "coordinates": [
+          30.407514572143555,
+          50.407894134521484
+         ],
+         "arrivalAt": "2026-11-17T06:28:00.000Z",
+         "departureAt": "2026-11-17T06:28:00.000Z",
+         "pickupType": 0,
+         "dropOffType": 0
+        }
+       ],
+       "liveStatus": "SCHEDULED",
+       "dataFreshnessSeconds": 20299,
+       "source": "gtfs-static",
+       "lastUpdatedAt": "2026-11-16T08:14:05.033Z",
+       "providerName": "Київпастранс — розклад (GTFS)",
+       "routeName": "1",
+       "transportType": "tram",
+       "headsign": "Мих Борщагівка",
+       "scheduleSemantics": "published_departures",
+       "driver": null,
+       "vehicle": null
+      }
+     ]
+    }
+   ],
+   "requestedStrategy": "BALANCED",
+   "availableStrategies": [
+    "BALANCED",
+    "FASTEST",
+    "CHEAPEST"
+   ],
+   "candidateCount": 28,
+   "paretoCount": 1,
+   "returnedCount": 1,
+   "alternativeLimitPerStrategy": 12,
+   "gtfsTruncation": {
+    "stopSelection": false,
+    "candidateGraph": false,
+    "searchBudget": true,
+    "searchStepLimit": false,
+    "candidatePoolLimit": false,
+    "candidateSampling": true,
+    "responsePage": true
+   },
+   "resultsTruncated": true,
+   "candidateGenerationTruncated": true,
+   "resultSamplingTruncated": true,
+   "partial": true,
+   "partialReasons": [
+    "candidate_generation_truncated",
+    "provider_error",
+    "unsupported_preference"
+   ],
+   "blockedProviders": [
+    "transportType:marshrutka:no-routed-provider-in-corridor",
+    "transportType:metro:no-routed-provider-in-corridor",
+    "transportType:taxi:no-routed-provider-in-corridor",
+    "transportType:carsharing:no-routed-provider-in-corridor",
+    "transportType:transfer:no-routed-provider-in-corridor",
+    "walking-transfers-between-unmatched-stops",
+    "community-intermediate-pickup:requires-explicit-driver-approved-stop"
+   ],
+   "unsupportedPreferences": [
+    "transportType:marshrutka:not-in-route-engine",
+    "transportType:metro:not-in-route-engine",
+    "transportType:taxi:not-in-route-engine",
+    "transportType:carsharing:not-in-route-engine",
+    "transportType:transfer:not-in-route-engine"
+   ],
+   "providerErrors": [
+    "Київське метро: Київські джерела станцій, геометрії, розкладу або пересадок не зареєстровані чи вимкнені",
+    "Частину варіантів відхилено: фактичний час або відстань пішохідного шляху не дозволяє здійснити маршрут.",
+    "Пішохідний маршрутизатор обмежив пошук 32 маршрутами; частину альтернатив не перевірено."
+   ]
+  }
+ }
+}

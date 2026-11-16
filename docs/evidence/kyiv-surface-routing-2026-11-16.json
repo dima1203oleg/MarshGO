@@ -1,0 +1,363 @@
+{
+ "generatedAt": "2026-11-16T13:55:36Z",
+ "rootBase": "b8dfba5a4bf2845782d2d07577562567a5d7c011",
+ "harness": "kyiv-surface-routing-v1",
+ "runtime": {
+  "buildId": "local-e9934abbd8fc-dirty-20261113T132012Z",
+  "commitSha": "e9934abbd8fc973177de8d7f47548739758a1b74",
+  "sourceState": "dirty",
+  "note": "shared preview runtime, NOT current Server main 378eccb; version identical before/after all three probes"
+ },
+ "sourceFeed": {
+  "url": "https://jbb.ghsq.de/gtfs/ua-kyiv.gtfs.zip",
+  "sha256": "788072449de1841b2c46d77fa3e3a3b38d5b36218238b14dadc440e2720b9421",
+  "bytes": 1357267,
+  "httpLastModified": "2026-11-15T23:00:06Z",
+  "feedVersion": "20261116",
+  "feedWindow": "20261116-20271116",
+  "publisher": "КП Київпастранс (agency/feed_info)",
+  "license": "CC BY 4.0 per Server ukraineCatalog.ts wave2 entry (mirror is third-party jbb.ghsq.de; original publisher data.gov.ua dataset 96128887-4f36-4c19-a96e-5d4765fade16)",
+  "counts": {
+   "routes": 192,
+   "routesByType": {
+    "bus": 129,
+    "trolleybus": 46,
+    "tram": 17
+   },
+   "stops": 1738,
+   "stopsInvalidBbox": 0,
+   "trips": 27438,
+   "stopTimes": 115360,
+   "shapes": 30219,
+   "calendarServices": 1392,
+   "calendarDatesRows": 0
+  },
+  "tue20261117Active": {
+   "services": 811,
+   "trips": 15111,
+   "routesByType": {
+    "bus": 127,
+    "trolleybus": 44,
+    "tram": 17
+   },
+   "stopTimeRows": 63067
+  },
+  "structureCaveat": "every trip has only 2-8 stops (max 8); physical runs are split into short segments, block_id empty; calendar end_date 20991231 far-future; registry notes external validator flagged inconsistent times on some trips"
+ },
+ "probes": {
+  "tram": {
+   "od": {
+    "route": "1",
+    "origin": {
+     "name": "Індустріальна",
+     "coordinates": [
+      30.444232940673828,
+      50.44447708129883
+     ]
+    },
+    "destination": {
+     "name": "Мих Борщагівка",
+     "coordinates": [
+      30.407514572143555,
+      50.407894134521484
+     ]
+    },
+    "note": "O/D are exact GTFS stop coordinates from fresh mirror; same-stop pair also present in imported DB (names/coords matched returned legs)"
+   },
+   "request": {
+    "origin": {
+     "name": "Індустріальна",
+     "coordinates": [
+      30.444232940673828,
+      50.44447708129883
+     ]
+    },
+    "destination": {
+     "name": "Мих Борщагівка",
+     "coordinates": [
+      30.407514572143555,
+      50.407894134521484
+     ]
+    },
+    "departureAt": "2026-11-17T08:00:00+02:00",
+    "passengers": 1,
+    "strategy": "BALANCED",
+    "preferences": {
+     "maxWalkingMeters": 1000
+    }
+   },
+   "summary": {
+    "http": 200,
+    "durationMs": 20925,
+    "journeys": [
+     {
+      "id": "9a6e2525-90d3-4162-bc3e-cc0fbac8448a",
+      "providerName": "Київпастранс — розклад (GTFS)",
+      "source": "gtfs-static",
+      "modes": [
+       "TRAM"
+      ],
+      "routes": [
+       "cd6398e5-3f1e-4b68-b954-0a826093e5e0:1_1"
+      ],
+      "departureAt": "2026-11-17T06:01:00.000Z",
+      "totalDurationSeconds": 1680,
+      "walkingMeters": 0,
+      "transfers": 0,
+      "totalPriceMinor": 3000,
+      "priceStatus": "ESTIMATED",
+      "strategyRanks": {
+       "BALANCED": 1,
+       "FASTEST": 1,
+       "CHEAPEST": 1
+      }
+     }
+    ],
+    "candidateCount": 28,
+    "returnedCount": 1,
+    "partial": true,
+    "partialReasons": [
+     "candidate_generation_truncated",
+     "provider_error",
+     "unsupported_preference"
+    ],
+    "gtfsTruncation": {
+     "stopSelection": false,
+     "candidateGraph": false,
+     "searchBudget": true,
+     "searchStepLimit": false,
+     "candidatePoolLimit": false,
+     "candidateSampling": true,
+     "responsePage": true
+    },
+    "providerErrors": [
+     "Київське метро: Київські джерела станцій, геометрії, розкладу або пересадок не зареєстровані чи вимкнені",
+     "Частину варіантів відхилено: фактичний час або відстань пішохідного шляху не дозволяє здійснити маршрут.",
+     "Пішохідний маршрутизатор обмежив пошук 32 маршрутами; частину альтернатив не перевірено."
+    ]
+   }
+  },
+  "bus": {
+   "od": {
+    "route": "5",
+    "routeLong": "Вулиця Ізюмська - Залізничний  вокзал Центральний",
+    "tripId": "3_250500_2_0",
+    "origin": {
+     "name": "Залізничний вокзал",
+     "coordinates": [
+      30.49062728881836,
+      50.44062042236328
+     ]
+    },
+    "destination": {
+     "name": "вул. Ізюмська",
+     "coordinates": [
+      30.51921272277832,
+      50.4091682434082
+     ]
+    },
+    "approxMeters": 4038,
+    "schedDepart": "07:30:00",
+    "schedArrive": "08:02:00"
+   },
+   "request": {
+    "origin": {
+     "name": "Залізничний вокзал",
+     "coordinates": [
+      30.49062728881836,
+      50.44062042236328
+     ]
+    },
+    "destination": {
+     "name": "вул. Ізюмська",
+     "coordinates": [
+      30.51921272277832,
+      50.4091682434082
+     ]
+    },
+    "departureAt": "2026-11-17T08:00:00+02:00",
+    "passengers": 1,
+    "strategy": "BALANCED",
+    "preferences": {
+     "maxWalkingMeters": 1000
+    }
+   },
+   "summary": {
+    "http": 200,
+    "durationMs": 18349,
+    "journeys": [
+     {
+      "id": "bc8233ac-4a0f-44e2-bc1a-25459d1ba29f",
+      "providerName": "Київпастранс — розклад (GTFS)",
+      "source": "gtfs-static",
+      "modes": [
+       "WALK",
+       "BUS",
+       "WALK"
+      ],
+      "routes": [
+       "cd6398e5-3f1e-4b68-b954-0a826093e5e0:3_20"
+      ],
+      "departureAt": "2026-11-17T06:00:00.000Z",
+      "totalDurationSeconds": 2608,
+      "walkingMeters": 578,
+      "transfers": 0,
+      "totalPriceMinor": 3000,
+      "priceStatus": "ESTIMATED",
+      "strategyRanks": {
+       "BALANCED": 1,
+       "FASTEST": 1,
+       "CHEAPEST": 1
+      }
+     },
+     {
+      "id": "3bd731ef-0d52-49ac-a14a-a5c7e4088d5d",
+      "providerName": "Київпастранс — розклад (GTFS)",
+      "source": "gtfs-static",
+      "modes": [
+       "BUS"
+      ],
+      "routes": [
+       "cd6398e5-3f1e-4b68-b954-0a826093e5e0:3_101"
+      ],
+      "departureAt": "2026-11-17T06:37:00.000Z",
+      "totalDurationSeconds": 4020,
+      "walkingMeters": 0,
+      "transfers": 0,
+      "totalPriceMinor": 3000,
+      "priceStatus": "ESTIMATED",
+      "strategyRanks": {
+       "BALANCED": 2,
+       "FASTEST": 2,
+       "CHEAPEST": 2
+      }
+     }
+    ],
+    "candidateCount": 9,
+    "returnedCount": 2,
+    "partial": true,
+    "partialReasons": [
+     "candidate_generation_truncated",
+     "provider_error",
+     "unsupported_preference"
+    ],
+    "gtfsTruncation": {
+     "stopSelection": false,
+     "candidateGraph": false,
+     "searchBudget": true,
+     "searchStepLimit": false,
+     "candidatePoolLimit": true,
+     "candidateSampling": true,
+     "responsePage": true
+    },
+    "providerErrors": [
+     "Київське метро: Київські джерела станцій, геометрії, розкладу або пересадок не зареєстровані чи вимкнені",
+     "Частину варіантів відхилено: фактичний час або відстань пішохідного шляху не дозволяє здійснити маршрут.",
+     "Пішохідний маршрутизатор обмежив пошук 32 маршрутами; частину альтернатив не перевірено."
+    ]
+   }
+  },
+  "trolleybus": {
+   "od": {
+    "route": "11",
+    "routeLong": "Національний музей народної архітектури та побуту України - Багринова гора",
+    "tripId": "2_241033_2_0",
+    "origin": {
+     "name": "Багринова гора",
+     "coordinates": [
+      30.534015655517578,
+      50.38021469116211
+     ]
+    },
+    "destination": {
+     "name": "Музей архітектури",
+     "coordinates": [
+      30.491193771362305,
+      50.35359191894531
+     ]
+    },
+    "approxMeters": 4240,
+    "schedDepart": "06:52:00",
+    "schedArrive": "07:43:00"
+   },
+   "request": {
+    "origin": {
+     "name": "Багринова гора",
+     "coordinates": [
+      30.534015655517578,
+      50.38021469116211
+     ]
+    },
+    "destination": {
+     "name": "Музей архітектури",
+     "coordinates": [
+      30.491193771362305,
+      50.35359191894531
+     ]
+    },
+    "departureAt": "2026-11-17T08:00:00+02:00",
+    "passengers": 1,
+    "strategy": "BALANCED",
+    "preferences": {
+     "maxWalkingMeters": 1000
+    }
+   },
+   "summary": {
+    "http": 200,
+    "durationMs": 3034,
+    "journeys": [
+     {
+      "id": "73202648-39d7-4c25-a64d-0453937f1e0b",
+      "providerName": "Київпастранс — розклад (GTFS)",
+      "source": "gtfs-static",
+      "modes": [
+       "TROLLEYBUS"
+      ],
+      "routes": [
+       "cd6398e5-3f1e-4b68-b954-0a826093e5e0:2_3"
+      ],
+      "departureAt": "2026-11-17T06:00:00.000Z",
+      "totalDurationSeconds": 3060,
+      "walkingMeters": 0,
+      "transfers": 0,
+      "totalPriceMinor": 3000,
+      "priceStatus": "ESTIMATED",
+      "strategyRanks": {
+       "BALANCED": 1,
+       "FASTEST": 1,
+       "CHEAPEST": 1
+      }
+     }
+    ],
+    "candidateCount": 100,
+    "returnedCount": 1,
+    "partial": true,
+    "partialReasons": [
+     "candidate_generation_truncated",
+     "provider_error",
+     "unsupported_preference"
+    ],
+    "gtfsTruncation": {
+     "stopSelection": false,
+     "candidateGraph": false,
+     "searchBudget": false,
+     "searchStepLimit": false,
+     "candidatePoolLimit": false,
+     "candidateSampling": true,
+     "responsePage": true
+    },
+    "providerErrors": [
+     "Київське метро: Київські джерела станцій, геометрії, розкладу або пересадок не зареєстровані чи вимкнені"
+    ]
+   }
+  }
+ },
+ "verdict": "ROUTING_VERIFIED_API_KYIV_BUS_TRAM_TROLLEYBUS on dirty preview runtime; all three partial=true (search budget/sampling truncation, walking-router 32-route cap, metro provider error = known NXDOMAIN gisserver gap). Not current-main acceptance, not UI acceptance, not search completeness.",
+ "limitations": [
+  "No browser/UI check in this artifact",
+  "Departure 2026-11-17T08:00+02:00 future date; scheduled-only, no realtime claim",
+  "Fares ESTIMATED 30 UAH, not confirmed",
+  "Segment-split feed may suppress long direct rides and inflate transfers; Codex should evaluate segment chaining",
+  "Mirror provenance third-party; license attestation rests on registry note + publisher open-data portal, re-verify before commercial activation"
+ ]
+}

@@ -1,3 +1,23 @@
+## 2026-11-16 — QODER: Kyiv surface ROUTING_VERIFIED_API (3 modes) + MDB UA crosswalk — PARTIAL / NOT_RELEASED
+
+Baseb8dfba5. Kyiv mirror feed_version20261116 validated (192routes/1738stops/27438trips;
+Tue17Nov15111 active trips). Live providers endpoint shows Київпастранс available
+bus/tram/trolleybus. Three journeys/search probes (17Nov08:00,BALANCED,walkcap1000,
+exact mirror stop coordinates) on unchanged dirty e9934ab runtime: tram1journey/28cand,
+bus2journeys/9cand, trolleybus1journey/100cand; all HTTP200, all partial=true
+(searchBudget+candidateSampling+responsePage truncation; walking router32-route cap;
+metro provider error = known gisserver NXDOMAIN). Artifacts kyiv-surface-routing-2026-11-16.json,
+kyiv-tram-probe-raw-2026-11-16.json, kyiv-bus-trolleybus-probes-raw-2026-11-16.json.
+CODEX TASKS: (1) Kyiv feed is segment-split — every trip2-8 stops, block_id empty;
+evaluate segment chaining so long direct rides/transfers are not lost; validator
+previously flagged inconsistent times. (2) Malyn mdb-3615 https://malin.kiev.ua/transport/gtfs.zip
+fresh complete GTFS (98stops/9bus routes/250trips, calendar to20271231) but OwnNet
+Source License1.1 conditional — needs owner legal decision before registration.
+(3) Odesa/Bucha x24 API-key procedure remains external blocker. MDB crosswalk:
+10/11 UA feeds already registered; no MDB feeds for11 other oblast centers.
+No Server/registry/runtime edits by Qoder; no UI acceptance yet; not current-main.
+Counts: national source matrix unchanged (14.11 baseline); routing witnesses +3 modes Kyiv API.
+
 ## 2026-11-16 — Dnipro decoded identities: BLOCKED_IDENTITY_CROSSWALK, not activated
 
 Base26e007b. Streaming decode of the same10.3MB stoptimes.xlsx3.87s:
