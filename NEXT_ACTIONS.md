@@ -1,3 +1,26 @@
+## RESUME BLOCK 2026-11-16 — третій крах API: першопричина Postgres exit code 2; звіт скориговано за audit 364 (base 61d4b5f)
+
+API знову впав ~15:01:32Z (той самий dirty SHA e9934ab, тригер
+navigation.expiry_failed → unhandled pg error). ВІДНОВЛЕНО 15:25:16Z тим самим
+SHA, buildId local-e9934abbd8fc-dirty-20261116T152516Z, readyz 200.
+ПЕРШОПРИЧИНА: сам Postgres (marshgo-db-1) крашиться 4 рази за 16.11
+(13:33/14:16/14:51/15:01 UTC): backend silent exit code 2 → postmaster
+reinitialize → обрив з'єднань → API падає без обробника pg error.
+Спростовано: VM OOM (db 67MiB/3.8GiB), сон хоста (pmset — немає подій).
+Докази: docs/evidence/postgres-crash-timeline-2026-11-16.log (79 рядків),
+api-crash-third-2026-11-16.log. Codex task E оновлено повним causal chain
+(Server PR26 issuecomment-6920801687): API має переживати restart БД;
+root cause БД — окреме infra-розслідування (Docker Desktop VM).
+КОРЕКЦІЯ ЗВІТУ за audit 364 Codex (Ужгород source parity): права UA-GIS ZIP
+NOT_VERIFIED (0 ID overlap з муніципальним CC-BY CSV) → Закарпаття
+NOT_ESTABLISHED для ліцензованої route-chain; ліцензовано підтверджені
+surface-регіони Київ+Львівська = 2/27 (7.4%); Ужгород WORKING лишається
+preview-спостереженням. Звіт §3/§5/§9/§16 + ROUTING-метрика скориговані.
+NEXT: (1) власник — токен CI (Admin+Partner Contents:read); (2) Codex —
+task E (pg error-handler + reconnect) та infra-розслідування Postgres;
+(3) права Ужгород ZIP — підтвердження походження або заміна джерела;
+(4) решта міст — зовнішні блокери без змін. PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — фінальний національний звіт доставлено + CI merge-блокер діагностовано (base 770b844)
 
 MARSHGO_UKRAINE_NATIONAL_COVERAGE_FINAL_REPORT.md (корінь): 17 розділів ТЗ +

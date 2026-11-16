@@ -1,3 +1,20 @@
+## 2026-11-16 — QODER: третій крах API + першопричина Postgres exit code 2; корекція звіту за audit 364 — PARTIAL / NOT_RELEASED
+
+Base 959c400 → 61d4b5f. ~15:01:32Z API (dirty e9934abbd8fc973177de8d7f47548739758a1b74)
+впав утретє (navigation.expiry_failed → unhandled pg error). Відновлено 15:25:16Z
+тим самим SHA (buildId local-e9934abbd8fc-dirty-20261116T152516Z), readyz 200.
+Знайдено першопричину: Postgres marshgo-db-1 сам крашиться 4 рази за день
+(13:33:12/14:16:27/14:51:56/15:01:32 UTC, backend silent exit code 2 →
+reinitialize → обрив з'єднань). Спростовано VM OOM і сон хоста. Докази:
+postgres-crash-timeline-2026-11-16.log + api-crash-third-2026-11-16.log.
+Codex task E оновлено (Server PR26 issuecomment-6920801687): обробник pg
+error + reconnect обов'язкові; root cause БД — окреме infra-розслідування.
+Прийнято audit 364 Codex (Ужгород): звіт скориговано — Закарпаття
+NOT_ESTABLISHED для ліцензованої route-chain (права UA-GIS ZIP NOT_VERIFIED);
+ліцензовано підтверджені surface-регіони: Київ+Львівська 2/27=7.4%.
+PR25 head 61d4b5f. Merge BLOCKED (CI403 Admin/Partner + 886 файлів).
+Жодних змін серверного коду/реєстру/secrets. 100% НЕ заявлено.
+
 ## 2026-11-16 — QODER: фінальний національний звіт (17 розділів + SOURCE/ROUTING/UX) — PARTIAL / NOT_RELEASED
 
 Base5602811. Створено MARSHGO_UKRAINE_NATIONAL_COVERAGE_FINAL_REPORT.md (корінь):
