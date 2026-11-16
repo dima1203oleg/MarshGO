@@ -1,3 +1,29 @@
+## 2026-11-16 — QODER: walking/rental geometry runtime evidence — PARTIAL / NOT_RELEASED
+
+Root base2a42255ded7f2aa262f1c4e8dc4d11e8d17266fc. No code or runtime changes in this probe.
+Qoder in-app productionApi, Lviv [24.0297,49.8397]→[24.0262,49.844], departure
+2026-11-17T08:00:00+02:00, BALANCED,1passenger,maxWalkingMeters3000: bike/scooter filters
+returned0 journeys each. walk filter rejected as unsupported; unrestricted query returned2
+WALK-BUS-WALK journeys with four osrm-foot-route legs,19/18/14/23vertices and
+271/344/269/218m. This proves non-straight walking response geometry for this probe only.
+Snapped destination [24.025881,49.843934] does not exactly match requested endpoint;
+continuity and standalone walking remain unaccepted. Partial reasons included
+candidate_generation_truncated,provider_error,unsupported_preference.
+Read-only provider GETs: Nextbike Lviv is static/UNKNOWN/no booking; Lviv scooter list empty.
+Nationwide lists Nextbike Kyiv/Lviv/Odesa/Ivano-Frankivsk and Zelectra Kyiv. This is registry
+output, not validation of current GBFS availability, rights or street-graph suitability.
+Further station-pair probe failed401 unauthorized after navigation. Qoder opening screen
+persisted; no map screenshot acceptance. Public/local module delivery both200 (1.565/0.018s),
+so do not misreport a total zrok outage. No credentials accessed or authentication bypassed.
+API PID70632 cwd shared Server HEAD e9934abbd8fc973177de8d7f47548739758a1b74, dirty source
+still serializes rental estimates; actual loaded code hash not verified. Remote main
+378eccbdd320ff5ddf2491dd9bc613b55237f998 includes roadRouteMicromobilityEstimate wiring.
+PR191 and192 still OPEN/CLEAN; PR192 checks43944883212/43944869433 SUCCESS. Neither is
+runtime acceptance. Resources30%free memory/13GiBdisk/10716MiBswap; no builds/tests launched.
+Task119 root canonical-runner/workflow edits remain UNTESTED and uncommitted, preserved.
+Next geometry gate needs normal authenticated browser, actual station pairs, graph/profile
+and endpoint checks plus approved runtime integration. National objective remains open.
+
 ## 2026-11-16 — QODER: E2E Server pin preflight — PARTIAL / NOT_RELEASED
 
 Root base a32fe492bdf989bc386fe06aa17daee3f279a8eb, PR25 auth atom head verified.

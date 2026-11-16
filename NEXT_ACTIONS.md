@@ -1,3 +1,28 @@
+## RESUME BLOCK 2026-11-16 — live walking / rental geometry (base 2a42255)
+
+Root HEAD 2a42255ded7f2aa262f1c4e8dc4d11e8d17266fc. Task50 remains PARTIAL.
+Qoder in-app productionApi probe: Lviv [24.0297,49.8397] to [24.0262,49.844],
+2026-11-17T08:00:00+02:00, BALANCED, one passenger, maxWalkingMeters3000.
+Bike-only and scooter-only each returned zero journeys; this is not geometry acceptance.
+The unsupported walk transport filter was rejected; unrestricted search returned two
+WALK-BUS-WALK journeys. Four WALK segments carried osrm-foot-route geometry with
+19/18/14/23 vertices,271/344/269/218m,197/253/196/159s. Destination snapping remains
+[24.025881,49.843934] versus requested [24.0262,49.844]; endpoint continuity needs review.
+Search reported partial reasons candidate_generation_truncated/provider_error/unsupported_preference.
+Public provider API: Lviv Nextbike static estimate, availability UNKNOWN, booking false;
+no scooter provider in Lviv. Nationwide response lists Nextbike in four cities and Zelectra
+in Kyiv. Registry availability is not proof of fresh vehicles, lawful riding or graph routing.
+After navigation, Qoder stayed at opening screen; subsequent protected probe returned401
+unauthorized. Map and station-to-station rental geometry NOT_VERIFIED; no auth bypass.
+API PID70632 cwd shared Server, checkout HEAD e9934abbd8fc973177de8d7f47548739758a1b74;
+its inspected dirty source still serializes rental estimates. Loaded code hash not established.
+GitHub main378eccbdd320ff5ddf2491dd9bc613b55237f998 has roadRouteMicromobilityEstimate
+wiring. PR191/192 OPEN/CLEAN; PR192 both CI PASS, not runtime acceptance. Do not duplicate
+those changes or merge/restart shared runtime without the required integration approval.
+Task119 runner/workflow edits remain uncommitted and UNTESTED; preserve foreign compose/tests.
+Next: restore normal browser authentication, verify station pairs and graph/profile provenance,
+then complete isolated harness checks. No runtime/7777/zrok changes; NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — E2E Server pin preflight (base a32fe49)
 
 Task117 published a32fe492bdf989bc386fe06aa17daee3f279a8eb, PR25 head verified.
