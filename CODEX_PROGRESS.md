@@ -5600,3 +5600,22 @@ Not claimed: payment capture, live GTFS-RT vehicle positions, anything on accept
   ізольований labeled-фікстур у НЕ-спільній тест-БД (ніколи shared :3002); дотриматись обмежень rows.
 - Режими chain-verified лишаються 4/12 (BUS,TRAM,RAIL,TROLLEYBUS); рендерів 7. Runtime без змін.
   NOT_RELEASED.
+
+## 2026-11-16 — §15.18 PER-MODE pure-filter проба: 12 режимів × 2 коридори (surface vs blocked)
+
+Root bf60a41 → (this commit) (PR25 OPEN). POST `/journeys/search` з
+`preferences.allowedTransportTypes=[key]` (12 ключів types.ts:9) на 2 коридорах: Київ→Львів
+(long-haul) + Київ intra (Вокзальна→Позняки), 17.11 08:00 BALANCED. 24 записи, артефакт
+docs/evidence/national-per-mode-probe-2026-11-16.json.
+- SURFACES pure-chain: train long-haul ret=10 maxT=1 target=YES legs[RAIL,WALK] prov «Укрзалізниця
+  GTFS»; bus intra ret=2 maxT=4 target=YES legs[BUS,WALK] prov «Київпастранс GTFS».
+- tram/trolleybus ret=0 на ЦИХ O/D, але SURFACE у mixed-ланцюжках інших коридорів (15.10–15.14).
+- 8 іменованих блокерів: marshrutka/taxi/carsharing/transfer =
+  `transportType:<m>:no-routed-provider-in-corridor` (обидва коридори); metro = same blocked +
+  providerError «Київське метро … не зареєстровані чи вимкнені» (Codex #62); carpool ret=0 blocked=[]
+  (інтеграція є, inventory 0, 15.17); bike/scooter ret=0 blocked=[] (немає rental-pair/GBFS, #50).
+- ВЕРДИКТ: жоден нуль НЕ дефект ланцюжкової логіки — усі через ingestion/реєстр/inventory/
+  partner-доступ. Узгоджено з 4/12 chain-verified (BUS,TRAM,RAIL,TROLLEYBUS). Audit §15.18 таблиця +
+  Висновок/footer (+24 pure-mode пошуки). Codex-handoff = per-mode blocker matrix на issue26.
+- Рендерів 7 (без змін). Runtime без змін (API :3002 local-e9934abbd8fc-dirty; served Site
+  1fec46f-dirty read-only). NOT_RELEASED.

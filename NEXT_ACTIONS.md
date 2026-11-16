@@ -1,3 +1,21 @@
+## RESUME BLOCK 2026-11-16 — §15.18 PER-MODE PURE-FILTER PROBE: 12 modes × 2 corridors, named blockers
+
+Root bf60a41 → (this commit) (PR25 OPEN, pushed). POST `/journeys/search` with
+`preferences.allowedTransportTypes=[key]` for each of 12 canonical keys (types.ts:9) on 2 corridors:
+Kyiv→Lviv (long-haul) + Kyiv intra (Вокзальна→Позняки), 17.11 08:00 BALANCED. Artifact
+docs/evidence/national-per-mode-probe-2026-11-16.json (24 records). RESULTS: train long-haul ret=10
+maxT=1 target=YES legs[RAIL,WALK] prov «Укрзалізниця GTFS»; bus intra ret=2 maxT=4 target=YES
+legs[BUS,WALK] prov «Київпастранс GTFS». tram/trolleybus ret=0 on THESE O/D but SURFACE in mixed
+chains elsewhere (15.10–15.14). 8 named blockers: marshrutka/taxi/carsharing/transfer =
+`transportType:<m>:no-routed-provider-in-corridor` (both corridors); metro = same blocked +
+providerError «Київське метро … не зареєстровані чи вимкнені» (Codex #62); carpool ret=0 blocked=[]
+(integration present, inventory 0, 15.17); bike/scooter ret=0 blocked=[] (no rental-pair/GBFS, #50).
+NO zero is a chain-logic defect — all missing via ingestion/registry/inventory/partner-access.
+Consistent with 4/12 modes chain-verified in mixed chains (BUS,TRAM,RAIL,TROLLEYBUS). Audit §15.18
+table + verdict; Висновок/footer updated (+24 pure-mode searches). 7 renders unchanged. Runtime
+UNCHANGED (API :3002 buildId local-e9934abbd8fc-dirty; served Site 1fec46f-dirty read-only).
+Codex handoff = per-mode blocker matrix on issue26. Status PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — §15.17 CARPOOL: ENGINE INTEGRATION VERIFIED (code), REAL INVENTORY MISSING (7th render)
 
 Root 56e0bba → (this commit) (PR25 OPEN, pushed). Authenticated `GET /api/v1/offers` 4 corridors

@@ -1,0 +1,406 @@
+{
+  "harness": "per-mode-filter-v1-auth",
+  "generatedAt": "2026-11-16T10:18:59.964Z",
+  "modeKeys": [
+    "bus",
+    "marshrutka",
+    "trolleybus",
+    "tram",
+    "metro",
+    "carpool",
+    "taxi",
+    "train",
+    "bike",
+    "scooter",
+    "carsharing",
+    "transfer"
+  ],
+  "corridors": [
+    {
+      "id": "kyiv-lviv",
+      "modes": [
+        {
+          "mode": "bus",
+          "http": 200,
+          "returned": 0,
+          "maxTransfers": 0,
+          "legModeSet": [],
+          "targetPresent": false,
+          "targetProviders": [],
+          "resultsTruncated": true,
+          "partial": true,
+          "blocked": [],
+          "allBlockedCount": 10,
+          "providerErrors": []
+        },
+        {
+          "mode": "marshrutka",
+          "http": 200,
+          "returned": 0,
+          "maxTransfers": 0,
+          "legModeSet": [],
+          "targetPresent": false,
+          "targetProviders": [],
+          "resultsTruncated": false,
+          "partial": true,
+          "blocked": [
+            "transportType:marshrutka:no-routed-provider-in-corridor"
+          ],
+          "allBlockedCount": 13,
+          "providerErrors": []
+        },
+        {
+          "mode": "trolleybus",
+          "http": 200,
+          "returned": 0,
+          "maxTransfers": 0,
+          "legModeSet": [],
+          "targetPresent": false,
+          "targetProviders": [],
+          "resultsTruncated": false,
+          "partial": false,
+          "blocked": [],
+          "allBlockedCount": 10,
+          "providerErrors": []
+        },
+        {
+          "mode": "tram",
+          "http": 200,
+          "returned": 0,
+          "maxTransfers": 0,
+          "legModeSet": [],
+          "targetPresent": false,
+          "targetProviders": [],
+          "resultsTruncated": true,
+          "partial": true,
+          "blocked": [],
+          "allBlockedCount": 10,
+          "providerErrors": []
+        },
+        {
+          "mode": "metro",
+          "http": 200,
+          "returned": 0,
+          "maxTransfers": 0,
+          "legModeSet": [],
+          "targetPresent": false,
+          "targetProviders": [],
+          "resultsTruncated": false,
+          "partial": true,
+          "blocked": [
+            "transportType:metro:no-routed-provider-in-corridor"
+          ],
+          "allBlockedCount": 13,
+          "providerErrors": [
+            "Київське метро: Київські джерела станцій, геометрії, розкладу або пересадок не зареєстровані чи вимкнені"
+          ]
+        },
+        {
+          "mode": "carpool",
+          "http": 200,
+          "returned": 0,
+          "maxTransfers": 0,
+          "legModeSet": [],
+          "targetPresent": false,
+          "targetProviders": [],
+          "resultsTruncated": false,
+          "partial": false,
+          "blocked": [],
+          "allBlockedCount": 13,
+          "providerErrors": []
+        },
+        {
+          "mode": "taxi",
+          "http": 200,
+          "returned": 0,
+          "maxTransfers": 0,
+          "legModeSet": [],
+          "targetPresent": false,
+          "targetProviders": [],
+          "resultsTruncated": false,
+          "partial": true,
+          "blocked": [
+            "transportType:taxi:no-routed-provider-in-corridor"
+          ],
+          "allBlockedCount": 13,
+          "providerErrors": []
+        },
+        {
+          "mode": "train",
+          "http": 200,
+          "returned": 10,
+          "maxTransfers": 1,
+          "legModeSet": [
+            "RAIL",
+            "WALK"
+          ],
+          "targetPresent": true,
+          "targetProviders": [
+            "Укрзалізниця — розклад поїздів (GTFS)"
+          ],
+          "resultsTruncated": true,
+          "partial": true,
+          "blocked": [],
+          "allBlockedCount": 12,
+          "providerErrors": [
+            "Пішохідний маршрутизатор не повернув підтверджений шлях для частини варіантів; ці варіанти приховано.",
+            "Частину варіантів відхилено: фактичний час або відстань пішохідного шляху не дозволяє здійснити маршрут."
+          ]
+        },
+        {
+          "mode": "bike",
+          "http": 200,
+          "returned": 0,
+          "maxTransfers": 0,
+          "legModeSet": [],
+          "targetPresent": false,
+          "targetProviders": [],
+          "resultsTruncated": false,
+          "partial": false,
+          "blocked": [],
+          "allBlockedCount": 12,
+          "providerErrors": []
+        },
+        {
+          "mode": "scooter",
+          "http": 200,
+          "returned": 0,
+          "maxTransfers": 0,
+          "legModeSet": [],
+          "targetPresent": false,
+          "targetProviders": [],
+          "resultsTruncated": false,
+          "partial": false,
+          "blocked": [],
+          "allBlockedCount": 12,
+          "providerErrors": []
+        },
+        {
+          "mode": "carsharing",
+          "http": 200,
+          "returned": 0,
+          "maxTransfers": 0,
+          "legModeSet": [],
+          "targetPresent": false,
+          "targetProviders": [],
+          "resultsTruncated": false,
+          "partial": true,
+          "blocked": [
+            "transportType:carsharing:no-routed-provider-in-corridor"
+          ],
+          "allBlockedCount": 13,
+          "providerErrors": []
+        },
+        {
+          "mode": "transfer",
+          "http": 200,
+          "returned": 0,
+          "maxTransfers": 0,
+          "legModeSet": [],
+          "targetPresent": false,
+          "targetProviders": [],
+          "resultsTruncated": false,
+          "partial": true,
+          "blocked": [
+            "transportType:transfer:no-routed-provider-in-corridor"
+          ],
+          "allBlockedCount": 13,
+          "providerErrors": []
+        }
+      ]
+    },
+    {
+      "id": "kyiv-intra",
+      "modes": [
+        {
+          "mode": "bus",
+          "http": 200,
+          "returned": 2,
+          "maxTransfers": 4,
+          "legModeSet": [
+            "BUS",
+            "WALK"
+          ],
+          "targetPresent": true,
+          "targetProviders": [
+            "Київпастранс — розклад (GTFS)"
+          ],
+          "resultsTruncated": true,
+          "partial": true,
+          "blocked": [],
+          "allBlockedCount": 10,
+          "providerErrors": [
+            "Частину варіантів відхилено: фактичний час або відстань пішохідного шляху не дозволяє здійснити маршрут.",
+            "Пішохідний маршрутизатор обмежив пошук 32 маршрутами; частину альтернатив не перевірено."
+          ]
+        },
+        {
+          "mode": "marshrutka",
+          "http": 200,
+          "returned": 0,
+          "maxTransfers": 0,
+          "legModeSet": [],
+          "targetPresent": false,
+          "targetProviders": [],
+          "resultsTruncated": false,
+          "partial": true,
+          "blocked": [
+            "transportType:marshrutka:no-routed-provider-in-corridor"
+          ],
+          "allBlockedCount": 13,
+          "providerErrors": []
+        },
+        {
+          "mode": "trolleybus",
+          "http": 200,
+          "returned": 0,
+          "maxTransfers": 0,
+          "legModeSet": [],
+          "targetPresent": false,
+          "targetProviders": [],
+          "resultsTruncated": false,
+          "partial": false,
+          "blocked": [],
+          "allBlockedCount": 10,
+          "providerErrors": []
+        },
+        {
+          "mode": "tram",
+          "http": 200,
+          "returned": 0,
+          "maxTransfers": 0,
+          "legModeSet": [],
+          "targetPresent": false,
+          "targetProviders": [],
+          "resultsTruncated": false,
+          "partial": false,
+          "blocked": [],
+          "allBlockedCount": 10,
+          "providerErrors": []
+        },
+        {
+          "mode": "metro",
+          "http": 200,
+          "returned": 0,
+          "maxTransfers": 0,
+          "legModeSet": [],
+          "targetPresent": false,
+          "targetProviders": [],
+          "resultsTruncated": false,
+          "partial": true,
+          "blocked": [
+            "transportType:metro:no-routed-provider-in-corridor"
+          ],
+          "allBlockedCount": 13,
+          "providerErrors": [
+            "Київське метро: Київські джерела станцій, геометрії, розкладу або пересадок не зареєстровані чи вимкнені"
+          ]
+        },
+        {
+          "mode": "carpool",
+          "http": 200,
+          "returned": 0,
+          "maxTransfers": 0,
+          "legModeSet": [],
+          "targetPresent": false,
+          "targetProviders": [],
+          "resultsTruncated": false,
+          "partial": false,
+          "blocked": [],
+          "allBlockedCount": 13,
+          "providerErrors": []
+        },
+        {
+          "mode": "taxi",
+          "http": 200,
+          "returned": 0,
+          "maxTransfers": 0,
+          "legModeSet": [],
+          "targetPresent": false,
+          "targetProviders": [],
+          "resultsTruncated": false,
+          "partial": true,
+          "blocked": [
+            "transportType:taxi:no-routed-provider-in-corridor"
+          ],
+          "allBlockedCount": 13,
+          "providerErrors": []
+        },
+        {
+          "mode": "train",
+          "http": 200,
+          "returned": 0,
+          "maxTransfers": 0,
+          "legModeSet": [],
+          "targetPresent": false,
+          "targetProviders": [],
+          "resultsTruncated": false,
+          "partial": false,
+          "blocked": [],
+          "allBlockedCount": 12,
+          "providerErrors": []
+        },
+        {
+          "mode": "bike",
+          "http": 200,
+          "returned": 0,
+          "maxTransfers": 0,
+          "legModeSet": [],
+          "targetPresent": false,
+          "targetProviders": [],
+          "resultsTruncated": false,
+          "partial": false,
+          "blocked": [],
+          "allBlockedCount": 12,
+          "providerErrors": []
+        },
+        {
+          "mode": "scooter",
+          "http": 200,
+          "returned": 0,
+          "maxTransfers": 0,
+          "legModeSet": [],
+          "targetPresent": false,
+          "targetProviders": [],
+          "resultsTruncated": false,
+          "partial": false,
+          "blocked": [],
+          "allBlockedCount": 12,
+          "providerErrors": []
+        },
+        {
+          "mode": "carsharing",
+          "http": 200,
+          "returned": 0,
+          "maxTransfers": 0,
+          "legModeSet": [],
+          "targetPresent": false,
+          "targetProviders": [],
+          "resultsTruncated": false,
+          "partial": true,
+          "blocked": [
+            "transportType:carsharing:no-routed-provider-in-corridor"
+          ],
+          "allBlockedCount": 13,
+          "providerErrors": []
+        },
+        {
+          "mode": "transfer",
+          "http": 200,
+          "returned": 0,
+          "maxTransfers": 0,
+          "legModeSet": [],
+          "targetPresent": false,
+          "targetProviders": [],
+          "resultsTruncated": false,
+          "partial": true,
+          "blocked": [
+            "transportType:transfer:no-routed-provider-in-corridor"
+          ],
+          "allBlockedCount": 13,
+          "providerErrors": []
+        }
+      ]
+    }
+  ]
+}

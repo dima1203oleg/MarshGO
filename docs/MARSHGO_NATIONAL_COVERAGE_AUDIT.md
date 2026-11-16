@@ -739,6 +739,37 @@ COMMUNITY-leg наскрізно, потрібні реальні published-пр
 НЕ-спільній тест-БД (ніколи shared :3002); дотриматись обмежень rows-запиту (±120 хв, route NOT NULL,
 route_source<>'development_unrouted', 25 км/коридор, driver_id<>шукач, allowCommunity && carpool selected).
 
+### 15.18 Per-mode фільтр-проба: 12 канонічних режимів × 2 коридори (pure allowedTransportTypes)
+
+POST `/journeys/search` з `preferences.allowedTransportTypes=[key]` (ключі з `types.ts:9`) для
+кожного з 12 режимів на 2 коридорах: Київ→Львів (long-haul) і Київ intra (Вокзальна→Позняки),
+17.11 08:00 BALANCED. Артефакт
+[national-per-mode-probe-2026-11-16.json](evidence/national-per-mode-probe-2026-11-16.json).
+«pure-filter» = чи існує ланцюжок ЛИШЕ цього режиму; mixed-ланцюжки інших коридорів — 15.10–15.14.
+
+| Режим | Київ→Львів | Київ intra | Вердикт / причина |
+|---|---|---|---|
+| bus | 0 | **2 (BUS, Київпастранс GTFS)** | SURFACES intra; long-haul без intercity-фіду |
+| marshrutka | 0 blocked | 0 blocked | MISSING: `no-routed-provider-in-corridor` (фід/адаптер) |
+| trolleybus | 0 | 0 | зареєстрований; pure-chain немає на цих O/D; mixed — 15.11/15.14 |
+| tram | 0 | 0 | зареєстрований; pure-chain немає на цих O/D; mixed — 15.10/15.13 |
+| metro | 0 blocked+err | 0 blocked+err | BLOCKED: реєстр «Київське метро … не зареєстровані чи вимкнені» (Codex #62) |
+| carpool | 0 | 0 | інтеграція є, published-inventory 0 (15.17); blocked-запису немає (режим у engine) |
+| taxi | 0 blocked | 0 blocked | BLOCKED: `no-routed-provider-in-corridor` (немає провайдера; auth/partner) |
+| train | **10 (RAIL, Укрзалізниця GTFS)** | 0 | SURFACES long-haul; intra без rail-ланцюжка у walk-лімітах |
+| bike | 0 | 0 | немає rental-pair/GBFS у коридорі (#50) |
+| scooter | 0 | 0 | немає rental-pair/GBFS у коридорі (#50) |
+| carsharing | 0 blocked | 0 blocked | BLOCKED: `no-routed-provider-in-corridor` (partner not-in-engine) |
+| transfer | 0 blocked | 0 blocked | BLOCKED: `no-routed-provider-in-corridor` (partner not-in-engine) |
+
+Отже на реальних інгестованих фідах pure-mode ланцюжки підтверджено для **train** (long-haul) і
+**bus** (intra); **tram/trolleybus** підтверджено у mixed-ланцюжках інших коридорів (15.10–15.14).
+Решта 8 режимів мають КОНКРЕТНІ іменовані блокери: marshrutka/taxi/carsharing/transfer —
+`no-routed-provider-in-corridor`; metro — реєстр provider_error; carpool — порожній inventory;
+bike/scooter — відсутній rental-pair/GBFS. Жоден нуль не є дефектом ланцюжкової логіки: усі
+відсутні через ingestion/реєстр/inventory/partner-доступ, а не через побудову ланцюжка.
+Це узгоджується з 4/12 режимів, chain-verified у mixed-ланцюжках (BUS,TRAM,RAIL,TROLLEYBUS).
+
 **Висновок 11-16:** ланцюжки складаються правильно на реальних фідах для 3 міст + 6 міжміських +
 4 intra-oblast + 9 long-haul міжобласних коридорів (7 з ланцюжками; 15.15: Суми routable,
 Херсон/Чернігів no-service; до **4 пересадок** UI / **3 пересадок** API long-haul,
@@ -750,7 +781,9 @@ RAIL+BUS і Львів→Ужгород 4 пересадки; 15.13: Харкі�
 попуток «0 варіантів»), і коректно fail-closed для невідомих тарифів, але національне
 покриття по всіх 12 видах — **НІ**: 4/12 режимів, 19/24 міст без міського транзиту, 0 підтверджених
 тарифів, усі пошуки вибіркові; попутка: інтеграція в національний пошук є (код, 15.17), але
-published-inventory 0 → COMMUNITY-leg на реальних даних NOT_TESTED; UI-доступні міста при геокодері 503 = лише 23 curated (15.11),
+published-inventory 0 → COMMUNITY-leg на реальних даних NOT_TESTED; pure-mode фільтр-проба (15.18):
+train long-haul + bus intra SURFACES, tram/trolleybus у mixed, решта 8 режимів з іменованими
+блокерами (no-routed-provider / metro-реєстр / inventory / GBFS), жоден нуль не дефект ланцюжка; UI-доступні міста при геокодері 503 = лише 23 curated (15.11),
 але інтерактивний геокодер живий і резолвить не-curated Суми (15.16); deep-link без provider не гідратує (#71).
 Статус лишається PARTIAL / NOT_RELEASED.
 
@@ -761,7 +794,7 @@ published-inventory 0 → COMMUNITY-leg на реальних даних NOT_TES
 відкритих concrete-URL, 25 джерел з виміряною датою вмісту, 12 регіонів із заявленим RT, 24 міські
 центри + 6 міжміських пар + 3 стратегії/контролі у API-прогоні 11-16 + 9 long-haul міжобласних
 коридорів (6 з позитивним контролем, 15.12; + Суми/Херсон/Чернігів, 15.15) + 4 carpool-коридори
-з 8 сирими offer-контролями (15.17) + 7 браузерних рендерів
+з 8 сирими offer-контролями (15.17) + 24 pure-mode фільтр-пошуки (12 режимів × 2 коридори, 15.18) + 7 браузерних рендерів
 (Львів→Стрий 3 пересадки, 15.10; Одеса→Київ RAIL+BUS і Львів→Ужгород 4 пересадки, 15.11;
 Харків→Львів 3 пересадки long-haul, 15.13; Київ→Ужгород TROLLEYBUS+BUS+RAIL 2 пересадки, 15.14;
 Київ→Суми прямий RAIL через Чернігівщину, 15.16; Київ→Львів mode=offers empty-state попуток, 15.17) +
