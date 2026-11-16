@@ -1,3 +1,26 @@
+## CI merge-blocker уточнено — MARSHGO_REPOS_READ_TOKEN без Admin/Partner — 2026-11-16 15:10 UTC
+
+- **Свіжий доказ:** root PR25 CI run `43893143344` job `verify` → **failure** на
+  `node ops/scripts/materialize-release.mjs`. Скрипт клонує всі 4 репо одним
+  токеном (`GIT_ASKPASS` ← Actions secret `MARSHGO_REPOS_READ_TOKEN`):
+  - Server `44f954b3ce6099dde86cebfe7984079a078a5872` — clone OK;
+  - Site `fef697e2603b43c5bc76a9f98e78dba50cc8b480` — clone OK;
+  - **Admin `4eb5d15d1692ebcdb5aae40dbcffc39446138fb5` — `remote: Write access to
+    repository not granted` → HTTP 403** (`https://github.com/dima1203oleg/MarshGO-Admin.git`);
+  - Partner — наступний, очікувано той самий 403.
+- **Уточнення проти запису 2026-10-26:** токен НЕ «відсутній» — він налаштований і
+  читає Server/Site. Це **per-repo permission gap**: fine-grained PAT не має
+  `Contents: read` на MarshGO-Admin та MarshGO-Partner.
+- **Дія власника (зовнішня, потрібна):** оновити Actions secret
+  `MARSHGO_REPOS_READ_TOKEN` (або fine-grained PAT) — додати Repository access
+  `MarshGO-Admin` + `MarshGO-Partner` з `Contents: Read-only`. Після цього
+  `verify` має пройти clone-етап.
+- **Заборонено Qoder:** змінювати secrets/PAT (окремий дозвіл власника);
+  послаблювати fail-closed gate пропуском Admin/Partner; merge у protected main.
+  Жодних змін секретів/runtime не виконано.
+- **Наслідок:** merge PR25 у main BLOCKED цим зовнішнім credential-gap +
+  завеликим scope (886 файлів). RELEASE_MANIFEST `NOT_RELEASED`.
+
 ## Codex tandem integration blocked by usage limit — 2026-11-14 07:58 UTC
 
 - **Blocker (external, account quota):** Codex app (com.openai.codex, pid 1063) shows «Ліміт використання Codex і Роботи вичерпано. Ваш ліміт запитів відновиться 17 лист., 21:02.» Send button disabled, goal paused. Reset **2026-11-17 21:02** (local) unless the owner upgrades/resets. Verified by reading the live AX state this session.

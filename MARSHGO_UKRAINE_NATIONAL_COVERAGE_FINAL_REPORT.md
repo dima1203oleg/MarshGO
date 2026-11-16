@@ -198,11 +198,18 @@ Carsharing/taxi/transfer/marshrutka/metro — 0 routed providers у коридо
 
 ## 13. Результати CI
 
-- Root PR25: CI run 43893143344 — **in_progress** (після push 5602811);
+- Root PR25: CI run 43893143344 job `verify` — **failure** (після push 5602811/c171c21);
   Security 43893143625 — success (попередній 43892877190 — failure, виправлено).
-- Merge у main **BLOCKED**: root verify CI раніше падав HTTP 403
-  (ops/scripts/materialize-release.mjs клонує MarshGO-Admin); PR25 — 886 файлів,
-  завеликий scope. Main protected; жодного force-push/reset не виконано.
+- **Точний діагноз merge-блокера:** `ops/scripts/materialize-release.mjs` клонує
+  4 репо одним токеном `MARSHGO_REPOS_READ_TOKEN`: Server `44f954b` OK,
+  Site `fef697e` OK, **Admin `4eb5d15` → HTTP 403 «Write access to repository
+  not granted»**, Partner — очікувано той самий 403. Токен налаштований, але
+  fine-grained PAT не має `Contents: read` на Admin/Partner.
+  **Дія власника:** додати Admin+Partner до Repository access токена (Read-only).
+  Qoder secrets не змінює і fail-closed gate не послаблює.
+  (`docs/EXTERNAL_BLOCKERS.md`, запис 2026-11-16 15:10 UTC)
+- Merge у main **BLOCKED**: цей зовнішній credential-gap + PR25 886 файлів
+  (завеликий scope). Main protected; жодного force-push/reset не виконано.
 - Server/Site CI: див. відповідні PR (Server 189/138/137/136…, Site 145/144/142…);
   canonical acceptance відкладено через runtime mismatch (preview ≠ main).
 
