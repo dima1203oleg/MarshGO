@@ -1,3 +1,31 @@
+## RESUME BLOCK 2026-11-16 — root national journey evidence audit implemented (base 42d7d6b3b46448d3d7ef5b40febf6ad0a6da67e1)
+
+Task108: tools/audit-national-journey-evidence.ts audits the existing national
+archive, not a second registry/router. Individual mode sequences, IDs, counts,
+coordinates, per-request departure timezone, chronology, excluded modes and
+explicit expected Server SHA are checked. Empty/aggregate-only/walking-only data
+cannot pass as transport witnesses. Lowercase categories map train→RAIL,bike→BICYCLE.
+A structurally valid SUMMARY still returns NOT_RELEASED: raw leg geometry,
+source rights/calendars, UI acceptance and national completeness are not attested.
+Tests:10 new +5 prior auth regressions =15 passed,0 failed,0 skipped,526ms;
+changed-file ESLint,typecheck,diff-check PASS. First test run8/9 corrected a false
+expectation of missing summaries; the archive actually preserves every returned
+summary. No assertions on true product behavior weakened.
+Real CLI archived replay:36 probes,76 itinerary witnesses,15 nonempty/21 empty;
+expected exit1,FAIL. Findings:SHA mismatch1,dirty source1,missing request departure36.
+Artifact docs/evidence/national-journey-evidence-audit-2026-11-16.json. This is an
+EVIDENCE gap, not proof of a date/filter/geometry defect or citywide absence.
+Read-only source review found no new licensed timetable with merely technical
+blocker; Poltava still needs publisher rights/calendar/geographic crosswalk.
+No source re-download,API search,DB write,Server/Site edit,build or restart.
+Resources27%memory/15GiB disk:YELLOW. Qoder snapshot18:23Z still shows BUS12 chain;
+this does not prove auth tests or offline auditor via browser. Latest actual
+Server PR26 comments contain no new Codex ACK (paginated query verified).
+NEXT: future bounded probes must capture exact per-request time + raw legs and
+before/after runtime; reviewed-runtime handoff/taskE and CI Admin403 still open.
+Do not repeat unlicensed schedule probing or declare national coverage complete.
+PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — BUS12 render correction + walking-cap evidence reconciliation (base 728114c0e2225ccd18550c48e27247a814629053)
 
 Qoder in-app through canonical7777/zrok: selected BUS12, collapsed details,

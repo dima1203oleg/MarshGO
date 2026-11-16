@@ -1,3 +1,25 @@
+## 2026-11-16 — QODER: root offline national journey evidence gate — PARTIAL / NOT_RELEASED
+
+Base42d7d6b3b46448d3d7ef5b40febf6ad0a6da67e1. Task108 implemented only in root:
+tools/audit-national-journey-evidence.ts + tests/national-journey-evidence.test.ts.
+Checks concrete individual summaries vs aggregates,counts,ID uniqueness,coords,
+exact per-request departure/timezone,chronology,excluded modes and Server SHA/clean
+source. Even valid summary integrity never certifies raw geometry,rights/calendar,
+UI or nationwide completeness; releaseStatus remains NOT_RELEASED.
+Targeted new10 + auth5 =15/15,0skip,526ms; ESLint/typecheck/diff-check PASS.
+Initial8/9 exposed a false test expectation: archive summaries are complete for
+returned journeys. Corrected that expectation, kept synthetic missing-witness
+negative control. Real CLI archive36probes/76witnesses/15nonempty/21empty exits1:
+main SHA mismatch1,dirty source1,per-request departure missing36. No dates inferred
+from top-level prose and no false Engine defect issued. JSON audit artifact saved.
+Read-only licensed-source review: no new routing-ready feed established; Poltava
+publisher rights/current calendar/geographic join remain blocked. No repeated
+source probe,registry/import/API/DB/Server/Site/7777/zrok/build/restart/deploy.
+Resource27%memory/15GiB:YELLOW. In-app Qoder18:23Z BUS12 state intact,not auth or
+CLI feature proof. Actual latest paginated GitHub PR26 has no new Codex ACK.
+National goal remains open; reviewed runtime,taskE,CI Admin403 and behavioral E2E
+required. Existing historical evidence untouched.
+
 ## 2026-11-16 — QODER: BUS12 rendering correction, no app patch — PARTIAL / NOT_RELEASED
 
 Base728114c0e2225ccd18550c48e27247a814629053. Qoder in-app on existing zrok:

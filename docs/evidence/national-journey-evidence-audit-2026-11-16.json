@@ -1,0 +1,1043 @@
+{
+  "command": [
+    "./node_modules/.bin/tsx",
+    "tools/audit-national-journey-evidence.ts",
+    "docs/evidence/national-api-chain-probe-2026-11-16.json",
+    "378eccbdd320ff5ddf2491dd9bc613b55237f998"
+  ],
+  "exitCode": 1,
+  "rootBase": "42d7d6b3b46448d3d7ef5b40febf6ad0a6da67e1",
+  "audit": {
+    "summaryIntegrity": "FAIL",
+    "releaseStatus": "NOT_RELEASED",
+    "expectedServerSha": "378eccbdd320ff5ddf2491dd9bc613b55237f998",
+    "observedServerSha": "e9934abbd8fc973177de8d7f47548739758a1b74",
+    "probeCount": 36,
+    "emptyResponses": 21,
+    "nonemptyResponses": 15,
+    "witnessCount": 76,
+    "findings": [
+      {
+        "location": "runtime",
+        "code": "SERVER_SHA_MISMATCH"
+      },
+      {
+        "location": "runtime",
+        "code": "SERVER_SOURCE_NOT_CLEAN"
+      },
+      {
+        "location": "urban[0]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "urban[1]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "urban[2]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "urban[3]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "urban[4]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "urban[5]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "urban[6]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "urban[7]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "urban[8]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "urban[9]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "urban[10]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "urban[11]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "urban[12]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "urban[13]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "urban[14]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "urban[15]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "urban[16]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "urban[17]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "urban[18]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "urban[19]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "urban[20]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "urban[21]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "urban[22]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "urban[23]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "intercity[0]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "intercity[1]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "intercity[2]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "intercity[3]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "intercity[4]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "intercity[5]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "strategies[0]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "strategies[1]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "modeControls[0]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "modeControls[1]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "modeControls[2]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      },
+      {
+        "location": "negativeControls[0]",
+        "code": "REQUEST_DEPARTURE_NOT_RECORDED"
+      }
+    ],
+    "witnesses": [
+      {
+        "location": "urban[0].itinerarySummaries[0]",
+        "journeyId": "e5c625b8-8a8a-41dd-8817-abcfdbb003a2",
+        "modes": [
+          "WALK",
+          "BUS",
+          "WALK",
+          "BUS",
+          "WALK"
+        ]
+      },
+      {
+        "location": "urban[6].itinerarySummaries[0]",
+        "journeyId": "ea14f19d-eefa-47bd-8952-3d5e8fb0bb54",
+        "modes": [
+          "WALK",
+          "BUS",
+          "WALK"
+        ]
+      },
+      {
+        "location": "urban[6].itinerarySummaries[1]",
+        "journeyId": "18b6f794-7a38-436e-abd6-0bef9ef8dd66",
+        "modes": [
+          "WALK",
+          "BUS",
+          "WALK"
+        ]
+      },
+      {
+        "location": "urban[8].itinerarySummaries[0]",
+        "journeyId": "2420587d-152b-48e9-9457-45c5675795b8",
+        "modes": [
+          "WALK",
+          "BICYCLE",
+          "WALK"
+        ]
+      },
+      {
+        "location": "urban[11].itinerarySummaries[0]",
+        "journeyId": "76075118-ef41-464a-a9e3-ac4171a1242e",
+        "modes": [
+          "WALK",
+          "BICYCLE",
+          "WALK"
+        ]
+      },
+      {
+        "location": "urban[11].itinerarySummaries[1]",
+        "journeyId": "1c56983c-5010-4fb4-a332-41e84d136896",
+        "modes": [
+          "WALK",
+          "BUS",
+          "WALK"
+        ]
+      },
+      {
+        "location": "urban[11].itinerarySummaries[2]",
+        "journeyId": "0a21bbad-c760-43d4-9da6-c7af03e920bc",
+        "modes": [
+          "WALK",
+          "BUS",
+          "WALK"
+        ]
+      },
+      {
+        "location": "urban[11].itinerarySummaries[3]",
+        "journeyId": "90eb0321-74ab-4446-9fe5-e88848d092b3",
+        "modes": [
+          "WALK",
+          "BUS",
+          "WALK"
+        ]
+      },
+      {
+        "location": "urban[11].itinerarySummaries[4]",
+        "journeyId": "b22d419c-d1f5-4c3f-a31d-688d15a731d6",
+        "modes": [
+          "WALK",
+          "BUS",
+          "BUS",
+          "WALK"
+        ]
+      },
+      {
+        "location": "urban[13].itinerarySummaries[0]",
+        "journeyId": "c4349053-3e16-4f1c-a86d-6b0e39b36170",
+        "modes": [
+          "WALK",
+          "BICYCLE",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[0].itinerarySummaries[0]",
+        "journeyId": "c59909bb-3180-4ce2-9753-2c6991280d13",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK",
+          "TRAM",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[0].itinerarySummaries[1]",
+        "journeyId": "69699e52-052e-405a-8d71-8fac039b6ff7",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK",
+          "TRAM",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[0].itinerarySummaries[2]",
+        "journeyId": "5a7fd649-81f3-4d8e-bcff-4ab1d435f4b6",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[0].itinerarySummaries[3]",
+        "journeyId": "8a0c0928-03b7-44ad-94c5-454aa69451c7",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[0].itinerarySummaries[4]",
+        "journeyId": "34d3b5a8-9047-4546-83c7-3fa30be5978d",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK",
+          "TRAM",
+          "BUS",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[0].itinerarySummaries[5]",
+        "journeyId": "6005c88d-6740-4e3a-b26b-2fc4fe6d79eb",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK",
+          "TRAM",
+          "BUS",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[0].itinerarySummaries[6]",
+        "journeyId": "310c12e1-474a-460f-a721-1b97fb7ddc75",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[1].itinerarySummaries[0]",
+        "journeyId": "78e114dc-3b5d-4488-b1bc-5f3ec681c261",
+        "modes": [
+          "WALK",
+          "TRAM",
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[1].itinerarySummaries[1]",
+        "journeyId": "5540cbe3-28d7-4eec-b51a-097d511291e9",
+        "modes": [
+          "WALK",
+          "TRAM",
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[1].itinerarySummaries[2]",
+        "journeyId": "aa9752ce-95a0-4dff-b8c2-361e25214d7e",
+        "modes": [
+          "WALK",
+          "TRAM",
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[1].itinerarySummaries[3]",
+        "journeyId": "9412687b-cb5d-4c3d-b743-97300060f637",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[1].itinerarySummaries[4]",
+        "journeyId": "bc3e06e7-0349-4cef-8a4e-5cca70451f57",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK",
+          "BUS",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[1].itinerarySummaries[5]",
+        "journeyId": "c58d2fea-9501-4166-8a42-6254bb5133c8",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[1].itinerarySummaries[6]",
+        "journeyId": "eae495af-bd6b-40f8-bcb4-3418b6ee168d",
+        "modes": [
+          "WALK",
+          "BUS",
+          "WALK",
+          "TRAM",
+          "WALK",
+          "TRAM",
+          "WALK",
+          "RAIL",
+          "WALK",
+          "BUS",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[1].itinerarySummaries[7]",
+        "journeyId": "48bdeb47-85c7-4cbe-bff9-1c82838d4de7",
+        "modes": [
+          "WALK",
+          "BUS",
+          "WALK",
+          "TRAM",
+          "WALK",
+          "RAIL",
+          "WALK",
+          "BUS",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[1].itinerarySummaries[8]",
+        "journeyId": "72e7c8b0-8f17-4d7f-a7ee-b31c103cc326",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK",
+          "BUS",
+          "WALK",
+          "BUS",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[2].itinerarySummaries[0]",
+        "journeyId": "521633c5-2407-43fb-a1d2-236ab4ba288a",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[2].itinerarySummaries[1]",
+        "journeyId": "ed15316e-3560-495b-b6a6-c5c5cc17c511",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK",
+          "BUS",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[2].itinerarySummaries[2]",
+        "journeyId": "664e8207-f09c-4daf-8bd2-560b954047b3",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK",
+          "BUS",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[2].itinerarySummaries[3]",
+        "journeyId": "2aa1237f-5d26-4752-8b8f-c872bec54ea2",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK",
+          "BUS",
+          "WALK",
+          "BUS",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[2].itinerarySummaries[4]",
+        "journeyId": "e4d3e173-009a-49d5-8672-d4c1d464d211",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK",
+          "BUS",
+          "WALK",
+          "BUS",
+          "WALK",
+          "BUS",
+          "WALK",
+          "TROLLEYBUS",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[2].itinerarySummaries[5]",
+        "journeyId": "b03593cd-571d-4af5-aa53-f5934e87995d",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK",
+          "BUS",
+          "WALK",
+          "BUS",
+          "WALK",
+          "BUS",
+          "WALK",
+          "TROLLEYBUS",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[2].itinerarySummaries[6]",
+        "journeyId": "876f18dc-45e4-4c04-b5f9-2419149571cd",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK",
+          "BUS",
+          "WALK",
+          "BUS",
+          "WALK",
+          "BUS",
+          "WALK",
+          "BUS",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[2].itinerarySummaries[7]",
+        "journeyId": "33a01e1e-b375-412a-94a5-cf3617caffd0",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK",
+          "BUS",
+          "WALK",
+          "BUS",
+          "WALK",
+          "BUS",
+          "WALK",
+          "BUS",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[2].itinerarySummaries[8]",
+        "journeyId": "e53e30d9-b2d8-46ce-b30b-91cca4f07c6f",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK",
+          "BUS",
+          "WALK",
+          "BUS",
+          "WALK",
+          "TROLLEYBUS",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[3].itinerarySummaries[0]",
+        "journeyId": "a01323e4-1e8a-4138-98d5-52bbfc24da2f",
+        "modes": [
+          "WALK",
+          "BUS",
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[3].itinerarySummaries[1]",
+        "journeyId": "1f059471-45b9-427d-b6e8-f45c1cba3516",
+        "modes": [
+          "WALK",
+          "BUS",
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[3].itinerarySummaries[2]",
+        "journeyId": "f148aa4c-fcc6-4e27-b0bd-80e3a48f856b",
+        "modes": [
+          "WALK",
+          "BUS",
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[3].itinerarySummaries[3]",
+        "journeyId": "ad136940-475f-460a-9ae2-86112962f8db",
+        "modes": [
+          "WALK",
+          "BUS",
+          "WALK",
+          "BUS",
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[3].itinerarySummaries[4]",
+        "journeyId": "b92643be-4aa2-4171-b616-9f79a5275db3",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[3].itinerarySummaries[5]",
+        "journeyId": "d80543cf-46e8-4c2f-bc7f-f7f6948bbd42",
+        "modes": [
+          "WALK",
+          "TROLLEYBUS",
+          "WALK",
+          "BUS",
+          "WALK",
+          "BUS",
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[4].itinerarySummaries[0]",
+        "journeyId": "b527a20b-f2c0-4e9d-9e63-01b2fa51e207",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[4].itinerarySummaries[1]",
+        "journeyId": "73e7e17f-268c-45ad-9b0a-0d41ddcec146",
+        "modes": [
+          "WALK",
+          "TRAM",
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[4].itinerarySummaries[2]",
+        "journeyId": "f08ee8aa-2784-40e0-a135-dd3b43d992e9",
+        "modes": [
+          "WALK",
+          "TRAM",
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[4].itinerarySummaries[3]",
+        "journeyId": "5ca21777-a8a7-415b-b87c-d3240734f8ed",
+        "modes": [
+          "WALK",
+          "TRAM",
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[4].itinerarySummaries[4]",
+        "journeyId": "5947d0e7-8a1e-4227-aa0f-a6e1d1d96963",
+        "modes": [
+          "WALK",
+          "BUS",
+          "WALK",
+          "TRAM",
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[4].itinerarySummaries[5]",
+        "journeyId": "98c79740-cfc1-44dc-806c-552004c3ef5e",
+        "modes": [
+          "WALK",
+          "BUS",
+          "WALK",
+          "TRAM",
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[4].itinerarySummaries[6]",
+        "journeyId": "939d8129-4ed6-4374-8460-8b9da80ee246",
+        "modes": [
+          "WALK",
+          "BUS",
+          "WALK",
+          "TRAM",
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[4].itinerarySummaries[7]",
+        "journeyId": "ce1665c0-3f83-4432-b9d4-1a325d3fee40",
+        "modes": [
+          "WALK",
+          "BUS",
+          "WALK",
+          "TRAM",
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[4].itinerarySummaries[8]",
+        "journeyId": "7de272de-8cf0-413a-bbc9-4466aaf06ce2",
+        "modes": [
+          "WALK",
+          "BUS",
+          "BUS",
+          "TRAM",
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[5].itinerarySummaries[0]",
+        "journeyId": "4a080078-9a39-43cf-9191-d6043df01e90",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[5].itinerarySummaries[1]",
+        "journeyId": "2d2235ee-a4e5-430f-9946-c6650668d103",
+        "modes": [
+          "WALK",
+          "BUS",
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[5].itinerarySummaries[2]",
+        "journeyId": "4921f59c-2c30-4749-80d1-3566cd29508a",
+        "modes": [
+          "WALK",
+          "BUS",
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[5].itinerarySummaries[3]",
+        "journeyId": "18ed8314-a207-4aa1-b592-5af170c0b770",
+        "modes": [
+          "WALK",
+          "BUS",
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[5].itinerarySummaries[4]",
+        "journeyId": "a2b46c69-b574-42fd-a799-b3b14a64fd7a",
+        "modes": [
+          "WALK",
+          "BUS",
+          "WALK",
+          "BUS",
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[5].itinerarySummaries[5]",
+        "journeyId": "b4e7b0bd-0da8-44b8-953e-5877eaccee44",
+        "modes": [
+          "WALK",
+          "BUS",
+          "WALK",
+          "BUS",
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[5].itinerarySummaries[6]",
+        "journeyId": "16a6266e-db7c-400c-a247-85b43787c652",
+        "modes": [
+          "WALK",
+          "BUS",
+          "WALK",
+          "BUS",
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "intercity[5].itinerarySummaries[7]",
+        "journeyId": "7129f302-b2fd-4c58-b5ce-2ef0c4d818b3",
+        "modes": [
+          "WALK",
+          "TROLLEYBUS",
+          "WALK",
+          "BUS",
+          "WALK",
+          "BUS",
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "strategies[0].itinerarySummaries[0]",
+        "journeyId": "cdc6bfba-4479-4b1b-8662-51449c7d7a7f",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "strategies[0].itinerarySummaries[1]",
+        "journeyId": "0c32f92c-c04c-477d-923e-fb5601d5a9c0",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "strategies[0].itinerarySummaries[2]",
+        "journeyId": "6159a5f3-a6b1-4cf8-bc8a-a478735d3b23",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK",
+          "TRAM",
+          "WALK"
+        ]
+      },
+      {
+        "location": "strategies[0].itinerarySummaries[3]",
+        "journeyId": "fb8bd803-5975-4890-8474-b273338b50a4",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK",
+          "TRAM",
+          "WALK"
+        ]
+      },
+      {
+        "location": "strategies[0].itinerarySummaries[4]",
+        "journeyId": "1387e1ae-2211-4b6b-b8a6-d8ac9a159beb",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK",
+          "TRAM",
+          "BUS",
+          "WALK"
+        ]
+      },
+      {
+        "location": "strategies[0].itinerarySummaries[5]",
+        "journeyId": "8a99f6e1-ed5a-464a-b5a4-7b57c2a0b658",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK",
+          "TRAM",
+          "BUS",
+          "WALK"
+        ]
+      },
+      {
+        "location": "strategies[0].itinerarySummaries[6]",
+        "journeyId": "a4726eb1-9c68-4e66-8225-1316d694d7ed",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "strategies[1].itinerarySummaries[0]",
+        "journeyId": "11fb9dac-2455-431f-9bc5-dcc848332d85",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK",
+          "TRAM",
+          "WALK"
+        ]
+      },
+      {
+        "location": "strategies[1].itinerarySummaries[1]",
+        "journeyId": "35cec042-9efc-453e-b534-f48e46dd3cff",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK",
+          "TRAM",
+          "WALK"
+        ]
+      },
+      {
+        "location": "strategies[1].itinerarySummaries[2]",
+        "journeyId": "440a1f40-c6f2-4a96-a16f-4a87e5c43f17",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "strategies[1].itinerarySummaries[3]",
+        "journeyId": "b2244f78-3f0b-4f86-8b70-f258ece74a65",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "strategies[1].itinerarySummaries[4]",
+        "journeyId": "fb8ea346-f9d8-4574-939c-7205d026c966",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK",
+          "TRAM",
+          "BUS",
+          "WALK"
+        ]
+      },
+      {
+        "location": "strategies[1].itinerarySummaries[5]",
+        "journeyId": "d64e32c4-956b-4b12-9ca9-33526dad03b6",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK",
+          "TRAM",
+          "BUS",
+          "WALK"
+        ]
+      },
+      {
+        "location": "strategies[1].itinerarySummaries[6]",
+        "journeyId": "b56ed64f-dd18-4c75-80ec-56771d9e21cd",
+        "modes": [
+          "WALK",
+          "RAIL",
+          "WALK"
+        ]
+      },
+      {
+        "location": "modeControls[0].itinerarySummaries[0]",
+        "journeyId": "14fc52e3-8de8-47bc-ae29-93296279b672",
+        "modes": [
+          "WALK",
+          "TRAM",
+          "WALK"
+        ]
+      },
+      {
+        "location": "modeControls[0].itinerarySummaries[1]",
+        "journeyId": "e4510528-9045-4fff-8082-126fc36e496f",
+        "modes": [
+          "WALK",
+          "TRAM",
+          "WALK",
+          "TRAM",
+          "WALK"
+        ]
+      },
+      {
+        "location": "modeControls[0].itinerarySummaries[2]",
+        "journeyId": "66109472-1f6a-40b6-ba12-7b48cd2d53fc",
+        "modes": [
+          "WALK",
+          "TRAM",
+          "WALK",
+          "TRAM",
+          "WALK"
+        ]
+      },
+      {
+        "location": "modeControls[2].itinerarySummaries[0]",
+        "journeyId": "8da7a194-dc3d-4cc4-9d88-d6bb10873ff3",
+        "modes": [
+          "WALK",
+          "BUS",
+          "WALK",
+          "BUS",
+          "WALK"
+        ]
+      }
+    ],
+    "limitations": [
+      "SUMMARY_ONLY_NOT_RAW_LEG_GEOMETRY",
+      "SOURCE_RIGHTS_AND_CALENDARS_NOT_ATTESTED",
+      "UI_ACCEPTANCE_NOT_ATTESTED",
+      "NO_NATIONWIDE_COMPLETENESS_PROOF"
+    ]
+  }
+}
