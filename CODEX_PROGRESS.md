@@ -1,5 +1,16 @@
 ## 2026-11-16 — QODER: DATE-01 code + actual both-theme preview — PARTIAL / NOT_RELEASED
 
+Follow-up: Site1b05c75825520e815a00e3e29880cefab18c500c pushedPR147.
+CI54ec7edd failed915/916 on stale bottom-sheet-density stopTime assertion;
+exact time.label guard corrected,full local916/91664suites0fail/skip7230.204416ms,
+changed-test lint0.858sPASS. Both newCI verifyPASS at1b05c75:43941179926/2m17s,
+43941189053/2m26s. Remaining visual gates open. Root evidence0e1eeb0 pushedPR25.
+Read-only actualAPI PID70632/cwdDesktopServer/dirtye9934ab/readyzready confirmed.
+Current index3391–3408 returns whole itinerary before routing if any WALK uncovered;
+walk serializer4210–4227 labels missinggeometry walking-grid-estimate. Mixed-link
+regression/per-leg routing is task113,not yet implemented. Bike/scooter estimates
+still not streetgraph routing. No actualServer changes/restart.
+
 Rootbase b0c472bd037513fce729fc6936884c058e6fcebb. Site feature e56f256 and
 nonrewriting main-aa157fc merge54ec7eddc7ce61b565662f41937d05e897bae107,
 qoder/overnight-route-dates-20261114, draftPR147OPEN. Seven-file date-only delta;

@@ -1,5 +1,15 @@
 ## RESUME BLOCK 2026-11-16 — DATE-01 implemented, Qoder both-theme evidence (base b0c472bd037513fce729fc6936884c058e6fcebb)
 
+Follow-up: Site1b05c75825520e815a00e3e29880cefab18c500c pushedPR147.
+CI54ec7edd:915/916,one stale bottom-sheet-density source assertion; exact time.label
+assertion corrected. Full local suite916/916,64suites,0fail/skip,7230.204416ms;
+changed-test ESLintPASS0.858s. Both newCI verifyPASS at1b05c75: runs43941179926
+(2m17s) and43941189053 (2m26s). Root evidence0e1eeb0. Remaining visual gates open.
+ActualAPI cwd Desktop/MarshGO/MarshGO-Server dirtye9934ab; index3391–3408 skips
+all pedestrian routing if one required WALK lacks endpoint coverage. Task113:
+isolated mixed-covered/uncovered regression,per-leg measured geometry,never fakepaths.
+Foot/bike containers onlyKyiv/Lviv; bicycle/scooter estimates not routedgraph proof.
+
 Task59 isolated Site qoder/overnight-route-dates-20261114: feature e56f256,
 current main aa157fc integrated without rewrite/conflict at54ec7eddc7ce61b565662f41937d05e897bae107.
 Draft SitePR147 OPEN; seven date-only files,203insertions/30deletions vs main.
