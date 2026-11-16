@@ -1,3 +1,37 @@
+## 2026-11-16 — QODER: Kyiv BUS + TROLLEYBUS UI witnesses, другий крах API, корекція геометрії — PARTIAL / NOT_RELEASED
+
+Base437fb26. Runtime: той самий dirty SHA e9934abbd8fc973177de8d7f47548739758a1b74,
+новий buildId local-e9934abbd8fc-dirty-20261116T145412Z після аварійного рестарту
+(readyz 200, database/realtime connected). Site 1fec46fe dirty (read-only),
+канонічний zrok/7777, лише Qoder in-app browser.
+СВІДКИ UI: (1) АВТОБУС — вул.Вокзальна→Ізюмська 17.11 08:00, усі 12 режимів:
+1 маршрут у трьох стратегіях, 47хв/30₴ ESTIMATED/0 пересадок, Пішки38точок→
+Автобус12 (4 зупинки,68 точок геометрії)→Пішки6точок; API+UI збігаються
+(verbatim-захоплений POST з повними preferences; replay без preferences давав 0 —
+це була помилка проби, не продукту). Карта: ЛИШЕ маркери + «ЗА РОЗКЛАДОМ»,
+камера не вміщена (масштаб 200км) — Site ВІДМОВЛЯЄ рендерити надану 68-точкову
+геометрію автобуса. (2) ТРОЛЕЙБУС — coord deep-link Багринова гора→Музей
+(геокодер не пропонує зупинку; прогалина task D): 1 маршрут ×3 стратегії,
+51хв/30₴ ESTIMATED city-tariff-registry/0 пересадок, маршрут11, 6 зупинок
+08:00–08:51, 57 точок; карта СТРІЧКУ РЕНДЕРИТЬ (масштаб 5км). Різниця
+bus-vs-trolleybus відтворювана після рестарту. Докази:
+qoder-kyiv-bus-trolleybus-ui-2026-11-16.json + 7 PNG (bus results/details/map;
+troll state/results/details/map).
+ІНЦИДЕНТ #105 (другий крах): під час troll-свідка API впав через
+database.pool_idle_client_error → unhandled pg Client 'error' → exit усього
+процесу (лог api-crash-pg-idle-pool-2026-11-16.log; перший крах
+navigation.expiry_failed — api-crash-pg-unhandled-2026-11-16.log). Postgres5434/
+Redis6380 живі. Відновлено рестартом того ж SHA канонічним лаунчером
+(CWD=канонічний корінь). CODEX TASK E посилено: ДВА тригери; acceptance —
+pg_terminate_backend / обрив idle-клієнта НЕ повинні вбивати API; UX під час
+відмови чесний (банер 45с, «Пошук тимчасово недоступний», «Повторити пошук»).
+CODEX TASK C посилено: геометрія автобуса НАДАНА (68 точок), але Site її не
+рендерить — або виправити рендер, або явний UX-напис «геометрія недоступна».
+КОРЕКЦІЯ ПРОБИ: leg.routeGeometry — сирий масив [lon,lat], НЕ GeoJSON
+{coordinates}; попередні hasGeometry:false були хибними.
+Рахунки: UI-свідки Київ +2 режими (bus, trolleybus; tram раніше). Без правок
+Server/Site/реєстру. PARTIAL / NOT_RELEASED.
+
 ## 2026-11-16 — QODER: Kyiv tram UI witness (3 strategies) + map-geometry root cause — PARTIAL / NOT_RELEASED
 
 Base665459d. Qoder in-app browser on canonical zrok/7777: street→village O/D

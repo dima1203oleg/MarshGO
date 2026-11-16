@@ -1,3 +1,33 @@
+## RESUME BLOCK 2026-11-16 — Kyiv BUS + TROLLEYBUS UI witnesses, другий крах API, корекція геометрії (base 437fb26)
+
+Qoder in-app browser, canonical zrok/7777. BUS: Вокзальна площа → Ізюмська
+вулиця, 17.11 08:00, усі 12 режимів. 1 маршрут ×3 стратегії: Пішки 513 м →
+Автобус 12 (Півднний вокз 08:11 → вул. Олексіївська 08:19 → І-т цукр буряк
+08:30 → вул. Ізюмська 08:42) → Пішки 378 м; 47 хв, 30 ₴ ESTIMATED, 0 пересадок.
+TROLLEYBUS: Багринова гора → Музей архітектури (coordinate deep-link, бо
+геокодер не пропонує київську зупинку «Музей архітектури» — лише Крилоський
+музей; task D). 1 маршрут ×3 стратегії: Тролейбус 11, 6 зупинок 08:00–08:51;
+51 хв, 30 ₴ ESTIMATED (city-tariff-registry), 0 пересадок, walk 0.
+ДОКАЗИ: docs/evidence/qoder-kyiv-bus-trolleybus-ui-2026-11-16.json + 7 PNG.
+ІНЦИДЕНТ #105 (вдруге): під час trolleybus-свідка API впав — unhandled pg
+Client 'error' через database.pool_idle_client_error (idle pool client), інший
+шлях ніж перший крах (navigation.expiry_failed). Той самий дефект, два тригери.
+Відновлено тим самим dirty SHA e9934ab, buildId …20261116T145412Z; readyz 200.
+Codex task E: обробник 'error' на pool + navigation clients; pg_terminate_backend
+не має вбивати API. Доказ: api-crash-pg-idle-pool-2026-11-16.log.
+КОРЕКЦІЯ ПРОБИ: leg.routeGeometry — СИРИЙ масив [lon,lat], НЕ GeoJSON
+{coordinates}. Попереднє «hasGeometry:false» було хибно-негативним. BUS має
+68 точок, TROLLEYBUS 57. Але UX-різниця РЕАЛЬНА: Site малює стрічку тролейбуса
+(57 т.), а автобусну стрічку ВІДХИЛЯЄ (маркери + «ЗА РОЗКЛАДОМ» + камера 200 км
+не вписана) — підтверджено після рестарту. Codex task C посилено: геометрія
+надходить, але не рендериться для bus.
+РЕПЛІКА-РОЗБІЖНІСТЬ вирішена: UI POST несе повний preferences (усі 12 режимів);
+репліка БЕЗ preferences давала journeys=[]/candidateCount 0. З preferences —
+1 маршрут, збігається з UI.
+NEXT: Codex ack C/D/E (issue26); решта міських свідків; фінальний звіт
+MARSHGO_UKRAINE_NATIONAL_COVERAGE_FINAL_REPORT.md; merge у main BLOCKED
+(CI403, PR25 886 файлів). PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — Kyiv tram UI witness + map-geometry root cause (base 665459d)
 
 Qoder in-app browser, canonical zrok/7777: вулиця Вадима Гетьмана → Михайлівська
