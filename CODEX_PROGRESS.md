@@ -5557,3 +5557,19 @@ Not claimed: payment capture, live GTFS-RT vehicle positions, anything on accept
   історичні розклади не активувати.
 - Long-haul знаменник тепер 9 (7 routable). Counts/matrix інакше без змін. 5 браузерних рендерів
   (15.14 latest). Runtime без змін. NOT_RELEASED.
+
+### 2026-11-16 §15.16 — Київ→Суми UI-свідок (6-й рендер); геокодер живий, deep-link прогалина вужча
+- Deep-link coordinate-only «Суми» БЕЗ provider НЕ гідратує/не авто-шукає (порожня форма) = #71
+  для не-curated міст. АЛЕ інтерактивний geocoder suggest ЗАРАЗ ПРАЦЮЄ (фальсифікація «503 блокує
+  Суми»; 15.11 Mukachevo-503 тимчасовий): «Суми, Сумська область» → destinationProvider=r:3678531
+  (OSM), coords 50.9119775,34.8027723.
+- Пошук Київ·центр→Суми 17.11 08:00 BALANCED → **8 маршрутів = API 15.15**: прямий Поїзд66 6год2
+  (0); BUS114+RAIL; Тролейбус6тр+BUS50+RAIL (2); TROLLEYBUS18+6тр+50+RAIL (3). Деталі прямого:
+  08:00→05:48/21год48/0/—; wait 14год47; зупинки 23:23 Київ-Пас/00:39 Носівка/02:10 Бахмач-Пас/
+  02:57 Конотоп/03:47 Путивль/04:21 Ворожба/05:25 Суми; карта CHERNIHIV OBLAST + rail-лінія
+  Київ-Пас→Суми; walk banner; 5-nav. Скрини
+  docs/evidence/browser-2026-11-16-kyiv-sumy-{results,rail-details}.png (Read-viewed).
+- Суми UI-routable інтерактивно; rail-trunk проходить через Чернігівщину попри 0 кандидатів для
+  м. Чернігів (15.15). Curated-expansion Сум = fallback при 503 + deep-link гідратація, прогалина
+  вужча ніж «недосяжні». 6 браузерних рендерів; API↔UI 8=8. Counts/matrix інакше без змін.
+  Runtime без змін. NOT_RELEASED.

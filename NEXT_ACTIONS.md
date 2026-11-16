@@ -1,3 +1,21 @@
+## RESUME BLOCK 2026-11-16 — §15.16 KYIV→SUMY UI-VERIFIED (6th render); GEOCODER UP, DEEP-LINK GAP NARROWER
+
+Root 0b7a866 → (this commit) (PR25 OPEN, pushed). In-app browser canonical zrok. (1) deep-link
+coordinate-only destination «Суми» WITHOUT provider does NOT hydrate/auto-search (empty form) =
+#71 gap for non-curated cities. (2) BUT interactive geocoder suggest NOW UP (falsifies «503 blocks
+Sumy»; 15.11 Mukachevo-503 was transient): returns «Суми, Сумська область»; selection sets
+destinationProvider=r:3678531 (OSM), coords 50.9119775,34.8027723. (3) search Kyiv·center→Sumy
+17.11 08:00 BALANCED → **8 маршрутів = API 15.15 match**: direct Поїзд66 6год2 (0 transfers);
+BUS114+RAIL; Тролейбус6тр+BUS50+RAIL (2); TROLLEYBUS18+6тр+50+RAIL (3). (4) direct-rail details
+08:00→05:48/21год48/0/—; wait 14год47; stops 23:23 Київ-Пас/00:39 Носівка/02:10 Бахмач-Пас/
+02:57 Конотоп/03:47 Путивль/04:21 Ворожба/05:25 Суми; map CHERNIHIV OBLAST label + rail line
+Київ-Пас→Суми; walk banner; recommendation label; 5-nav. Screenshots
+docs/evidence/browser-2026-11-16-kyiv-sumy-{results,rail-details}.png (Read-viewed).
+Sumy UI-routable interactively; rail trunk traverses Chernihivshchyna despite 0 candidates for
+Chernihiv city itself (15.15). Curated-expansion Sumy still useful as 503-fallback + deep-link
+hydration, but gap NARROWER than «Sumy unreachable». 6 browser renders; API↔UI 8=8 integrity.
+Counts/matrix otherwise unchanged. Runtime unchanged. NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — §15.15 ABSENT GOV-HELD OBLAST CENTERS PROBED (SUMY ROUTABLE; KHERSON/CHERNIHIV NO-SERVICE)
 
 Root 1408455 → (this commit) (PR25 OPEN, pushed). Authenticated coordinate-only API probe (no curated
