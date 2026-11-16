@@ -1,3 +1,14 @@
+## RESUME BLOCK 2026-11-16 — Poltava newer timetable candidate (base b32e4ba)
+
+Task75: https://pl.rozklad.in.ua/home/schedule/7 GET200/81699B independently inspected.
+Trolleybus2 Rozsoshentsi→SouthStation: ordered named stops/relative minutes, weekday/weekend
+sections, page states effective02.12.2025 and advisory-only. Newer than inspected official XLSX
+blocks, but current2026 validity, official endorsement, stable stop coordinates/IDs and reuse
+rights NOT_VERIFIED. Official local dataset https://odata.rada-poltava.gov.ua/dataset/grafik_bus
+still displays updated23Nov2020. Existing candidate ledger note extended; no feed activated.
+No build/test/runtime changes. Next: publisher confirmation + licensed geographic crosswalk;
+Codex should not treat this timetable page as routing-ready. PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — Exact geocoded Kyiv request: empty PARTIAL, not no-service
 
 Base 5f2d99b. Artifact docs/evidence/kyiv-geocoded-chain-2026-11-16.json stores exact geocoder
