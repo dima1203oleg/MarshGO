@@ -1,3 +1,20 @@
+## RESUME BLOCK 2026-11-16 — rental WALK metrics before ranking (base 5f50b7a)
+
+Task114 Server67546086fa4977098e469b8f4726176b7550c74b, PR192 OPEN at exact SHA,
+base/current remote main378eccbdd320ff5ddf2491dd9bc613b55237f998.
+Covered FOOT connectors now routed using the existing request walking budget before
+candidate ranking/transit selection; sum leg meters/seconds, enforce per-side and total
+walk caps, preserve estimated WALK on null FOOT. Serialization uses evaluated legs,
+never reroutes after selection. Existing BIKE/GBFS/unknown-fare guards preserved.
+33/33 fixture tests,0fail/skip914.268791ms; changedlint/fulltypecheck/diffPASS.
+Three metric/cap controls failed before fix; actual base serializer execution detects
+late routing. VM tests execute actual candidate/serializer blocks,not live API proof.
+PR192 CI queued runs43944883212/43944869433; do not claim PASS yet.
+PR1911fb24f7 BOTH CI PASS:43942665720(2m48s),43942706431(2m58s).
+No canonical API/Site/DB/7777/zrok edits/restarts/deployment/main merge.
+NEXT: CI result + authorized runtime acceptance; DATE viewport/compact gates remain open.
+Nationwide FOOT/BIKE coverage and provider rights/availability remain PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — mixed walking proof + regional resolver fix (base 27211b4)
 
 Server main still378eccbdd320ff5ddf2491dd9bc613b55237f998: partial WALK routing

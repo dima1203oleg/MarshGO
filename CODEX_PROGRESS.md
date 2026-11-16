@@ -1,3 +1,19 @@
+## 2026-11-16 — QODER: early rental WALK evaluation — PARTIAL / NOT_RELEASED
+
+Rootbase5f50b7a. Isolated Server67546086fa4977098e469b8f4726176b7550c74b,
+PR192 OPEN/head verified,base and current remote main378eccb.
+Covered connectors use the existing budgeted FOOT router before micromobility ranking
+and transit earliest departure; walk caps and aggregate leg metrics now agree.
+Null FOOT keeps honest estimates; serializer no longer queries geometry providers.
+33/33,0fail/skip914.268791ms; changed ESLint/full tsc/diff check PASS.
+Three new controls failed on pre-fix helper; executing base serializer separately
+triggers forbidden late-routing control. VM tests execute actual index blocks.
+No live-provider/nationwide/runtime acceptance inferred from fixture results.
+PR192 CI queued43944883212/43944869433. PR191 both verifyPASS at1fb24f7:
+43942665720/2m48s and43942706431/2m58s (supersedes pending note below).
+Shared API/Site/DB/7777/zrok untouched; no main merge or deploy. Runtime and DATE
+remaining viewport/compact gates open; product stays PARTIAL / NOT_RELEASED.
+
 ## 2026-11-16 — QODER: mixed walking fixture + safe default resolver — PARTIAL / NOT_RELEASED
 
 Rootbase27211b4. Reviewed Servermain378eccb already implements per-leg partial WALK;
