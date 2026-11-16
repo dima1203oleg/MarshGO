@@ -1,3 +1,18 @@
+## 2026-11-16 — QODER: Kyiv30UAH corroborated, primary applicability incomplete — PARTIAL / NOT_RELEASED
+
+Baseca340919dfb39ad9345e4022ac9bafc1644e9bce. Task110 read-only Server source
+378eccb transportTariffs.ts43–49 and244–346. Catalog30UAH from15July2026;
+LB15July/NV11July accessible publication extractions corroborate increase.
+No basis to replace observed BUS5/BUS12 ESTIMATED30UAH with legacy8UAH.
+Primary municipality pages403,not retried/bypassed. Numbered act/full primary
+content,operator and onboard cash applicability/currentness remain unverified.
+Cash calculation checks city/mode/adult product,not effectiveFrom/fareMedia in
+that function; caller guards and unsupported runtime cases not audited,so no
+confirmed engine defect issued. Bulk-tier secondary discrepancies not used to
+change registry. JSON evidence preserves source strength and limitations.
+No app/server mutation,API/DB write,browser acceptance or tests run this atom.
+National coverage and release readiness unchanged; NOT_RELEASED.
+
 ## 2026-11-16 — QODER: exact request/raw geometry + BUS5 browser witness — PARTIAL / NOT_RELEASED
 
 Base2e8666ac9770b54072a6debb4cee6170b7d620b3. Task109 one actual Qoder/zrok

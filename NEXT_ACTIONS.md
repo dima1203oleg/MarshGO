@@ -1,3 +1,22 @@
+## RESUME BLOCK 2026-11-16 — Kyiv fare provenance, no wrong-price finding (base ca340919dfb39ad9345e4022ac9bafc1644e9bce)
+
+Task110 bounded provenance audit: actual Server source pinned378eccb,
+transportTariffs.ts43–49 has30UAH/effective15July2026/verified_static13Oct.
+Accessible LB15July and NV11July corroborate municipal single ride30UAH;
+LB explicitly includes bus/tram/trolleybus/metro/funicular. Legacy8UAH is not
+current evidence. No wrong-price defect established for BUS5/BUS12 on18Nov.
+Primary municipal single/transfer pages returned403; no retry/bypass. Secondary
+extractions are not archived primary acts and do not fully attest operator,
+cash/onboard eligibility,city-train/QR scope or absence of subsequent changes.
+Main calculateCashFare329–346 selects adult/all products by city/mode; no
+fareMedia/effectiveFrom check in that function. Caller guards not audited,
+so no unsupported-provider/date runtime defect claimed or Codex patch issued.
+Artifact:docs/evidence/kyiv-tariff-provenance-2026-11-16.json.
+Only evidence/docs changed; no Server/Site/API/DB/browser/restart/build/tests.
+NEXT: inspect pinned caller eligibility/date guards before reproducible fare
+handoff; reviewed-runtime/taskE/CI403/E2E and27×12 national gaps stay open.
+PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — exact Qoder request + raw BUS5 alternate witness (base 2e8666ac9770b54072a6debb4cee6170b7d620b3)
 
 Task109: one fresh search through existing authenticated Qoder in-app/zrok session.
