@@ -111,3 +111,43 @@ test('historical national archive is rejected without rewriting its missing requ
   assert.equal(result.witnessCount, result.witnesses.length);
   assert.equal(result.releaseStatus, 'NOT_RELEASED');
 });
+
+test('recorded Qoder bus-only request preserves exact date and stable dirty runtime', () => {
+  const probe = JSON.parse(readFileSync(new URL('../docs/evidence/qoder-kyiv-bus-exact-request-2026-11-16.json', import.meta.url), 'utf8'));
+  assert.equal(probe.status, 'complete');
+  assert.equal(probe.http, 200);
+  assert.equal(probe.requests.length, 1);
+  assert.deepEqual(probe.runtimeBefore, probe.runtimeAfter);
+  assert.equal(probe.runtimeBefore.data.sourceState, 'dirty');
+  const request = probe.requests[0].body;
+  assert.equal(request.departureAt, '2026-11-18T06:00:00.000Z');
+  assert.deepEqual(request.preferences.allowedTransportTypes, ['bus']);
+  const data = probe.response.data;
+  assert.equal(data.returnedCount, data.journeys.length);
+  assert.equal(data.journeys.length, 2);
+  assert.equal(data.partial, true);
+  for (const journey of data.journeys) {
+    assert.equal(journey.requestedDepartureAt, request.departureAt);
+    assert.deepEqual(journey.legs.map((leg: { mode: string }) => leg.mode), ['WALK', 'BUS', 'WALK']);
+    let previousArrival = Date.parse(request.departureAt);
+    for (const leg of journey.legs) {
+      const departure = Date.parse(leg.departureAt);
+      const arrival = Date.parse(leg.arrivalAt);
+      assert.ok(Number.isFinite(departure) && Number.isFinite(arrival));
+      assert.ok(departure >= previousArrival);
+      assert.ok(arrival >= departure);
+      assert.equal(leg.durationSeconds, (arrival - departure) / 1000);
+      assert.ok(Array.isArray(leg.routeGeometry) && leg.routeGeometry.length >= 2);
+      for (const point of leg.routeGeometry) {
+        assert.equal(point.length, 2);
+        assert.ok(point.every(Number.isFinite));
+        assert.ok(Math.abs(point[0]) <= 180 && Math.abs(point[1]) <= 90);
+      }
+      if (leg.mode === 'WALK') assert.equal(leg.source, 'osrm-foot-route');
+      if (leg.mode === 'BUS') assert.equal(leg.liveStatus, 'SCHEDULED');
+      previousArrival = arrival;
+    }
+    assert.equal(journey.totalDurationSeconds, (previousArrival - Date.parse(request.departureAt)) / 1000);
+    assert.equal(journey.priceStatus, 'ESTIMATED');
+  }
+});

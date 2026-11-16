@@ -1,3 +1,22 @@
+## 2026-11-16 — QODER: exact request/raw geometry + BUS5 browser witness — PARTIAL / NOT_RELEASED
+
+Base2e8666ac9770b54072a6debb4cee6170b7d620b3. Task109 one actual Qoder/zrok
+bus-only POST18:32:48.357Z,18Nov08:00Kyiv→06:00Z. Captured request body/full
+response/runtime before-after without credentials. HTTP200/3697ms/2journeys:
+BUS12 WALK/BUS/WALK2792s/855m; BUS5 WALK/BUS/WALK4247s/337m;30UAH ESTIMATED,
+0transfers,transit SCHEDULED.6raw routeGeometry arrays present; numeric coords,
+chronology and request-based durations pass. Partial38candidates,walk-search32,
+sampling/search-budget flags; no completeness or road/calendar/rights proof.
+Runtime stable dirty e9934ab/build154848Z/instance08e52ab1,not GitHub/main378eccb.
+Served Site330dd3/head1fec46f still foreign dirty,not modified. Qoder395×843
+results18.11/BUS/2routes; new alternate BUS5 details visibly render blue route,
+boarding/alighting,6stops08:37→09:07 and overall08:00→09:10.2PNG+rawJSON+DOMJSON.
+Tests11evidence+5auth16/16,0skip,512.870791ms; ESLint/typecheck/diff-check PASS.
+Text wait on button aria-label timed out,not API failure; observed completed
+response/no duplicate POST. Fetch restored; temporary capture removed. Search
+creates PLANNED records; no reservation/GPS/share/save/restart/import/app patch.
+Task71 missing filters in URL persists; reviewed runtime/taskE/CI403/E2E remain open.
+
 ## 2026-11-16 — QODER: root offline national journey evidence gate — PARTIAL / NOT_RELEASED
 
 Base42d7d6b3b46448d3d7ef5b40febf6ad0a6da67e1. Task108 implemented only in root:

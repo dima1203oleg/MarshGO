@@ -1,3 +1,31 @@
+## RESUME BLOCK 2026-11-16 — exact Qoder request + raw BUS5 alternate witness (base 2e8666ac9770b54072a6debb4cee6170b7d620b3)
+
+Task109: one fresh search through existing authenticated Qoder in-app/zrok session.
+UI: edit route,disable all modes,enable BUS only,select18Nov2026 08:00 Kyiv.
+Actual POST18:32:48.357Z captured without headers/tokens: departureAt06:00Z,
+O/D[30.4907708,50.4406219]→[30.5168993,50.4113155],allowedTransportTypes[bus].
+HTTP200,3697ms,2journeys/38candidates,partial=true,search-budget/sampling/walk-cap32.
+Both WALK/BUS/WALK: BUS12 2792s/855m walk; BUS5 4247s/337m walk;
+30UAH ESTIMATED each,0transfers,transit SCHEDULED. All6 raw geometries captured
+(44/68/6 and8/46/10points). Exact request time,leg chronology,durations and numeric
+WGS84 coordinates pass recorded-evidence regression. This is not road-legality,
+feed-rights/calendar or nationwide/current-main acceptance.
+Runtime before/after identical e9934ab dirty/build154848Z/instance08e52ab1.
+Server GitHub/main378eccb remains newer; served Site330dd3/head1fec46f remains
+foreign dirty codex branch,untouched. readyz200 after query. No restart/build/import.
+In-app395×843: results show18.11 08:00/BUS/2routes; BUS5 selected renders blue
+line,boarding/alighting and6stops08:37→09:07,overall08:00→09:10.
+Artifacts:qoder-kyiv-bus-exact-request-2026-11-16.json (full raw),resultsPNG,
+bus5-detailsPNG,bus5-DOMJSON. Capture restored fetch after one POST and deleted
+its temporary page object. Search persists PLANNED records,not read-only/no booking.
+Tests11evidence+5auth=16/16,0skip,512.870791ms; ESLint/typecheck/diff-check PASS.
+Browser text wait timed out on aria-label text not visible content; actual response
+completed in3.697s and screenshot/snapshot confirmed success. No duplicate retry.
+Transport filters still absent from deep-link URL(task71); no reload tested here.
+NEXT: same exact/raw capture for a distinct multimodal corridor after reviewed
+runtime handoff; taskE/CI Admin403/behavioral E2E and national gaps remain open.
+PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — root national journey evidence audit implemented (base 42d7d6b3b46448d3d7ef5b40febf6ad0a6da67e1)
 
 Task108: tools/audit-national-journey-evidence.ts audits the existing national
