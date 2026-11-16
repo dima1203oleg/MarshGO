@@ -9,10 +9,15 @@ never reroutes after selection. Existing BIKE/GBFS/unknown-fare guards preserved
 33/33 fixture tests,0fail/skip914.268791ms; changedlint/fulltypecheck/diffPASS.
 Three metric/cap controls failed before fix; actual base serializer execution detects
 late routing. VM tests execute actual candidate/serializer blocks,not live API proof.
-PR192 CI queued runs43944883212/43944869433; do not claim PASS yet.
+PR192 BOTH verify CI PASS at6754608:43944883212(3m25s),43944869433(2m53s).
 PR1911fb24f7 BOTH CI PASS:43942665720(2m48s),43942706431(2m58s).
 No canonical API/Site/DB/7777/zrok edits/restarts/deployment/main merge.
-NEXT: CI result + authorized runtime acceptance; DATE viewport/compact gates remain open.
+DATE Qoder expanded dark395x843 again shows18→19Nov correctly; Home compact state
+hides temporal summary. Repeated screenshot capture fails with hidden native surface,
+even after Browser2 focus and select_page bringToFront; no saved compact image proven.
+Task71 URL serializer/parser omit transport modes in inspected Site1b05c75 and served
+copy; remote main aa157fc verified. PR144 overlaps these files; no new UI edits.
+NEXT: authorized runtime acceptance; DATE viewport/compact and filter sequencing gates open.
 Nationwide FOOT/BIKE coverage and provider rights/availability remain PARTIAL / NOT_RELEASED.
 
 ## RESUME BLOCK 2026-11-16 — mixed walking proof + regional resolver fix (base 27211b4)

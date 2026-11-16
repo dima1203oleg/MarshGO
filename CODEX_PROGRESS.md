@@ -9,10 +9,16 @@ Null FOOT keeps honest estimates; serializer no longer queries geometry provider
 Three new controls failed on pre-fix helper; executing base serializer separately
 triggers forbidden late-routing control. VM tests execute actual index blocks.
 No live-provider/nationwide/runtime acceptance inferred from fixture results.
-PR192 CI queued43944883212/43944869433. PR191 both verifyPASS at1fb24f7:
+PR192 both verifyPASS at6754608:43944883212/3m25s,43944869433/2m53s.
+PR191 both verifyPASS at1fb24f7:
 43942665720/2m48s and43942706431/2m58s (supersedes pending note below).
 Shared API/Site/DB/7777/zrok untouched; no main merge or deploy. Runtime and DATE
 remaining viewport/compact gates open; product stays PARTIAL / NOT_RELEASED.
+Follow-up Qoder dark395x843 expanded dates18→19Nov correct; compact hides temporal
+summary. Native screenshot hidden-surface failure persists after focus/bringToFront;
+no saved compact image claimed. Task71 serializer/parser omit transport modes in
+inspected Site1b05c75/served copy; remote main aa157fc verified, PR144 file overlap.
+No further UI edits, new search, authentication or shared runtime changes.
 
 ## 2026-11-16 — QODER: mixed walking fixture + safe default resolver — PARTIAL / NOT_RELEASED
 
