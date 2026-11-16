@@ -1,22 +1,8 @@
 import { expect, test } from '@playwright/test';
-import { requestDevelopmentOtp } from './support/developmentOtp';
+import { signInWithEmailPassword } from './support/emailPasswordAuth';
 
 async function signIn(page: import('@playwright/test').Page, label: string) {
-  await page.goto('/');
-  const loginHeading = page.getByRole('heading', { name: 'Вхід за номером телефону' });
-  const welcome = page.getByRole('button', { name: /У мене вже є акаунт/i });
-  await expect(loginHeading.or(welcome).first()).toBeVisible();
-  if (await welcome.isVisible()) await welcome.click();
-  await expect(loginHeading).toBeVisible();
-  await page.getByPlaceholder('Ваше ім’я').fill(label);
-  await page.getByPlaceholder('+380 номер телефону').fill(`+38093${String(Date.now()).slice(-7)}`);
-  const otp = await requestDevelopmentOtp(page);
-  await page.locator('input[autocomplete="one-time-code"]').fill(otp!);
-  await Promise.all([
-    page.waitForResponse(response => response.url().endsWith('/api/v1/auth/otp/verify') && response.status() === 200),
-    page.getByRole('button', { name: 'Підтвердити номер' }).click(),
-  ]);
-  await expect(page.locator('.production-app')).toBeVisible();
+  await signInWithEmailPassword(page, label, `+38093${String(Date.now()).slice(-7)}`);
 }
 
 test('create-demand empty state opens the demand form', async ({ page, browserName }) => {

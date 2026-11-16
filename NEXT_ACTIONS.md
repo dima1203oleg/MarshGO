@@ -1,3 +1,31 @@
+## RESUME BLOCK 2026-11-16 — Root E2E email/password migration: PARTIAL, behavioral gate NOT_TESTED (base 8611381091388adeda8c198518989a4df93e0cd5)
+
+Task #45: six E2E specs now share actual register/login UI auth; deterministic
+email/password fixtures preserve phone-keyed marketplace SQL. Seeded driver has
+a server-compatible scrypt password. Verified profile flags are isolated DB
+fixtures, NOT real-world identity verification. Shared helper and marketplace
+setup require loopback AND marshgo_e2e-prefixed database names. Profile is reloaded
+after seeding; login fallback requires email_already_registered, not arbitrary409.
+Removed developmentOtp/reset-e2e-otp; reset-e2e-auth clears isolated failed auth
+attempts. Both browser runners now invoke project-local Playwright (1.63), not
+global Homebrew1.60, which rejected test with unknown command.
+VERIFIED: npm run typecheck; changed-file eslint; bash -n both runners;
+tsx --test tests/email-password-e2e.test.ts:5 passed,0 failed,0 skipped,659ms.
+The helper also rejects canonical7777/remote browser origins before registration.
+Discovery with isolated E2E_DATABASE_URL:18 tests in6 files (NOT execution).
+Earlier harness built pinned Site fef697e2 and migrated pinned Server44f954b3,
+but failed at CLI invocation:exit1,0 Playwright tests executed. Its isolated3300
+surface is NOT canonical7777 visual acceptance; no repeat duplicate UI launched.
+Resources17:52Z:memory30%,disk14GiB (YELLOW). Canonical7777/zrok untouched.
+Qoder in-app snapshot/screenshot17:55Z still shows Kyiv bus12 chain47min/30UAH;
+this existing rendered state does NOT prove email auth or current API health.
+NEXT: execute register201 + duplicate409/login200 + seeded driver login and
+marketplace lifecycle in an authorized resource-safe test context; no weakening
+of assertions, no writes to shared/prod accounts. #45 remains in_progress.
+GitHub:Root PR25 OPEN at8611381; verify FAILURE,security scans SUCCESS.
+Server PR26 OPEN at a1961324a2a46bd062231d35720fe349d39d9d76; no Server edits.
+Main/deployment NOT performed. National coverage still PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — третій крах API: першопричина Postgres exit code 2; звіт скориговано за audit 364 (base 61d4b5f)
 
 API знову впав ~15:01:32Z (той самий dirty SHA e9934ab, тригер

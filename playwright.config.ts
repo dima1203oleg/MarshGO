@@ -56,10 +56,8 @@ export default defineConfig({
         REDIS_URL: process.env.REDIS_URL ?? 'redis://127.0.0.1:6380',
         API_RATE_LIMIT_PREFIX: `marshgo:e2e:${e2eRunId}:`,
         API_RATE_LIMIT_LIMIT: '5000',
-        // Salt OTP network throttling per isolated E2E run so a reused local test DB does not
-        // retain this run's IP bucket; production's OTP limits remain unchanged.
+        // Isolate session signatures between E2E runs.
         SESSION_SECRET: process.env.E2E_SESSION_SECRET ?? `test-only-marshgo-e2e-${e2eRunId}-session-secret`,
-        AUTH_DEV_OTP: 'true',
         GEOCODING_ENGINE_URL: 'http://127.0.0.1:3304/search',
         ROUTING_ENGINE_URL: 'http://127.0.0.1:3305/route/v1/driving',
         CORS_ORIGINS: 'http://127.0.0.1:3300',

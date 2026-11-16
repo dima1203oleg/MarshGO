@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import type { ApiBooking } from '../src/services/productionApi';
-import { requestDevelopmentOtp } from './support/developmentOtp';
+import { signInWithEmailPassword } from './support/emailPasswordAuth';
 
 test('production sign-in, home and search stay usable across screen sizes', async ({ page, browserName }) => {
   const activeBooking: ApiBooking = {
@@ -30,22 +30,7 @@ test('production sign-in, home and search stay usable across screen sizes', asyn
     }
   });
 
-  await page.goto('/');
-  const loginHeading = page.getByRole('heading', { name: 'Вхід за номером телефону' });
-  const welcome = page.getByRole('button', { name: /У мене вже є акаунт/i });
-  await expect(loginHeading.or(welcome).first()).toBeVisible();
-  if (await welcome.isVisible()) await welcome.click();
-  await expect(loginHeading).toBeVisible();
-  await page.getByPlaceholder('Ваше ім’я').fill(`Compat ${browserName}`);
-  await page.getByPlaceholder('+380 номер телефону').fill(`+38091${String(Date.now()).slice(-7)}`);
-  const otp = await requestDevelopmentOtp(page);
-  await page.locator('input[autocomplete="one-time-code"]').fill(otp!);
-  await Promise.all([
-    page.waitForResponse(response => response.url().endsWith('/api/v1/auth/otp/verify') && response.status() === 200),
-    page.getByRole('button', { name: 'Підтвердити номер' }).click(),
-  ]);
-  await expect(page.locator('.production-app')).toBeVisible();
-  await expect(page.locator('.production-app')).toBeVisible();
+  await signInWithEmailPassword(page, `Compat ${browserName}`, `+38091${String(Date.now()).slice(-7)}`);
   await expect(page.getByRole('button', { name: 'Відкрити MarshPass: Львів — Стрий' })).toBeVisible();
 
   for (const viewport of [

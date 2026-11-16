@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { requestDevelopmentOtp } from './support/developmentOtp';
+import { signInWithEmailPassword } from './support/emailPasswordAuth';
 
 async function expectCanonicalScreenshot(
   page: Page,
@@ -356,19 +356,7 @@ test('canonical route map synchronizes the sheet, stop details, map focus, and l
   // Resize only after navigation: Firefox can hang when resizing its blank
   // mobile-emulation page, while the same phone viewport works after first paint.
   await page.setViewportSize({ width: 402, height: 852 });
-  const loginHeading = page.getByRole('heading', { name: 'Вхід за номером телефону' });
-  const welcome = page.getByRole('button', { name: /У мене вже є акаунт/i });
-  await expect(loginHeading.or(welcome).first()).toBeVisible();
-  if (await welcome.isVisible()) await welcome.click();
-  await page.getByPlaceholder('Ваше ім’я').fill(`Map ${browserName}`);
-  await page.getByPlaceholder('+380 номер телефону').fill(`+38092${String(Date.now()).slice(-7)}`);
-  const otp = await requestDevelopmentOtp(page);
-  await page.locator('input[autocomplete="one-time-code"]').fill(otp!);
-  const [verifyResponse] = await Promise.all([
-    page.waitForResponse(response => response.url().endsWith('/api/v1/auth/otp/verify') && response.status() === 200),
-    page.getByRole('button', { name: 'Підтвердити номер' }).click(),
-  ]);
-  const accessToken = (await verifyResponse.json()).data.accessToken as string;
+  const accessToken = await signInWithEmailPassword(page, `Map ${browserName}`, `+38092${String(Date.now()).slice(-7)}`);
   const driverRoleStatus = await page.evaluate(async (token) => fetch('/api/v1/users/me/roles', {
     method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify({ role: 'driver' }),

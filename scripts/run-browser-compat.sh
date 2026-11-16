@@ -22,8 +22,8 @@ if [[ ! -f "$SERVER_DIR/node_modules/.package-lock.json" ]]; then
   npm ci --prefix "$SERVER_DIR" --no-audit --no-fund
 fi
 npm run db:migrate --prefix "$SERVER_DIR"
-node scripts/reset-e2e-otp.ts
+node scripts/reset-e2e-auth.ts
 node scripts/build-pwa.mjs
 export TRANSIT_REALTIME_DISABLED=true
 export E2E_DIST_DIR="${E2E_DIST_DIR:-$PWD/.release/site-${SITE_SHA}/dist}"
-playwright test --config=playwright.compat.config.ts "$@"
+./node_modules/.bin/playwright test --config=playwright.compat.config.ts "$@"

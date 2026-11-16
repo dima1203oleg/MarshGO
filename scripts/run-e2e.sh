@@ -53,7 +53,7 @@ if [[ ! -f "$E2E_SERVER_DIR/node_modules/.package-lock.json" ]]; then
   npm ci --prefix "$E2E_SERVER_DIR" --no-audit --no-fund
 fi
 npm run db:migrate --prefix "$E2E_SERVER_DIR"
-node scripts/reset-e2e-otp.ts
+node scripts/reset-e2e-auth.ts
 if [[ -n "${E2E_DIST_DIR:-}" ]]; then
   if [[ ! -d "$E2E_DIST_DIR/assets" || ! -f "$E2E_DIST_DIR/index.html" ]]; then
     echo "E2E_DIST_DIR must point to a built Site/PWA directory with index.html and assets/." >&2
@@ -64,4 +64,4 @@ else
   SITE_SHA="$(node -e 'process.stdout.write(JSON.parse(require("node:fs").readFileSync("RELEASE_MANIFEST.json","utf8")).site_sha)')"
   export E2E_DIST_DIR="$PWD/.release/site-${SITE_SHA}/dist"
 fi
-playwright test "$@"
+./node_modules/.bin/playwright test "$@"

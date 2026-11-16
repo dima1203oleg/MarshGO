@@ -2,13 +2,14 @@ import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { devices, expect, test } from '@playwright/test';
 import { Pool } from 'pg';
-import { requestDevelopmentOtp } from './support/developmentOtp';
+import { e2eEmailForPhone, hashE2ePassword, signInWithEmailPassword } from './support/emailPasswordAuth';
 
 const databaseUrl = process.env.E2E_DATABASE_URL;
 if (!databaseUrl) throw new Error('E2E_DATABASE_URL must point to the isolated local PostGIS test database');
 const database = new URL(databaseUrl);
-if (!['127.0.0.1', 'localhost', '::1'].includes(database.hostname)) {
-  throw new Error('Browser E2E tests are restricted to a loopback database');
+if (!['127.0.0.1', 'localhost', '::1'].includes(database.hostname)
+  || !/^marshgo_e2e(?:_[a-z0-9_]+)?$/.test(database.pathname.slice(1))) {
+  throw new Error('Browser E2E tests require a loopback marshgo_e2e-prefixed database');
 }
 
 const pool = new Pool({ connectionString: databaseUrl });
@@ -38,25 +39,7 @@ function tomorrowInKyiv() {
 }
 
 async function signIn(page: import('@playwright/test').Page, name: string, phone: string): Promise<string> {
-  await page.goto('/');
-  const loginHeading = page.getByRole('heading', { name: 'Вхід за номером телефону' });
-  const welcome = page.getByRole('button', { name: /У мене вже є акаунт/i });
-  await expect(loginHeading.or(welcome).first()).toBeVisible();
-  if (await welcome.isVisible()) await welcome.click();
-  await expect(loginHeading).toBeVisible();
-  await page.getByPlaceholder('Ваше ім’я').fill(name);
-  await page.getByPlaceholder('+380 номер телефону').fill(phone);
-  const code = await requestDevelopmentOtp(page);
-  await page.locator('input[autocomplete="one-time-code"]').fill(code!);
-  const [authResponse] = await Promise.all([
-    page.waitForResponse(response => response.url().endsWith('/api/v1/auth/otp/verify')),
-    page.getByRole('button', { name: 'Підтвердити номер' }).click(),
-  ]);
-  // The canonical release home copy changes independently of authentication.
-  // Assert the signed-in application shell, not a marketing headline.
-  await expect(page.locator('.production-app')).toBeVisible();
-  expect(Boolean((await authResponse.allHeaders())['set-cookie']), 'OTP verification should issue a refresh cookie').toBe(true);
-  return (await authResponse.json()).data.accessToken as string;
+  return signInWithEmailPassword(page, name, phone);
 }
 
 /** Search lives in its own tab; the home screen only shows what is around the user. */
@@ -196,8 +179,9 @@ test('route transport catalogue exposes the twelve canonical modes in order and 
 test('welcome and onboarding explain the real transport scope and keep location permission optional', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: /У мене вже є акаунт/i }).click();
-  await expect(page.getByRole('heading', { name: 'Вхід за номером телефону' })).toBeVisible();
-  await page.getByRole('button', { name: 'Назад' }).click();
+  await expect(page.getByRole('heading', { name: 'Вхід до MARSHGO' })).toBeVisible();
+  // The release login screen has no back control; reload returns to the intro.
+  await page.goto('/');
   await page.getByRole('button', { name: 'Почати', exact: true }).first().click();
   await expect(page.getByRole('heading', { name: /Їдеш\? MARSHGO знайде попутника/ })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Назад' })).toHaveCount(1);
@@ -211,14 +195,14 @@ test('welcome and onboarding explain the real transport scope and keep location 
   await expect(page.getByRole('heading', { name: /Дозвольте MARSHGO/ })).toBeVisible();
   await page.screenshot({ path: '/tmp/marshgo-onboarding-permissions.png', fullPage: true });
   await page.getByRole('button', { name: 'Не зараз', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Вхід за номером телефону' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Вхід до MARSHGO' })).toBeVisible();
 });
 
 test.beforeAll(async () => {
   await pool.query(`
-    INSERT INTO users(id,phone_e164,display_name,roles,is_verified)
-    VALUES($1,$2,'MARSHGO E2E Driver',ARRAY['passenger','driver'],true)
-  `, [driverId, driverPhone]);
+    INSERT INTO users(id,email,password_hash,phone_e164,display_name,roles,is_verified,account_status)
+    VALUES($1,$2,$3,$4,'MARSHGO E2E Driver',ARRAY['passenger','driver'],true,'active')
+  `, [driverId, e2eEmailForPhone(driverPhone), hashE2ePassword(), driverPhone]);
   await pool.query(`INSERT INTO user_roles(user_id,role) VALUES($1,'passenger'),($1,'driver')`, [driverId]);
   await pool.query(`
     INSERT INTO vehicles(id,owner_id,make,model,model_year,seat_count,verification_status,trust_level,is_active)
@@ -274,7 +258,6 @@ test.afterAll(async () => {
   await pool.query('DELETE FROM navigation_sessions WHERE driver_id=ANY($1::uuid[])', [userIds]);
   await pool.query('DELETE FROM passenger_demands WHERE passenger_id=ANY($1::uuid[])', [userIds]);
   await pool.query('DELETE FROM offers WHERE id=$1 OR driver_id=ANY($2::uuid[])', [offerId, userIds]);
-  await pool.query('DELETE FROM otp_challenges WHERE phone_e164=ANY($1::text[])', [[driverPhone, passengerPhone, navigationPhone, navigationSecondPhone, navigationPassengerPhone, navigationFlowDriverPhone, journeyPassengerPhone, searchRestorePhone, transportCatalogPhone, gpsDeniedPhone, navigationThirdPassengerPhone]]);
   await pool.query('DELETE FROM sessions WHERE user_id=ANY($1::uuid[])', [userIds]);
   await pool.query('DELETE FROM account_deletion_requests WHERE user_id=ANY($1::uuid[])', [userIds]);
   await pool.query('DELETE FROM vehicles WHERE id=$1 OR owner_id=ANY($2::uuid[])', [vehicleId, userIds]);

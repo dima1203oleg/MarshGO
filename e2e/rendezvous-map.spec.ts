@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { requestDevelopmentOtp } from './support/developmentOtp';
+import { signInWithEmailPassword } from './support/emailPasswordAuth';
 
 test('confirmed carpool rendezvous displays consented locations and labeled straight-line distance', async ({ page }) => {
   const bookingId = 'e2e-rendezvous-booking';
@@ -38,21 +38,7 @@ test('confirmed carpool rendezvous displays consented locations and labeled stra
     ? route.fulfill({ json: { data: { rendezvousId, storedEphemerally: true, expiresInSeconds: 90, nearPickup: false, arrivalRequiresUserConfirmation: true } } })
     : route.continue());
 
-  await page.goto('/');
-  const loginHeading = page.getByRole('heading', { name: 'Вхід за номером телефону' });
-  const welcome = page.getByRole('button', { name: /У мене вже є акаунт/i });
-  await expect(loginHeading.or(welcome).first()).toBeVisible();
-  if (await welcome.isVisible()) await welcome.click();
-  await expect(loginHeading).toBeVisible();
-  await page.getByPlaceholder('Ваше ім’я').fill('Rendezvous UI Test');
-  await page.getByPlaceholder('+380 номер телефону').fill(`+38092${String(Date.now()).slice(-7)}`);
-  const otp = await requestDevelopmentOtp(page);
-  await page.locator('input[autocomplete="one-time-code"]').fill(otp);
-  await Promise.all([
-    page.waitForResponse(response => response.url().endsWith('/api/v1/auth/otp/verify') && response.status() === 200),
-    page.getByRole('button', { name: 'Підтвердити номер' }).click(),
-  ]);
-  await expect(page.locator('.production-app')).toBeVisible();
+  await signInWithEmailPassword(page, 'Rendezvous UI Test', `+38092${String(Date.now()).slice(-7)}`);
   await page.getByRole('button', { name: 'Поїздки' }).click();
   await expect(page.getByRole('heading', { name: 'Мої поїздки' })).toBeVisible();
   await page.getByRole('button', { name: 'Відкрити зустріч' }).click();

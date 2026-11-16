@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { requestDevelopmentOtp } from './support/developmentOtp';
+import { signInWithEmailPassword } from './support/emailPasswordAuth';
 
 /**
  * Clicks every visible button, tab and link on each screen of the signed-in web app and checks that the click
@@ -11,18 +11,7 @@ const brokenText = /\bundefined\b|\bnull\b|\bNaN\b|\[object Object\]|Request fai
 const skip = /Вийти|Видалити|Скасувати|Завершити|Вихід|Заблокувати|Поскаржитися/i;
 
 async function signIn(page: Page, name: string) {
-  await page.goto('/');
-  const loginHeading = page.getByRole('heading', { name: 'Вхід за номером телефону' });
-  const welcome = page.getByRole('button', { name: /У мене вже є акаунт/i });
-  await expect(loginHeading.or(welcome).first()).toBeVisible();
-  if (await welcome.isVisible()) await welcome.click();
-  await expect(loginHeading).toBeVisible();
-  await page.getByPlaceholder('Ваше ім’я').fill(name);
-  await page.getByPlaceholder('+380 номер телефону').fill(`+38092${String(Date.now()).slice(-7)}`);
-  const otp = await requestDevelopmentOtp(page);
-  await page.locator('input[autocomplete="one-time-code"]').fill(otp!);
-  await Promise.all([page.waitForResponse((r) => r.url().endsWith('/api/v1/auth/otp/verify') && r.status() === 200), page.getByRole('button', { name: 'Підтвердити номер' }).click()]);
-  await expect(page.locator('.production-app')).toBeVisible();
+  await signInWithEmailPassword(page, name, `+38092${String(Date.now()).slice(-7)}`);
 }
 
 test('every button on every main screen responds without errors', async ({ browser }) => {

@@ -1,3 +1,24 @@
+## 2026-11-16 — QODER: Root E2E email/password migration — PARTIAL / NOT_RELEASED
+
+Base8611381091388adeda8c198518989a4df93e0cd5. Six specs migrated from retired
+OTP to shared real UI register/login; driver fixture seeded with scrypt hash.
+Phone/verified flags are isolated test fixtures, not real verification. Database
+boundary now checks loopback and marshgo_e2e name before mutations. Duplicate
+email fallback validates exact409 code; fixture reload keeps UI profile current.
+Project-local Playwright fixes global CLI unknown-command failure. New auth reset
+replaces OTP reset; AUTH_DEV_OTP removed from browser config.
+Checks: typecheck PASS,changed-file eslint PASS,bash syntax PASS; actual helper
+regressions5/5 passed,0 skipped (659ms),including canonical7777/remote browser
+rejection before registration. Discovery18 tests/6 files,NOT execution.
+Earlier full harness failed(exit1) after release materialization/migration/build,
+with0 Playwright tests executed. No new duplicate preview/build started. At17:52Z
+memory30%,disk14GiB:YELLOW.7777/zrok/shared API not restarted or modified.
+Canonical Qoder screenshot17:55Z:existing Kyiv bus12 chain47min/30UAH; not auth
+acceptance and not fresh API evidence. #45 remains in_progress pending register,
+login,driver and marketplace lifecycle execution. Root PR25 OPEN/head8611381,
+verify FAILURE; Server PR26 OPEN/head a1961324a2a46bd062231d35720fe349d39d9d76.
+No Server code,protected main,secrets or production deployment changes.
+
 ## 2026-11-16 — QODER: третій крах API + першопричина Postgres exit code 2; корекція звіту за audit 364 — PARTIAL / NOT_RELEASED
 
 Base 959c400 → 61d4b5f. ~15:01:32Z API (dirty e9934abbd8fc973177de8d7f47548739758a1b74)
