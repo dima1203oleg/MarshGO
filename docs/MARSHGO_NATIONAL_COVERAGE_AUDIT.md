@@ -434,6 +434,22 @@ fallback «<місто> · центр міста» (`marshgo:city-reference:<id>
 3. 19 міст: фіди є в каталозі, але не інгестовані в рушій Nov13 → потрібне оновлення runtime/інгестація (Codex).
 4. 7 режимів без ніжок → потрібні адаптери/провайдери (Codex + партнерські договори).
 
+### 15.8 Прокатні / мікромобільні режими (додатковий прогон, 5 пошуків)
+
+Артефакт: [national-rental-mode-probe-2026-11-16.json](evidence/national-rental-mode-probe-2026-11-16.json).
+
+| Контроль | Результат | Інтерпретація |
+|---|---|---|
+| kyiv scooter-only | n=0 cand=0, partial/provErr/unsup = [] | Zelectra GBFS зареєстрований і LIVE (11-14), але рушій **мовчки** не маршрутизує самокат і НЕ прапорить unsupported_preference → прогалина діагностики/адаптера (Codex) |
+| kyiv bike-only | n=0 cand=0, чисто | Nextbike зареєстрований для Києва, але для цього O/D bike-ніжки нема |
+| lviv bike-only | n=1 [WALK,BICYCLE] | `static-bike-network-estimate` + `walking-straight-line-estimate`; unsup `maxPriceMinor:micromobility-price-unavailable` → bike = **оцінка**, не живий inventory, тариф недоступний |
+| kyiv carsharing-only | n=0, unsup `transportType:carsharing:not-in-route-engine` | явний not-in-engine |
+| kyiv taxi-only | n=0, unsup `transportType:taxi:not-in-route-engine` | явний not-in-engine |
+
+Отже bike — 5-й режим із (estimate-)ніжками у Львові/Івано-Франківську/Одесі, але не Києві для цього O/D;
+scooter має живого провайдера, проте 0 ніжок і **відсутній діагностичний прапор** (на відміну від
+carsharing/taxi) — це окремий Codex-дефект видимості, а не лише покриття.
+
 **Висновок 11-16:** ланцюжки складаються правильно на реальних фідах для 3 міст + 6 міжміських коридорів
 і коректно fail-closed для невідомих тарифів, але національне покриття по всіх 12 видах — **НІ**:
 4/12 режимів, 19/24 міст без міського транзиту, 0 підтверджених тарифів, усі пошуки вибіркові.

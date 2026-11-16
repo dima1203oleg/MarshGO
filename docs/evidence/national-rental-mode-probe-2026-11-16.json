@@ -1,0 +1,89 @@
+{
+  "probedAt": "2026-11-16T08:41:00.616Z",
+  "departureAt": "2026-11-16T12:40:00+02:00",
+  "results": [
+    {
+      "label": "kyiv:scooter-only",
+      "modes": [
+        "scooter"
+      ],
+      "http": 200,
+      "n": 0,
+      "legModes": [],
+      "sources": [],
+      "partial": [],
+      "providerErrors": [],
+      "unsupported": []
+    },
+    {
+      "label": "kyiv:bike-only",
+      "modes": [
+        "bike"
+      ],
+      "http": 200,
+      "n": 0,
+      "legModes": [],
+      "sources": [],
+      "partial": [],
+      "providerErrors": [],
+      "unsupported": []
+    },
+    {
+      "label": "lviv:bike-only",
+      "modes": [
+        "bike"
+      ],
+      "http": 200,
+      "n": 1,
+      "legModes": [
+        "WALK",
+        "BICYCLE"
+      ],
+      "sources": [
+        "walking-straight-line-estimate",
+        "static-bike-network-estimate"
+      ],
+      "partial": [
+        "unsupported_preference"
+      ],
+      "providerErrors": [],
+      "unsupported": [
+        "maxPriceMinor:micromobility-price-unavailable"
+      ]
+    },
+    {
+      "label": "kyiv:carsharing-only",
+      "modes": [
+        "carsharing"
+      ],
+      "http": 200,
+      "n": 0,
+      "legModes": [],
+      "sources": [],
+      "partial": [
+        "unsupported_preference"
+      ],
+      "providerErrors": [],
+      "unsupported": [
+        "transportType:carsharing:not-in-route-engine"
+      ]
+    },
+    {
+      "label": "kyiv:taxi-only",
+      "modes": [
+        "taxi"
+      ],
+      "http": 200,
+      "n": 0,
+      "legModes": [],
+      "sources": [],
+      "partial": [
+        "unsupported_preference"
+      ],
+      "providerErrors": [],
+      "unsupported": [
+        "transportType:taxi:not-in-route-engine"
+      ]
+    }
+  ]
+}
