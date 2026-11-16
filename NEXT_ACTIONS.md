@@ -1,3 +1,26 @@
+## RESUME BLOCK 2026-11-16 — §15.12 LONG-HAUL INTER-OBLAST CORRIDORS API-VERIFIED (3 TRANSFERS EAST→WEST)
+
+Base Root c028d9b → **7a78280** (PR189 root-cause) → **a2af084** (§15.12 probe, PR25 OPEN, pushed).
+Authenticated `/api/v1/journeys/search` (now requires Bearer; 401 anonymous) on unchanged runtime
+e9934abbd8fc-dirty, departure 17.11 08:00 BALANCED. Artifact
+docs/evidence/national-new-corridors-probe-2026-11-16.json. HARNESS BUG CAUGHT+FIXED: first read
+`j.journeys` without unwrapping `{data:{journeys:[…]}}` → false 0 on all 7; positive control
+Kyiv→Lviv + structure inspection exposed it; after unwrap control gave expected RAIL. Results
+(ret/maxT/modes): **Kharkiv→Lviv 12/3/RAIL,TRAM,BUS**; **Dnipro→Lviv 12/3/RAIL,TRAM,BUS**;
+**Kyiv→Uzhhorod 12/3/RAIL,BUS,TROLLEYBUS**; Chernivtsi→Kyiv 3/1/RAIL,BUS; Odesa→Lviv 2/0/RAIL;
+Kharkiv→Odesa 1/0/RAIL with **bus/tram/trolleybus:not-in-route-engine** (Kharkiv/Odesa surface GTFS
+NOT ingested for this O/D = Codex gap); Kyiv→Lviv control 2/0/RAIL. Engine builds correct multimodal
+chains to **3 transfers** east→west via national RAIL trunk + destination-city TRAM/BUS/TROLLEYBUS;
+national witnesses now beyond the western cluster. Stable flags: Kyiv metro provider_error +
+marshrutka/metro/taxi/carsharing/transfer not-in-engine (6 partner modes). All partial=true,
+resultsTruncated=true (except Kharkiv→Odesa) = dense-feed truncation (PR189 cap-insensitive), NOT
+chain defect; fares UNKNOWN fail-closed. PR189 (Codex, head f9dc8843, run 43717060858): every
+raised-ceiling Lviv variant stays truncated yet returns full 10-page → truncation is dense-feed
+property, do NOT raise prod limits. issue26 comments 6912462165 (curated) + 6912744988 (§15.12).
+Counts/matrix unchanged (M3 10/324 FV). Runtime UNCHANGED; new Codex merges PR185–190 NOT deployed.
+Chain logic VERIFIED to 4 transfers UI / 3 API long-haul; national gap = ingestion/adapters/coverage
++ place-resolution (Codex geocoder/curated; Site #71). NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — CURATED DENOMINATOR 23 CITIES / ODESA-KYIV + LVIV-UZHGOROD(4-TRANSFER) UI-VERIFIED
 
 Base Root 2315e1d → commit **f592ef2** (PR25 OPEN, pushed). Read exact curated list

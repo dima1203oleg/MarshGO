@@ -5491,3 +5491,23 @@ Not claimed: payment capture, live GTFS-RT vehicle positions, anything on accept
   Львів→Стрий 3, Одеса→Київ 1, Львів→Ужгород 4). Національна прогалина = інгестація/покриття +
   place-resolution (Codex геокодер/curated; Site #71), не chain-логіка. Counts/matrix без змін.
   Runtime без змін. NOT_RELEASED.
+
+## 2026-11-16 — Qoder: §15.12 long-haul міжобласні коридори API-верифіковано (commit a2af084, PR25)
+
+- Автентифікований probe `/api/v1/journeys/search` (endpoint тепер вимагає Bearer; 401 анонімно),
+  departure 17.11 08:00 BALANCED, чинний runtime e9934abbd8fc-dirty. Артефакт
+  docs/evidence/national-new-corridors-probe-2026-11-16.json (6 коридорів + позитивний контроль Київ→Львів).
+- **Harness bug спіймано+виправлено:** перша версія читала `j.journeys` без розгортання конверта
+  `{data:{journeys:[…]}}` → хибні 0 на всіх 7; контроль + інспекція структури виявили; після fix
+  контроль дав очікуваний RAIL. Нульова гіпотеза «long-haul порожні» = артефакт harness, не продукт.
+- Результати (ret/maxT/режими): **Харків→Львів 12/3/RAIL,TRAM,BUS**; **Дніпро→Львів 12/3/RAIL,TRAM,BUS**;
+  **Київ→Ужгород 12/3/RAIL,BUS,TROLLEYBUS**; Чернівці→Київ 3/1/RAIL,BUS; Одеса→Львів 2/0/RAIL;
+  Харків→Одеса 1/0/RAIL з **bus/tram/trolleybus:not-in-route-engine** (поверхневі GTFS Харкова/Одеси
+  НЕ інгестовані для цього O/D = Codex gap); контроль Київ→Львів 2/0/RAIL.
+- **Висновок:** рушій будує коректні мультимодальні ланцюжки до **3 пересадок** Схід→Захід через
+  національний RAIL-стовбур + міські TRAM/BUS/TROLLEYBUS міста призначення; свідки поза західним кластером.
+  PR189 (Codex f9dc8843, run 43717060858): усі raised-ceiling Lviv-варіанти лишаються truncated, але
+  повертають повну 10-сторінку → truncation = властивість щільного feed, не дефект побудови; prod-ліміти не піднімати.
+- Стабільні прапори: Київське метро provider_error + marshrutka/metro/taxi/carsharing/transfer
+  not-in-engine (6 партнерських режимів). Тарифи UNKNOWN (fail-closed). issue26 6912744988.
+  Counts/matrix без змін. Runtime без змін (PR185–190 НЕ задеплоєні). NOT_RELEASED.
