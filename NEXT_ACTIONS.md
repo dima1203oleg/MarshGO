@@ -1,3 +1,19 @@
+## RESUME BLOCK 2026-11-16 — exact rail mirror stop gap (base f85cadc)
+
+Task115 VERIFIED archive c753015c1c9802b44da438442279ff3ee931c208f7db54d054b95fe72d596566:
+167stops/115trips/1192stopTimes/99activeServiceIDs17Nov. Chernihiv nearest Nosivka69739m;
+Kherson nearest Voznesensk143038m; no local stop coverage. Sumy1active/Kyiv68active controls.
+Evidence national-rail-stop-coverage-2026-11-16.json; audit15.15 corrected NO SERVICE to
+NO ROUTE IN PROBE. Exact runtime archive/official provenance/operational service NOT_VERIFIED.
+Task116 next lawful municipal source: existing local regional declarations lack URLs;
+inbus stale/unknown license,VDExpress wrong corridor. Official Chernihiv schedule index and
+route2 terminal timetable found (weekday12Oct2026/weekend21Mar2026); full intermediate
+stop_times/coordinates/rights absent in inspected pages;3Nov route10/11 temporary notice.
+Kherson search candidate78385974 belongs to another community,rejected. Evidence
+chernihiv-kherson-source-discovery-2026-11-16.json. No invented source/activation/runtime edits.
+PR193 both CI PASS43947663389(3m32s)/43947617821(2m41s); live acceptance still open.
+National27x12/full E2E/DATE/rights/runtime integration gates remain PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — reject coerced JSON GPS coordinates (base ab7cfce)
 
 Task43 isolated server-gps-43/qoder at e2391ea74a54ff5283e67d15ca7e2e356290a3cf,
@@ -6,7 +22,8 @@ blank/boolean/array/object coordinates rather than Number-coercing them; valid n
 strings/single-zero global coordinates and range/(0,0)/90s/+30s guards retained.
 Negative control8pass/7fail708.650291ms; parent21/21,0fail/skip845.461708ms,
 changedlint/fulltypecheck/diffPASS. Actual parse→select fixture,not live acceptance.
-CI43947663389/43947617821 IN_PROGRESS. Historical iCity111/404 replay NOT_VERIFIED;
+Both CI verify SUCCESS at e2391ea:43947663389(3m32s)/43947617821(2m41s).
+Historical iCity111/404 replay NOT_VERIFIED;
 reviewedmain already rejects out-of-range and stale positions, so do not duplicate it.
 Shared dirty country/privacy changes inspected,not copied. No API/Site/DB/7777/zrok
 edit/restart/deploy/main merge. NEXT: CI + authorized runtime acceptance; DATE native

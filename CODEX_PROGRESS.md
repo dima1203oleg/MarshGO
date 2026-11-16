@@ -1,3 +1,19 @@
+## 2026-11-16 — QODER: rail stop content diagnosis — PARTIAL / NOT_RELEASED
+
+Rootbasef85cadc. Read-only current public mirror archive c753015c SHA256 evidence saved:
+167stops115trips1192stopTimes99activeServiceIDs17Nov; nearest Chernihiv69739m/Kherson143038m.
+Sumy1active/Kyiv68active controls rule out uniform empty parsing. No local stop coverage
+in this exact archive; actual real-service absence/runtime loaded hash NOT_VERIFIED.
+Audit15.15 no longer overclaims NO SERVICE from0 API candidates. Official UZ provenance
+not established by provider label; no invented route/calendar/feed activation or runtime change.
+Task116 municipal-source discovery continues; existing regional labels are not ingestion URLs.
+Official Chernihiv route2 terminal schedule found:weekday12Oct/weekend21Mar2026; full stop
+coordinates/intermediate stop_times/rights not found in inspected pages;3Nov route10/11 notice.
+Kherson search candidate78385974 is another community,rejected; source evidence JSON saved.
+PR193 both verify SUCCESS43947663389(3m32s)/43947617821(2m41s) at e2391ea.
+No tests run for this data-only diagnosis; no shared API/Site/DB/7777/zrok edits/restarts/deploy.
+Full national goal,rights/coverage/Web/E2E/runtime acceptance remain open; NOT_RELEASED.
+
 ## 2026-11-16 — QODER: strict JSON GPS coordinate boundary — PARTIAL / NOT_RELEASED
 
 Rootbaseab7cfce. Isolated Server e2391ea74a54ff5283e67d15ca7e2e356290a3cf,
@@ -7,7 +23,8 @@ single-zero global coordinates,route matching,range/(0,0),90s/+30s freshness gua
 Pre-fix actual parser8pass/7fail708.650291ms; parent21/21,0fail/skip845.461708ms.
 Changed ESLint/full tsc/diffPASS. No exact historical111/404 replay or live proof.
 Current main already drops out-of-range/stale positions; dirty runtime country/privacy
-work reviewed and left intact. CI43947663389/43947617821 IN_PROGRESS at e2391ea.
+work reviewed and left intact. Both CI verify SUCCESS at e2391ea:
+43947663389(3m32s)/43947617821(2m41s).
 No shared runtime/API/Site/7777/zrok/DB changes/restarts/main merge/deploy.
 PR192 both verifyPASS6754608; DATE screenshot surface hidden,compact/exactwidth gates
 open; transport deep-link omission reconfirmed but own PR144 overlaps. NOT_RELEASED.

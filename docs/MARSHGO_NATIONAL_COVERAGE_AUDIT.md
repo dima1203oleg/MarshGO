@@ -664,18 +664,29 @@ BALANCED, на незмінному runtime e9934abbd8fc-dirty. Це 3 уряд�
 | Коридор | ret | maxT | transit modes | trunc | partial | Висновок |
 |---|---|---|---|---|---|---|
 | Київ→Суми | 8 | 3 | BUS,RAIL,TROLLEYBUS | true | true | **ROUTABLE**: прямий RAIL (Укрзалізниця GTFS, 0 пересадок, ~21 год 55) + BUS/TROLLEYBUS-доступ Києва |
-| Київ→Херсон | 0 | 0 | — | false | true | **NO SERVICE**: 0 кандидатів, trunc=false → не truncation; немає routable rail/stop-match |
-| Київ→Чернігів | 0 | 0 | — | false | true | **NO SERVICE**: 0 кандидатів, trunc=false → не truncation; немає routable rail/stop-match |
+| Київ→Херсон | 0 | 0 | — | false | true | **NO ROUTE IN PROBE**: 0 кандидатів у перевіреному runtime/часовому вікні; реальна відсутність перевезень НЕ доведена |
+| Київ→Чернігів | 0 | 0 | — | false | true | **NO ROUTE IN PROBE**: 0 кандидатів у перевіреному runtime/часовому вікні; реальна відсутність перевезень НЕ доведена |
 
 Суми: реальний національний rail-trunk досягає Сумщини (providerName «Укрзалізниця — розклад поїздів
 (GTFS)», source gtfs-static, priceStatus UNKNOWN fail-closed); отже Суми варто додати до curated/UI
 (place-resolution handoff), бо API вже будує ланцюжок. Херсон/Чернігів: partialReasons лише
 `provider_error`+`unsupported_preference` (без candidate_generation_truncated / walking_routing_unavailable),
 blocked-прапори ті самі 6 партнерських режимів + Kyiv metro provider_error; 0 кандидатів при
-trunc=false означає справжню відсутність сервісу/stop-match у національному фіді на цю дату
-(прифронтові розклади / інгестація), а не дефект побудови чи обрізання. Це чесний MISSING-статус
-для 2 урядових обласних центрів; активація історичних/прифронтових розкладів заборонена без
-підтвердження чинності.
+trunc=false не вказує на обрізання, але сам по собі не доводить відсутності реальних перевезень
+або бездефектність маршрутизатора. Це MISSING routing evidence для 2 урядових обласних центрів.
+Активація історичних/прифронтових розкладів заборонена без підтвердження чинності.
+
+Окрема read-only перевірка поточного mirror-архіву 16.11:
+[national-rail-stop-coverage-2026-11-16.json](evidence/national-rail-stop-coverage-2026-11-16.json),
+SHA256 c753015c1c9802b44da438442279ff3ee931c208f7db54d054b95fe72d596566.
+167 зупинок / 115 trips / 1192 stop_times; 99 активних service IDs на 17.11.2026.
+Чернігів і Херсон не мають локальних зупинок у цьому архіві: найближчі Носівка 69 739 м
+і Вознесенськ 143 038 м відповідно. Контролі: Київ-Пасажирський 68 активних trips,
+Суми 1 активний trip, зупинка за 2288 м від попередньої координати центру.
+Це VERIFIED прогалина конкретного mirror-фіда, не доказ відсутності реального сервісу.
+Publisher Unknown / attribution OpenStreetMap contributors: офіційне походження УЗ і права
+комерційної активації NOT_VERIFIED; точний hash фіда, завантаженого runtime, також NOT_VERIFIED.
+Назва provider у UI не підтверджує офіційність джерела. Shapes не читалися; runtime/БД не змінені.
 
 ### 15.16 Браузерний рендер Київ→Суми (6-й рендер) + уточнення place-resolution прогалини
 

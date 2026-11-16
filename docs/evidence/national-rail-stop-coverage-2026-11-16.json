@@ -1,0 +1,34 @@
+{
+  "harness": "read-only-zip-csv-haversine-v1",
+  "observedOn": "2026-11-16",
+  "serviceDate": "20261117",
+  "sourceUrl": "https://jbb.ghsq.de/gtfs/ua-ukrzaliznytsya.gtfs.zip",
+  "archiveSha256": "c753015c1c9802b44da438442279ff3ee931c208f7db54d054b95fe72d596566",
+  "httpStatus": 200,
+  "contentLength": 5758058,
+  "lastModified": "Mon, 09 Nov 2026 23:00:09 GMT",
+  "counts": {"stops": 167, "trips": 115, "stopTimes": 1192, "calendarDates": 11844, "activeServiceIds": 99},
+  "calendarSpan": {"start": "20260904", "end": "20271211"},
+  "metadata": {"publisher": "Unknown", "publisherUrl": "data:text/plain,", "language": "uk", "attribution": "OpenStreetMap contributors", "officialRailwayProvenanceVerified": false},
+  "method": "Read stops, trips, stop_times and calendar_dates; active IDs use date additions minus removals; count unique serving trip IDs; haversine distance to prior audited city coordinates. Shapes not read.",
+  "cities": [
+    {"id": "chernihiv", "lat": 51.4982, "lon": 31.2893, "namedStops": 0, "nearest": [
+      {"stopId": "2201597", "name": "Носівка", "lat": 50.90284, "lon": 31.604082, "distanceM": 69739, "servingTrips": 1, "activeTrips": 1},
+      {"stopId": "2200234", "name": "Бахмач-Пасажирський", "lat": 51.187664, "lon": 32.841206, "distanceM": 113186, "servingTrips": 1, "activeTrips": 1},
+      {"stopId": "2201628", "name": "Дарниця", "lat": 50.43208, "lon": 30.647717, "distanceM": 126775, "servingTrips": 7, "activeTrips": 7}
+    ]},
+    {"id": "kherson", "lat": 46.6354, "lon": 32.6169, "namedStops": 0, "nearest": [
+      {"stopId": "2200569", "name": "Вознесенськ", "lat": 47.573483, "lon": 31.323664, "distanceM": 143038, "servingTrips": 2, "activeTrips": 2},
+      {"stopId": "2200063", "name": "Одеса-Головна", "lat": 46.466717, "lon": 30.7406, "distanceM": 144697, "servingTrips": 9, "activeTrips": 9},
+      {"stopId": "2200372", "name": "Кривий Ріг-Головний", "lat": 47.912563, "lon": 33.45165, "distanceM": 155349, "servingTrips": 2, "activeTrips": 2}
+    ]},
+    {"id": "sumy", "lat": 50.9077, "lon": 34.7981, "namedStops": 1, "nearest": [
+      {"stopId": "2200516", "name": "Суми", "lat": 50.927284, "lon": 34.80813, "distanceM": 2288, "servingTrips": 1, "activeTrips": 1},
+      {"stopId": "2200567", "name": "Ворожба", "lat": 51.17003, "lon": 34.224396, "distanceM": 49597, "servingTrips": 1, "activeTrips": 1},
+      {"stopId": "2200461", "name": "Путивль", "lat": 51.203255, "lon": 33.845387, "distanceM": 74256, "servingTrips": 1, "activeTrips": 1}
+    ]}
+  ],
+  "controls": {"kyivPassengerStation": {"stopId": "2200005", "servingTrips": 72, "activeTrips": 68}, "sumyActiveTripPresent": true},
+  "verdict": "VERIFIED missing local rail stop coverage for Chernihiv and Kherson in this exact mirror archive; not proof of absent real service or complete national transport coverage.",
+  "limitations": ["Exact archive loaded by shared runtime NOT_VERIFIED", "Official source provenance and commercial activation rights NOT_VERIFIED", "No source activation, invented stop/trip, runtime change or deployment", "Active calendar entry is not live operational confirmation"]
+}

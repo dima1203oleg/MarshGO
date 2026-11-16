@@ -1,0 +1,34 @@
+{
+  "observedOn": "2026-11-16",
+  "scope": "public municipal/operator source discovery after exact rail mirror gap diagnosis",
+  "sources": [
+    {
+      "url": "https://xn--r1ack.xn--j1amh/schedule/",
+      "publisher": "КП Чернігівське тролейбусне управління",
+      "publishedRouteLinks": ["route-2", "route-3", "route-4", "route-7a", "route-8", "route-9", "route-10", "route-11"],
+      "verification": "Links extracted from actual HTML anchors; no downloadable GTFS/CSV/JSON found on inspected index. Not a site-wide absence claim.",
+      "sampleUrl": "https://xn--r1ack.xn--j1amh/schedule/route-2/",
+      "sample": {"weekdayEffectiveFrom": "2026-10-12", "weekendEffectiveFrom": "2026-03-21", "content": "terminal departure timetable", "fullIntermediateStopTimes": "NOT_FOUND_IN_INSPECTED_PAGE", "commercialReuseTerms": "NOT_VERIFIED"},
+      "currentNoticeUrl": "https://xn--r1ack.xn--j1amh/2026/11/03/zmina-rukhu-trolejbusiv-10-ta-11/",
+      "notice": "Public 2026-11-03 temporary route10/11 change towards Bobrovytsia due to voltage drops; historical/full-route timetable must not be assumed current.",
+      "activation": "NOT_PERFORMED",
+      "blockingEssentials": ["explicit commercial reuse terms", "complete stop coordinates and ordered intermediate schedule", "calendar and temporary-change reconciliation"]
+    },
+    {
+      "url": "https://wd.clarity-project.info/package/78385974-4b0c-4920-a89d-da9d8fd20c43",
+      "publisher": "Великокучурівська сільська рада Чернівецької області",
+      "created": "2026-08-31",
+      "updated": "2026-11-16",
+      "license": "NOT_VERIFIED",
+      "verdict": "REJECTED_FOR_KHERSON: search result belongs to another community; not evidence of Kherson coverage"
+    },
+    {
+      "url": "https://miskrada-ks.gov.ua/news/aktualna-informatsiia-pro-tymchasovyj-rozklad-rukhu-trolejbusiv-kp-khersonelektrotrans/",
+      "published": "2024-01-12",
+      "verification": "Search result only; not opened or accepted as current service",
+      "verdict": "NOT_VERIFIED_FOR_2026; no activation"
+    }
+  ],
+  "verdict": "PARTIAL: current official Chernihiv terminal schedule located, but no complete legally verified routable feed yet. Kherson current machine-readable source remains missing.",
+  "limitations": ["No invented stop_times, coordinates or operational availability", "No private API, authorization or licensing bypass", "No DB writes, source activation, shared runtime changes or deployment"]
+}
