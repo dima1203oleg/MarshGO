@@ -77,3 +77,13 @@
 2026-11-16 15:01:38.889 UTC [540708] FATAL:  the database system is in recovery mode
 2026-11-16 15:01:42.303 UTC [540697] LOG:  database system was not properly shut down; automatic recovery in progress
 2026-11-16 15:01:42.494 UTC [540698] LOG:  checkpoint starting: end-of-recovery immediate wait
+2026-11-16 15:47:34.314 UTC [1] LOG:  server process (PID 544238) exited with exit code 2
+2026-11-16 15:47:34.373 UTC [544239] LOG:  could not send data to client: Broken pipe
+2026-11-16 15:47:34.837 UTC [1] LOG:  all server processes terminated; reinitializing
+2026-11-16 15:47:38.228 UTC [544250] FATAL:  the database system is in recovery mode
+2026-11-16 15:47:53.592 UTC [544259] FATAL:  the database system is in recovery mode
+2026-11-16 15:47:59.642 UTC [544268] FATAL:  the database system is in recovery mode
+2026-11-16 15:48:06.965 UTC [544276] FATAL:  the database system is in recovery mode
+2026-11-16 15:48:14.252 UTC [544284] FATAL:  the database system is in recovery mode
+2026-11-16 15:48:20.694 UTC [544247] LOG:  database system was not properly shut down; automatic recovery in progress
+2026-11-16 15:48:21.038 UTC [544248] LOG:  checkpoint starting: end-of-recovery immediate wait

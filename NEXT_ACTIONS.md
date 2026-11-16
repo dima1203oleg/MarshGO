@@ -26,6 +26,15 @@ UI-СВІДОК ВІДНОВЛЕННЯ VERIFIED 15:42Z (Qoder in-app, zrok): В�
 08:30 → вул. Ізюмська 08:42. Точний збіг з API-replay (ms 17922, geomPts
 38/68/6) і оригінальним свідком. Доказ: docs/evidence/qoder-kyiv-bus-recovery-ui-2026-11-16.json
 + 2 PNG (list/details). Bus-стрічка на карті досі не рендериться (task C).
+ЧЕТВЕРТИЙ КРАХ 15:47:34Z (Postgres exit code 2, 5-та подія за день) → API впав
+15:47:4xZ; відновлено 15:48:48Z (buildId local-e9934abbd8fc-dirty-20261116T154848Z),
+readyz 200. Доказ: api-crash-fourth-2026-11-16.log + оновлений timeline (89 рядків).
+OTP-ЗНАХІДКА: POST /auth/otp/request → 410 otp_deprecated (повна заборона політикою
+безпеки, навіть AUTH_DEV_OTP=true не допоможе); /auth/login живий (401 на невалідні
+creds). Root E2E suite (6 specs + developmentOtp.ts) зламана проти чинного Server —
+міграція #45 на email+пароль підтверджена сервером. Codex PR26 issuecomment-6921346562.
+#71 відкладено: ProductionMarketplace.tsx активно переписується іншим агентом
+(canonical Site dirty, 974 рядки diff проти main) — не редагувати той самий файл.
 
 ## RESUME BLOCK 2026-11-16 — фінальний національний звіт доставлено + CI merge-блокер діагностовано (base 770b844)
 

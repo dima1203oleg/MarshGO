@@ -18,6 +18,11 @@ UI-свідок відновлення VERIFIED 15:42Z: Qoder in-app через 
 площа → Ізюмська 17.11 08:00: 47 хв, 30 ₴, 0 пересадок, автобус 12 РОЗКЛАД
 (08:11/08:19/08:30/08:42). Збіг з API-replay і оригінальним свідком.
 docs/evidence/qoder-kyiv-bus-recovery-ui-2026-11-16.json + 2 PNG.
+Четвертий крах 15:47:34Z (Postgres exit code 2, 5 подій за 16.11) → відновлено
+15:48:48Z тим самим SHA (buildId …T154848Z), readyz 200. OTP endpoint = 410
+otp_deprecated (повна заборона); /auth/login живий. Root E2E (6 specs) зламана —
+міграція #45 на email+пароль; Codex PR26 issuecomment-6921346562.
+#71 відкладено через чужий активний rewrite ProductionMarketplace.tsx.
 
 ## 2026-11-16 — QODER: фінальний національний звіт (17 розділів + SOURCE/ROUTING/UX) — PARTIAL / NOT_RELEASED
 

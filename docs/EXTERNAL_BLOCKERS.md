@@ -1,18 +1,23 @@
-## Infra: Postgres у Docker VM тихо крашиться (exit code 2) — 2026-11-16 15:30 UTC
+## Infra: Postgres у Docker VM тихо крашиться (exit code 2) — 2026-11-16 15:30 UTC (оновлено 15:50)
 
 - **Факт:** marshgo-db-1 (контейнер Up 3 days, healthy) — postgres всередині
   завершує backend-и з `exit code 2` без жодного логу: 13:33:12 / 14:16:27 /
-  14:51:56 / 15:01:32 UTC 16.11. Кожен раз postmaster reinitialize →
+  14:51:56 / 15:01:32 / **15:47:34** UTC 16.11 (5 подій, інтервали 10–45 хв).
+  Кожен раз postmaster reinitialize →
   «database system is in recovery mode» → обрив усіх з'єднань.
 - **Наслідок:** API preview падає (unhandled pg 'error', Codex task E) —
-  третій крах ~15:01Z, відновлено 15:25:16Z тим самим SHA e9934ab.
+  третій крах ~15:01Z (відновлено 15:25:16Z), **четвертий ~15:47:4xZ**
+  (pool_idle_client_error «Connection terminated unexpectedly» одразу після
+  15:47:34Z crash БД; відновленняcanonical launcher тим самим SHA e9934ab).
+  UI-свідок між крахами №3 і №4 VERIFIED 15:42Z (bus 12, 47 хв, 30 ₴).
 - **Спростовані гіпотези:** OOM усередині VM (db 67 MiB / 3.8 GiB, усі
   контейнери < 600 MiB), сон/пробудження хоста (pmset log — немає подій).
   Рядків «terminated by signal», PANIC, ERROR немає.
 - **Статус:** OPEN. Усувна частина (API error-handler/reconnect) — Codex
   task E (Server PR26 issuecomment-6920801687). Root cause БД — окреме
   infra-розслідування (Docker Desktop VM 4 GiB на 8 GB Mac, host swap ~10 GB;
-  версія/образ Postgres). Доказ: docs/evidence/postgres-crash-timeline-2026-11-16.log.
+  версія/образ Postgres). Доказ: docs/evidence/postgres-crash-timeline-2026-11-16.log
+  (89 рядків, 5 exit-code-2) + api-crash-fourth-2026-11-16.log.
 - Qoder не змінював конфігурацію БД/VM і не перезапускав спільні контейнери.
 
 ## CI merge-blocker уточнено — MARSHGO_REPOS_READ_TOKEN без Admin/Partner — 2026-11-16 15:10 UTC
