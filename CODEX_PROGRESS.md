@@ -1,3 +1,18 @@
+## 2026-11-16 — QODER: mixed walking fixture + safe default resolver — PARTIAL / NOT_RELEASED
+
+Rootbase27211b4. Reviewed Servermain378eccb already implements per-leg partial WALK;
+actual dirtye9934ab coverage-return defect is a runtime/source mismatch,not a missing
+main implementation. Isolated commit1fb24f798839a37f19d3c6b2f413ef1d8e99688f/PR191OPEN:
+default resolver OR/fallback replaced with existing both-endpoint resolver. Negative
+control4wrongrequests vs0 beforefix. Mixed Kharkiv/Kyiv/Lviv fixture retains measured
+transfer/egress,null access,unconfirmed flag,chronology/wait/walk/totals/unknownfare.
+33/33,0fail/skip2125.813417ms,real timeout abort/NoRoute/zero-budget controls;
+changedlint/fulltypecheck/diffPASS. TwoCIverify IN_PROGRESS at exact1fb24f7.
+Reviewedmain has BIKE routing for bicycle/scooter; initial two-point findings apply
+only dirtyruntime. New read-only finding: FOOT connectors enriched at serialization,
+not candidate evaluation,so totals/caps/transit timing may be stale. Next scoped atom.
+No runtime/index/DB/7777/Site edit,restart,deploy or main merge. DATEPR147 twoCI pass.
+
 ## 2026-11-16 — QODER: DATE-01 code + actual both-theme preview — PARTIAL / NOT_RELEASED
 
 Follow-up: Site1b05c75825520e815a00e3e29880cefab18c500c pushedPR147.

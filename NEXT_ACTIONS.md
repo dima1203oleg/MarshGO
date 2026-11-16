@@ -1,3 +1,20 @@
+## RESUME BLOCK 2026-11-16 — mixed walking proof + regional resolver fix (base 27211b4)
+
+Server main still378eccbdd320ff5ddf2491dd9bc613b55237f998: partial WALK routing
+already implemented, unlike actual dirty runtimee9934ab; do not duplicate or copy
+foreign index. Isolated server-walk-113/qoder branch commit1fb24f798839a37f19d3c6b2f413ef1d8e99688f,
+PR191OPEN. Default resolver incorrectly accepted one covered endpoint/global fallback;
+new fixture failed with4requests vs0,now reuses walkingEndpointFor both-endpoint check.
+Mixed Kharkiv/Kyiv/Lviv fixture keeps measured transfer/egress and null estimatedaccess,
+unknownfare/chronology/totals; 33/33,0fail/skip2125.813417ms incl real timeout abort,
+NoRoute/initialzero. Changedlint/fulltypecheck/diffPASS. CI pending,not runtime proof.
+Reviewedmain already routes BICYCLE/SCOOTER through BIKE graph; prior two-point claim
+was actualdirtyruntime-only. FOOT connector enrichment occurs at index4533–4555 after
+ranking; totals/caps/transit timing remain pre-enrichment. NEXT: isolated connector
+metric/chronology atom,retain graph/provenance guards. No API/Site/7777/DB restart/edit.
+DATE SitePR147 bothCIverifyPASS at1b05c75; viewport/compact acceptance still open.
+PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — DATE-01 implemented, Qoder both-theme evidence (base b0c472bd037513fce729fc6936884c058e6fcebb)
 
 Follow-up: Site1b05c75825520e815a00e3e29880cefab18c500c pushedPR147.
