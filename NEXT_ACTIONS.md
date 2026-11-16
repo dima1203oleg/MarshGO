@@ -1,3 +1,20 @@
+## RESUME BLOCK 2026-11-16 — canonical integration delegation (base 651cb5f)
+
+Task119 implementation offline VERIFIED: root integration wrapper now selects manifest Server
+SHA, validates isolated DB/immutable pin, materializes release, runs source preflight, installs
+canonical dependencies if absent, delegates native test:integration. No root backend/migrations.
+CI existing private-repository access block moved before integration; permissions/token unchanged.
+Node24.21.0 tests/materialized-worktree.test.ts25/25 PASS,0fail/skip,1620.172042ms.
+Functional tests execute actual wrapper with safe command stubs and real URL parsing; verify
+DB precedence, rejected DB/pins, ignored checkout override and failure propagation at four stages.
+Pre-fix runner/workflow in memory:17pass/8expected fail,0skip,808.48625ms.
+Initial test escaping and inferred environment-union type errors fixed; final shell syntax,
+changed ESLint, full tsc and git diff --check PASS. No local DB/API/install/browser run.
+Full CI NOT_VERIFIED: manifest Server44f954b3ce6099dde86cebfe7984079a078a5872 still has
+old realtime OTP fixture; private Admin/Partner gate remains enforced. Do not claim suite pass.
+Task45/live geometry/runtime integration remain open. No shared3002/7777/zrok change.
+National27x12 objective PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — live walking / rental geometry (base 2a42255)
 
 Root HEAD 2a42255ded7f2aa262f1c4e8dc4d11e8d17266fc. Task50 remains PARTIAL.

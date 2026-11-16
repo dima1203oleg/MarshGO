@@ -51,10 +51,6 @@ jobs:
       - run: npm run lint:all
       - run: npm run typecheck
       - run: npm test
-      - run: DATABASE_URL="$E2E_DATABASE_URL" npm run db:migrate
-      - run: API_TEST_DATABASE_URL="$E2E_DATABASE_URL" npm run test:integration
-      - run: npm run build
-      - run: npm run check:bundle
       - name: Configure read-only access to private Admin and Partner repositories
         env:
           MARSHGO_REPOS_READ_TOKEN: ${{ secrets.MARSHGO_REPOS_READ_TOKEN }}
@@ -79,6 +75,9 @@ jobs:
             echo "GIT_TERMINAL_PROMPT=0"
             echo "MARSHGO_REPOS_READ_TOKEN=$MARSHGO_REPOS_READ_TOKEN"
           } >> "$GITHUB_ENV"
+      - run: API_TEST_DATABASE_URL="$E2E_DATABASE_URL" npm run test:integration
+      - run: npm run build
+      - run: npm run check:bundle
       - run: node ops/scripts/materialize-release.mjs
       - run: docker compose --project-name marshgo-canonical-build --env-file ops/templates/production.env.example -f .release/compose.production.yml build api web admin partner
       - run: npx playwright install --with-deps chromium firefox webkit

@@ -188,3 +188,97 @@ test('shell default selects manifest pin before any database setup', () => {
   assert.equal(result.status, 0, result.stderr);
   assert.deepEqual(result.stdout.trim().split('\n').slice(0, 3), ['materialize', `preflight:${serverPin}:--preflight`, 'database']);
 });
+
+function integrationSetup(env: Record<string, string> = {}) {
+  const source = readFileSync(new URL('../scripts/run-integration-tests.sh', import.meta.url), 'utf8');
+  const stubs = `
+node() {
+  if [[ "$1" == "-e" ]]; then
+    case "$2" in
+      *hostname*|*pathname*) "$OFFLINE_NODE" "$@" ;;
+      *server_sha*) printf '%s' "$OFFLINE_PIN" ;;
+      *) return 99 ;;
+    esac
+    return
+  fi
+  case "$1" in
+    ops/scripts/materialize-release.mjs)
+      printf 'materialize\\n'
+      [[ "$OFFLINE_FAIL" != "materialize" ]] || return 17 ;;
+    scripts/run-e2e-server.mjs)
+      printf 'preflight:%s:%s:%s\\n' "$E2E_SERVER_DIR" "$E2E_SERVER_PINNED_SHA" "$2"
+      [[ "$OFFLINE_FAIL" != "preflight" ]] || return 2 ;;
+    *) return 99 ;;
+  esac
+}
+npm() {
+  printf 'npm:%s\\n' "$*"
+  case "$1 \${2:-}" in
+    'ci --prefix') [[ "$OFFLINE_FAIL" != "install" ]] || return 18 ;;
+    'run test:integration')
+      printf 'database:%s\\n' "$API_TEST_DATABASE_URL"
+      [[ "$OFFLINE_FAIL" != "suite" ]] || return 19 ;;
+    *) return 99 ;;
+  esac
+}
+`;
+  return spawnSync('/bin/bash', ['-c', stubs + source], {
+    encoding: 'utf8', timeout: 5000,
+    env: { PATH: '/usr/bin:/bin', OFFLINE_NODE: process.execPath, OFFLINE_PIN: serverPin, OFFLINE_FAIL: '', ...env },
+  });
+}
+
+const integrationDirectory = resolve(`.release/server-${serverPin}`);
+
+test('integration wrapper delegates only to the pinned canonical Server after preflight', () => {
+  const result = integrationSetup({ E2E_SERVER_DIR: '/untrusted/override', E2E_SERVER_PINNED_SHA: 'b'.repeat(40) });
+  assert.equal(result.status, 0, result.stderr);
+  assert.deepEqual(result.stdout.trim().split('\n'), [
+    'materialize', `preflight:${integrationDirectory}:${serverPin}:--preflight`,
+    `npm:ci --prefix ${integrationDirectory} --no-audit --no-fund`,
+    `npm:run test:integration --prefix ${integrationDirectory}`,
+    'database:postgres://marshgo:local_only_change_me@127.0.0.1:5434/marshgo_e2e',
+  ]);
+});
+
+test('integration wrapper passes selected isolated database to canonical suite', () => {
+  const database = 'postgres://test@localhost:5434/marshgo_e2e_geometry';
+  const environments: Record<string, string>[] = [{ E2E_DATABASE_URL: database }, { API_TEST_DATABASE_URL: database, E2E_DATABASE_URL: 'postgres://remote/production' }];
+  for (const env of environments) {
+    const result = integrationSetup(env);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout.trim().split('\n').at(-1), `database:${database}`);
+  }
+});
+
+test('integration wrapper rejects non-isolated databases before materialization or npm', () => {
+  for (const database of ['postgres://remote/marshgo_e2e', 'postgres://localhost/production', 'postgres://localhost/marshgo_e2e/other', 'postgres://localhost/marshgo_e2e-other']) {
+    const result = integrationSetup({ API_TEST_DATABASE_URL: database });
+    assert.equal(result.status, 2, database);
+    assert.equal(result.stdout, '');
+  }
+});
+
+test('integration wrapper rejects malformed manifest SHA before materialization', () => {
+  for (const pin of ['', 'main', 'A'.repeat(40), 'a'.repeat(39)]) {
+    const result = integrationSetup({ OFFLINE_PIN: pin });
+    assert.equal(result.status, 2, pin);
+    assert.equal(result.stdout, '');
+  }
+});
+
+for (const [stage, status, eventCount] of [['materialize', 17, 1], ['preflight', 2, 2], ['install', 18, 3], ['suite', 19, 5]] as const) {
+  test(`integration wrapper propagates ${stage} failure without later work`, () => {
+    const result = integrationSetup({ OFFLINE_FAIL: stage });
+    assert.equal(result.status, status, result.stderr);
+    assert.equal(result.stdout.trim().split('\n').length, eventCount);
+  });
+}
+
+test('CI configures existing repository access before canonical integration and omits root migrations', () => {
+  const workflow = readFileSync(new URL('../.github/workflows/ci.yml', import.meta.url), 'utf8');
+  const access = workflow.indexOf('- name: Configure read-only access to private Admin and Partner repositories');
+  const integration = workflow.indexOf('- run: API_TEST_DATABASE_URL="$E2E_DATABASE_URL" npm run test:integration');
+  assert.ok(access >= 0 && integration > access);
+  assert.ok(!workflow.includes('- run: DATABASE_URL="$E2E_DATABASE_URL" npm run db:migrate'));
+});

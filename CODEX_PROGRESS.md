@@ -1,3 +1,21 @@
+## 2026-11-16 — QODER: canonical integration wrapper — PARTIAL / NOT_RELEASED
+
+Root base651cb5f3dda9d3da281676b4c021f100e3eded92. Task119 replaces legacy root integration
+backend/migrations with native manifest-pinned Server test:integration after full materialization
+and SHA preflight. Existing CI read-access setup moved earlier, no permission/secret changes.
+Nine added tests in materialized-worktree.test.ts execute actual wrapper with safe stubs;
+URL parsing remains real. Validates canonical prefix, DB precedence, malformed pin/foreign DB,
+override suppression and materialize/preflight/install/suite exit-code propagation. CI ordering
+check is source-level, not evidence that GitHub Actions executed the integration suite.
+Node24.21.0 tsx --test --test-concurrency=1 --test-reporter=tap tests/materialized-worktree.test.ts:
+25/25 PASS,0fail/skip,1620.172042ms. Negative control with pre-fix runner/workflow via git show
+in memory:17pass/8expected fail,0skip,808.48625ms. Initial test escaping compile failure and
+environment-union TS2345 corrected; final bash -n, ESLint, full tsc and diff check PASS.
+No DB, API process, installation or browser run locally. Existing Server manifest44f954b
+still contains obsolete realtime OTP fixture; no pin update in this atom. Full CI/portal
+access/live national acceptance remain unverified. Foreign compose/deployment-test files kept.
+No shared3002/7777/zrok changes. NOT_RELEASED.
+
 ## 2026-11-16 — QODER: walking/rental geometry runtime evidence — PARTIAL / NOT_RELEASED
 
 Root base2a42255ded7f2aa262f1c4e8dc4d11e8d17266fc. No code or runtime changes in this probe.
