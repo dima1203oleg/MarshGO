@@ -1,3 +1,18 @@
+## 2026-11-16 — Dnipro decoded identities: BLOCKED_IDENTITY_CROSSWALK, not activated
+
+Base26e007b. Streaming decode of the same10.3MB stoptimes.xlsx3.87s:
+229151 data rows,202 distinct tripUid,1616 stopId values, header
+tripUid…timepoint (10 cols;79 rows only8 cells). Times are Excel fractional days.
+Archived trips-2026-07-17.csv (cp1251,';') join: direct uid matches4/202 keys;
+routeuid multiplicity {2:126,1:4,0:72}; ambiguous rows220858, unmatched187.
+serviceUid↔calendar join remains0/260; calendarDates null/textual ranges unresolved.
+No direction/route identity can be safely inferred; import would fabricate trips.
+BLOCKED_IDENTITY_CROSSWALK recorded in decoded_workbook_followup_2026_11_16 of
+docs/evidence/dnipro-source-crosswalk-2026-11-15.json. Codex task: obtain publisher
+semantics for tripUid/stopId/direction and calendar crosswalk before any adapter work;
+trips CSV is an archived July resource, not freshly downloaded. No runtime/source/UI
+changes, no tests/build. Counts and NOT_RELEASED unchanged.
+
 ## 2026-11-16 — Dnipro full workbook structure checked, not activated
 
 Base77a658c. New national owner mission task104: fresh main lookup across7repos,

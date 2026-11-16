@@ -94,6 +94,25 @@
     "verdict": "Workbook has substantially more nonempty XML rows than archived DataStore9750; row-level parity and valid record counts remain NOT_VERIFIED",
     "limitations": ["No shared-string decoding or column semantics validation", "No distinct trip or direction count from workbook", "No resolution of trip-calendar joins", "No import, activation or runtime changes", "Earlier DataStore observations remain historical subset evidence, not whole-workbook conclusions"]
   },
+  "decoded_workbook_followup_2026_11_16": {
+    "root_base": "26e007b0ea1d6274b31b07281db3ebc368e9399d",
+    "workbook_sha256": "8c2c7dd901fd44064a2ea0f4c516064284e107265951a9886ead822924aab7f0",
+    "trips_csv_sha256": "e40e5f639f6158f68a3d7506f101b6eee99170703d737e45a3ee2c02433bc154",
+    "trips_csv_entry": "trips-2026-07-17.csv",
+    "headers": ["tripUid", "arrivalTime", "departureTime", "stopId", "stopSequence", "stopHeadsign", "pickupType", "dropOffType", "shapeDistTraveled", "timepoint"],
+    "nonempty_data_rows": 229151,
+    "distinct_tripUid": 202,
+    "distinct_stopId_values": 1616,
+    "direct_trip_uid_matching_keys": 4,
+    "routeuid_match_multiplicity_by_key": { "0": 72, "1": 4, "2": 126 },
+    "rows_without_routeuid_match": 187,
+    "rows_with_ambiguous_routeuid_match": 220858,
+    "row_cell_counts": { "10": 229072, "8": 79 },
+    "decode_seconds": 3.87,
+    "method": "Bounded shared-string decoding and streaming XML rows; exact string joins against archived published trips CSV",
+    "verdict": "BLOCKED_IDENTITY_CROSSWALK",
+    "limitations": ["Counts are raw source identities, not accepted trips", "Published trip CSV is archived July resource, not freshly downloaded", "1616 stopId values are not validated coordinate joins", "Calendar mismatch remains unresolved", "Numeric Excel times need format-aware normalization", "No inferred direction or routeuid substitution; no import or activation"]
+  },
   "required_codex_followup": [
     "Compare full XLSX to DataStore before treating three keys as whole-source coverage.",
     "Obtain or verify publisher semantics for trip identity and direction; do not choose arbitrary routeuid matches.",

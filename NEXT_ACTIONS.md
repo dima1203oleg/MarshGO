@@ -1,3 +1,19 @@
+## RESUME BLOCK 2026-11-16 — Dnipro workbook decoded: BLOCKED_IDENTITY_CROSSWALK (base 26e007b)
+
+Full stoptimes.xlsx decoded by bounded streaming parse3.87s (same SHA8c2c7dd9…):
+header tripUid/arrivalTime/departureTime/stopId/stopSequence/stopHeadsign/pickupType/
+dropOffType/shapeDistTraveled/timepoint;229151 nonempty data rows;202 distinct tripUid;
+1616 distinct stopId values;229072 rows have10 cells,79 have8. Excel fractional-day
+times (0.2222=05:20) need format-aware normalization. Join against archived trips CSV
+trips-2026-07-17.csv (cp1251,';',SHA256e40e5f63…): only4/202 tripUid keys match trips.uid
+directly; via routeuid126 keys match2 routes (both directions, ambiguous),4 match1,
+72 match0;220858 rows ambiguous,187 unmatched. Calendar serviceUid join still0/260.
+Verdict BLOCKED_IDENTITY_CROSSWALK — no import/activation without publisher or
+Codex-verified identity+direction+calendar semantics; no routeuid substitution.
+Evidence block decoded_workbook_followup_2026_11_16 in
+docs/evidence/dnipro-source-crosswalk-2026-11-15.json. Codex handoff via issue26.
+No Server/UI/runtime edits, no tests/build. PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — Full Dnipro workbook exceeds DataStore sample
 
 New owner national mission captured as task104; scope27 regions/12 modes remains intact.
