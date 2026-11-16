@@ -1,3 +1,20 @@
+## RESUME BLOCK 2026-11-16 — E2E Server pin preflight (base a32fe49)
+
+Task117 published a32fe492bdf989bc386fe06aa17daee3f279a8eb, PR25 head verified.
+CI43954246635 FAILURE at integration step: email register404 vs201, before materialization.
+Legacy root server has no register endpoint; canonical Server source mismatch now blocks
+this run before the earlier Admin403 gate. Security CodeQL/Gitleaks PASS; no CI PASS claim.
+Task118 offline VERIFIED: explicit Server checkout now requires/preserves immutable SHA;
+default launcher enforces manifest pin. Shared preflight compares HEAD before DB creation,
+dependencies or migrations; preflight starts no API and does not require dependencies.
+Node24.21.0 materialized-worktree tests16/16 PASS,0fail/skip,637.020875ms; same controls
+against pre-fix scripts6pass/10expected fail,0skip,270.223125ms. Lint/bash -n/node --check/
+full tsc/diff PASS. No DB/API/browser/install run; this is not live acceptance.
+Exact HEAD check does not establish override worktree cleanliness or origin. Full release
+materialization retained; Admin/Partner read permission gate is not bypassed. Root legacy
+integration runner/pinned Server OTP fixture and national runtime acceptance remain open.
+No shared3002/7777/zrok change; national27x12 goal PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — isolated API email-auth harness (base a8be674)
 
 Task117 offline VERIFIED: booking and realtime integration tests now use register201/login200,

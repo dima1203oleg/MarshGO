@@ -6,15 +6,21 @@ import process from 'node:process';
 const root = process.cwd();
 const manifest = JSON.parse(readFileSync(resolve(root, 'RELEASE_MANIFEST.json'), 'utf8'));
 const serverDirectory = resolve(process.env.E2E_SERVER_DIR ?? resolve(root, '.release', `server-${manifest.server_sha}`));
+const pinnedSha = process.env.E2E_SERVER_DIR ? process.env.E2E_SERVER_PINNED_SHA : manifest.server_sha;
+const preflight = process.argv.includes('--preflight');
+if (!/^[a-f0-9]{40}$/.test(pinnedSha ?? '')) {
+  process.stderr.write('E2E Server requires an immutable SHA for the selected checkout.\n');
+  process.exit(2);
+}
 const actual = spawn('git', ['-C', serverDirectory, 'rev-parse', 'HEAD'], { stdio: ['ignore', 'pipe', 'inherit'] });
 let head = '';
 actual.stdout.on('data', (chunk) => { head += chunk; });
 actual.on('close', (code) => {
-  const pinnedSha = process.env.E2E_SERVER_PINNED_SHA;
-  if (code !== 0 || (pinnedSha && head.trim() !== pinnedSha) || !existsSync(resolve(serverDirectory, 'node_modules/.package-lock.json'))) {
+  if (code !== 0 || head.trim() !== pinnedSha || (!preflight && !existsSync(resolve(serverDirectory, 'node_modules/.package-lock.json')))) {
     process.stderr.write('E2E Server checkout or dependencies are unavailable or do not match the requested immutable SHA.\n');
     process.exit(2);
   }
+  if (preflight) return;
   const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
   const child = spawn(npm, ['run', 'api'], {
     cwd: serverDirectory,

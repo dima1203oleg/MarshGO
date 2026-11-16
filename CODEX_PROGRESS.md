@@ -1,3 +1,22 @@
+## 2026-11-16 — QODER: E2E Server pin preflight — PARTIAL / NOT_RELEASED
+
+Root base a32fe492bdf989bc386fe06aa17daee3f279a8eb, PR25 auth atom head verified.
+Current CI43954246635 failed integration registration404 vs201 before release materialization:
+legacy root server has no email register endpoint. This is a real source-contract mismatch,
+not an Admin403 failure in this run. CodeQL/Gitleaks PASS; integration/E2E remain unaccepted.
+Task118 scripts/run-e2e.sh retains explicit override SHA and rejects missing/malformed pins;
+run-e2e-server.mjs enforces default manifest SHA and shares a no-API preflight before DB
+creation/npm install/migrations. All-repository materializer retained, no credential bypass.
+Existing materialized-worktree tests execute actual shell setup with command stubs and actual
+transpiled launcher with I/O stubs. Node24.21.0 tsx --test --test-concurrency=1
+--test-reporter=tap tests/materialized-worktree.test.ts:16/16 PASS,0fail/skip,637.020875ms.
+Pre-fix scripts read via git show HEAD in memory:6pass/10expected fail,270.223125ms,0skip.
+Changed ESLint/bash -n/node --check/full tsc/git diff --check PASS. Agent stopped without
+edits at wrong base; implementation performed in current exact-base worktree instead.
+No runtime/DB/browser/install/network activation. HEAD equality does not prove override
+cleanliness/origin. Admin/Partner read gate, legacy runner, pinned Server OTP fixture and
+live national acceptance remain open; NOT_RELEASED.
+
 ## 2026-11-16 — QODER: API email-auth harness — PARTIAL / NOT_RELEASED
 
 Root base a8be6748f8622921c6156e173a95fdface6cc071. Task117 three-file offline atom:
