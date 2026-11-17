@@ -1,3 +1,24 @@
+## RESUME BLOCK 2026-11-17 — GBFS health recovery (Server PR195) + national rental discovery
+
+Task121 Server d554ae92faafa45981e135e4e0fc1ac0d10c91c0, base378eccb (main unchanged),
+isolated server-health-121, branch qoder/gbfs-health-recovery-20261117.
+Two chained defects behind authenticated nearby providers:0 fixed: (1) scheduled health pass
+now fully validates lightweight GBFS and a successful validation promotes to healthy without
+admin action (heavy GTFS stays on bounded reachability probe); (2) out-of-country exclusions no
+longer degrade health — normalizeVehicles/normalizeStations report outOfCountry separately,
+rejected keeps inclusive semantics. Negative controls before each fix: 3pass/3fail and
+2pass/4fail; after: 53/53 PASS 918.55ms Node24.21.0+tsx; ESLint/fulltsc/diff clean.
+CI both verify SUCCESS (44018762089 3m0s, 44018804045 2m36s): 814 tests, 808 pass, 0 fail,
+6 pre-existing opt-in skips; new suites confirmed executed in CI log.
+Live read-only validator: Zelectra UA health=healthy, 588 valid UA scooters, 422 country
+exclusions, all checks ok, freshness 0s. PR https://github.com/dima1203oleg/MarshGO-Server/pull/195.
+National rental discovery (read-only): canonical MobilityData GBFS systems list (1280 rows)
+has exactly one UA system — Zelectra Kyiv; live UA clustering: all 594 valid vehicles are
+SCOOTER within 30km of Kyiv centre. Verified live GBFS rental = Kyiv/scooter only; Nextbike
+Odesa stays OSM static. Runtime/DB/7777/zrok untouched; providers:0 persists until owner
+merges PR194+195 and coordinated runtime refresh. Rights CC BY 4.0 attribution; booking and
+rental road geometry are separate gates. PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-16 — scooter catalog health (Server PR194)
 
 Task120 Server13bfa1d34f4f288052461572c8ff3ed46bf5efb3, base378eccb, isolated server-rental-120.

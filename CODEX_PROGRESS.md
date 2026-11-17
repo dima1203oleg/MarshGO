@@ -1,3 +1,20 @@
+## 2026-11-17 — QODER: GBFS health recovery + national rental discovery — PARTIAL / NOT_RELEASED
+
+Server PR195 published d554ae92faafa45981e135e4e0fc1ac0d10c91c0 from exact main378eccb
+(isolated server-health-121). Fixed the two chained defects behind nearby providers:0:
+scheduled pass now fully validates lightweight GBFS and promotes recovered sources to healthy
+without admin validation; out-of-country exclusions (422/1010 live Zelectra records) no longer
+degrade health — outOfCountry reported separately, rejected semantics preserved for existing
+consumers. Negative controls recorded before each fix (3pass/3fail, 2pass/4fail); after fixes
+53/53 PASS 918.55ms; ESLint/fulltsc/diff clean. CI both verify SUCCESS: 814 tests, 808 pass,
+0 fail, 6 pre-existing opt-in skips; new suites confirmed executed in CI log. Live read-only
+validator: Zelectra UA healthy, 588 valid UA scooters, freshness 0s.
+National discovery: canonical GBFS systems list (1280 rows) has exactly one UA system
+(Zelectra Kyiv); all 594 live valid UA vehicles are SCOOTER within 30km of Kyiv centre.
+Verified live GBFS rental coverage = Kyiv/scooter only; other cities need partner access or
+remain OSM static (Nextbike Odesa). No runtime/DB/7777/zrok change; runtime acceptance awaits
+owner merge of PR194+195 and coordinated refresh. Booking/geometry/rights gates stay open.
+
 ## 2026-11-16 — QODER: scooter catalog health — PARTIAL / NOT_RELEASED
 
 Server PR194 published13bfa1d34f4f288052461572c8ff3ed46bf5efb3 from exactmain378eccb.
