@@ -5,10 +5,10 @@ Status: **NOT_RELEASED**.
 ## Verified
 
 - National API matrix executed end to end: 702 directions, 0 errors.
-- 147/702 administrative directions return routes (baseline 124).
+- 227/702 administrative directions return routes (baseline 124).
 - Chain integrity: 18/18 audited corridors have time-monotonic legs, real transfer buffers and route geometry.
-- Browser rendering: 31/40 corridors produce route cards in the real UI.
-- Engine tests: `tests/gtfs-timetable.test.ts` 86/86, `tests/journey-search.test.ts` 6/6, `tsc --noEmit` clean.
+- Browser rendering: 31/38 corridors produce route cards in the real UI.
+- Engine tests: `tests/gtfs-timetable.test.ts` 88/88, `tests/bounded-graph-budget.test.ts` 5/5, `tests/journey-search.test.ts` 6/6, `tsc --noEmit` clean.
 
 ## Blocking production
 

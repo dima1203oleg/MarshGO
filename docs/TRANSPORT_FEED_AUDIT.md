@@ -6,7 +6,7 @@ Probe date 2026-11-18. A feed counts as integrated only when URL → response �
 
 | Feed | Operator | Mode | Status | Evidence |
 | --- | --- | --- | --- | --- |
-| https://jbb.ghsq.de/gtfs/ua-ukrzaliznytsya.gtfs.zip | OSM community (ODbL) | rail | VERIFIED_ACTIVE | 167 stops, service 2026-09-04 → 2027-12-11, 147 directions routed |
+| https://jbb.ghsq.de/gtfs/ua-ukrzaliznytsya.gtfs.zip | OSM community (ODbL) | rail | VERIFIED_ACTIVE | 167 stops, service 2026-09-04 → 2027-12-11, 227 directions routed |
 | https://jbb.ghsq.de/gtfs/ua-kyiv.gtfs.zip | Київпастранс (CC BY 4.0) | bus/tram/trolleybus | VERIFIED_ACTIVE | 205 routes, 1824 stops, identical to the operator endpoint (1,416,208 bytes, version 20261118) |
 | https://track.ua-gis.com/gtfs/lviv/static.zip | Львівавтодор (CC BY 4.0) | bus/tram | VERIFIED_ACTIVE | routes appear in Lviv itineraries |
 | https://track.ua-gis.com/gtfs/uzhhorod/static.zip | Ужгородська міська рада (CC BY 4.0) | bus | VERIFIED_ACTIVE | routes appear in Uzhhorod itineraries |

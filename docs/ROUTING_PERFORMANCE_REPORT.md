@@ -4,9 +4,9 @@ Same host (8 GB Apple Silicon), same canonical Server build, same probe set (702
 
 | Metric | Baseline (PR #198) | After long-ride fix | Delta |
 | --- | --- | --- | --- |
-| Median | 501 ms | 576 ms | 75 ms |
-| P90 | 7077 ms | 8813 ms | — |
-| Max | 26334 ms | 57527 ms | — |
+| Median | 501 ms | 468 ms | -33 ms |
+| P90 | 7077 ms | 5647 ms | — |
+| Max | 26334 ms | 22172 ms | — |
 | Errors | 0 | 0 | 0 |
 
 ## What changed and why it costs what it costs
@@ -17,13 +17,13 @@ Same host (8 GB Apple Silicon), same canonical Server build, same probe set (702
 
 ## Slowest observed directions (cold cache included)
 
-- Львівська → Херсонська: 57527 ms (0 routes)
-- Львівська → Харківська: 55786 ms (5 routes)
-- Львівська → Хмельницька: 44069 ms (9 routes)
-- Львівська → Київська: 43070 ms (5 routes)
-- Львівська → Запорізька: 39395 ms (3 routes)
-- Запорізька → Львівська: 38343 ms (10 routes)
-- Львівська → Дніпропетровська: 38076 ms (5 routes)
-- Запорізька → Миколаївська: 37418 ms (0 routes)
+- Львівська → Черкаська: 22172 ms (0 routes)
+- Львівська → Івано-Франківська: 20921 ms (5 routes)
+- Львівська → Київська: 18910 ms (5 routes)
+- Львівська → Сумська: 18858 ms (11 routes)
+- Львівська → Рівненська: 18257 ms (12 routes)
+- Львівська → Кіровоградська: 18188 ms (0 routes)
+- Львівська → Волинська: 18001 ms (11 routes)
+- Львівська → Вінницька: 17705 ms (7 routes)
 
 Cold-cache rows are dominated by the first parse of the 6 MB national rail feed; the same directions return in single-digit seconds afterwards.
