@@ -6209,3 +6209,10 @@ At 20:19 EET root Capacitor `npm ci` has completed (100 packages, 1 second; 3 mo
 - Server recall fixes are on `fix/intercity-endpoint-walk-recall` (`6309d9d`, `f53b9fd`) under PR #198; no further code change is pending review.
 - Remaining 435 empty directions split into 396 with no railway stop in the licensed feed and 39 with no service at any of the three probed times; further recall work needs new licensed feeds, not routing code.
 - Next: obtain a licensed feed or API for Житомир, Миколаїв, Херсон, Черкаси, Чернігів, Краматорськ, Суми return trip and Крим; only then re-measure. Do not deploy.
+
+## 2026-11-19 — after PR #199
+
+1. Review and merge https://github.com/dima1203oleg/MarshGO-Server/pull/199 (both verify jobs green); no deploy follow-up without an approved target.
+2. Next recall step is data, not code: a licensed coach/rail feed for Житомир, Миколаїв, Херсон, Черкаси, Чернігів, Суми (return direction), Краматорськ and Крим. Re-measure the 702-pair matrix after any new feed — do not edit routing heuristics to fake coverage.
+3. Optional measured work, only if a slot is free: penalty of the 36 h retry on the slowest routed corridors (max 55.5 s) — cache warm-up or a lower first-pass budget for dense city feeds may cut it without losing pairs.
+4. Browser/p95 evidence for the ported branch is still tied to the older preview build on `:7788`; re-run the browser harness against a preview built from PR #199 when the Site tree stops being dirty.
