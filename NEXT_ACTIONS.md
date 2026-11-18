@@ -1,3 +1,44 @@
+## RESUME BLOCK 2026-11-18 — walk/bike/scooter geometry VERIFIED + runtime config-gap + API down
+
+Task122. Canonical Server d554ae9 (base 378eccb, main unchanged), isolated server-health-121.
+Owner geometry priority answered with a live in-process proof (Node24.21.0+tsx, /tmp/geometry-proof-122.ts):
+BIKE Lviv — 37 real OSM rental_locations from shared DB (read-only), 2 OWNER_ATTESTED networks →
+roadRouteMicromobilityEstimate SOURCE_GEOMETRY osrm-bike-route, 202 pts, 5721 m road vs 4905 m straight,
+1760 s; WALK connectors osrm-foot-route (197 m / 841 m). SCOOTER Kyiv — live Zelectra snapshot 722
+available scooters, 300 geofences + 1 globalRule → SOURCE_GEOMETRY osrm-scooter-route, 122 pts, 2924 m
+road vs 1835 m straight, 966 s, pickupRule ride_start_allowed / dropoffRule ride_end_allowed, ride-through
+vertex+segment guards passed on routed streets; WALK connectors osrm-foot-route (51 m / 1962 m).
+WALK direct Lviv 3013: 274 pts/5791 m; Kyiv 3014: 121 pts/2658 m. Negative controls all pass:
+Kyiv-walk forced onto Lviv graph 3013 → null (foot snap-guard ≤100 m + distance>0 reject the degenerate
+Ok 0 m answer); bike with no env → null → candidate rejected no-road-router. Conclusion: canonical code
+builds REAL road geometry for walk/bike/scooter (no straight-line promotion, no invented path) whenever
+the matching OSRM graph is configured. VERIFIED in-process; runtime HTTP acceptance still pending.
+
+RUNTIME CONFIG-GAP (blocks the same geometry in the shared contour): shared MarshGO-Server/.env contains
+ONLY WALKING_ROUTING_URL=http://127.0.0.1:3013/route/v1/foot/ (Lviv). BIKING_ROUTING_URL/URLS absent →
+every bike/scooter candidate dropped no-road-router despite live graphs. WALKING_ROUTING_URLS absent →
+Kyiv foot graph 3014 not wired (Kyiv walks degrade to estimate). Live containers healthy: walk 3013(Lviv)
+3014(Kyiv), bike 3015(Lviv) 3016(Kyiv), car 3017/3018, db 5434, redis 6380. Proven-working handoff env
+(bboxes must match each graph extract; values below answered real routes in the proof):
+  WALKING_ROUTING_URLS=[{"bbox":[23.85,49.75,24.25,49.95],"url":"http://127.0.0.1:3013"},{"bbox":[30.25,50.25,30.85,50.65],"url":"http://127.0.0.1:3014"}]
+  BIKING_ROUTING_URLS=[{"bbox":[23.85,49.75,24.25,49.95],"url":"http://127.0.0.1:3015"},{"bbox":[30.25,50.25,30.85,50.65],"url":"http://127.0.0.1:3016"}]
+Applying this is a shared-runtime change → requires coordinated refresh after owner merges PR194+195.
+
+API DOWN INCIDENT (2026-11-18T07:38Z): port 3002 has no listener (readyz 000); the previous API PID is
+gone. Shared MarshGO-Server working copy is now on FOREIGN branch antigravity/ukraine-12-transports-multimodal
+HEAD e9934ab "restore full transport geometries and nationwide pedestrian street paths" — NOT published as
+a PR (absent from gh pr list), i.e. unreviewed in-progress work. NOT restarted: launching foreign dirty code
+as the shared runtime would violate coordination rules. Site 7777 (PID50104) and zrok public origin still 200.
+Recovery needs the canonical reviewed Server SHA + reconstructed DATABASE_URL (was in the dead process shell
+env; .env has no DB key) — owner/Codex coordinated action.
+
+GEOMETRY HONESTY FINDING (for review, not edited — Antigravity owns this area): shared/navigation/
+pedestrianGeometry.ts generatePedestrianGeometry is a SYNTHETIC street-grid generator (85 m blocks, corner
+fillets), no real OSM/road data. Used in server/journey/multimodalChainEngine.ts:145/178/241 with source
+'walking'/'transfer-walk' and NO estimate/routeAccuracy label → synthetic path presented as real. index.ts:4949
+saveWalkLeg labels it estimate:true/method pedestrian-street-network/liveStatus UNVERIFIED (disclosed, but the
+method token overclaims). Canonical rental rides never use it (road-routed or dropped). PARTIAL / NOT_RELEASED.
+
 ## RESUME BLOCK 2026-11-17 — GBFS health recovery (Server PR195) + national rental discovery
 
 Task121 Server d554ae92faafa45981e135e4e0fc1ac0d10c91c0, base378eccb (main unchanged),

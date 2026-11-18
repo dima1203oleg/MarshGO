@@ -1,3 +1,19 @@
+## 2026-11-18 — QODER: walk/bike/scooter geometry VERIFIED + runtime config-gap + API down — PARTIAL / NOT_RELEASED
+
+Task122, canonical Server d554ae9 (base 378eccb), isolated server-health-121. Live in-process proof
+(Node24.21.0+tsx): BIKE Lviv 37 real OSM stations (shared DB read-only) → SOURCE_GEOMETRY osrm-bike-route
+202 pts 5721 m road / 4905 m straight; SCOOTER Kyiv live Zelectra 722 available + 300 geofences →
+SOURCE_GEOMETRY osrm-scooter-route 122 pts 2924 m / 1835 m straight, ride_start/ride_end geofence rules,
+ride-through vertex+segment guards passed; WALK connectors osrm-foot-route; WALK direct Lviv 274 pts/5791 m,
+Kyiv 121 pts/2658 m. Negative controls: Kyiv-walk on Lviv graph → null (snap-guard), bike no-env → null →
+no-road-router. Canonical code builds real road geometry for all three modes when the OSRM graph is configured.
+Config-gap: shared .env has only WALKING_ROUTING_URL=3013(Lviv); BIKING_ROUTING_URLS absent (bike/scooter
+dropped), WALKING_ROUTING_URLS absent (Kyiv 3014 unwired). Live graphs 3013/3014/3015/3016 healthy. Exact
+handoff env recorded in NEXT_ACTIONS.md; applying it is a coordinated runtime refresh after PR194+195 merge.
+API DOWN 2026-11-18T07:38Z: 3002 no listener; shared Server copy now on foreign antigravity branch e9934ab
+(unpublished, no PR) — NOT restarted. Site 7777 + zrok 200. Honesty finding: synthetic generatePedestrianGeometry
+used unlabeled in multimodalChainEngine.ts:145/178/241 (Antigravity area, flagged for review, not edited).
+
 ## 2026-11-17 — QODER: GBFS health recovery + national rental discovery — PARTIAL / NOT_RELEASED
 
 Server PR195 published d554ae92faafa45981e135e4e0fc1ac0d10c91c0 from exact main378eccb
