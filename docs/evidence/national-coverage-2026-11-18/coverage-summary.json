@@ -1,0 +1,769 @@
+{
+ "generatedAt": "2026-11-18T21:48:16.035Z",
+ "serverSha": "851b0a4",
+ "layers": {
+  "administrativeDirections": {
+   "pairs": 702,
+   "routedAt0800Baseline": 107,
+   "routedAt0800Now": 227,
+   "gainedPairs": 120,
+   "lostPairs": 0,
+   "errors": 0,
+   "latencyMs": {
+    "p50": 1753,
+    "p90": 15686,
+    "p95": 23055,
+    "max": 55541
+   },
+   "departureProbe": "2026-11-20T08:00:00+02:00"
+  },
+  "settlements": {
+   "total": 29696,
+   "within900m": 141,
+   "within2km": 72,
+   "within5km": 359,
+   "within15km": 2854,
+   "beyond15km": 11395,
+   "noStopInArea": 13260,
+   "coordinateUnknown": 1615,
+   "walkingGeometry": "NOT_ROUTED — distances are crow-flight stop proximity, not pedestrian geometry."
+  },
+  "categories": {
+   "carpool": "PARTIAL",
+   "marshrutka": "DATA_GAP",
+   "bus": "VERIFIED_ROUTE",
+   "taxi": "PROVIDER_BLOCKED",
+   "tram": "VERIFIED_ROUTE",
+   "trolleybus": "VERIFIED_ROUTE",
+   "metro": "PROVIDER_BLOCKED",
+   "train": "VERIFIED_ROUTE",
+   "bike": "PROVIDER_BLOCKED",
+   "scooter": "STALE",
+   "carsharing": "PROVIDER_BLOCKED",
+   "transfer": "DATA_GAP",
+   "walk": "PARTIAL"
+  }
+ },
+ "perOblast": [
+  {
+   "code": "2100000000",
+   "name": "Закарпатська Область",
+   "settlements": 608,
+   "reachableStops": 328,
+   "share": 53.9,
+   "unknown": 15,
+   "regionLabel": "Закарпатська Область"
+  },
+  {
+   "code": "2600000000",
+   "name": "Івано-франківська Область",
+   "settlements": 804,
+   "reachableStops": 354,
+   "share": 44,
+   "unknown": 21,
+   "regionLabel": "Івано-франківська Область"
+  },
+  {
+   "code": "4600000000",
+   "name": "Львівська Область",
+   "settlements": 1927,
+   "reachableStops": 585,
+   "share": 30.4,
+   "unknown": 236,
+   "regionLabel": "Львівська Область"
+  },
+  {
+   "code": "5300000000",
+   "name": "Полтавська Область",
+   "settlements": 1839,
+   "reachableStops": 393,
+   "share": 21.4,
+   "unknown": 442,
+   "regionLabel": "Полтавська Область"
+  },
+  {
+   "code": "5600000000",
+   "name": "Рівненська Область",
+   "settlements": 1026,
+   "reachableStops": 176,
+   "share": 17.2,
+   "unknown": 351,
+   "regionLabel": "Рівненська Область"
+  },
+  {
+   "code": "3200000000",
+   "name": "Київська Область",
+   "settlements": 1182,
+   "reachableStops": 178,
+   "share": 15.1,
+   "unknown": 492,
+   "regionLabel": "Київська Область"
+  },
+  {
+   "code": "5900000000",
+   "name": "Сумська Область",
+   "settlements": 1489,
+   "reachableStops": 190,
+   "share": 12.8,
+   "unknown": 667,
+   "regionLabel": "Сумська"
+  },
+  {
+   "code": "0500000000",
+   "name": "Вінницька Область",
+   "settlements": 1503,
+   "reachableStops": 190,
+   "share": 12.6,
+   "unknown": 614,
+   "regionLabel": "Вінницька Область"
+  },
+  {
+   "code": "0700000000",
+   "name": "Волинська Область",
+   "settlements": 1087,
+   "reachableStops": 123,
+   "share": 11.3,
+   "unknown": 366,
+   "regionLabel": "Волинська Область"
+  },
+  {
+   "code": "1200000000",
+   "name": "Дніпропетровська Область",
+   "settlements": 1499,
+   "reachableStops": 150,
+   "share": 10,
+   "unknown": 654,
+   "regionLabel": "Дніпропетровська Область"
+  },
+  {
+   "code": "3500000000",
+   "name": "Кіровоградська Область",
+   "settlements": 1029,
+   "reachableStops": 98,
+   "share": 9.5,
+   "unknown": 544,
+   "regionLabel": "Кіровоградська Область"
+  },
+  {
+   "code": "5100000000",
+   "name": "Одеська Область",
+   "settlements": 1174,
+   "reachableStops": 111,
+   "share": 9.5,
+   "unknown": 593,
+   "regionLabel": "Одеська Область"
+  },
+  {
+   "code": "6100000000",
+   "name": "Тернопільська Область",
+   "settlements": 1058,
+   "reachableStops": 92,
+   "share": 8.7,
+   "unknown": 192,
+   "regionLabel": "Тернопільська Область"
+  },
+  {
+   "code": "6800000000",
+   "name": "Хмельницька Область",
+   "settlements": 1451,
+   "reachableStops": 122,
+   "share": 8.4,
+   "unknown": 521,
+   "regionLabel": "Хмельницька Область"
+  },
+  {
+   "code": "7300000000",
+   "name": "Чернівецька Область",
+   "settlements": 417,
+   "reachableStops": 34,
+   "share": 8.2,
+   "unknown": 147,
+   "regionLabel": "Чернівецька Область"
+  },
+  {
+   "code": "7100000000",
+   "name": "Черкаська Область",
+   "settlements": 853,
+   "reachableStops": 49,
+   "share": 5.7,
+   "unknown": 489,
+   "regionLabel": "Черкаська"
+  },
+  {
+   "code": "1800000000",
+   "name": "Житомирська Область",
+   "settlements": 1667,
+   "reachableStops": 83,
+   "share": 5,
+   "unknown": 968,
+   "regionLabel": "Житомирська"
+  },
+  {
+   "code": "6300000000",
+   "name": "Харківська Область",
+   "settlements": 1751,
+   "reachableStops": 79,
+   "share": 4.5,
+   "unknown": 1263,
+   "regionLabel": "Харківська Область"
+  },
+  {
+   "code": "7400000000",
+   "name": "Чернігівська Область",
+   "settlements": 1508,
+   "reachableStops": 54,
+   "share": 3.6,
+   "unknown": 957,
+   "regionLabel": "Чернігівська"
+  },
+  {
+   "code": "4800000000",
+   "name": "Миколаївська Область",
+   "settlements": 910,
+   "reachableStops": 21,
+   "share": 2.3,
+   "unknown": 699,
+   "regionLabel": "Миколаївська"
+  },
+  {
+   "code": "2300000000",
+   "name": "Запорізька Область",
+   "settlements": 949,
+   "reachableStops": 16,
+   "share": 1.7,
+   "unknown": 694,
+   "regionLabel": "Запорізька Область"
+  },
+  {
+   "code": "0100000000",
+   "name": "Автономна Республіка Крим",
+   "settlements": 1018,
+   "reachableStops": 0,
+   "share": 0,
+   "unknown": 1017,
+   "regionLabel": "АР Крим"
+  },
+  {
+   "code": "1400000000",
+   "name": "Донецька Область",
+   "settlements": 1294,
+   "reachableStops": 0,
+   "share": 0,
+   "unknown": 1292,
+   "regionLabel": "Донецька"
+  },
+  {
+   "code": "4400000000",
+   "name": "Луганська Область",
+   "settlements": 925,
+   "reachableStops": 0,
+   "share": 0,
+   "unknown": 925,
+   "regionLabel": "Луганська"
+  },
+  {
+   "code": "6500000000",
+   "name": "Херсонська Область",
+   "settlements": 697,
+   "reachableStops": 0,
+   "share": 0,
+   "unknown": 685,
+   "regionLabel": "Херсонська"
+  },
+  {
+   "code": "8000000000",
+   "name": "М.київ",
+   "settlements": 0,
+   "reachableStops": 0,
+   "share": 0,
+   "unknown": 0,
+   "regionLabel": "М.київ"
+  },
+  {
+   "code": "8500000000",
+   "name": "М.севастополь",
+   "settlements": 31,
+   "reachableStops": 0,
+   "share": 0,
+   "unknown": 31,
+   "regionLabel": "Севастополь"
+  }
+ ],
+ "categories": [
+  {
+   "key": "carpool",
+   "name": "Попутка",
+   "status": "PARTIAL",
+   "evidence": "Платформний життєвий цикл попутки перевірено e2e-тестами (два акаунти, бронювання, QR, завершення). У локальній БД 52 опублікованих пропозицій — це тестові дані, не реальний ринок.",
+   "blocker": "Немає реальної пропозиції водіїв; потрібна маркетингова поставка та верифікація водіїв.",
+   "impact": "Не є транспортним джерелом покриття, доки немає реальних поїздок."
+  },
+  {
+   "key": "marshrutka",
+   "name": "Маршрутка",
+   "status": "DATA_GAP",
+   "evidence": "Жоден ліцензований GTFS-фід не публікує маршрутки окремим route_type; inbus.ua та VD-Express містять міжміські автобуси, але без підтвердженої комерційної ліцензії.",
+   "blocker": "Ліцензія/договір з inbus.ua та перевізниками маршруток.",
+   "impact": "Маршрутні перевезення не беруть участі у плануванні."
+  },
+  {
+   "key": "bus",
+   "name": "Автобус",
+   "status": "VERIFIED_ROUTE",
+   "evidence": "Ліцензовані GTFS: Київ — метро (GeoJSON геометрія) (Київ); Укрзалізниця — розклад поїздів (GTFS) (Україна); Dozor — Ів-Франківськ позиції (JSON) (Івано-Франківськ); Івано-Франківськ — позиції (Dozor JSON) (Івано-Франківськ); Стрийська міська рада — розклад (GTFS) (Стрий); Івано-Франківськ — розклад (GTFS, Dozor) (Івано-Франківськ); Київпастранс — розклад (GTFS) (Київ); Київ — фунікулер (GeoJSON геометрія) (Київ); Львівавтодор — розклад (GTFS) (Львів); Ужгородська міська рада — розклад (GTFS) (Ужгород); Київ — маршрутки (GeoJSON геометрія) (Київ); Київ — міська електричка (GeoJSON геометрія) (Київ).",
+   "blocker": null,
+   "impact": "Міські автобуси доступні у 5 містах; міжміські автобуси — лише Укрзалізниця/rail-мережа як залізниця, автобусні міжміські — ні."
+  },
+  {
+   "key": "taxi",
+   "name": "Таксі",
+   "status": "PROVIDER_BLOCKED",
+   "evidence": "Провайдери: Uklon — Таксі=disabled/REQUIRES_PARTNERSHIP, Bolt — Таксі=disabled/REQUIRES_PARTNERSHIP.",
+   "blocker": "Партнерський API/договір Bolt та Uklon; без нього ціна й доступність невідомі.",
+   "impact": "Таксі не пропонується у планувальнику."
+  },
+  {
+   "key": "tram",
+   "name": "Трамвай",
+   "status": "VERIFIED_ROUTE",
+   "evidence": "Київпастранс і Львівавтодор GTFS містять трамвайні маршрути; трамвайні сегменти присутні у перевірених ланцюжках (Київ→Львів, Львів→Рівне).",
+   "blocker": null,
+   "impact": "Лише Київ і Львів."
+  },
+  {
+   "key": "trolleybus",
+   "name": "Тролейбус",
+   "status": "VERIFIED_ROUTE",
+   "evidence": "Київпастранс та Івано-Франківськ GTFS; тролейбусні сегменти у перевірених ланцюжках.",
+   "blocker": null,
+   "impact": "Лише Київ та Івано-Франківськ."
+  },
+  {
+   "key": "metro",
+   "name": "Метро",
+   "status": "PROVIDER_BLOCKED",
+   "evidence": "gisserver.kyivcity.gov.ua не відповідає, data.kyivcity.gov.ua повертає порожній редірект; офіційного GTFS метро немає.",
+   "blocker": "Доступ до офіційного розкладу КП «Київський метрополітен» або дозвіл на публікацію.",
+   "impact": "Метро вимкнене, не симулюється."
+  },
+  {
+   "key": "train",
+   "name": "Поїзд",
+   "status": "VERIFIED_ROUTE",
+   "evidence": "Укрзалізниця (ODbL, OSM-derived GTFS): 113 зупинок у межах України, сервіс 2026-09-04 → 2027-12-11; залізничні маршрути підтверджені матрицею.",
+   "blocker": "Повний офіційний фід УЗ не публікується; наявна мережа неповна (немає зупинок у 9 обласних центрах).",
+   "impact": "Залізниця покриває частину напрямків; це джерело не є офіційним фідом перевізника."
+  },
+  {
+   "key": "bike",
+   "name": "Велосипед",
+   "status": "PROVIDER_BLOCKED",
+   "evidence": "Провайдери: Bikenow — Велопрокат=disabled/REQUIRES_PARTNERSHIP, Nextbike Wrocław (тест)=disabled/DISCOVERED.",
+   "blocker": "Договір з Bikenow; GBFS Nextbike Wrocław — не українська мережа.",
+   "impact": "Оренда велосипедів недоступна."
+  },
+  {
+   "key": "scooter",
+   "name": "Самокат",
+   "status": "STALE",
+   "evidence": "Zelectra enabled, але health=degraded і discovery_status=TEMPORARILY_UNAVAILABLE; доступність оренди не підтверджена.",
+   "blocker": "Стабільний GBFS-ендпоінт і підтверджена доступність транспортних засобів.",
+   "impact": "Оренда самокатів не показується як доступна."
+  },
+  {
+   "key": "carsharing",
+   "name": "Каршеринг",
+   "status": "PROVIDER_BLOCKED",
+   "evidence": "Провайдери: Getmancar — Каршеринг=disabled/REQUIRES_PARTNERSHIP.",
+   "blocker": "Договір з Getmancar або іншим оператором каршерингу.",
+   "impact": "Каршеринг відсутній."
+  },
+  {
+   "key": "transfer",
+   "name": "Трансфер",
+   "status": "DATA_GAP",
+   "evidence": "Партнерський модуль трансферів існує, але жодного авторизованого постачальника трансферів не підключено.",
+   "blocker": "Договір з трансферним оператором (аеропорт/міжміський трансфер).",
+   "impact": "Трансфер не є доступною категорією."
+  },
+  {
+   "key": "walk",
+   "name": "Пішки (з’єднувач)",
+   "status": "PARTIAL",
+   "evidence": "Пішохідні плечі будуються пішохідним маршрутизатором, коли налаштований OSRM/pedestrian сервіс; без нього доступність зупинок вимірюється прямою відстанню і не є перевіреною пішохідною геометрією.",
+   "blocker": "Розгорнутий пішохідний графік (OSRM foot) для реальної геометрії.",
+   "impact": "Матриця доступності зупинок не підтверджує пішохідну прохідність."
+  }
+ ],
+ "gainSample": [
+  {
+   "from": "Київ",
+   "to": "Київська",
+   "journeys": 10,
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TROLLEYBUS"
+   ]
+  },
+  {
+   "from": "Київ",
+   "to": "Запорізька",
+   "journeys": 3,
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS"
+   ]
+  },
+  {
+   "from": "Київ",
+   "to": "Кіровоградська",
+   "journeys": 5,
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS"
+   ]
+  },
+  {
+   "from": "Київ",
+   "to": "Чернівецька",
+   "journeys": 3,
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS"
+   ]
+  },
+  {
+   "from": "Київська",
+   "to": "Київ",
+   "journeys": 9,
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TROLLEYBUS"
+   ]
+  },
+  {
+   "from": "Київська",
+   "to": "Дніпропетровська",
+   "journeys": 1,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Київська",
+   "to": "Закарпатська",
+   "journeys": 2,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Київська",
+   "to": "Запорізька",
+   "journeys": 2,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Київська",
+   "to": "Івано-Франківська",
+   "journeys": 3,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Київська",
+   "to": "Полтавська",
+   "journeys": 5,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Київська",
+   "to": "Тернопільська",
+   "journeys": 3,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Київська",
+   "to": "Харківська",
+   "journeys": 5,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Вінницька",
+   "to": "Київська",
+   "journeys": 1,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Вінницька",
+   "to": "Волинська",
+   "journeys": 1,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Вінницька",
+   "to": "Дніпропетровська",
+   "journeys": 3,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Вінницька",
+   "to": "Закарпатська",
+   "journeys": 9,
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS"
+   ]
+  },
+  {
+   "from": "Вінницька",
+   "to": "Запорізька",
+   "journeys": 1,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Вінницька",
+   "to": "Рівненська",
+   "journeys": 3,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Вінницька",
+   "to": "Сумська",
+   "journeys": 1,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Вінницька",
+   "to": "Чернівецька",
+   "journeys": 5,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Волинська",
+   "to": "Дніпропетровська",
+   "journeys": 2,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Волинська",
+   "to": "Запорізька",
+   "journeys": 1,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Волинська",
+   "to": "Полтавська",
+   "journeys": 3,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Волинська",
+   "to": "Рівненська",
+   "journeys": 2,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Волинська",
+   "to": "Харківська",
+   "journeys": 2,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Дніпропетровська",
+   "to": "Вінницька",
+   "journeys": 4,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Дніпропетровська",
+   "to": "Волинська",
+   "journeys": 2,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Дніпропетровська",
+   "to": "Закарпатська",
+   "journeys": 9,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Дніпропетровська",
+   "to": "Запорізька",
+   "journeys": 2,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Дніпропетровська",
+   "to": "Івано-Франківська",
+   "journeys": 3,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Дніпропетровська",
+   "to": "Одеська",
+   "journeys": 4,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Дніпропетровська",
+   "to": "Полтавська",
+   "journeys": 3,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Дніпропетровська",
+   "to": "Рівненська",
+   "journeys": 3,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Дніпропетровська",
+   "to": "Сумська",
+   "journeys": 2,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Дніпропетровська",
+   "to": "Тернопільська",
+   "journeys": 4,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Дніпропетровська",
+   "to": "Харківська",
+   "journeys": 2,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Дніпропетровська",
+   "to": "Хмельницька",
+   "journeys": 4,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Закарпатська",
+   "to": "Київська",
+   "journeys": 2,
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS"
+   ]
+  },
+  {
+   "from": "Закарпатська",
+   "to": "Дніпропетровська",
+   "journeys": 5,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  },
+  {
+   "from": "Закарпатська",
+   "to": "Запорізька",
+   "journeys": 4,
+   "modes": [
+    "WALK",
+    "RAIL"
+   ]
+  }
+ ]
+}
