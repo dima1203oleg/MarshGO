@@ -1,0 +1,197 @@
+import type { JourneyOption, JourneyStrategy } from './types';
+
+export interface ScoreWeights {
+  time: number;
+  price: number;
+  transfers: number;
+  walking: number;
+  risk: number;
+  comfort: number;
+}
+
+export const JOURNEY_SCORE_WEIGHTS: Record<JourneyStrategy, ScoreWeights> = {
+  FASTEST:  { time: 0.62, price: 0.08, transfers: 0.08, walking: 0.04, risk: 0.12, comfort: 0.06 },
+  CHEAPEST: { time: 0.10, price: 0.62, transfers: 0.09, walking: 0.04, risk: 0.10, comfort: 0.05 },
+  BALANCED: { time: 0.35, price: 0.25, transfers: 0.10, walking: 0.10, risk: 0.20, comfort: 0 },
+  PREMIUM:  { time: 0.14, price: 0.10, transfers: 0.15, walking: 0.19, risk: 0.15, comfort: 0.27 },
+  RELIABLE: { time: 0.20, price: 0.10, transfers: 0.10, walking: 0.06, risk: 0.46, comfort: 0.08 },
+  CUSTOM:   { time: 0.34, price: 0.24, transfers: 0.12, walking: 0.08, risk: 0.14, comfort: 0.08 },
+};
+
+export interface ScoredJourney<T extends JourneyOption = JourneyOption> {
+  journey: T;
+  score: number;
+  strategy: JourneyStrategy;
+}
+
+/** CHEAPEST is a global promise, so suppress its label if any candidate lacks a fare. */
+export function strategiesWithComparablePrices<T extends JourneyOption>(
+  journeys: readonly T[],
+  strategies: readonly JourneyStrategy[],
+): JourneyStrategy[] {
+  const hasUnknownFare = journeys.some((journey) => journey.priceMinor === null);
+  return hasUnknownFare ? strategies.filter((strategy) => strategy !== 'CHEAPEST') : [...strategies];
+}
+
+type Metric = 'durationSeconds' | 'priceMinor' | 'transfers' | 'walkingMeters' | 'risk' | 'comfortPenalty';
+
+function riskMetric(journey: JourneyOption): number {
+  return Math.max(journey.transferRisk, journey.reliability === null ? 1 : 1 - journey.reliability);
+}
+
+function dominates(a: JourneyOption, b: JourneyOption): boolean {
+  if ((a.priceMinor === null) !== (b.priceMinor === null)) return false;
+  const metricsA = [a.durationSeconds, a.priceMinor ?? 0, a.transfers, a.walkingMeters, riskMetric(a)];
+  const metricsB = [b.durationSeconds, b.priceMinor ?? 0, b.transfers, b.walkingMeters, riskMetric(b)];
+  return metricsA.every((value, index) => value <= metricsB[index])
+    && metricsA.some((value, index) => value < metricsB[index]);
+}
+
+/** Unknown fares remain incomparable with known fares. */
+export function paretoFrontier<T extends JourneyOption>(journeys: readonly T[]): T[] {
+  return journeys.filter((candidate) => !journeys.some((other) => other !== candidate && dominates(other, candidate)));
+}
+
+export interface StrategyRecommendation<T extends JourneyOption> {
+  journey: T;
+  strategy: JourneyStrategy;
+  recommendedStrategies: JourneyStrategy[];
+  score: number;
+  strategyRanks?: Partial<Record<JourneyStrategy, number>>;
+}
+
+/** Return a bounded union of the best Pareto alternatives in each strategy. */
+export function selectStrategyAlternatives<T extends JourneyOption>(
+  journeys: readonly T[], strategies: readonly JourneyStrategy[], maximumPerStrategy = 12,
+): StrategyRecommendation<T>[] {
+  if (!Number.isInteger(maximumPerStrategy) || maximumPerStrategy < 1 || maximumPerStrategy > 50) {
+    throw new TypeError('maximum alternatives per strategy must be between 1 and 50');
+  }
+  const frontier = paretoFrontier(journeys);
+  const alternatives = new Map<string, StrategyRecommendation<T>>();
+  for (const strategy of strategies) {
+    const chainCounts = new Map<string, number>();
+    let rank = 0;
+    for (const { journey, score } of scoreJourneys(frontier, strategy)) {
+      const modeChain = journey.legs.filter((leg) => leg.mode !== 'WALK').map((leg) => leg.mode).join('>') || 'WALK';
+      const diversityKey = journey.diversityKey ?? modeChain;
+      const count = chainCounts.get(diversityKey) ?? 0;
+      if (count >= 3) continue;
+      chainCounts.set(diversityKey, count + 1);
+      rank += 1;
+      const existing = alternatives.get(journey.id);
+      if (existing) {
+        existing.recommendedStrategies.push(strategy);
+        existing.strategyRanks ??= {};
+        existing.strategyRanks[strategy] = rank;
+      } else {
+        alternatives.set(journey.id, { journey, strategy, recommendedStrategies: [strategy], score, strategyRanks: { [strategy]: rank } });
+      }
+      if (rank >= maximumPerStrategy) break;
+    }
+  }
+  return [...alternatives.values()];
+}
+
+function normalized(value: number, min: number, max: number): number {
+  if (max === min) return 0;
+  return Math.max(0, Math.min(1, (value - min) / (max - min)));
+}
+
+export function scoreJourneys<T extends JourneyOption>(
+  journeys: readonly T[],
+  strategy: JourneyStrategy,
+  weights: Partial<ScoreWeights> = {},
+): ScoredJourney<T>[] {
+  if (journeys.length === 0) return [];
+  for (const journey of journeys) {
+    if (!Number.isFinite(journey.durationSeconds) || journey.durationSeconds < 0
+      || !Number.isInteger(journey.transfers) || journey.transfers < 0
+      || !Number.isFinite(journey.walkingMeters) || journey.walkingMeters < 0
+      || (journey.reliability !== null && (!Number.isFinite(journey.reliability) || journey.reliability < 0 || journey.reliability > 1))
+      || !Number.isFinite(journey.transferRisk) || journey.transferRisk < 0 || journey.transferRisk > 1
+      || (journey.comfort !== null && (!Number.isFinite(journey.comfort) || journey.comfort < 0 || journey.comfort > 1))
+      || (journey.priceMinor !== null && (!Number.isSafeInteger(journey.priceMinor) || journey.priceMinor < 0))) {
+      throw new TypeError(`journey ${journey.id} has invalid scoring features`);
+    }
+  }
+
+  const metrics: Record<Metric, (journey: T) => number> = {
+    durationSeconds: (journey) => journey.durationSeconds,
+    priceMinor: (journey) => journey.priceMinor ?? Number.MAX_SAFE_INTEGER,
+    transfers: (journey) => journey.transfers,
+    walkingMeters: (journey) => journey.walkingMeters,
+    risk: riskMetric,
+    comfortPenalty: (journey) => journey.comfort === null ? 0.5 : 1 - journey.comfort,
+  };
+  const ranges = Object.fromEntries(Object.entries(metrics).map(([key, valueOf]) => {
+    const values = journeys.map(valueOf);
+    return [key, { min: Math.min(...values), max: Math.max(...values) }];
+  })) as Record<Metric, { min: number; max: number }>;
+  const combinedWeights = { ...JOURNEY_SCORE_WEIGHTS[strategy], ...weights };
+
+  const scored = journeys.map((journey) => {
+    const values: Record<Metric, number> = {
+      durationSeconds: journey.durationSeconds,
+      priceMinor: metrics.priceMinor(journey),
+      transfers: journey.transfers,
+      walkingMeters: journey.walkingMeters,
+      risk: metrics.risk(journey),
+      comfortPenalty: journey.comfort === null ? 0.5 : 1 - journey.comfort,
+    };
+    const score = (Object.entries(values) as Array<[Metric, number]>).reduce((sum, [metric, value]) => {
+      const weightKey = metric === 'durationSeconds' ? 'time'
+        : metric === 'priceMinor' ? 'price'
+          : metric === 'transfers' ? 'transfers'
+            : metric === 'walkingMeters' ? 'walking'
+              : metric === 'risk' ? 'risk' : 'comfort';
+      return sum + normalized(value, ranges[metric].min, ranges[metric].max) * combinedWeights[weightKey];
+    }, 0);
+    return { journey, score, strategy };
+  });
+  return scored.sort((a, b) => {
+    // These two strategies are promises about a single measurable value, so
+    // make that value the primary key. The weighted score remains the tie-breaker.
+    if (strategy === 'FASTEST' && a.journey.durationSeconds !== b.journey.durationSeconds) return a.journey.durationSeconds - b.journey.durationSeconds;
+    if (strategy === 'CHEAPEST') {
+      if (a.journey.priceMinor === null && b.journey.priceMinor !== null) return 1;
+      if (a.journey.priceMinor !== null && b.journey.priceMinor === null) return -1;
+      if (a.journey.priceMinor !== null && b.journey.priceMinor !== null && a.journey.priceMinor !== b.journey.priceMinor) {
+        return a.journey.priceMinor - b.journey.priceMinor;
+      }
+    }
+    return a.score - b.score || a.journey.id.localeCompare(b.journey.id);
+  });
+}
+
+export function selectRepresentativeJourneys<T extends JourneyOption>(
+  journeys: readonly T[],
+  strategies: readonly JourneyStrategy[] = ['FASTEST', 'CHEAPEST', 'PREMIUM', 'BALANCED', 'RELIABLE'],
+  maxResults = 200,
+): Array<{ strategy: JourneyStrategy; journey: T; score: number }> {
+  const selected: Array<{ strategy: JourneyStrategy; journey: T; score: number }> = [];
+  const selectedIds = new Set<string>();
+  const add = (journey: T, strategy: JourneyStrategy, score: number) => {
+    if (selectedIds.has(journey.id) || selected.length >= maxResults) return;
+    selectedIds.add(journey.id);
+    selected.push({ strategy, journey, score });
+  };
+
+  // Keep the best alternatives for each strategy at the front of the list.
+  // Distinct departures on the same route remain separate options because
+  // their itinerary ids differ and they may have materially different waits.
+  for (const strategy of strategies) {
+    const scored = scoreJourneys(journeys, strategy);
+    for (const item of scored.slice(0, 4)) {
+      add(item.journey, strategy, item.score);
+    }
+  }
+
+  // Append every other candidate inside the planner's bounded result window.
+  const allScored = scoreJourneys(journeys, 'BALANCED');
+  for (const item of allScored) {
+    add(item.journey, 'BALANCED', item.score);
+  }
+
+  return selected;
+}

@@ -1,0 +1,27 @@
+R08 Kyiv→Lviv inter-oblast multimodal control — results AX (Qoder in-app browser, https://marshgo-dima.shares.zrok.io)
+Captured 2026-11-14T22:32Z; URL params: origin=Вокзальна площа, 1, Київ (n:2644051429, 50.4400123/30.4884813); destination=площа Ринок, Львів (r:2166192, 49.8419316/24.0323731); date=2026-11-15; departure=2026-11-15T09:00; passengers=1; strategy=BALANCED; all 12 modes enabled; Без пересадок unchecked.
+
+uid=48_1 RootWebArea "MARSHGO — Один пошук. Усі способи доїхати" url="…/journeys/search?mode=planner&origin=…&destination=…&date=2026-11-15&passengers=1&departure=2026-11-15T09%3A00&strategy=BALANCED"
+  uid=48_3 region "Результати пошуку маршрутів"
+    uid=48_4 heading "Результати маршрутів: Вокзальна площа, 1, Київ → площа Ринок, Львів" level=1
+    uid=48_9 StaticText "15.11, 09:00"
+    uid=48_10 StaticText "усі види транспорту"
+    uid=48_11 StaticText "8 маршрутів"
+    uid=48_13 button "Оптимальний, 8 маршрутів" pressed=true
+    uid=48_14 button "Найшвидший, 8 маршрутів" pressed=false
+    uid=48_15 button "Найдешевший, немає доступних маршрутів" disabled pressed=false
+    Card 1: 10 год 0 хв — 0 пересадок; шкала: Поїзд 6 год 15 хв, Пішки 40 хв; етапи: №40749 6 год 15 хв → Пішки 40 хв; ціна уточнюється
+    Card 2: 10 год 0 хв — 1 пересадка; шкала: Поїзд 6 год 58 хв, Пішки 2 хв, Автобус 12 хв, Пішки 4 хв; етапи: №715 6 год 58 хв → Пішки 2 хв → №А29 12 хв → Пішки 4 хв; ціна уточнюється
+    Card 3: 10 год 0 хв — 1; Поїзд 6 год 15 хв, Пішки 2 хв, Автобус 12 хв, Пішки 4 хв; №40749 → Пішки 2 хв → №А29 12 хв → Пішки 4 хв
+    Card 4: 10 год 2 хв — 1; Поїзд 6 год 58 хв, Пішки 2 хв, Автобус 14 хв, Пішки 4 хв; №715 → №А29 14 хв
+    Card 5: 10 год 2 хв — 1; Поїзд 6 год 15 хв, Пішки 2 хв, Автобус 14 хв, Пішки 4 хв; №40749 → №А29 14 хв
+    Card 6: 10 год 4 хв — 1; Поїзд 6 год 58 хв, Пішки 4 хв, Трамвай 17 хв, Пішки 1 хв; №715 → Пішки 4 хв → №Т01 17 хв → Пішки 1 хв
+    Card 7: 10 год 4 хв — 1; Поїзд 6 год 15 хв, Пішки 4 хв, Трамвай 17 хв, Пішки 1 хв; №40749 → №Т01 17 хв
+    Card 8: 13 год 44 хв — 0; Поїзд 8 год 23 хв, Пішки 21 хв; №45 8 год 23 хв → Пішки 21 хв
+  uid=48_136 navigation "Основна навігація": Головна / Пошук / + / Поїздки / Профіль
+
+Observations:
+- Genuine cross-region composition: UZ rail Kyiv-Pasazhyrskyi → Lviv + Lviv urban last-mile (bus А29 / tram Т01) or final walk.
+- All fares "ціна уточнюється"; Cheapest strategy disabled (unknown fare must not rank as zero) — honest.
+- Follow-up screenshot final-browser-r08-egress.png shows card1 final walk3.3km/40min. Initial default1000m hypothesis falsified on Server disk e9934abb: index.ts:3360–3362 explicitly allows5000m intercity access/egress for OD>30km. Runtime/source calendar verification still required; no cap violation established.
+- Total 10 год 0 хв vs ride 6 год 15 хв + walk 40 хв implies ~3 h station wait/access; verify departure/arrival times in details.

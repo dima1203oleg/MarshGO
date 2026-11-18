@@ -1,0 +1,20 @@
+{
+  "observedAt": "2026-11-16T11:43:54Z",
+  "rootBase": "53549ba6f736219c77e51217ec0d0b99a88fa0dd",
+  "surface": "Qoder in-app browser",
+  "origin": "https://marshgo-dima.shares.zrok.io",
+  "servedSiteSha": "NOT_VERIFIED_THIS_PROBE",
+  "workflow": ["Select page2 with bringToFront", "Module timeout splash; local7777 and public CurrentCitySelector module each HTTP200", "Ordinary reload restored planner", "Disable Автобус; reload retains pressed=false", "Type Львівська політехніка and choose first actual suggestion", "Type Залізничний вокзал Львів and choose first actual suggestion", "Submit search", "Open returned itinerary details/map"],
+  "selectedPlacesFromGeneratedUrl": {
+    "origin": {"label": "Львівська політехніка, Львів", "coordinates": [24.0154759,49.8347322], "providerId": "w:182450459"},
+    "destination": {"label": "Залізничний вокзал, Львів", "coordinates": [24.0536691,49.8360973], "providerId": "w:1551714044"}
+  },
+  "date": "2026-11-17",
+  "departure": "2026-11-17T08:00",
+  "strategy": "BALANCED",
+  "observedResults": {"count": 1, "modes": ["WALK","TRAM","WALK"], "tram": "Т01", "displayedDurationMinutes": 29, "displayedArrival": "08:28", "displayedCashFareUAH": 30, "transfers": 0, "walkMeters": [73,76], "waitMinutes": 6},
+  "generatedUrlContainsTransportSelection": false,
+  "cautions": ["No request/response body captured in this browser probe", "Current geocoded destination differs from archived CP11 endpoint", "Same-browser reload retention does not prove cross-browser shared-link retention", "Tomorrow itinerary displays НАЖИВО; provider realtime and UI label semantics not verified", "Map rendering does not prove road legality or current timetable validity", "No navigation started, no location permission requested, no booking or sharing sent"],
+  "screenshots": ["qoder-bus-disabled-reload-2026-11-16.png","qoder-lviv-no-bus-results-2026-11-16.png","qoder-lviv-no-bus-map-2026-11-16.png"],
+  "status": "PARTIAL / NOT_RELEASED"
+}

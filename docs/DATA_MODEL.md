@@ -1,0 +1,45 @@
+# MARSHGO data model status
+
+The PostgreSQL schema is managed by ordered SQL migrations in `server/migrations/`. Local state was created with PostGIS; production data must not be seeded from `src/data/seedData.ts`.
+
+## Implemented tables
+
+| Domain | Tables | Current invariants |
+| --- | --- | --- |
+| Identity | `users`, `user_roles`, `sessions`, `otp_challenges`, `driver_profiles`, `verification_records`, `account_deletion_requests` | Unique E.164 phone; roles are normalized; access and refresh credentials are hashed; OTP challenge expiry and attempt state are stored. |
+| Garage | `vehicles`, `vehicle_photos` | Owner FK; seat bounds; one active non-archived car per owner; archive preserves historic references. Photo metadata exists, upload/storage does not. |
+| Marketplace | `offers`, `bookings`, `booking_events`, `booking_completion_confirmations`, `reviews` | Offer points and optional road LineString use SRID 4326; prices are integer minor units; capacity is checked; booking idempotency is unique per passenger; state transitions and two-party completion confirmations are persisted; reviews require completed bookings. |
+| Demand | `passenger_demands`, `proposals`, `proposal_revisions` | Time window and passenger bounds; total/per-seat budget basis, notes, JSON requirements; immutable price/time and driver-agreement revisions; one accepted proposal per demand. |
+| Navigation | `navigation_sessions`, `navigation_match_candidates`, `navigation_waypoints` | Owner-only current GPS and road route; opt-in candidates; candidate-bound proposal provenance; multiple passenger pickup/dropoff stops with per-stop state, ordered by the route optimizer and bounded by segment capacity. |
+| Journeys | `journeys`, `journey_legs`, `journey_preferences` | Owner-scoped persistent plans; PostGIS WGS84 endpoints; checked strategy/state/mode/price status; ordered legs may reference existing Offer/Booking/Demand/NavigationCandidate records; ETA uncertainty and unknown reliability remain nullable; provider freshness and preference bounds are persisted. Initial API planner only creates direct Community-offer legs. |
+| Messaging | `conversations`, `conversation_members`, `messages` | Conversation membership binds access to booking participants; per-member `last_read_message_id` stores the persistent unread cursor (migration 028); message bodies have length constraints. |
+| Realtime delivery | `realtime_outbox` | Chat, booking and proposal event plus recipient snapshot commit in the corresponding domain transaction; unique dedupe key; leased `SKIP LOCKED` delivery, exponential retry and published state; published payloads are pruned after seven days. |
+| Safety | `moderation_cases` | Private booking-linked report, derived counterpart, reviewer, bounded resolution action/note, terminal state and queue indexes; partial uniqueness prevents duplicate open reports for one booking. |
+| Live pickup | `rendezvous_sessions`, `rendezvous_events` | One session per confirmed booking; pickup geography and planned/predicted times; explicit participant arrival and terminal timestamps. Durable events contain status and bounded ETA notes only. Exact live coordinates live ephemerally in Redis with a 5-minute TTL and never enter PostgreSQL/outbox. |
+| Operations | `audit_events` | Critical backend actions are recorded with actor, entity, action, and timestamp. |
+
+## Migration history
+
+* `001_initial.sql` — PostGIS, users, vehicles, offers, bookings, demand, proposals, chat, OTP/session baseline, and audit events.
+* `002_reverse_marketplace.sql` — proposal vehicle/time fields, revisions, accepted-proposal uniqueness.
+* `003_identity_auth.sql` — normalized roles, account state, refresh sessions, verification and deletion records.
+* `004_vehicle_garage.sql` — active/archived car state and owner indexes.
+* `005_offer_routes.sql` — route-derived arrival, distance, duration, and source.
+* `006_vehicle_photo_primary.sql` — at most one primary image per vehicle.
+* `007_booking_lifecycle_reviews.sql` — boarding/in-progress states, immutable booking transitions, two-party completion, and completed-booking reviews.
+* `008_demand_details.sql` — passenger budget basis, notes, and JSON requirement flags.
+* `014_realtime_outbox.sql` — transactional realtime event outbox with recipient IDs, deduplication, worker lease/retry state, and retention index.
+* `015_moderation_cases.sql` — private booking-scoped reports, reviewer assignment, decision constraints, and queue indexes.
+* `019_booking_fee_snapshot.sql` — immutable Community fee classification/snapshot on bookings.
+* `020_journeys.sql` — Journey plans, ordered multimodal leg contract, route/transfer freshness, and persisted planning preferences.
+* `023_rendezvous_sessions.sql` — confirmed-booking rendezvous state, pickup point, lifecycle timestamps, and status-only event log.
+
+## Not yet modeled or incomplete
+
+Migrations `010_navigation_sessions.sql`, `011_navigation_retention.sql`, `012_navigation_matching.sql`, and `024_navigation_session_activity.sql` add owner-scoped foreground navigation sessions with road geometry, destination point/label, route distance/duration/version, opt-in flag (false by default), verified vehicle/capacity snapshot, latest GPS point/accuracy/time, and server-side last activity. GiST indexes support route and current-location queries, and a partial unique index permits one active/paused session per driver. `navigation_match_candidates` persists a single current candidate per session/demand with route version, measured road detour, pickup ETA, state and short expiry. The latest precise point is intentionally not an event history: it is cleared after two minutes without an accepted GPS update, independently from route/session lifecycle. An abandoned session and its route are ended and cleared after 24 hours without activity; explicit session end clears them immediately. Backup retention and restore-time re-deletion remain operational policy requirements.
+
+Migrations `016_navigation_candidate_proposals.sql` and `017_navigation_candidate_proposal_restrict.sql` add an optional FK from `proposals` to a navigation candidate and a partial unique index so a candidate cannot generate multiple proposals. The restrictive FK preserves provenance: deleting the candidate/session cannot silently turn a navigation proposal into a normal proposal. Navigation-bound proposals are valid only while the candidate remains passenger-confirmed, unexpired, route-version current, and tied to the paused, opted-in driver's fresh-location session and verified active vehicle.
+
+Migration `018_navigation_waypoints.sql` stores agreed pickup/dropoff coordinates, ordinal, booking and source candidate. Migration `022_multi_passenger_navigation.sql` adds scheduled/visited/skipped state and up to 30 ordered stops. Passenger proposal acceptance recomputes passenger and driver road geometry, creates the booking and optimized stop list, updates navigation route/distance/duration/version, and disables matching in that session in one database transaction. Subsequent candidates account for scheduled stops and occupied seats; the driver explicitly opts in again after each route change. GPS marks only the next scheduled stop visited within the accuracy-adjusted radius. `navigation.route-updated` tells the driver UI to refetch its authorized navigation session.
+
+The `user_blocks` table stores private directional pairs with a composite primary key and cascading user deletion; application policy treats a pair as mutually unavailable for negotiations, chat, and route matching. `moderation_cases` supports report intake and staff review, but does not replace a staffed safety-response policy or incident escalation. The outbox now covers chat, booking, proposal, navigation-consent and navigation-route-update events; Web Push, persistent user notification inbox, and missed-event replay do not yet exist. No persistent geocoder place registry, generalized multi-passenger stop ordering, vehicle photo object lifecycle/cleanup job, historical location-event retention, push subscriptions, partner inventory, financial ledger, or migration rollback rehearsal exists yet. These are tracked as incomplete in `docs/PRODUCTION_AUDIT.md` and must not be inferred from UI components.

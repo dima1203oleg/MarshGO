@@ -1,0 +1,65 @@
+{
+  "harness": "carpool-surface-v1-auth",
+  "generatedAt": "2026-11-16T10:05:57.174Z",
+  "corridors": [
+    {
+      "id": "kyiv-lviv",
+      "offersHttpStatus": 200,
+      "offerCount": 0,
+      "offerSample": []
+    },
+    {
+      "id": "lviv-kyiv",
+      "offersHttpStatus": 200,
+      "offerCount": 0,
+      "offerSample": []
+    },
+    {
+      "id": "kyiv-odesa",
+      "offersHttpStatus": 200,
+      "offerCount": 0,
+      "offerSample": []
+    },
+    {
+      "id": "kyiv-kharkiv",
+      "offersHttpStatus": 200,
+      "offerCount": 0,
+      "offerSample": []
+    }
+  ],
+  "rawControls": {
+    "note": "Positive control to falsify harness/parse bug: every variant returns HTTP 200 with envelope {\"data\":[]}. Endpoint healthy, parse correct, inventory genuinely empty.",
+    "queries": [
+      { "label": "coord kyiv-lviv 17.11", "http": 200, "count": 0, "body": "{\"data\":[]}" },
+      { "label": "coord dnipro-lviv 17.11", "http": 200, "count": 0, "body": "{\"data\":[]}" },
+      { "label": "coord kharkiv-odesa 17.11", "http": 200, "count": 0, "body": "{\"data\":[]}" },
+      { "label": "coord kyiv-lviv nodate", "http": 200, "count": 0, "body": "{\"data\":[]}" },
+      { "label": "coord kyiv-odesa nodate", "http": 200, "count": 0, "body": "{\"data\":[]}" },
+      { "label": "name kyiv-lviv nodate", "http": 200, "count": 0, "body": "{\"data\":[]}" },
+      { "label": "name kyiv-odesa nodate", "http": 200, "count": 0, "body": "{\"data\":[]}" },
+      { "label": "name Київ->Львів seats1", "http": 200, "count": 0, "body": "{\"data\":[]}" }
+    ]
+  },
+  "engineIntegration": {
+    "status": "VERIFIED_BY_CODE_READ",
+    "nationalSearchPath": "MarshGO-Server/server/index.ts:3206-3237 rows query (offers: status='published', departure_at>=search.departureAt AND <=+120min, available_seats>=passengers, driver_id<>searcher, route NOT NULL, duration_s>0, distance_m>0, route_source<>'development_unrouted', allowCommunity&&carpool-selected, origin+dest within 25km OR route within corridorWidth of O/D line, departure_at>now()) -> index.ts:3250 candidates (offset<=2500m/5000m) -> index.ts:3929 ranked kind:'community'.",
+    "engineSection5": "multimodalChainEngine.ts:1332-1384 builds source='community-offer', leg mode='COMMUNITY', providerType='community' from input.communityOffers when isTypeAllowed('carpool'); BUT index.ts:3894-3901 never passes communityOffers, so this section is dead in the search path. The live carpool surface is the direct rows->candidates path above.",
+    "nationalAlias": "multimodalChainEngine.ts:1427 composeUkraineMultimodalChains = composeKyivMultimodalChains (national, not Kyiv-only).",
+    "conclusion": "Carpool IS wired into national journey search. Zero carpool journeys is an empty published-offer inventory gap, NOT an engine/chain-logic gap."
+  },
+  "uiWitness": {
+    "screenshot": "browser-2026-11-16-kyiv-lviv-carpool-empty.png",
+    "url": "canonical zrok /journeys/search?mode=offers (curated marshgo:city-reference:kyiv -> :lviv), 17.11 08:00 BALANCED",
+    "observed": "Heading 'Попутки MARSHGO', '0 варіантів', 'Немає попуток за цими умовами', 'Спробуйте змінити дату або кількість пасажирів.'; 5-item nav intact; header 'Маршрут: Київ → Львів / 17.11, 08:00 · усі види транспорту'.",
+    "gate": "resultsDiagnostics.ts:76 showsCarpoolSection = offerCount>0 || !transitResultPresent. In offers-only mode (no transit answer) the empty state shows; under real transit results with 0 offers the carpool block is hidden (no noise).",
+    "verdict": "Fail-closed honest empty state; no fabricated offers."
+  },
+  "verdict": {
+    "mode": "carpool (попутка)",
+    "engineIntegration": "VERIFIED (code)",
+    "realInventory": "MISSING (0 published future offers across 4 probe corridors + 8 raw controls, coord/name and date/no-date)",
+    "communityLegsOnRealData": "NOT_TESTED (no real offer exists to chain)",
+    "rootCause": "Driver-onboarding / published-offer inventory gap in this preview runtime. Carpool inventory is user-generated; there is no external feed to ingest. NOT a chain-logic or feed-adapter defect.",
+    "codexHandoff": "To witness COMMUNITY legs end-to-end, seed real published driver offers OR an isolated labeled fixture in a NON-shared test DB (never the shared :3002 preview). Respect search constraints: +/-120min departure window, route NOT NULL, route_source<>'development_unrouted', duration/distance>0, 25km origin+dest OR corridor route proximity, driver_id<>searcher, allowCommunity && carpool selected."
+  }
+}

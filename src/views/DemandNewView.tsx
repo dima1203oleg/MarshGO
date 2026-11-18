@@ -2,15 +2,16 @@ import React, { useState } from 'react';
 import {
   ArrowLeft,
   MapPin,
-  Calendar,
-  Clock,
-  Users,
-  DollarSign,
+
+
+
+
   Sparkles,
-  ShieldCheck,
+
   CheckCircle2
 } from 'lucide-react';
 import { PassengerDemand } from '../types';
+import { todayKyivDate } from '../domain/kyivTime';
 
 interface DemandNewViewProps {
   initialRoute?: {
@@ -30,7 +31,7 @@ export const DemandNewView: React.FC<DemandNewViewProps> = ({
 }) => {
   const [origin, setOrigin] = useState(initialRoute?.origin || 'Одеса');
   const [destination, setDestination] = useState(initialRoute?.destination || 'Київ');
-  const [departureDate, setDepartureDate] = useState(initialRoute?.date || '2026-09-30');
+  const [departureDate, setDepartureDate] = useState(initialRoute?.date || todayKyivDate());
   const [timeWindowStart, setTimeWindowStart] = useState('08:00');
   const [timeWindowEnd, setTimeWindowEnd] = useState('10:00');
   const [passengerCount, setPassengerCount] = useState(initialRoute?.passengers || 2);

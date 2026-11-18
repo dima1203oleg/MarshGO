@@ -2,12 +2,10 @@ import React, { useState } from 'react';
 import {
   ArrowLeft,
   Send,
-  MessageSquare,
-  ShieldCheck,
-  CheckCircle2,
-  Car,
-  Clock
-} from 'lucide-react';
+
+
+
+  } from 'lucide-react';
 import { ChatMessage } from '../types';
 
 interface MessagesViewProps {

@@ -1,0 +1,94 @@
+{
+  "schema": "marshgo-ui-witness/1",
+  "capturedAt": "2026-11-16T15:00:00Z",
+  "surface": "Qoder in-app browser (mcp__browser-use), canonical web https://marshgo-dima.shares.zrok.io (port 7777 -> zrok)",
+  "runtime": {
+    "apiSha": "e9934abbd8fc973177de8d7f47548739758a1b74",
+    "apiSourceState": "dirty",
+    "apiBuildId": "local-e9934abbd8fc-dirty-20261116T145412Z",
+    "apiBuiltAt": "2026-11-16T14:54:12Z",
+    "readyz": {"status": "ready", "database": "connected", "realtime": "connected"},
+    "siteCheckout": "/Users/dima1203/.qoder/worktrees/app/330dd3/MarshGO-Site (codex/premium-route-details-reference-20261115, HEAD 1fec46fe, dirty, read-only)"
+  },
+  "incident": {
+    "id": "task-105-recurrence",
+    "summary": "Shared preview API crashed a SECOND time during the trolleybus UI witness. Unhandled pg Client 'error' (\"Connection terminated unexpectedly\") emitted via database.pool_idle_client_error (idle pool client) -> whole process exit. First crash (earlier today) was via navigation.expiry_failed. Same root defect, two trigger paths.",
+    "evidence": "docs/evidence/api-crash-pg-idle-pool-2026-11-16.log (second crash), docs/evidence/api-crash-pg-unhandled-2026-11-16.log (first crash)",
+    "recovery": "Restarted identical dirty SHA e9934ab via canonical scripts/start-local-api.sh (CWD=canonical root); new buildId local-e9934abbd8fc-dirty-20261116T145412Z; readyz 200. zrok and Site untouched.",
+    "codexTask": "E (pg 'error' handler on pool + navigation expiry clients). Acceptance: pg_terminate_backend / idle-client termination must NOT kill the API.",
+    "uxObservation": "Before the crash the UI showed the honest 45s deadline banner «Перевізники не відповідатимуть довше 45 с — пошук зупинено…» then «Пошук тимчасово недоступний. Ваші точки збережено — спробуйте ще раз.» with «Повторити пошук». After restart the retry succeeded. No fabricated routes were shown while loading («Відповіді перевізників затягуються… вигаданих маршрутів ми не показуємо»)."
+  },
+  "probeCorrection": {
+    "note": "routeGeometry on journey legs is a RAW ARRAY of [lon,lat] pairs, NOT a GeoJSON {coordinates} object. An earlier extraction that read leg.routeGeometry.coordinates.length returned a false 'hasGeometry:false'. Corrected counts below. The bus UX outcome (no ribbon) is nonetheless real and re-confirmed post-restart.",
+    "busGeometryPoints": {"walkAccess": 38, "bus": 68, "walkEgress": 6},
+    "trolleybusGeometryPoints": {"trolleybus": 57}
+  },
+  "geocoderGap": {
+    "codexTask": "D",
+    "query Багринова гора": {"resolves": true, "top": {"label": "Багринова гора, Київ", "providerId": "n:1308284002", "latitude": 50.386681, "longitude": 30.5395021}},
+    "query Музей архітектури": {"resolvesKyivStop": false, "top": {"label": "Музей архітектури та побуту Прикарпаття, Крилос", "providerId": "w:234836295"}, "note": "Wrong-city museum (Ivano-Frankivsk oblast); the Kyiv trolleybus stop «Музей архітектури» is absent from suggestions. Trolleybus witness therefore used a labeled coordinate deep-link (originProvider/destinationProvider=coord)."},
+    "kyivStopNamesGeneral": "Kyiv GTFS stop names are not offered by /places/suggest; addresses resolve. Confirmed live."
+  },
+  "bus": {
+    "mode": "BUS",
+    "route": "12",
+    "provider": "Київпастранс — розклад (GTFS)",
+    "request": {
+      "origin": {"name": "Вокзальна площа, Київ", "coordinates": [30.4911511, 50.4407717]},
+      "destination": {"name": "Ізюмська вулиця, Київ", "coordinates": [30.5168993, 50.4113155]},
+      "departureAt": "2026-11-17T06:00:00.000Z",
+      "passengers": 1,
+      "strategy": "BALANCED",
+      "preferences": {"allowCommunity": true, "allowTaxi": true, "allowCarsharing": true, "allowTransfer": true, "allowBicycle": true, "allowScooter": true, "allowBus": true, "allowMinibus": true, "allowRail": true, "allowPublicTransport": true, "allowedProviderIds": [], "allowedProviderIdsByType": {}, "allowedTransportTypes": ["carpool", "marshrutka", "bus", "taxi", "tram", "trolleybus", "metro", "train", "bike", "scooter", "carsharing", "transfer"], "allowedTransitProviders": [], "allowedTransitProvidersByType": {}},
+      "note": "Verbatim UI POST body captured via fetch interceptor. An earlier replay WITHOUT preferences returned journeys=[] (candidateCount 0); with the full preferences object it returns 1 journey. Missing preferences was the replay discrepancy root cause."
+    },
+    "response": {"http": 200, "journeys": 1, "candidateCount": 3, "returnedCount": 1, "availableStrategies": ["BALANCED", "FASTEST", "CHEAPEST"], "strategyRanks": {"BALANCED": 1, "FASTEST": 1, "CHEAPEST": 1}, "partial": true},
+    "journey": {"totalDurationSeconds": 2792, "transfers": 0, "walkingMeters": 891, "waitingSeconds": 290, "totalPriceMinor": 3000, "currency": "UAH", "priceStatus": "ESTIMATED", "state": "PLANNED", "source": "gtfs-static"},
+    "legs": [
+      {"mode": "WALK", "distanceMeters": 513, "departureAt": "2026-11-17T06:00:00.000Z", "arrivalAt": "2026-11-17T06:06:10.000Z", "source": "osrm-foot-route", "liveStatus": "UNVERIFIED", "geometryPoints": 38},
+      {"mode": "BUS", "route": "12", "from": "Півднний вокз", "to": "вул. Ізюмська", "departureAt": "2026-11-17T06:11:00.000Z", "arrivalAt": "2026-11-17T06:42:00.000Z", "liveStatus": "SCHEDULED", "scheduleSemantics": "published_departures", "source": "gtfs-static", "geometryPoints": 68,
+       "stops": [{"name": "Півднний вокз", "time": "08:11"}, {"name": "вул. Олексіївська", "time": "08:19"}, {"name": "І-т цукр буряк", "time": "08:30"}, {"name": "вул. Ізюмська", "time": "08:42"}]},
+      {"mode": "WALK", "distanceMeters": 378, "departureAt": "2026-11-17T06:42:00.000Z", "arrivalAt": "2026-11-17T06:46:32.000Z", "source": "osrm-foot-route", "liveStatus": "UNVERIFIED", "geometryPoints": 6}
+    ],
+    "ui": {
+      "results": "1 маршрут; Оптимальний·1 / Найшвидший·1 / Найдешевший·1; 47 хв 30 ₴ 0; chips Пішки 6 хв / №12 31 хв / Пішки 5 хв",
+      "details": "08:00→08:46; BUS 12 four stops with times matching API; 30 ₴ готівкою (ESTIMATED)",
+      "map": "Markers-only (Посадка Півднний вокз / Висадка вул. Ізюмська) + short dashed chords; NO bus ribbon; card «Автобус 12 · ЗА РОЗКЛАДОМ»; scale 200 км (camera did not fit). Re-confirmed post-restart on buildId …145412Z.",
+      "geometryDefect": "API supplies a 68-pt bus routeGeometry but the Site refuses to render it (markers-only + ЗА РОЗКЛАДОМ + unfitted camera). Codex task C. Contrast: trolleybus 57-pt geometry IS rendered as a ribbon."
+    },
+    "screenshots": ["docs/evidence/qoder-kyiv-bus-ui-2026-11-16-results.png", "docs/evidence/qoder-kyiv-bus-ui-2026-11-16-details.png", "docs/evidence/qoder-kyiv-bus-ui-2026-11-16-map.png"]
+  },
+  "trolleybus": {
+    "mode": "TROLLEYBUS",
+    "route": "11",
+    "headsign": "Музей архітектури",
+    "provider": "Київпастранс — розклад (GTFS)",
+    "request": {
+      "origin": {"name": "Багринова гора, Київ (координати)", "coordinates": [30.534015655517578, 50.38021469116211]},
+      "destination": {"name": "Музей архітектури, Київ (координати)", "coordinates": [30.491193771362305, 50.35359191894531]},
+      "departureAt": "2026-11-17T06:00:00.000Z",
+      "passengers": 1,
+      "strategy": "BALANCED",
+      "preferences": "same all-12-modes object as bus",
+      "note": "Labeled coordinate deep-link (providerId=coord) because the destination stop is absent from the geocoder (task D). Origin stop name DOES resolve but its OSM node coords differ from the stop coords; probe stop coords used for both to match the verified journey."
+    },
+    "response": {"http": 200, "journeys": 1, "candidateCount": 100, "availableStrategies": ["BALANCED", "FASTEST", "CHEAPEST"], "strategyRanks": {"BALANCED": 1, "FASTEST": 1, "CHEAPEST": 1}, "partial": true},
+    "journey": {"totalDurationSeconds": 3060, "transfers": 0, "walkingMeters": 0, "waitingSeconds": 0, "totalPriceMinor": 3000, "currency": "UAH", "priceStatus": "ESTIMATED", "state": "PLANNED", "source": "gtfs-static"},
+    "legs": [
+      {"mode": "TROLLEYBUS", "route": "11", "from": "Багринова гора", "to": "Музей архітектури", "departureAt": "2026-11-17T06:00:00.000Z", "arrivalAt": "2026-11-17T06:51:00.000Z", "liveStatus": "SCHEDULED", "scheduleSemantics": "published_departures", "source": "gtfs-static", "geometryPoints": 57, "priceMinor": 3000, "priceStatus": "ESTIMATED", "fareSource": "city-tariff-registry",
+       "stops": [{"name": "Багринова гора", "time": "08:00"}, {"name": "Центр комунікації", "time": "08:08"}, {"name": "м. Голосіївська", "time": "08:22"}, {"name": "ст.м. Виставковий центр", "time": "08:32"}, {"name": "Одеська пл.", "time": "08:39"}, {"name": "Музей архітектури", "time": "08:51"}]}
+    ],
+    "ui": {
+      "results": "1 маршрут; Оптимальний·1 / Найшвидший·1 / Найдешевший·1; 51 хв 30 ₴ 0; №11 51 хв",
+      "details": "08:00→08:51; 51 хв; 0 пересадок; 30 ₴ готівкою; Тролейбус 11; six stops with times matching API",
+      "map": "Blue route ribbon rendered from the 57-pt geometry + Посадка Багринова гора marker; card «Тролейбус 11»; chip Тролейбус 51 хв; scale 5 км (camera fit). Geometry IS rendered for trolleybus (unlike bus)."
+    },
+    "screenshots": ["docs/evidence/qoder-kyiv-troll-ui-2026-11-16-results.png", "docs/evidence/qoder-kyiv-troll-ui-2026-11-16-details.png", "docs/evidence/qoder-kyiv-troll-ui-2026-11-16-map.png", "docs/evidence/qoder-kyiv-troll-ui-2026-11-16-state.png"]
+  },
+  "verdict": {
+    "bus": "VERIFIED (UI + API agree; geometry-render defect task C confirmed)",
+    "trolleybus": "VERIFIED (UI + API agree; geometry rendered; geocoder destination gap task D)",
+    "runtime": "PARTIAL (preview crashes on idle pg client error; task E open; recovered same SHA)",
+    "release": "NOT_RELEASED"
+  }
+}

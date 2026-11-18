@@ -1,0 +1,241 @@
+uid=39_1 RootWebArea "MARSHGO — Один пошук. Усі способи доїхати" focusable focused url="https://marshgo-dima.shares.zrok.io/journeys/search?mode=planner&origin=%D0%94%D0%B5%D1%80%D0%B8%D0%B1%D0%B0%D1%81%D1%96%D0%B2%D1%81%D1%8C%D0%BA%D0%B0+%D0%B2%D1%83%D0%BB%D0%B8%D1%86%D1%8F%2C+%D0%9E%D0%B4%D0%B5%D1%81%D0%B0&originLat=46.4843134&originLon=30.7357443&originProvider=w%3A103145385&destination=%D0%90%D1%80%D0%BA%D0%B0%D0%B4%D1%96%D1%8F%2C+%D0%9E%D0%B4%D0%B5%D1%81%D0%B0&destinationLat=46.431789&destinationLon=30.760832&destinationProvider=n%3A2151201619&date=2026-11-15&passengers=1&departure=2026-11-15T09%3A00&strategy=BALANCED"
+  uid=39_2 none
+    uid=39_3 none
+      uid=39_4 generic
+        uid=39_5 main
+          uid=39_6 none
+            uid=39_7 region "Дерибасівська вулиця — Аркадія"
+              uid=39_8 heading "Дерибасівська вулиця — Аркадія" level="1"
+                uid=39_9 StaticText "Дерибасівська вулиця"
+                  InlineTextBox "Дерибасівська вулиця"
+                uid=39_10 StaticText "—"
+                  InlineTextBox "—"
+                uid=39_11 StaticText "Аркадія"
+                  InlineTextBox "Аркадія"
+              uid=39_12 generic
+                uid=39_13 image "Карта маршруту MARSHGO"
+                  uid=39_14 generic
+                    uid=39_15 region "Map" focusable
+                    uid=39_16 image "Старт"
+                      uid=39_17 none
+                        uid=39_18 StaticText "Старт"
+                          InlineTextBox "Старт"
+                  uid=39_19 generic
+                    uid=39_20 generic
+                    uid=39_21 generic
+                    uid=39_22 generic
+                    uid=39_23 generic
+                      uid=39_24 group
+                        uid=39_25 none
+                          uid=39_26 DisclosureTriangle "Toggle attribution" description="Toggle attribution" expandable expanded focusable
+                        uid=39_27 none
+                          uid=39_28 none
+              uid=39_29 sectionheader "Керування картою маршруту"
+                uid=39_30 none
+                  uid=39_31 none
+                    uid=39_32 StaticText "MARSH"
+                      InlineTextBox "MARSH"
+                    uid=39_33 StaticText "GO"
+                      InlineTextBox "GO"
+                uid=39_34 none
+                  uid=39_35 button "Назад до результатів" focusable invalid="false"
+                  uid=39_36 none
+                    uid=39_37 generic "Маршрут: Дерибасівська вулиця — Аркадія" description="Дерибасівська вулиця — Аркадія"
+                      uid=39_38 none
+                        uid=39_39 StaticText "Маршрут ·"
+                          InlineTextBox "Маршрут ·"
+                        uid=39_40 StaticText "Аркадія"
+                          InlineTextBox "Аркадія"
+                  uid=39_41 generic
+                    uid=39_42 generic
+                      uid=39_43 button "Шари карти" expandable focusable invalid="false"
+              uid=39_44 region "Деталі маршруту"
+                uid=39_45 button "Згорнути деталі маршруту" controls="route-sheet-content" expandable expanded focusable invalid="false" keyshortcuts="ArrowUp ArrowDown Home End"
+                  uid=39_46 none
+                uid=39_47 status "Для частини пішого маршруту немає перевіреної геометрії — лінію не домальовано." atomic live="polite" relevant="additions text"
+                  uid=39_48 StaticText "Частина пішої геометрії не підтверджена"
+                    InlineTextBox "Частина пішої геометрії не підтверджена"
+                uid=39_49 generic
+                  uid=39_50 none
+                    uid=39_51 heading "Деталі маршруту" level="2"
+                      uid=39_52 StaticText "Деталі маршруту"
+                        InlineTextBox "Деталі маршруту"
+                    uid=39_53 button "Поділитися маршрутом" focusable invalid="false"
+                    uid=39_54 button "Зберегти маршрут" focusable invalid="false" pressed="false"
+                  uid=39_55 group "Маршрут: Дерибасівська вулиця до Аркадія"
+                    uid=39_56 generic
+                      uid=39_57 StaticText "Дерибасівська вулиця"
+                        InlineTextBox "Дерибасівська вулиця"
+                    uid=39_58 generic
+                      uid=39_59 StaticText "Аркадія"
+                        InlineTextBox "Аркадія"
+                  uid=39_60 group "09:00 — 09:32, 33 хв, 3 сегменти, без пересадок, ціна невідома"
+                    uid=39_61 none
+                      uid=39_62 strong
+                        uid=39_63 none
+                          uid=39_64 StaticText "09:00"
+                            InlineTextBox "09:00"
+                        uid=39_65 none
+                          uid=39_66 StaticText "09:32"
+                            InlineTextBox "09:32"
+                      uid=39_67 none
+                        uid=39_68 StaticText "33 хв"
+                          InlineTextBox "33 хв"
+                      uid=39_69 none
+                        uid=39_70 StaticText "Без пересадок"
+                          InlineTextBox "Без пересадок"
+                    uid=39_71 none
+                      uid=39_72 strong "Загальна вартість: невідома"
+                        uid=39_73 StaticText "Ціна уточнюється"
+                          InlineTextBox "Ціна уточнюється"
+                  uid=39_74 list "Етапи маршруту" focusable
+                    uid=39_75 listitem level="1"
+                      uid=39_76 button "Вибрати етап: Пішки, 4 хв" focusable invalid="false" pressed="false"
+                        uid=39_77 none
+                        uid=39_78 none
+                          uid=39_79 none
+                            uid=39_80 StaticText "Пішки"
+                              InlineTextBox "Пішки"
+                          uid=39_81 none
+                            uid=39_82 StaticText "4 хв"
+                              InlineTextBox "4 хв"
+                    uid=39_83 listitem level="1"
+                      uid=39_84 button "Вибрати етап: Велосипед, 27 хв" focusable invalid="false" pressed="false"
+                        uid=39_85 none
+                        uid=39_86 none
+                          uid=39_87 none
+                            uid=39_88 StaticText "Велосипед"
+                              InlineTextBox "Велосипед"
+                          uid=39_89 none
+                            uid=39_90 StaticText "27 хв"
+                              InlineTextBox "27 хв"
+                    uid=39_91 listitem level="1"
+                      uid=39_92 button "Вибрати етап: Пішки, 2 хв" focusable invalid="false" pressed="false"
+                        uid=39_93 none
+                        uid=39_94 none
+                          uid=39_95 none
+                            uid=39_96 StaticText "Пішки"
+                              InlineTextBox "Пішки"
+                          uid=39_97 none
+                            uid=39_98 StaticText "2 хв"
+                              InlineTextBox "2 хв"
+                  uid=39_99 generic
+                    uid=39_100 list
+                      uid=39_101 listitem level="1"
+                        uid=39_102 none
+                          uid=39_103 button "Вибрати сегмент: Пішки; Дерибасівська вулиця до Nextbike; ОРІЄНТОВНО; До Велосипед" focusable invalid="false" pressed="false"
+                            uid=39_104 none
+                              uid=39_105 none
+                                uid=39_106 none
+                                  uid=39_107 generic
+                                    uid=39_108 StaticText "Пішки"
+                                      InlineTextBox "Пішки"
+                                uid=39_109 none
+                                  uid=39_110 none
+                                    uid=39_111 StaticText "09:00–09:04 · 4 хв"
+                                      InlineTextBox "09:00–09:04 · 4 хв"
+                                    uid=39_112 StaticText "·"
+                                      InlineTextBox "·"
+                                  uid=39_113 StaticText "4 хв"
+                                    InlineTextBox "4 хв"
+                                  uid=39_114 StaticText "· 322 м"
+                                    InlineTextBox "· 322 м"
+                              uid=39_115 generic "Дерибасівська вулиця до Nextbike"
+                                uid=39_116 generic
+                                  uid=39_117 StaticText "Дерибасівська вулиця"
+                                    InlineTextBox "Дерибасівська вулиця"
+                                uid=39_118 generic
+                                  uid=39_119 StaticText "Nextbike"
+                                    InlineTextBox "Nextbike"
+                          uid=39_120 none
+                      uid=39_121 listitem level="1"
+                        uid=39_122 none
+                          uid=39_123 button "Вибрати сегмент: Велосипед; Nextbike до Nextbike; ОРІЄНТОВНО" focusable focused invalid="false" pressed="false"
+                            uid=39_124 none
+                              uid=39_125 none
+                                uid=39_126 none
+                                  uid=39_127 generic
+                                    uid=39_128 StaticText "Велосипед"
+                                      InlineTextBox "Велосипед"
+                                  uid=39_129 generic "ОРІЄНТОВНО"
+                                    uid=39_130 none
+                                      uid=39_131 StaticText "ОРІЄНТОВНО"
+                                        InlineTextBox "ОРІЄНТОВНО"
+                                uid=39_132 none
+                                  uid=39_133 none
+                                    uid=39_134 StaticText "09:04–09:30 · 27 хв"
+                                      InlineTextBox "09:04–09:30 · 27 хв"
+                                    uid=39_135 StaticText "·"
+                                      InlineTextBox "·"
+                                  uid=39_136 StaticText "27 хв"
+                                    InlineTextBox "27 хв"
+                              uid=39_137 generic "Nextbike до Nextbike"
+                                uid=39_138 generic
+                                  uid=39_139 StaticText "Nextbike"
+                                    InlineTextBox "Nextbike"
+                                uid=39_140 generic
+                                  uid=39_141 StaticText "Nextbike"
+                                    InlineTextBox "Nextbike"
+                          uid=39_142 none
+                      uid=39_143 listitem level="1"
+                        uid=39_144 none
+                          uid=39_145 button "Вибрати сегмент: Пішки; Nextbike до Аркадія; ОРІЄНТОВНО; До фінішу" focusable invalid="false" pressed="false"
+                            uid=39_146 none
+                              uid=39_147 none
+                                uid=39_148 none
+                                  uid=39_149 generic
+                                    uid=39_150 StaticText "Пішки"
+                                      InlineTextBox "Пішки"
+                                uid=39_151 none
+                                  uid=39_152 none
+                                    uid=39_153 StaticText "09:30–09:32 · 2 хв"
+                                      InlineTextBox "09:30–09:32 · 2 хв"
+                                    uid=39_154 StaticText "·"
+                                      InlineTextBox "·"
+                                  uid=39_155 StaticText "2 хв"
+                                    InlineTextBox "2 хв"
+                                  uid=39_156 StaticText "· 117 м"
+                                    InlineTextBox "· 117 м"
+                              uid=39_157 generic "Nextbike до Аркадія"
+                                uid=39_158 generic
+                                  uid=39_159 StaticText "Nextbike"
+                                    InlineTextBox "Nextbike"
+                                uid=39_160 generic
+                                  uid=39_161 StaticText "Аркадія"
+                                    InlineTextBox "Аркадія"
+                          uid=39_162 none
+                    uid=39_163 paragraph
+                      uid=39_164 StaticText "Рекомендація:"
+                        InlineTextBox "Рекомендація:"
+                      uid=39_165 StaticText "Перший варіант у режимі «Оптимальний»"
+                        InlineTextBox "Перший варіант у режимі «Оптимальний»"
+                  uid=39_166 none
+                    uid=39_167 none
+                      uid=39_168 button "Розпочати навігацію" focusable invalid="false"
+                        uid=39_169 none
+                          uid=39_170 StaticText "Розпочати навігацію"
+                            InlineTextBox "Розпочати навігацію"
+                      uid=39_171 button "Показати маршрут на карті" focusable invalid="false"
+                        uid=39_172 none
+                          uid=39_173 StaticText "На карті"
+                            InlineTextBox "На карті"
+              uid=39_174 generic live="polite" relevant="additions text"
+          uid=39_175 navigation "Основна навігація"
+            uid=39_176 none
+              uid=39_177 button "Головна" focusable invalid="false"
+                uid=39_178 none
+                  uid=39_179 StaticText "Головна"
+                    InlineTextBox "Головна"
+              uid=39_180 button "Пошук" focusable invalid="false"
+                uid=39_181 none
+                  uid=39_182 StaticText "Пошук"
+                    InlineTextBox "Пошук"
+              uid=39_183 button "Створити поїздку або запит" expandable focusable hasPopup="dialog" invalid="false"
+              uid=39_184 button "Поїздки" focusable invalid="false"
+                uid=39_185 none
+                  uid=39_186 StaticText "Поїздки"
+                    InlineTextBox "Поїздки"
+              uid=39_187 button "Профіль" focusable invalid="false"
+                uid=39_188 none
+                  uid=39_189 StaticText "Профіль"
+                    InlineTextBox "Профіль"

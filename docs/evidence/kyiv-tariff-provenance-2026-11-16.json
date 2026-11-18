@@ -1,0 +1,102 @@
+{
+  "observedOn": "2026-11-16",
+  "task": 110,
+  "rootBaseSha": "ca340919dfb39ad9345e4022ac9bafc1644e9bce",
+  "serverSourceSha": "378eccbdd320ff5ddf2491dd9bc613b55237f998",
+  "sourceFile": "server/mobility/transportTariffs.ts",
+  "verdict": "PARTIAL",
+  "releaseStatus": "NOT_RELEASED",
+  "wrongSingleRideAmountEstablished": false,
+  "observedJourneyFare": {
+    "record": "qoder-kyiv-bus-exact-request-2026-11-16.json",
+    "modes": ["BUS"],
+    "routes": ["12", "5"],
+    "departureAt": "2026-11-18T06:00:00.000Z",
+    "priceMinor": 3000,
+    "currency": "UAH",
+    "priceStatus": "ESTIMATED",
+    "providerName": "Київпастранс — розклад (GTFS)",
+    "fareProductId": "kyiv-communal-single-ride",
+    "source": "city-tariff-registry",
+    "runtimeSourceState": "dirty"
+  },
+  "mainCatalog": {
+    "lines": [43, 49],
+    "priceMinor": 3000,
+    "effectiveFrom": "2026-07-15",
+    "lastVerifiedAt": "2026-10-13",
+    "status": "verified_static",
+    "inVehicleSingleRide": true,
+    "modes": ["bus", "tram", "trolleybus", "metro", "city_train", "funicular"]
+  },
+  "sources": [
+    {
+      "url": "https://kyivcity.gov.ua/news/iz_15_lipnya_vartist_razovogo_prozdu_v_komunalnomu_transporti_stanovitime_30_grn_dlya_postiynikh_pasazhiriv_diyatime_sistema_znizhok/",
+      "kind": "primary_announcement",
+      "directFetch": "403_FORBIDDEN",
+      "searchIndex": "30 UAH single ride from 15 July 2026 corroborated in indexed snippet",
+      "fullContentVerified": false,
+      "restrictionBypassed": false
+    },
+    {
+      "url": "https://kyivcity.gov.ua/news/iz_1_serpnya_v_kiyevi_zaprovadzhuyut_peresadkoviy_QR-kvitok_iz_bezlimitnimi_peresadkami_protyagom_90_khvilin/",
+      "kind": "primary_transfer_announcement",
+      "directFetch": "403_FORBIDDEN",
+      "fullContentVerified": false,
+      "restrictionBypassed": false
+    },
+    {
+      "url": "https://lb.ua/kyiv/2026/07/15/751746_vid_sogodni_komunalnomu.html",
+      "kind": "secondary_publication",
+      "publicationDate": "2026-07-15",
+      "fetch": "SUCCESS_MODEL_EXTRACTED_CONTENT",
+      "findings": [
+        "Implemented single ride increase from 8 to 30 UAH on 15 July 2026",
+        "Metro, tram, trolleybus, bus and funicular covered",
+        "Cites KMDA and Kyiv Digital, no numbered legal act extracted",
+        "Free surface travel described as a proposed program, not implemented tariff",
+        "Bulk/pass figures contain apparent discrepancies; not authoritative for correcting registry tiers"
+      ]
+    },
+    {
+      "url": "https://nv.ua/ukr/kyiv/projizd-u-kiyevi-podorozhchaye-z-15-lipnya-kmda-pokazala-novi-tarifi-ta-pilgi-novini-kiyeva-50623556.html",
+      "kind": "secondary_publication",
+      "publicationDate": "2026-07-11",
+      "fetch": "SUCCESS_MODEL_EXTRACTED_CONTENT",
+      "findings": ["30 UAH single rides effective 15 July", "60 UAH transfer ticket valid 90 minutes", "Rates attributed to KMDA"]
+    }
+  ],
+  "codeObservations": [
+    {
+      "lines": [229, 232],
+      "observation": "validLegs validates finite dates and chronological ordering, not tariff effective dates"
+    },
+    {
+      "lines": [244, 305],
+      "observation": "calculateCityTariffFare Kyiv branch uses city and mode checks with fixed 3000/6000 pricing; no operator or effective-date check in this function"
+    },
+    {
+      "lines": [329, 346],
+      "observation": "calculateCashFare selects inVehicleSingleRide adult/all UAH catalog record by city and mode; no effectiveFrom or fareMedia check in this function"
+    }
+  ],
+  "limitations": [
+    "PRIMARY_FULL_CONTENT_AND_NUMBERED_LEGAL_ACT_NOT_VERIFIED",
+    "NO_EXHAUSTIVE_CURRENT_TARIFF_CHANGE_CHECK",
+    "SPECIFIC_OPERATOR_AND_CASH_ONBOARD_PAYMENT_ELIGIBILITY_NOT_ATTESTED",
+    "CITY_TRAIN_AND_TRANSFER_PRODUCT_SCOPE_NOT_FULLY_ATTESTED",
+    "CALLER_LEVEL_OPERATOR_AND_DATE_GUARDS_NOT_AUDITED",
+    "NO_REPRODUCED_WRONG_FARE_RUNTIME_CASE",
+    "SECONDARY_MODEL_EXTRACTIONS_NOT_ARCHIVED_PRIMARY_DOCUMENTS",
+    "NOT_FEED_RIGHTS_CALENDAR_OR_NATIONAL_COMPLETENESS_EVIDENCE"
+  ],
+  "actions": ["Do not replace 30 UAH with legacy 8 UAH", "Retain ESTIMATED distinction", "Before a Codex defect handoff, inspect actual caller guards and reproduce an unsupported operator/date/payment case"],
+  "execution": {
+    "serverEdited": false,
+    "siteEdited": false,
+    "apiSearchRun": false,
+    "runtimeRestarted": false,
+    "testsRun": false,
+    "browserAcceptanceRun": false
+  }
+}

@@ -1,0 +1,498 @@
+{
+  "harness": "national-intra-city-realnode-v1-auth",
+  "generatedAt": "2026-11-16T10:32:37.716Z",
+  "note": "CORRECTED 2026-11-16: 22 bounded all-mode queries using approximate coordinates not verified as stations against geocoder/feed data. Historical filename/harness retained, not authoritative real-node evidence. Exact coordinates were omitted from original records, limiting reproducibility. A zero candidate count does NOT prove citywide missing ingestion or rule out engine defects. Categories and maxTransfers aggregate all journeys, not one multimodal itinerary. Five nonempty and seventeen empty responses describe only these inputs/time/runtime. No live rental, geometry correctness, feed rights, or excluded-territory feed absence established. Runtime SHA not returned by readyz.",
+  "departureAt": "2026-11-17T08:00:00+02:00",
+  "strategy": "BALANCED",
+  "cities": [
+    {
+      "id": "kyiv",
+      "originName": "Київ Вокзальна",
+      "destinationName": "Київ Позняки",
+      "http": 200,
+      "returned": 5,
+      "candidateCount": 61,
+      "maxTransfers": 3,
+      "legModeSet": [
+        "BUS",
+        "TRAM",
+        "TROLLEYBUS",
+        "WALK"
+      ],
+      "categories": [
+        "bus",
+        "tram",
+        "trolleybus"
+      ],
+      "categoryCount": 3,
+      "providers": [
+        "osrm-foot-route",
+        "Київпастранс — розклад (GTFS)"
+      ],
+      "resultsTruncated": true,
+      "partial": true,
+      "allBlockedCount": 7,
+      "providerErrors": [
+        "Київське метро: Київські джерела станцій, геометрії, розкладу або пересадок не зареєстровані чи вимкнені",
+        "Частину варіантів відхилено: фактичний час або відстань пішохідного шляху не дозволяє здійснити маршрут."
+      ]
+    },
+    {
+      "id": "lviv",
+      "originName": "Львів вокзал",
+      "destinationName": "Львів центр",
+      "http": 200,
+      "returned": 4,
+      "candidateCount": 49,
+      "maxTransfers": 1,
+      "legModeSet": [
+        "BUS",
+        "TRAM",
+        "WALK"
+      ],
+      "categories": [
+        "bus",
+        "tram"
+      ],
+      "categoryCount": 2,
+      "providers": [
+        "osrm-foot-route",
+        "Львівавтодор — розклад (GTFS)"
+      ],
+      "resultsTruncated": true,
+      "partial": true,
+      "allBlockedCount": 8,
+      "providerErrors": [
+        "Частину варіантів відхилено: фактичний час або відстань пішохідного шляху не дозволяє здійснити маршрут.",
+        "Пішохідний маршрутизатор обмежив пошук 32 маршрутами; частину альтернатив не перевірено."
+      ]
+    },
+    {
+      "id": "odesa",
+      "originName": "Одеса вокзал",
+      "destinationName": "Одеса Аркадія",
+      "http": 200,
+      "returned": 1,
+      "candidateCount": 1,
+      "maxTransfers": 0,
+      "legModeSet": [
+        "BICYCLE",
+        "WALK"
+      ],
+      "categories": [
+        "bike"
+      ],
+      "categoryCount": 1,
+      "providers": [
+        "walking-straight-line-estimate",
+        "Nextbike"
+      ],
+      "resultsTruncated": false,
+      "partial": true,
+      "allBlockedCount": 10,
+      "providerErrors": []
+    },
+    {
+      "id": "ivano_frankivsk",
+      "originName": "ІФ вокзал",
+      "destinationName": "ІФ центр",
+      "http": 200,
+      "returned": 1,
+      "candidateCount": 1,
+      "maxTransfers": 0,
+      "legModeSet": [
+        "BICYCLE",
+        "WALK"
+      ],
+      "categories": [
+        "bike"
+      ],
+      "categoryCount": 1,
+      "providers": [
+        "walking-straight-line-estimate",
+        "Nextbike"
+      ],
+      "resultsTruncated": false,
+      "partial": true,
+      "allBlockedCount": 10,
+      "providerErrors": []
+    },
+    {
+      "id": "dnipro",
+      "originName": "Дніпро вокзал",
+      "destinationName": "Дніпро центр",
+      "http": 200,
+      "returned": 0,
+      "candidateCount": 0,
+      "maxTransfers": 0,
+      "legModeSet": [],
+      "categories": [],
+      "categoryCount": 0,
+      "providers": [],
+      "resultsTruncated": false,
+      "partial": true,
+      "allBlockedCount": 11,
+      "providerErrors": []
+    },
+    {
+      "id": "kharkiv",
+      "originName": "Харків вокзал",
+      "destinationName": "Харків центр",
+      "http": 200,
+      "returned": 0,
+      "candidateCount": 0,
+      "maxTransfers": 0,
+      "legModeSet": [],
+      "categories": [],
+      "categoryCount": 0,
+      "providers": [],
+      "resultsTruncated": false,
+      "partial": true,
+      "allBlockedCount": 11,
+      "providerErrors": []
+    },
+    {
+      "id": "uzhhorod",
+      "originName": "Ужгород вокзал",
+      "destinationName": "Ужгород центр",
+      "http": 200,
+      "returned": 3,
+      "candidateCount": 100,
+      "maxTransfers": 1,
+      "legModeSet": [
+        "BUS",
+        "WALK"
+      ],
+      "categories": [
+        "bus"
+      ],
+      "categoryCount": 1,
+      "providers": [
+        "walking-grid-estimate",
+        "Ужгородська міська рада — розклад (GTFS)"
+      ],
+      "resultsTruncated": true,
+      "partial": true,
+      "allBlockedCount": 10,
+      "providerErrors": []
+    },
+    {
+      "id": "vinnytsia",
+      "originName": "Вінниця вокзал",
+      "destinationName": "Вінниця центр",
+      "coordsApproximate": true,
+      "http": 200,
+      "returned": 0,
+      "candidateCount": 0,
+      "maxTransfers": 0,
+      "legModeSet": [],
+      "categories": [],
+      "categoryCount": 0,
+      "providers": [],
+      "resultsTruncated": false,
+      "partial": true,
+      "allBlockedCount": 11,
+      "providerErrors": []
+    },
+    {
+      "id": "lutsk",
+      "originName": "Луцьк вокзал",
+      "destinationName": "Луцьк центр",
+      "coordsApproximate": true,
+      "http": 200,
+      "returned": 0,
+      "candidateCount": 0,
+      "maxTransfers": 0,
+      "legModeSet": [],
+      "categories": [],
+      "categoryCount": 0,
+      "providers": [],
+      "resultsTruncated": false,
+      "partial": true,
+      "allBlockedCount": 11,
+      "providerErrors": []
+    },
+    {
+      "id": "zhytomyr",
+      "originName": "Житомир вокзал",
+      "destinationName": "Житомир центр",
+      "coordsApproximate": true,
+      "http": 200,
+      "returned": 0,
+      "candidateCount": 0,
+      "maxTransfers": 0,
+      "legModeSet": [],
+      "categories": [],
+      "categoryCount": 0,
+      "providers": [],
+      "resultsTruncated": false,
+      "partial": true,
+      "allBlockedCount": 11,
+      "providerErrors": []
+    },
+    {
+      "id": "zaporizhzhia",
+      "originName": "Запоріжжя вокзал",
+      "destinationName": "Запоріжжя центр",
+      "coordsApproximate": true,
+      "http": 200,
+      "returned": 0,
+      "candidateCount": 0,
+      "maxTransfers": 0,
+      "legModeSet": [],
+      "categories": [],
+      "categoryCount": 0,
+      "providers": [],
+      "resultsTruncated": false,
+      "partial": true,
+      "allBlockedCount": 11,
+      "providerErrors": []
+    },
+    {
+      "id": "kropyvnytskyi",
+      "originName": "Кропивницький вокзал",
+      "destinationName": "Кропивницький центр",
+      "coordsApproximate": true,
+      "http": 200,
+      "returned": 0,
+      "candidateCount": 0,
+      "maxTransfers": 0,
+      "legModeSet": [],
+      "categories": [],
+      "categoryCount": 0,
+      "providers": [],
+      "resultsTruncated": false,
+      "partial": true,
+      "allBlockedCount": 11,
+      "providerErrors": []
+    },
+    {
+      "id": "mykolaiv",
+      "originName": "Миколаїв вокзал",
+      "destinationName": "Миколаїв центр",
+      "coordsApproximate": true,
+      "http": 200,
+      "returned": 0,
+      "candidateCount": 0,
+      "maxTransfers": 0,
+      "legModeSet": [],
+      "categories": [],
+      "categoryCount": 0,
+      "providers": [],
+      "resultsTruncated": false,
+      "partial": true,
+      "allBlockedCount": 11,
+      "providerErrors": []
+    },
+    {
+      "id": "poltava",
+      "originName": "Полтава вокзал",
+      "destinationName": "Полтава центр",
+      "coordsApproximate": true,
+      "http": 200,
+      "returned": 0,
+      "candidateCount": 0,
+      "maxTransfers": 0,
+      "legModeSet": [],
+      "categories": [],
+      "categoryCount": 0,
+      "providers": [],
+      "resultsTruncated": false,
+      "partial": true,
+      "allBlockedCount": 11,
+      "providerErrors": []
+    },
+    {
+      "id": "rivne",
+      "originName": "Рівне вокзал",
+      "destinationName": "Рівне центр",
+      "coordsApproximate": true,
+      "http": 200,
+      "returned": 0,
+      "candidateCount": 0,
+      "maxTransfers": 0,
+      "legModeSet": [],
+      "categories": [],
+      "categoryCount": 0,
+      "providers": [],
+      "resultsTruncated": false,
+      "partial": true,
+      "allBlockedCount": 11,
+      "providerErrors": []
+    },
+    {
+      "id": "ternopil",
+      "originName": "Тернопіль вокзал",
+      "destinationName": "Тернопіль центр",
+      "coordsApproximate": true,
+      "http": 200,
+      "returned": 0,
+      "candidateCount": 0,
+      "maxTransfers": 0,
+      "legModeSet": [],
+      "categories": [],
+      "categoryCount": 0,
+      "providers": [],
+      "resultsTruncated": false,
+      "partial": true,
+      "allBlockedCount": 11,
+      "providerErrors": []
+    },
+    {
+      "id": "khmelnytskyi",
+      "originName": "Хмельницький вокзал",
+      "destinationName": "Хмельницький центр",
+      "coordsApproximate": true,
+      "http": 200,
+      "returned": 0,
+      "candidateCount": 0,
+      "maxTransfers": 0,
+      "legModeSet": [],
+      "categories": [],
+      "categoryCount": 0,
+      "providers": [],
+      "resultsTruncated": false,
+      "partial": true,
+      "allBlockedCount": 11,
+      "providerErrors": []
+    },
+    {
+      "id": "cherkasy",
+      "originName": "Черкаси вокзал",
+      "destinationName": "Черкаси центр",
+      "coordsApproximate": true,
+      "http": 200,
+      "returned": 0,
+      "candidateCount": 0,
+      "maxTransfers": 0,
+      "legModeSet": [],
+      "categories": [],
+      "categoryCount": 0,
+      "providers": [],
+      "resultsTruncated": false,
+      "partial": true,
+      "allBlockedCount": 11,
+      "providerErrors": []
+    },
+    {
+      "id": "chernivtsi",
+      "originName": "Чернівці вокзал",
+      "destinationName": "Чернівці центр",
+      "coordsApproximate": true,
+      "http": 200,
+      "returned": 0,
+      "candidateCount": 0,
+      "maxTransfers": 0,
+      "legModeSet": [],
+      "categories": [],
+      "categoryCount": 0,
+      "providers": [],
+      "resultsTruncated": false,
+      "partial": true,
+      "allBlockedCount": 11,
+      "providerErrors": []
+    },
+    {
+      "id": "sumy",
+      "originName": "Суми вокзал",
+      "destinationName": "Суми центр",
+      "coordsApproximate": true,
+      "http": 200,
+      "returned": 0,
+      "candidateCount": 0,
+      "maxTransfers": 0,
+      "legModeSet": [],
+      "categories": [],
+      "categoryCount": 0,
+      "providers": [],
+      "resultsTruncated": false,
+      "partial": true,
+      "allBlockedCount": 11,
+      "providerErrors": []
+    },
+    {
+      "id": "kherson",
+      "originName": "Херсон вокзал",
+      "destinationName": "Херсон центр",
+      "coordsApproximate": true,
+      "http": 200,
+      "returned": 0,
+      "candidateCount": 0,
+      "maxTransfers": 0,
+      "legModeSet": [],
+      "categories": [],
+      "categoryCount": 0,
+      "providers": [],
+      "resultsTruncated": false,
+      "partial": true,
+      "allBlockedCount": 11,
+      "providerErrors": []
+    },
+    {
+      "id": "chernihiv",
+      "originName": "Чернігів вокзал",
+      "destinationName": "Чернігів центр",
+      "coordsApproximate": true,
+      "http": 200,
+      "returned": 0,
+      "candidateCount": 0,
+      "maxTransfers": 0,
+      "legModeSet": [],
+      "categories": [],
+      "categoryCount": 0,
+      "providers": [],
+      "resultsTruncated": false,
+      "partial": true,
+      "allBlockedCount": 11,
+      "providerErrors": []
+    }
+  ],
+  "summary": {
+    "citiesProbed": 22,
+    "citiesWithAnyChain": 5,
+    "citiesNoCandidates": [
+      "dnipro",
+      "kharkiv",
+      "vinnytsia",
+      "lutsk",
+      "zhytomyr",
+      "zaporizhzhia",
+      "kropyvnytskyi",
+      "mykolaiv",
+      "poltava",
+      "rivne",
+      "ternopil",
+      "khmelnytskyi",
+      "cherkasy",
+      "chernivtsi",
+      "sumy",
+      "kherson",
+      "chernihiv"
+    ],
+    "unionCategories": [
+      "bike",
+      "bus",
+      "tram",
+      "trolleybus"
+    ],
+    "multimodalCities": [
+      {
+        "id": "kyiv",
+        "categories": [
+          "bus",
+          "tram",
+          "trolleybus"
+        ],
+        "maxTransfers": 3
+      },
+      {
+        "id": "lviv",
+        "categories": [
+          "bus",
+          "tram"
+        ],
+        "maxTransfers": 1
+      }
+    ]
+  }
+}

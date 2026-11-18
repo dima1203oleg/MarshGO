@@ -9,9 +9,7 @@ import {
   Sparkles,
   Info,
   TrendingUp,
-  Zap,
-  Lock
-} from 'lucide-react';
+  } from 'lucide-react';
 
 interface DriverTrustBarProps {
   rating: number; // 0.0 to 5.0

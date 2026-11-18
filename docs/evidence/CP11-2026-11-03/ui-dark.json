@@ -1,0 +1,20 @@
+{
+ "darkState": {
+  "pointCount": "79",
+  "segmentCount": "3",
+  "mapIdle": "true",
+  "mapReady": "true",
+  "camera": "24.030268,49.823290",
+  "zoom": "12.13"
+ },
+ "darkStatusTexts": [],
+ "darkWalks": [
+  "osrm-foot-route:12pts",
+  "osrm-foot-route:6pts",
+  "osrm-foot-route:19pts",
+  "osrm-foot-route:15pts",
+  "osrm-foot-route:2pts",
+  "osrm-foot-route:11pts",
+  "osrm-foot-route:6pts"
+ ]
+}

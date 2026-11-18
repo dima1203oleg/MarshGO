@@ -1,0 +1,105 @@
+{
+  "generatedAt": "2026-11-16T11:36:25.976Z",
+  "rootBase": "edae236622ff9a9dbaec9f0a689b815082b2fa5c",
+  "harness": "explicit-total-walk-cap-v1",
+  "note": "City-center coordinates reused from archived response, not newly geocoded. Date differs from archive; no before/after route-count comparison. Returned-journey cap check does not prove search completeness, optimality, or current-main behavior.",
+  "runtimeBefore": {
+    "service": "MarshGO-Server",
+    "serviceVersion": "1.0.0",
+    "apiContract": "v1",
+    "buildId": "local-e9934abbd8fc-dirty-20261113T132012Z",
+    "commitSha": "e9934abbd8fc973177de8d7f47548739758a1b74",
+    "builtAt": "2026-11-13T13:20:12.000Z",
+    "environment": "development",
+    "sourceState": "dirty",
+    "instanceId": "1b635cf5-f6b3-46f3-a170-1e2d4f01ed39"
+  },
+  "runtimeAfter": {
+    "service": "MarshGO-Server",
+    "serviceVersion": "1.0.0",
+    "apiContract": "v1",
+    "buildId": "local-e9934abbd8fc-dirty-20261113T132012Z",
+    "commitSha": "e9934abbd8fc973177de8d7f47548739758a1b74",
+    "builtAt": "2026-11-13T13:20:12.000Z",
+    "environment": "development",
+    "sourceState": "dirty",
+    "instanceId": "1b635cf5-f6b3-46f3-a170-1e2d4f01ed39"
+  },
+  "request": {
+    "origin": {
+      "name": "Київ · центр міста",
+      "coordinates": [
+        30.5234,
+        50.4501
+      ]
+    },
+    "destination": {
+      "name": "Львів · центр міста",
+      "coordinates": [
+        24.0297,
+        49.8397
+      ]
+    },
+    "departureAt": "2026-11-17T08:00:00+02:00",
+    "passengers": 1,
+    "strategy": "BALANCED",
+    "preferences": {
+      "maxWalkingMeters": 1000
+    }
+  },
+  "http": 200,
+  "durationMs": 7397,
+  "verdict": "INCONCLUSIVE_EMPTY",
+  "checks": [],
+  "response": {
+    "journeys": [],
+    "requestedStrategy": "BALANCED",
+    "availableStrategies": [
+      "BALANCED",
+      "FASTEST"
+    ],
+    "candidateCount": 0,
+    "paretoCount": 0,
+    "returnedCount": 0,
+    "alternativeLimitPerStrategy": 12,
+    "gtfsTruncation": {
+      "stopSelection": true,
+      "candidateGraph": true,
+      "searchBudget": true,
+      "searchStepLimit": false,
+      "candidatePoolLimit": true,
+      "candidateSampling": true,
+      "responsePage": true
+    },
+    "resultsTruncated": true,
+    "candidateGenerationTruncated": true,
+    "resultSamplingTruncated": true,
+    "partial": true,
+    "partialReasons": [
+      "candidate_generation_truncated",
+      "provider_error",
+      "unsupported_preference"
+    ],
+    "blockedProviders": [
+      "transportType:marshrutka:no-routed-provider-in-corridor",
+      "transportType:metro:no-routed-provider-in-corridor",
+      "transportType:taxi:no-routed-provider-in-corridor",
+      "transportType:carsharing:no-routed-provider-in-corridor",
+      "transportType:transfer:no-routed-provider-in-corridor",
+      "walking-transfers-between-unmatched-stops",
+      "community-intermediate-pickup:requires-explicit-driver-approved-stop"
+    ],
+    "unsupportedPreferences": [
+      "transportType:marshrutka:not-in-route-engine",
+      "transportType:metro:not-in-route-engine",
+      "transportType:taxi:not-in-route-engine",
+      "transportType:carsharing:not-in-route-engine",
+      "transportType:transfer:not-in-route-engine"
+    ],
+    "providerErrors": [
+      "Київське метро: Київські джерела станцій, геометрії, розкладу або пересадок не зареєстровані чи вимкнені",
+      "Частину варіантів відхилено: фактичний час або відстань пішохідного шляху не дозволяє здійснити маршрут.",
+      "Пішохідний маршрутизатор обмежив пошук 32 маршрутами; частину альтернатив не перевірено."
+    ]
+  }
+}

@@ -1,0 +1,35 @@
+ourceState=dirty buildId=local-e9934abbd8fc-dirty-20261116T152516Z builtAt=2026-11-16T15:25:16Z
+
+> marshgo-server@1.0.0 api
+> tsx server/index.ts
+
+{"level":"info","event":"api.started","host":"127.0.0.1","port":3002,"realtime":"redis","cache":"local_l1"}
+{"level":"info","event":"transport.route_index_warmed","providers":6,"failed":0}
+{"level":"info","event":"mobility.health_refreshed","checked":25,"healthy":3,"degraded":20,"offline":2,"batchSize":25,"concurrency":4}
+{"level":"info","event":"transport.route_index_warmed","providers":6,"failed":0}
+{"level":"info","event":"transport.route_index_warmed","providers":6,"failed":0}
+{"level":"info","event":"transport.route_index_warmed","providers":6,"failed":0}
+{"level":"info","event":"transport.route_index_warmed","providers":6,"failed":0}
+{"level":"info","event":"transport.route_index_warmed","providers":6,"failed":0}
+{"level":"error","event":"database.pool_idle_client_error","message":"Connection terminated unexpectedly"}
+node:events:505
+    throw er; // Unhandled 'error' event
+    ^
+
+Error: Connection terminated unexpectedly
+    at Connection.<anonymous> (/Users/dima1203/Desktop/MarshGO/node_modules/pg/lib/client.js:204:73)
+    at Connection.wrapper (node:events:639:12)
+    at Connection.emit (node:events:514:20)
+    at Socket.<anonymous> (/Users/dima1203/Desktop/MarshGO/node_modules/pg/lib/connection.js:64:12)
+    at Socket.emit (node:events:514:20)
+    at TCP.<anonymous> (node:net:362:12)
+Emitted 'error' event on Client instance at:
+    at Client._handleErrorEvent (/Users/dima1203/Desktop/MarshGO/node_modules/pg/lib/client.js:422:10)
+    at Connection.<anonymous> (/Users/dima1203/Desktop/MarshGO/node_modules/pg/lib/client.js:222:16)
+    at Connection.wrapper (node:events:639:12)
+    at Connection.emit (node:events:514:20)
+    at Socket.<anonymous> (/Users/dima1203/Desktop/MarshGO/node_modules/pg/lib/connection.js:64:12)
+    at Socket.emit (node:events:514:20)
+    at TCP.<anonymous> (node:net:362:12)
+
+Node.js v26.7.0

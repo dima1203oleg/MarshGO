@@ -1,0 +1,33 @@
+# Public edge proxy for the MarshGO acceptance preview (nginx on 127.0.0.1:8080,
+# which the zrok share tunnels). It was originally started by hand with
+# `docker run`, so nothing in the repository could recreate it: a Docker daemon
+# or Mac restart took the whole public preview down until someone remembered
+# the flags. This file is that missing definition.
+#
+#   docker compose -f ops/nginx/compose.edge.yml up -d
+#
+# The network is the acceptance stack's own bridge, so the service names `web`,
+# `api`, `admin` and `partner` resolve here as upstreams. The container keeps the
+# historical `marshgo-proxy` name because that is its DNS name on that network.
+# It carries no secrets, so this file is safe to track.
+services:
+  edge-proxy:
+    image: nginx:stable-alpine
+    container_name: marshgo-proxy
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - type: bind
+        source: ./nginx.conf
+        target: /etc/nginx/nginx.conf
+        read_only: true
+    networks:
+      - marshgo_acceptance
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+networks:
+  marshgo_acceptance:
+    name: marshgo-acceptance_isolated_acceptance
+    external: true

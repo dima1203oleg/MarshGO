@@ -1,0 +1,40 @@
+{"level":"info","event":"transport.route_index_warmed","providers":6,"failed":0}
+{"level":"info","event":"cache.stale_served","category":"gtfs_network","staleForMs":237222}
+{"level":"info","event":"cache.stale_served","category":"gtfs_network","staleForMs":238522}
+{"level":"info","event":"cache.stale_served","category":"gtfs_network","staleForMs":238447}
+{"level":"info","event":"transport.route_index_warmed","providers":6,"failed":0}
+{"level":"info","event":"cache.background_revalidated","category":"gtfs_network","durationMs":740}
+{"level":"info","event":"cache.background_revalidated","category":"gtfs_network","durationMs":1257}
+{"level":"info","event":"cache.background_revalidated","category":"gtfs_network","durationMs":2450}
+{"level":"info","event":"cache.stale_served","category":"gtfs_network","staleForMs":238608}
+{"level":"info","event":"transport.route_index_warmed","providers":6,"failed":0}
+{"level":"info","event":"cache.background_revalidated","category":"gtfs_network","durationMs":12160}
+{"level":"info","event":"cache.stale_served","category":"gtfs_network","staleForMs":238436}
+{"level":"info","event":"cache.stale_served","category":"gtfs_network","staleForMs":231643}
+{"level":"info","event":"transport.route_index_warmed","providers":6,"failed":0}
+{"level":"info","event":"cache.background_revalidated","category":"gtfs_network","durationMs":1809}
+{"level":"info","event":"cache.background_revalidated","category":"gtfs_network","durationMs":10626}
+{"level":"info","event":"transport.route_index_warmed","providers":6,"failed":0}
+{"level":"info","event":"transport.route_index_warmed","providers":6,"failed":0}
+{"level":"error","event":"navigation.expiry_failed","message":"Connection terminated unexpectedly"}
+node:events:486
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: Connection terminated unexpectedly
+    at Connection.<anonymous> (/Users/dima1203/Desktop/MarshGO/node_modules/pg/lib/client.js:204:73)
+    at Object.onceWrapper (node:events:622:28)
+    at Connection.emit (node:events:508:20)
+    at Socket.<anonymous> (/Users/dima1203/Desktop/MarshGO/node_modules/pg/lib/connection.js:64:12)
+    at Socket.emit (node:events:508:20)
+    at TCP.<anonymous> (node:net:346:12)
+Emitted 'error' event on Client instance at:
+    at Client._handleErrorEvent (/Users/dima1203/Desktop/MarshGO/node_modules/pg/lib/client.js:422:10)
+    at Connection.<anonymous> (/Users/dima1203/Desktop/MarshGO/node_modules/pg/lib/client.js:222:16)
+    at Object.onceWrapper (node:events:622:28)
+    at Connection.emit (node:events:508:20)
+    at Socket.<anonymous> (/Users/dima1203/Desktop/MarshGO/node_modules/pg/lib/connection.js:64:12)
+    at Socket.emit (node:events:508:20)
+    at TCP.<anonymous> (node:net:346:12)
+
+Node.js v25.4.0

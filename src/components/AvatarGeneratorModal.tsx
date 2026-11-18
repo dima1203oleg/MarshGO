@@ -27,7 +27,7 @@ interface AvatarGeneratorModalProps {
 export const AvatarGeneratorModal: React.FC<AvatarGeneratorModalProps> = ({
   isOpen,
   onClose,
-  currentAvatar,
+  currentAvatar: _currentAvatar,
   userName,
   onSaveAvatar
 }) => {

@@ -1,0 +1,14 @@
+**
+!deploy
+!deploy/nginx.conf
+!index.html
+!package.json
+!package-lock.json
+!public
+!public/**
+!shared
+!shared/**
+!src
+!src/**
+!tsconfig.json
+!vite.config.ts

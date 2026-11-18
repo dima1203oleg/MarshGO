@@ -1,0 +1,125 @@
+--- a/src/views/JourneyLegStops.tsx
++++ b/src/views/JourneyLegStops.tsx
+@@ -3,0 +4 @@
++import { formatJourneyClock, journeyTimeDisplay, journeyTimesCrossCalendarDay } from './journeyResultPresentation';
+@@ -16,6 +17,3 @@
+-export function formatStopClock(value?: string) {
+-  if (!value || !Number.isFinite(Date.parse(value))) return '—';
+-  const minute = new Date(value);
+-  minute.setSeconds(0, 0);
+-  return new Intl.DateTimeFormat('uk-UA', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Kyiv' }).format(minute);
+-}
++export const formatStopClock = formatJourneyClock;
++
++const stopTimestamp = (stop: JourneyStop, index: number) => index === 0 ? stop.departureAt : stop.arrivalAt;
+@@ -24 +22 @@
+-  return formatStopClock(index === 0 ? stop.departureAt : stop.arrivalAt);
++  return formatStopClock(stopTimestamp(stop, index));
+@@ -44,0 +43 @@
++  const showDates = journeyTimesCrossCalendarDay([leg.departureAt, leg.arrivalAt, ...stops.map(stopTimestamp)]);
+@@ -49,0 +49 @@
++      const time = journeyTimeDisplay(stopTimestamp(stop, index), showDates);
+@@ -51 +51,4 @@
+-        <time className="tabular-nums text-[var(--route-subtle)]">{stopTime(stop, index)}</time>
++        <time dateTime={time.dateTime} className="min-w-0 tabular-nums text-[var(--route-subtle)]">
++          {time.clock}
++          {time.date && <span className="block whitespace-normal text-xs leading-4 font-medium">{time.date.slice(0, 6)}<wbr/>{time.date.slice(6)}</span>}
++        </time>
+@@ -67 +70 @@
+-            aria-label={`Зупинка: ${shortPlace(stop.name)}, час ${stopTime(stop, index)}`}
++            aria-label={`Зупинка: ${shortPlace(stop.name)}, час ${time.label}`}
+--- a/src/views/journeyResultPresentation.ts
++++ b/src/views/journeyResultPresentation.ts
+@@ -17,0 +18,7 @@
++
++export function journeySummaryDepartureAt(journey: ApiJourney): string | null {
++  const requestedDepartureAt = journey.requestedDepartureAt;
++  if (validTime(requestedDepartureAt) !== null && requestedDepartureAt) return requestedDepartureAt;
++  const firstLegDepartureAt = journey.legs[0]?.departureAt;
++  return validTime(firstLegDepartureAt) !== null && firstLegDepartureAt ? firstLegDepartureAt : null;
++}
+@@ -177,2 +184,2 @@
+-export function formatJourneyClock(value: string): string {
+-  if (!Number.isFinite(Date.parse(value))) return '—';
++export function formatJourneyClock(value?: string | null): string {
++  if (!value || !Number.isFinite(Date.parse(value))) return '—';
+@@ -184,2 +191,2 @@
+-const kyivCalendarDay = (value: string): string | null => {
+-  if (!Number.isFinite(Date.parse(value))) return null;
++const kyivCalendarDay = (value?: string | null): string | null => {
++  if (!value || !Number.isFinite(Date.parse(value))) return null;
+@@ -189,0 +197,14 @@
++
++/** Compare only supplied, valid timestamps in Kyiv; a clock rollover is not a date source. */
++export function journeyTimesCrossCalendarDay(values: readonly (string | null | undefined)[]): boolean {
++  return new Set(values.map(kyivCalendarDay).filter(day => day !== null)).size > 1;
++}
++
++export function journeyTimeDisplay(value?: string | null, showDate = false): {
++  clock: string; date: string; dateTime: string | undefined; label: string;
++} {
++  const day = kyivCalendarDay(value);
++  const clock = formatJourneyClock(value);
++  const date = showDate && day ? day.split('-').reverse().join('.') : '';
++  return { clock, date, dateTime: day ? value ?? undefined : undefined, label: date ? `${clock} ${date}` : clock };
++}
+--- a/src/views/JourneyRouteMapScreen.tsx
++++ b/src/views/JourneyRouteMapScreen.tsx
+@@ -21,0 +22,4 @@
++  formatJourneyClock as formatTime,
++  journeySummaryDepartureAt,
++  journeyTimeDisplay,
++  journeyTimesCrossCalendarDay,
+@@ -79,7 +82,0 @@
+-const formatTime = (value?: string) => {
+-  if (!value || !Number.isFinite(Date.parse(value))) return '—';
+-  const minute = new Date(value);
+-  minute.setSeconds(0, 0);
+-  return new Intl.DateTimeFormat('uk-UA', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Kyiv' }).format(minute);
+-};
+-
+@@ -106,2 +103,3 @@
+-  const departure = formatTime(leg.departureAt);
+-  const arrival = formatTime(leg.arrivalAt);
++  const showDates = journeyTimesCrossCalendarDay([leg.departureAt, leg.arrivalAt]);
++  const departure = journeyTimeDisplay(leg.departureAt, showDates).label;
++  const arrival = journeyTimeDisplay(leg.arrivalAt, showDates).label;
+@@ -191,0 +190,4 @@
++  const summaryDepartureAt = journeySummaryDepartureAt(journey);
++  const summaryShowDates = journeyTimesCrossCalendarDay([summaryDepartureAt, lastLeg?.arrivalAt]);
++  const summaryDeparture = journeyTimeDisplay(summaryDepartureAt, summaryShowDates);
++  const summaryArrival = journeyTimeDisplay(lastLeg?.arrivalAt, summaryShowDates);
+@@ -1119,0 +1122,3 @@
++    const showLegDates = journeyTimesCrossCalendarDay([leg.departureAt, leg.arrivalAt]);
++    const legDeparture = journeyTimeDisplay(leg.departureAt, showLegDates);
++    const legArrival = journeyTimeDisplay(leg.arrivalAt, showLegDates);
+@@ -1141 +1146 @@
+-            aria-label={`Вибрати сегмент: ${legLabel(leg)}; ${originLabel} до ${destinationLabel}${liveStatusLabel ? `; ${liveStatusLabel}` : ''}${walkHint ? `; ${walkHint.title}${walkHint.detail ? `, ${walkHint.detail}` : ''}` : ''}`}
++            aria-label={`Вибрати сегмент: ${legLabel(leg)}; ${originLabel} до ${destinationLabel}; ${legTimeLabel(leg, item.durationSeconds)}${liveStatusLabel ? `; ${liveStatusLabel}` : ''}${walkHint ? `; ${walkHint.title}${walkHint.detail ? `, ${walkHint.detail}` : ''}` : ''}`}
+@@ -1176,0 +1182,3 @@
++              {showLegDates && <span className="block text-xs font-medium leading-4 tabular-nums text-[var(--route-muted)]">
++                <time dateTime={legDeparture.dateTime}>{legDeparture.label}</time> — <time dateTime={legArrival.dateTime}>{legArrival.label}</time>
++              </span>}
+@@ -1594 +1602 @@
+-                aria-label={`${firstLeg ? formatTime(firstLeg.departureAt) : 'Час невідомий'} — ${lastLeg ? formatTime(lastLeg.arrivalAt) : 'час невідомий'}, ${formatDuration(allDuration)}, ${formatSegmentCount(journey.legs.length)}, ${journey.transfers > 0 ? formatTransferCount(journey.transfers) : 'без пересадок'}, ціна ${totalPriceLabel === '—' ? 'невідома' : totalPriceLabel}`}
++                aria-label={`${summaryDeparture.dateTime ? summaryDeparture.label : 'Час невідомий'} — ${summaryArrival.dateTime ? summaryArrival.label : 'час невідомий'}, ${formatDuration(allDuration)}, ${formatSegmentCount(journey.legs.length)}, ${journey.transfers > 0 ? formatTransferCount(journey.transfers) : 'без пересадок'}, ціна ${totalPriceLabel === '—' ? 'невідома' : totalPriceLabel}`}
+@@ -1599 +1607,6 @@
+-                    <strong>{firstLeg ? formatTime(firstLeg.departureAt) : '—'} → {lastLeg ? formatTime(lastLeg.arrivalAt) : '—'}</strong>
++                    <strong>
++                      <time dateTime={summaryDeparture.dateTime}>{summaryDeparture.clock}</time> → <time dateTime={summaryArrival.dateTime}>{summaryArrival.clock}</time>
++                    </strong>
++                    {summaryShowDates && <span className="text-xs tabular-nums">
++                      {summaryDeparture.date}<br/>{summaryArrival.date}
++                    </span>}
+@@ -1616 +1629,4 @@
+-                    <span>{firstLeg ? formatTime(firstLeg.departureAt) : '—'}</span>
++                    <time dateTime={summaryDeparture.dateTime} className={summaryShowDates ? 'w-11 text-center' : undefined}>
++                      {summaryDeparture.clock}
++                      {summaryDeparture.date && <span className="block whitespace-normal text-xs leading-4 font-medium text-[var(--route-muted)]">{summaryDeparture.date.slice(0, 6)}<wbr/>{summaryDeparture.date.slice(6)}</span>}
++                    </time>
+@@ -1618 +1634,4 @@
+-                    <span>{lastLeg ? formatTime(lastLeg.arrivalAt) : '—'}</span>
++                    <time dateTime={summaryArrival.dateTime} className={summaryShowDates ? 'w-11 text-center' : undefined}>
++                      {summaryArrival.clock}
++                      {summaryArrival.date && <span className="block whitespace-normal text-xs leading-4 font-medium text-[var(--route-muted)]">{summaryArrival.date.slice(0, 6)}<wbr/>{summaryArrival.date.slice(6)}</span>}
++                    </time>

@@ -1,0 +1,21 @@
+Observed Qoder UI results — 2026-11-14, checkpoint20:20UTC
+Canonical https://marshgo-dima.shares.zrok.io, Site7777, API3002.
+RootHEAD a4856c2f691476823c3212ca4cf140f44e2373c2.
+Exact autocomplete U01-N selected anew:
+Varshavska Lviv lon24.0123672 lat49.8657606 providerw:335054636 -> Sykhiv Lviv lon24.057585 lat49.794117 providern:1831445863.
+Departure displayed15.11.2026 09:00,1passenger,unlimitedbudget,arrivalunlimited. Request timezone not independently verified.
+Each search used exactly one selected category; no-transfers checkbox false. Result headings and displayed mode verified after actual search; zero results did not render substituted bus/bike cards.
+
+tram: nativeAX107 shows15.11,09:00; Трамвай;0маршрутів; all3strategiesdisabled; generic no-confirmed-combinations/date-time advice. PNGfinal-browser-u01-tram-only.png saved and read.
+trolleybus: nativeAX109 shows15.11,09:00; Тролейбус;0маршрутів; all3strategiesdisabled; part-of-selected-modes missing-confirmed-services advice. No separate PNG saved.
+metro: QoderComputerUse actual result headingVarshavska→Sykhiv;15.11,09:00;Метро;0маршрутів; all3strategiesdisabled; missing-confirmed-services advice.
+train: QoderComputerUse actual result headingVarshavska→Sykhiv;15.11,09:00;Поїзд;0маршрутів; all3strategiesdisabled; genericdate-time advice.
+carpool: QoderComputerUse actual result headingVarshavska→Sykhiv;15.11,09:00;Попутка;0маршрутів; all3strategiesdisabled; genericdate-time advice.
+taxi: QoderComputerUse actual result headingVarshavska→Sykhiv;15.11,09:00;Таксі;0маршрутів; all3strategiesdisabled; missing-confirmed-services advice.
+scooter: QoderComputerUse actual result headingVarshavska→Sykhiv;15.11,09:00;Самокат;0маршрутів; all3strategiesdisabled; genericdate-time advice.
+carsharing: QoderComputerUse actual result headingVarshavska→Sykhiv;15.11,09:00;Каршеринг;0маршрутів; all3strategiesdisabled; missing-confirmed-services advice.
+transfer: nativeAX112 verifies onlyТрансферselected; nativeAX113 result15.11,09:00;Трансфер;0маршрутів; all3strategiesdisabled; missing-confirmed-services advice. PNGfinal-browser-u01-transfer-only.png saved and read.
+
+The sequential ComputerUse cell stopped on user-interaction guard before switching carsharing to transfer. Six completed result observations were returned, but no screenshot files or viewable inline images from that cell were received; those six remain structural evidence, not visual acceptance. Transfer was subsequently executed and captured with native in-app tools after a fresh snapshot. No externalChrome/hiddenDOM/credentialstorage/authbypass used.
+Nine additional single-mode searches, no newOD. Together with previous bus/marshrutka/bike controls: all12 single categories executed on this ONE LvivOD. Zero accepted live/source/calendar/geometry witnesses. Empty results do not prove no real service, correct calendar, provider coverage or valid filtering of positive offers.
+No app-code edits, imports, service changes, builds, suites or deployment.

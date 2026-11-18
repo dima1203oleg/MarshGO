@@ -1,0 +1,1611 @@
+{
+  "probedAt": "2026-11-16T09:33:27.254Z",
+  "harness": "new-corridors-v1-auth",
+  "departureAt": "2026-11-17T08:00:00+02:00",
+  "endpoint": "http://127.0.0.1:3002/api/v1/journeys/search",
+  "auth": "bearer-audit-account",
+  "corridors": [
+    {
+      "pair": "kyiv-lviv",
+      "input": {
+        "origin": {
+          "name": "Київ (центр, наближено)",
+          "coordinates": [
+            30.5234,
+            50.4501
+          ]
+        },
+        "destination": {
+          "name": "Львів (центр, наближено)",
+          "coordinates": [
+            24.0297,
+            49.8397
+          ]
+        },
+        "departureAt": "2026-11-17T08:00:00+02:00",
+        "passengers": 1,
+        "strategy": "BALANCED"
+      },
+      "http": 200,
+      "ms": 18155,
+      "journeys": 2,
+      "returnedCount": 2,
+      "candidateCount": 17,
+      "paretoCount": 2,
+      "resultsTruncated": true,
+      "candidateGenerationTruncated": true,
+      "gtfsTruncation": {
+        "stopSelection": true,
+        "candidateGraph": true,
+        "searchBudget": true,
+        "searchStepLimit": false,
+        "candidatePoolLimit": true,
+        "candidateSampling": true,
+        "responsePage": true
+      },
+      "partial": true,
+      "partialReasons": [
+        "candidate_generation_truncated",
+        "provider_error",
+        "unsupported_preference"
+      ],
+      "blockedProviders": [
+        "transportType:marshrutka:no-routed-provider-in-corridor",
+        "transportType:metro:no-routed-provider-in-corridor",
+        "transportType:taxi:no-routed-provider-in-corridor",
+        "transportType:carsharing:no-routed-provider-in-corridor",
+        "transportType:transfer:no-routed-provider-in-corridor",
+        "walking-transfers-between-unmatched-stops",
+        "community-intermediate-pickup:requires-explicit-driver-approved-stop"
+      ],
+      "unsupportedPreferences": [
+        "transportType:marshrutka:not-in-route-engine",
+        "transportType:metro:not-in-route-engine",
+        "transportType:taxi:not-in-route-engine",
+        "transportType:carsharing:not-in-route-engine",
+        "transportType:transfer:not-in-route-engine"
+      ],
+      "providerErrors": [
+        "Київське метро: Київські джерела станцій, геометрії, розкладу або пересадок не зареєстровані чи вимкнені",
+        "Частину варіантів відхилено: фактичний час або відстань пішохідного шляху не дозволяє здійснити маршрут.",
+        "Пішохідний маршрутизатор обмежив пошук 32 маршрутами; частину альтернатив не перевірено."
+      ],
+      "apiError": null,
+      "maxTransfers": 0,
+      "transitModeSet": [
+        "RAIL"
+      ],
+      "summaries": [
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "transfers": 0,
+          "durationS": 39477,
+          "walkingMeters": 6454,
+          "waitingSeconds": 12323,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "transfers": 0,
+          "durationS": 53155,
+          "walkingMeters": 5198,
+          "waitingSeconds": 19223,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        }
+      ]
+    },
+    {
+      "pair": "kharkiv-lviv",
+      "input": {
+        "origin": {
+          "name": "Харків (центр, наближено)",
+          "coordinates": [
+            36.2304,
+            49.9935
+          ]
+        },
+        "destination": {
+          "name": "Львів (центр, наближено)",
+          "coordinates": [
+            24.0297,
+            49.8397
+          ]
+        },
+        "departureAt": "2026-11-17T08:00:00+02:00",
+        "passengers": 1,
+        "strategy": "BALANCED"
+      },
+      "http": 200,
+      "ms": 23289,
+      "journeys": 12,
+      "returnedCount": 12,
+      "candidateCount": 100,
+      "paretoCount": 14,
+      "resultsTruncated": true,
+      "candidateGenerationTruncated": true,
+      "gtfsTruncation": {
+        "stopSelection": true,
+        "candidateGraph": true,
+        "searchBudget": true,
+        "searchStepLimit": false,
+        "candidatePoolLimit": false,
+        "candidateSampling": true,
+        "responsePage": true
+      },
+      "partial": true,
+      "partialReasons": [
+        "candidate_generation_truncated",
+        "provider_error",
+        "unsupported_preference",
+        "walking_routing_unavailable"
+      ],
+      "blockedProviders": [
+        "transportType:marshrutka:no-routed-provider-in-corridor",
+        "transportType:metro:no-routed-provider-in-corridor",
+        "transportType:taxi:no-routed-provider-in-corridor",
+        "transportType:carsharing:no-routed-provider-in-corridor",
+        "transportType:transfer:no-routed-provider-in-corridor",
+        "walking-transfers-between-unmatched-stops",
+        "community-intermediate-pickup:requires-explicit-driver-approved-stop"
+      ],
+      "unsupportedPreferences": [
+        "transportType:marshrutka:not-in-route-engine",
+        "transportType:metro:not-in-route-engine",
+        "transportType:taxi:not-in-route-engine",
+        "transportType:carsharing:not-in-route-engine",
+        "transportType:transfer:not-in-route-engine"
+      ],
+      "providerErrors": [
+        "Київське метро: Київські джерела станцій, геометрії, розкладу або пересадок не зареєстровані чи вимкнені"
+      ],
+      "apiError": null,
+      "maxTransfers": 3,
+      "transitModeSet": [
+        "BUS",
+        "RAIL",
+        "TRAM"
+      ],
+      "summaries": [
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "RAIL",
+            "WALK"
+          ],
+          "transfers": 1,
+          "durationS": 78266,
+          "walkingMeters": 4571,
+          "waitingSeconds": 24748,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "RAIL",
+            "WALK"
+          ],
+          "transfers": 1,
+          "durationS": 78266,
+          "walkingMeters": 4571,
+          "waitingSeconds": 24748,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "RAIL",
+            "RAIL",
+            "WALK"
+          ],
+          "transfers": 2,
+          "durationS": 80051,
+          "walkingMeters": 3352,
+          "waitingSeconds": 26848,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "RAIL",
+            "RAIL",
+            "WALK"
+          ],
+          "transfers": 2,
+          "durationS": 80051,
+          "walkingMeters": 3352,
+          "waitingSeconds": 26848,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "RAIL",
+            "WALK",
+            "TRAM",
+            "WALK"
+          ],
+          "transfers": 2,
+          "durationS": 83747,
+          "walkingMeters": 2890,
+          "waitingSeconds": 30853,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "RAIL",
+            "WALK",
+            "TRAM",
+            "WALK"
+          ],
+          "transfers": 2,
+          "durationS": 83747,
+          "walkingMeters": 2890,
+          "waitingSeconds": 30853,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "RAIL",
+            "WALK",
+            "TRAM",
+            "WALK",
+            "BUS",
+            "WALK"
+          ],
+          "transfers": 3,
+          "durationS": 83971,
+          "walkingMeters": 2616,
+          "waitingSeconds": 31176,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "RAIL",
+            "WALK",
+            "TRAM",
+            "WALK",
+            "BUS",
+            "WALK"
+          ],
+          "transfers": 3,
+          "durationS": 83971,
+          "walkingMeters": 2616,
+          "waitingSeconds": 31176,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "RAIL",
+            "WALK",
+            "TRAM",
+            "WALK",
+            "BUS",
+            "WALK"
+          ],
+          "transfers": 3,
+          "durationS": 84451,
+          "walkingMeters": 2609,
+          "waitingSeconds": 31301,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "RAIL",
+            "WALK",
+            "TRAM",
+            "WALK",
+            "BUS",
+            "WALK"
+          ],
+          "transfers": 3,
+          "durationS": 84451,
+          "walkingMeters": 2609,
+          "waitingSeconds": 31301,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "RAIL",
+            "WALK",
+            "TRAM",
+            "BUS",
+            "WALK"
+          ],
+          "transfers": 3,
+          "durationS": 84811,
+          "walkingMeters": 2345,
+          "waitingSeconds": 31993,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "RAIL",
+            "WALK",
+            "TRAM",
+            "BUS",
+            "WALK"
+          ],
+          "transfers": 3,
+          "durationS": 84811,
+          "walkingMeters": 2345,
+          "waitingSeconds": 31993,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        }
+      ]
+    },
+    {
+      "pair": "dnipro-lviv",
+      "input": {
+        "origin": {
+          "name": "Дніпро (центр, наближено)",
+          "coordinates": [
+            35.0462,
+            48.4647
+          ]
+        },
+        "destination": {
+          "name": "Львів (центр, наближено)",
+          "coordinates": [
+            24.0297,
+            49.8397
+          ]
+        },
+        "departureAt": "2026-11-17T08:00:00+02:00",
+        "passengers": 1,
+        "strategy": "BALANCED"
+      },
+      "http": 200,
+      "ms": 8253,
+      "journeys": 12,
+      "returnedCount": 12,
+      "candidateCount": 100,
+      "paretoCount": 17,
+      "resultsTruncated": true,
+      "candidateGenerationTruncated": true,
+      "gtfsTruncation": {
+        "stopSelection": true,
+        "candidateGraph": true,
+        "searchBudget": true,
+        "searchStepLimit": false,
+        "candidatePoolLimit": false,
+        "candidateSampling": true,
+        "responsePage": true
+      },
+      "partial": true,
+      "partialReasons": [
+        "candidate_generation_truncated",
+        "unsupported_preference",
+        "walking_routing_unavailable"
+      ],
+      "blockedProviders": [
+        "transportType:marshrutka:no-routed-provider-in-corridor",
+        "transportType:trolleybus:no-routed-provider-in-corridor",
+        "transportType:metro:no-routed-provider-in-corridor",
+        "transportType:taxi:no-routed-provider-in-corridor",
+        "transportType:carsharing:no-routed-provider-in-corridor",
+        "transportType:transfer:no-routed-provider-in-corridor",
+        "walking-transfers-between-unmatched-stops",
+        "community-intermediate-pickup:requires-explicit-driver-approved-stop"
+      ],
+      "unsupportedPreferences": [
+        "transportType:marshrutka:not-in-route-engine",
+        "transportType:trolleybus:not-in-route-engine",
+        "transportType:metro:not-in-route-engine",
+        "transportType:taxi:not-in-route-engine",
+        "transportType:carsharing:not-in-route-engine",
+        "transportType:transfer:not-in-route-engine"
+      ],
+      "providerErrors": [],
+      "apiError": null,
+      "maxTransfers": 3,
+      "transitModeSet": [
+        "BUS",
+        "RAIL",
+        "TRAM"
+      ],
+      "summaries": [
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "RAIL",
+            "WALK"
+          ],
+          "transfers": 1,
+          "durationS": 81026,
+          "walkingMeters": 5322,
+          "waitingSeconds": 31168,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "RAIL",
+            "WALK"
+          ],
+          "transfers": 1,
+          "durationS": 81026,
+          "walkingMeters": 5322,
+          "waitingSeconds": 29428,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "RAIL",
+            "WALK"
+          ],
+          "transfers": 1,
+          "durationS": 81026,
+          "walkingMeters": 5322,
+          "waitingSeconds": 28948,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "RAIL",
+            "WALK",
+            "TRAM",
+            "WALK"
+          ],
+          "transfers": 2,
+          "durationS": 83747,
+          "walkingMeters": 3641,
+          "waitingSeconds": 34513,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "RAIL",
+            "WALK",
+            "TRAM",
+            "WALK"
+          ],
+          "transfers": 2,
+          "durationS": 83747,
+          "walkingMeters": 3641,
+          "waitingSeconds": 32773,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "RAIL",
+            "WALK",
+            "TRAM",
+            "WALK"
+          ],
+          "transfers": 2,
+          "durationS": 83747,
+          "walkingMeters": 3641,
+          "waitingSeconds": 32293,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "RAIL",
+            "WALK",
+            "TRAM",
+            "WALK",
+            "BUS",
+            "WALK"
+          ],
+          "transfers": 3,
+          "durationS": 83971,
+          "walkingMeters": 3367,
+          "waitingSeconds": 34836,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "RAIL",
+            "WALK",
+            "TRAM",
+            "WALK",
+            "BUS",
+            "WALK"
+          ],
+          "transfers": 3,
+          "durationS": 83971,
+          "walkingMeters": 3367,
+          "waitingSeconds": 33096,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "RAIL",
+            "WALK",
+            "TRAM",
+            "WALK",
+            "BUS",
+            "WALK"
+          ],
+          "transfers": 3,
+          "durationS": 83971,
+          "walkingMeters": 3367,
+          "waitingSeconds": 32616,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "RAIL",
+            "WALK",
+            "TRAM",
+            "WALK",
+            "BUS",
+            "WALK"
+          ],
+          "transfers": 3,
+          "durationS": 84451,
+          "walkingMeters": 3360,
+          "waitingSeconds": 34961,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "RAIL",
+            "WALK",
+            "TRAM",
+            "WALK",
+            "BUS",
+            "WALK"
+          ],
+          "transfers": 3,
+          "durationS": 84451,
+          "walkingMeters": 3360,
+          "waitingSeconds": 33221,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "RAIL",
+            "WALK",
+            "TRAM",
+            "WALK",
+            "BUS",
+            "WALK"
+          ],
+          "transfers": 3,
+          "durationS": 84451,
+          "walkingMeters": 3360,
+          "waitingSeconds": 32741,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        }
+      ]
+    },
+    {
+      "pair": "odesa-lviv",
+      "input": {
+        "origin": {
+          "name": "Одеса (центр, наближено)",
+          "coordinates": [
+            30.7233,
+            46.4825
+          ]
+        },
+        "destination": {
+          "name": "Львів (центр, наближено)",
+          "coordinates": [
+            24.0297,
+            49.8397
+          ]
+        },
+        "departureAt": "2026-11-17T08:00:00+02:00",
+        "passengers": 1,
+        "strategy": "BALANCED"
+      },
+      "http": 200,
+      "ms": 10484,
+      "journeys": 2,
+      "returnedCount": 2,
+      "candidateCount": 2,
+      "paretoCount": 2,
+      "resultsTruncated": true,
+      "candidateGenerationTruncated": true,
+      "gtfsTruncation": {
+        "stopSelection": true,
+        "candidateGraph": true,
+        "searchBudget": false,
+        "searchStepLimit": false,
+        "candidatePoolLimit": false,
+        "candidateSampling": false,
+        "responsePage": false
+      },
+      "partial": true,
+      "partialReasons": [
+        "candidate_generation_truncated",
+        "unsupported_preference",
+        "walking_routing_unavailable"
+      ],
+      "blockedProviders": [
+        "transportType:marshrutka:no-routed-provider-in-corridor",
+        "transportType:metro:no-routed-provider-in-corridor",
+        "transportType:taxi:no-routed-provider-in-corridor",
+        "transportType:carsharing:no-routed-provider-in-corridor",
+        "transportType:transfer:no-routed-provider-in-corridor",
+        "walking-transfers-between-unmatched-stops",
+        "community-intermediate-pickup:requires-explicit-driver-approved-stop"
+      ],
+      "unsupportedPreferences": [
+        "transportType:marshrutka:not-in-route-engine",
+        "transportType:metro:not-in-route-engine",
+        "transportType:taxi:not-in-route-engine",
+        "transportType:carsharing:not-in-route-engine",
+        "transportType:transfer:not-in-route-engine"
+      ],
+      "providerErrors": [],
+      "apiError": null,
+      "maxTransfers": 0,
+      "transitModeSet": [
+        "RAIL"
+      ],
+      "summaries": [
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "transfers": 0,
+          "durationS": 85931,
+          "walkingMeters": 3562,
+          "waitingSeconds": 45940,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "transfers": 0,
+          "durationS": 85931,
+          "walkingMeters": 3562,
+          "waitingSeconds": 45940,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        }
+      ]
+    },
+    {
+      "pair": "kyiv-uzhhorod",
+      "input": {
+        "origin": {
+          "name": "Київ (центр, наближено)",
+          "coordinates": [
+            30.5234,
+            50.4501
+          ]
+        },
+        "destination": {
+          "name": "Ужгород (центр, наближено)",
+          "coordinates": [
+            22.2879,
+            48.6208
+          ]
+        },
+        "departureAt": "2026-11-17T08:00:00+02:00",
+        "passengers": 1,
+        "strategy": "BALANCED"
+      },
+      "http": 200,
+      "ms": 7870,
+      "journeys": 12,
+      "returnedCount": 12,
+      "candidateCount": 100,
+      "paretoCount": 31,
+      "resultsTruncated": true,
+      "candidateGenerationTruncated": true,
+      "gtfsTruncation": {
+        "stopSelection": true,
+        "candidateGraph": true,
+        "searchBudget": true,
+        "searchStepLimit": true,
+        "candidatePoolLimit": false,
+        "candidateSampling": true,
+        "responsePage": true
+      },
+      "partial": true,
+      "partialReasons": [
+        "candidate_generation_truncated",
+        "provider_error",
+        "unsupported_preference",
+        "walking_routing_unavailable"
+      ],
+      "blockedProviders": [
+        "transportType:marshrutka:no-routed-provider-in-corridor",
+        "transportType:metro:no-routed-provider-in-corridor",
+        "transportType:taxi:no-routed-provider-in-corridor",
+        "transportType:carsharing:no-routed-provider-in-corridor",
+        "transportType:transfer:no-routed-provider-in-corridor",
+        "walking-transfers-between-unmatched-stops",
+        "community-intermediate-pickup:requires-explicit-driver-approved-stop"
+      ],
+      "unsupportedPreferences": [
+        "transportType:marshrutka:not-in-route-engine",
+        "transportType:metro:not-in-route-engine",
+        "transportType:taxi:not-in-route-engine",
+        "transportType:carsharing:not-in-route-engine",
+        "transportType:transfer:not-in-route-engine"
+      ],
+      "providerErrors": [
+        "Київське метро: Київські джерела станцій, геометрії, розкладу або пересадок не зареєстровані чи вимкнені"
+      ],
+      "apiError": null,
+      "maxTransfers": 3,
+      "transitModeSet": [
+        "BUS",
+        "RAIL",
+        "TROLLEYBUS"
+      ],
+      "summaries": [
+        {
+          "modes": [
+            "WALK",
+            "BUS",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "transfers": 1,
+          "durationS": 60261,
+          "walkingMeters": 2755,
+          "waitingSeconds": 15936,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "BUS",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "transfers": 1,
+          "durationS": 60261,
+          "walkingMeters": 2755,
+          "waitingSeconds": 15936,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "BUS",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "transfers": 1,
+          "durationS": 60261,
+          "walkingMeters": 2755,
+          "waitingSeconds": 15936,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "transfers": 0,
+          "durationS": 60261,
+          "walkingMeters": 4316,
+          "waitingSeconds": 15888,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "TROLLEYBUS",
+            "WALK",
+            "BUS",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "transfers": 2,
+          "durationS": 60261,
+          "walkingMeters": 2134,
+          "waitingSeconds": 15652,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "TROLLEYBUS",
+            "WALK",
+            "BUS",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "transfers": 2,
+          "durationS": 60261,
+          "walkingMeters": 2134,
+          "waitingSeconds": 15652,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "TROLLEYBUS",
+            "WALK",
+            "BUS",
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "transfers": 2,
+          "durationS": 60261,
+          "walkingMeters": 2134,
+          "waitingSeconds": 15652,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "BUS",
+            "WALK",
+            "RAIL",
+            "WALK",
+            "BUS",
+            "WALK"
+          ],
+          "transfers": 2,
+          "durationS": 82270,
+          "walkingMeters": 1327,
+          "waitingSeconds": 38787,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS) + Ужгородська міська рада — розклад (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "BUS",
+            "WALK",
+            "RAIL",
+            "WALK",
+            "BUS",
+            "WALK"
+          ],
+          "transfers": 2,
+          "durationS": 82270,
+          "walkingMeters": 1327,
+          "waitingSeconds": 38787,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS) + Ужгородська міська рада — розклад (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "BUS",
+            "WALK",
+            "RAIL",
+            "WALK",
+            "BUS",
+            "WALK"
+          ],
+          "transfers": 2,
+          "durationS": 82270,
+          "walkingMeters": 1327,
+          "waitingSeconds": 38787,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS) + Ужгородська міська рада — розклад (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "BUS",
+            "WALK",
+            "TROLLEYBUS",
+            "WALK",
+            "RAIL",
+            "WALK",
+            "BUS",
+            "WALK"
+          ],
+          "transfers": 3,
+          "durationS": 82270,
+          "walkingMeters": 1213,
+          "waitingSeconds": 37438,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS) + Ужгородська міська рада — розклад (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "TROLLEYBUS",
+            "WALK",
+            "BUS",
+            "WALK",
+            "RAIL",
+            "WALK",
+            "BUS",
+            "WALK"
+          ],
+          "transfers": 3,
+          "durationS": 82480,
+          "walkingMeters": 1039,
+          "waitingSeconds": 37186,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS) + Ужгородська міська рада — розклад (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        }
+      ]
+    },
+    {
+      "pair": "chernivtsi-kyiv",
+      "input": {
+        "origin": {
+          "name": "Чернівці (центр, наближено)",
+          "coordinates": [
+            25.9358,
+            48.2921
+          ]
+        },
+        "destination": {
+          "name": "Київ (центр, наближено)",
+          "coordinates": [
+            30.5234,
+            50.4501
+          ]
+        },
+        "departureAt": "2026-11-17T08:00:00+02:00",
+        "passengers": 1,
+        "strategy": "BALANCED"
+      },
+      "http": 200,
+      "ms": 4249,
+      "journeys": 3,
+      "returnedCount": 3,
+      "candidateCount": 3,
+      "paretoCount": 3,
+      "resultsTruncated": true,
+      "candidateGenerationTruncated": true,
+      "gtfsTruncation": {
+        "stopSelection": true,
+        "candidateGraph": false,
+        "searchBudget": false,
+        "searchStepLimit": false,
+        "candidatePoolLimit": false,
+        "candidateSampling": false,
+        "responsePage": false
+      },
+      "partial": true,
+      "partialReasons": [
+        "candidate_generation_truncated",
+        "provider_error",
+        "unsupported_preference",
+        "walking_routing_unavailable"
+      ],
+      "blockedProviders": [
+        "transportType:marshrutka:no-routed-provider-in-corridor",
+        "transportType:metro:no-routed-provider-in-corridor",
+        "transportType:taxi:no-routed-provider-in-corridor",
+        "transportType:carsharing:no-routed-provider-in-corridor",
+        "transportType:transfer:no-routed-provider-in-corridor",
+        "walking-transfers-between-unmatched-stops",
+        "community-intermediate-pickup:requires-explicit-driver-approved-stop"
+      ],
+      "unsupportedPreferences": [
+        "transportType:marshrutka:not-in-route-engine",
+        "transportType:metro:not-in-route-engine",
+        "transportType:taxi:not-in-route-engine",
+        "transportType:carsharing:not-in-route-engine",
+        "transportType:transfer:not-in-route-engine"
+      ],
+      "providerErrors": [
+        "Київське метро: Київські джерела станцій, геометрії, розкладу або пересадок не зареєстровані чи вимкнені"
+      ],
+      "apiError": null,
+      "maxTransfers": 1,
+      "transitModeSet": [
+        "BUS",
+        "RAIL"
+      ],
+      "summaries": [
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "transfers": 0,
+          "durationS": 85932,
+          "walkingMeters": 3800,
+          "waitingSeconds": 40832,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "WALK",
+            "BUS",
+            "WALK"
+          ],
+          "transfers": 1,
+          "durationS": 85913,
+          "walkingMeters": 2508,
+          "waitingSeconds": 41546,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS) + Київпастранс — розклад (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        },
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "WALK",
+            "BUS",
+            "WALK"
+          ],
+          "transfers": 1,
+          "durationS": 86351,
+          "walkingMeters": 2230,
+          "waitingSeconds": 41546,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS) + Київпастранс — розклад (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        }
+      ]
+    },
+    {
+      "pair": "kharkiv-odesa",
+      "input": {
+        "origin": {
+          "name": "Харків (центр, наближено)",
+          "coordinates": [
+            36.2304,
+            49.9935
+          ]
+        },
+        "destination": {
+          "name": "Одеса (центр, наближено)",
+          "coordinates": [
+            30.7233,
+            46.4825
+          ]
+        },
+        "departureAt": "2026-11-17T08:00:00+02:00",
+        "passengers": 1,
+        "strategy": "BALANCED"
+      },
+      "http": 200,
+      "ms": 265,
+      "journeys": 1,
+      "returnedCount": 1,
+      "candidateCount": 1,
+      "paretoCount": 1,
+      "resultsTruncated": false,
+      "candidateGenerationTruncated": false,
+      "gtfsTruncation": {
+        "stopSelection": false,
+        "candidateGraph": false,
+        "searchBudget": false,
+        "searchStepLimit": false,
+        "candidatePoolLimit": false,
+        "candidateSampling": false,
+        "responsePage": false
+      },
+      "partial": true,
+      "partialReasons": [
+        "unsupported_preference",
+        "walking_routing_unavailable"
+      ],
+      "blockedProviders": [
+        "transportType:bus:no-routed-provider-in-corridor",
+        "transportType:marshrutka:no-routed-provider-in-corridor",
+        "transportType:trolleybus:no-routed-provider-in-corridor",
+        "transportType:tram:no-routed-provider-in-corridor",
+        "transportType:metro:no-routed-provider-in-corridor",
+        "transportType:taxi:no-routed-provider-in-corridor",
+        "transportType:carsharing:no-routed-provider-in-corridor",
+        "transportType:transfer:no-routed-provider-in-corridor",
+        "walking-transfers-between-unmatched-stops",
+        "community-intermediate-pickup:requires-explicit-driver-approved-stop"
+      ],
+      "unsupportedPreferences": [
+        "transportType:bus:not-in-route-engine",
+        "transportType:marshrutka:not-in-route-engine",
+        "transportType:trolleybus:not-in-route-engine",
+        "transportType:tram:not-in-route-engine",
+        "transportType:metro:not-in-route-engine",
+        "transportType:taxi:not-in-route-engine",
+        "transportType:carsharing:not-in-route-engine",
+        "transportType:transfer:not-in-route-engine"
+      ],
+      "providerErrors": [],
+      "apiError": null,
+      "maxTransfers": 0,
+      "transitModeSet": [
+        "RAIL"
+      ],
+      "summaries": [
+        {
+          "modes": [
+            "WALK",
+            "RAIL",
+            "WALK"
+          ],
+          "transfers": 0,
+          "durationS": 83480,
+          "walkingMeters": 4188,
+          "waitingSeconds": 41668,
+          "priceStatus": "UNKNOWN",
+          "source": "gtfs-static",
+          "providerName": "Укрзалізниця — розклад поїздів (GTFS)",
+          "liveStatuses": [
+            "UNVERIFIED",
+            "SCHEDULED",
+            "UNVERIFIED"
+          ]
+        }
+      ]
+    }
+  ]
+}

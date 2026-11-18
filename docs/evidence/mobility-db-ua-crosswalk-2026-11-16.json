@@ -1,0 +1,101 @@
+{
+ "generatedAt": "2026-11-16T13:56:08Z",
+ "rootBase": "b8dfba5a4bf2845782d2d07577562567a5d7c011",
+ "catalog": {
+  "source": "MobilityData official export https://storage.googleapis.com/storage/v1/b/mdb-csv/o/sources.csv?alt=media",
+  "bytes": 1212769,
+  "repoCommit": "bcb63a91b892523741dddaa0c5772cb47d88c8a8 (2026-11-11)",
+  "note": "catalogs.csv no longer in repo; GBFS moved to MobilityData/gbfs systems.csv"
+ },
+ "serverRegistry": {
+  "file": "MarshGO-Server/server/mobility/ukraineCatalog.ts (read-only inspection of canonical Desktop checkout)",
+  "entries": 52,
+  "snapshot": "TRANSPORT_PROVIDER_REGISTRY.json generatedAt 2026-10-31"
+ },
+ "uaFeeds": [
+  {
+   "mdb": 2374,
+   "provider": "Lvivavtodor Львів",
+   "type": "gtfs",
+   "registered": true,
+   "status": "enabled/open CC BY 4.0"
+  },
+  {
+   "mdb": "2375/2376",
+   "provider": "Львів TU/VP",
+   "type": "gtfs-rt",
+   "registered": true,
+   "status": "enabled/open"
+  },
+  {
+   "mdb": 2931,
+   "provider": "Ужгород",
+   "type": "gtfs",
+   "registered": true,
+   "status": "enabled/open CC BY 4.0"
+  },
+  {
+   "mdb": 2932,
+   "provider": "Стрий",
+   "type": "gtfs",
+   "registered": true,
+   "status": "enabled/open CC BY 4.0"
+  },
+  {
+   "mdb": 2945,
+   "provider": "Бучатранссервіс Буча",
+   "type": "gtfs",
+   "registered": true,
+   "status": "requires_credentials (API key), inactive in MDB, disabled; mirror 404"
+  },
+  {
+   "mdb": 2946,
+   "provider": "Одеса",
+   "type": "gtfs",
+   "registered": true,
+   "status": "requires_credentials (HTTP 401), disabled; mirror 404; official procedure https://omr.gov.ua/ua/city/departments/dtks/open-data/"
+  },
+  {
+   "mdb": 3044,
+   "provider": "inbus.ua міжміські",
+   "type": "gtfs",
+   "registered": true,
+   "status": "inactive in MDB; no license; mirror 200 but 3815 B Last-Modified 2026-06-04 — tiny/stale; disabled"
+  },
+  {
+   "mdb": 3230,
+   "provider": "Київ Київпастранс",
+   "type": "gtfs",
+   "registered": true,
+   "status": "primary http-only IP disabled; HTTPS mirror jbb.ghsq.de/gtfs/ua-kyiv.gtfs.zip registered wave2 and ROUTING_VERIFIED_API this session (see kyiv-surface-routing-2026-11-16.json)"
+  },
+  {
+   "mdb": 3231,
+   "provider": "Київ TU+VP",
+   "type": "gtfs-rt",
+   "registered": true,
+   "status": "http-only IP, insecure_endpoint, disabled"
+  },
+  {
+   "mdb": 3615,
+   "provider": "Малин (Житомирська обл.) malin.kiev.ua",
+   "type": "gtfs",
+   "registered": false,
+   "status": "NEW CANDIDATE: HEAD 302→kyiv-malyn-booking-production.up.railway.app 200 application/zip 40905 B Last-Modified 2026-11-10T11:35:13Z; full GTFS agency/stops98/routes9(all bus)/trips250/stop_times/calendar/shapes/feed_info/LICENSE; calendar 20240101-20271231 everyday+weekdays; feed_version 2026-11-10; LICENSE OwnNet Source License 1.1 (own-net.com/license.html): free below $100k/yr revenue, written agreement above, share-alike derivatives, mandatory attribution «Дані: malin.kiev.ua — Сергій Меренков / ТОВ «Технології»», no closed systems. LEGAL GATE CONDITIONAL — not clean open; MDB latest mirror 404"
+  }
+ ],
+ "gbfsUa": {
+  "systems": 1,
+  "id": 66,
+  "name": "3electra Київ",
+  "url": "https://zelectra.rideatom.com/gbfs/66/v3.0/gbfs",
+  "registered": true,
+  "note": "Nextbike UA absent from current MDB GBFS systems.csv"
+ },
+ "negativeFindings": [
+  "No MDB UA GTFS feeds for Chernivtsi, Kharkiv, Poltava, Ternopil, Vinnytsia, Lutsk, Cherkasy, Sumy, Chernihiv, Mykolaiv, Kropyvnytskyi; Rivne/Ivano-Frankivsk/Khmelnytskyi already served via Dozor outside MDB",
+  "Pishchanska data.gov.ua dataset 5e01aa93-51f1-481c-9a79-b87eb51fffb1 page re-fetched 2026-11-16: only trips/calendarDates/calendar/stopTimes CSVs, NO stops/routes/agency — cannot build a routable network; remains BLOCKED_COMPANION_DATASETS; direct CKAN API 403 earlier, page readable"
+ ],
+ "verdict": "10/11 MDB UA feeds already registered; only new candidate Malyn mdb-3615 passes freshness+structure but fails clean-open license gate (OwnNet 1.1 conditional). No integration performed by Qoder; registry changes are Codex-owned.",
+ "handoff": "Codex: decide Malyn license acceptance (owner revenue threshold unknown → owner decision), then register+import; re-probe Odesa/Bucha key procedure; Kyiv mirror segment-split structure (2-8 stops/trip, empty block_id) needs chaining evaluation."
+}

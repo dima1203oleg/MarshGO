@@ -5,10 +5,10 @@ import {
   BellRing,
   CheckCircle2,
   Calendar,
-  MapPin,
-  DollarSign,
+
+
   Send,
-  MessageSquare,
+
   Mail,
   Smartphone,
   Trash2,

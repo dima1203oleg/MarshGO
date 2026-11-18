@@ -1,17 +1,15 @@
 import React, { useState } from 'react';
 import {
   ArrowLeft,
-  Users,
-  Search,
-  Filter,
-  Check,
-  Send,
-  MapPin,
-  Clock,
-  Sparkles,
-  ShieldCheck
-} from 'lucide-react';
-import { PassengerDemand, Proposal } from '../types';
+
+
+
+
+
+
+
+  } from 'lucide-react';
+import { PassengerDemand } from '../types';
 import { DemandCard } from '../components/DemandCard';
 import { NegotiationModal } from '../components/NegotiationModal';
 

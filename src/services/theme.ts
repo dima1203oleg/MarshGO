@@ -43,17 +43,16 @@ class ThemeService {
   public isDark(): boolean {
     if (this.currentTheme === 'dark') return true;
     if (this.currentTheme === 'light') return false;
-    if (typeof window !== 'undefined' && window.matchMedia) {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches;
-    }
-    return false;
+    return typeof window !== 'undefined' && !!window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   }
 
   public setTheme(theme: ThemeMode): void {
     this.currentTheme = theme;
     try {
       localStorage.setItem(STORAGE_KEY, theme);
-    } catch {}
+    } catch {
+      // Theme still changes in memory when storage is unavailable.
+    }
 
     this.applyTheme();
     this.notify();

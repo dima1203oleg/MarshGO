@@ -1,0 +1,1308 @@
+{
+  "armedAt": "2026-11-16T18:32:43.870Z",
+  "completedAt": "2026-11-16T18:32:52.054Z",
+  "durationMs": 3697,
+  "http": 200,
+  "requests": [
+    {
+      "body": {
+        "departureAt": "2026-11-18T06:00:00.000Z",
+        "destination": {
+          "coordinates": [
+            30.5168993,
+            50.4113155
+          ],
+          "name": "Ізюмська вулиця, Київ"
+        },
+        "origin": {
+          "coordinates": [
+            30.4907708,
+            50.4406219
+          ],
+          "name": "Вокзальна площа, Київ"
+        },
+        "passengers": 1,
+        "preferences": {
+          "allowBicycle": false,
+          "allowBus": true,
+          "allowCarsharing": false,
+          "allowCommunity": false,
+          "allowMinibus": false,
+          "allowPublicTransport": true,
+          "allowRail": false,
+          "allowScooter": false,
+          "allowTaxi": false,
+          "allowTransfer": false,
+          "allowedProviderIds": [],
+          "allowedProviderIdsByType": {},
+          "allowedTransitProviders": [],
+          "allowedTransitProvidersByType": {},
+          "allowedTransportTypes": [
+            "bus"
+          ]
+        },
+        "strategy": "BALANCED"
+      },
+      "method": "POST",
+      "startedAt": "2026-11-16T18:32:48.357Z",
+      "url": "https://marshgo-dima.shares.zrok.io/api/v1/journeys/search"
+    }
+  ],
+  "response": {
+    "data": {
+      "alternativeLimitPerStrategy": 12,
+      "availableStrategies": [
+        "BALANCED",
+        "FASTEST",
+        "CHEAPEST"
+      ],
+      "blockedProviders": [
+        "transportType:marshrutka:no-routed-provider-in-corridor",
+        "transportType:metro:no-routed-provider-in-corridor",
+        "transportType:taxi:no-routed-provider-in-corridor",
+        "transportType:train:no-routed-provider-in-corridor",
+        "transportType:bike:no-routed-provider-in-corridor",
+        "transportType:scooter:no-routed-provider-in-corridor",
+        "transportType:carsharing:no-routed-provider-in-corridor",
+        "transportType:transfer:no-routed-provider-in-corridor",
+        "walking-transfers-between-unmatched-stops",
+        "community-intermediate-pickup:requires-explicit-driver-approved-stop"
+      ],
+      "candidateCount": 38,
+      "candidateGenerationTruncated": true,
+      "gtfsTruncation": {
+        "candidateGraph": false,
+        "candidatePoolLimit": false,
+        "candidateSampling": true,
+        "responsePage": true,
+        "searchBudget": true,
+        "searchStepLimit": false,
+        "stopSelection": false
+      },
+      "journeys": [
+        {
+          "confirmedPriceMinor": null,
+          "currency": "UAH",
+          "destination": {
+            "coordinates": [
+              30.5168993,
+              50.4113155
+            ],
+            "name": "Ізюмська вулиця, Київ"
+          },
+          "estimatedPriceMaxMinor": 3000,
+          "estimatedPriceMinMinor": 3000,
+          "id": "74219fe4-9679-4eb2-bc5e-d0b12bc2337f",
+          "legs": [
+            {
+              "arrivalAt": "2026-11-18T06:05:43.000Z",
+              "availabilityStatus": "AVAILABLE",
+              "dataFreshnessSeconds": 0,
+              "departureAt": "2026-11-18T06:00:00.000Z",
+              "destination": {
+                "coordinates": [
+                  30.486595153808594,
+                  50.43840789794922
+                ],
+                "name": "Півднний вокз"
+              },
+              "distanceMeters": 477,
+              "driver": null,
+              "durationSeconds": 343,
+              "id": "c7d68d02-c39a-43f9-bf11-c7e7d2934f6a",
+              "lastUpdatedAt": "2026-11-16T18:32:51.829Z",
+              "liveStatus": "UNVERIFIED",
+              "mode": "WALK",
+              "offerId": null,
+              "origin": {
+                "coordinates": [
+                  30.4907708,
+                  50.4406219
+                ],
+                "name": "Вокзальна площа, Київ"
+              },
+              "priceMinor": null,
+              "priceStatus": "UNKNOWN",
+              "routeGeometry": [
+                [
+                  30.490782,
+                  50.440617
+                ],
+                [
+                  30.490801,
+                  50.440632
+                ],
+                [
+                  30.490848,
+                  50.440665
+                ],
+                [
+                  30.490801,
+                  50.440659
+                ],
+                [
+                  30.490748,
+                  50.440657
+                ],
+                [
+                  30.490697,
+                  50.44066
+                ],
+                [
+                  30.490671,
+                  50.440663
+                ],
+                [
+                  30.490626,
+                  50.440668
+                ],
+                [
+                  30.490572,
+                  50.440679
+                ],
+                [
+                  30.490532,
+                  50.440696
+                ],
+                [
+                  30.490492,
+                  50.440721
+                ],
+                [
+                  30.490404,
+                  50.440781
+                ],
+                [
+                  30.490331,
+                  50.440833
+                ],
+                [
+                  30.490281,
+                  50.44087
+                ],
+                [
+                  30.490231,
+                  50.44084
+                ],
+                [
+                  30.490216,
+                  50.440833
+                ],
+                [
+                  30.49015,
+                  50.440797
+                ],
+                [
+                  30.490108,
+                  50.440774
+                ],
+                [
+                  30.490051,
+                  50.440742
+                ],
+                [
+                  30.489852,
+                  50.440632
+                ],
+                [
+                  30.489816,
+                  50.440658
+                ],
+                [
+                  30.489779,
+                  50.440637
+                ],
+                [
+                  30.489695,
+                  50.44059
+                ],
+                [
+                  30.489405,
+                  50.440429
+                ],
+                [
+                  30.489371,
+                  50.440411
+                ],
+                [
+                  30.48936,
+                  50.440412
+                ],
+                [
+                  30.489037,
+                  50.440232
+                ],
+                [
+                  30.48904,
+                  50.440227
+                ],
+                [
+                  30.489023,
+                  50.440217
+                ],
+                [
+                  30.48889,
+                  50.440144
+                ],
+                [
+                  30.488662,
+                  50.440017
+                ],
+                [
+                  30.488444,
+                  50.439896
+                ],
+                [
+                  30.488274,
+                  50.439802
+                ],
+                [
+                  30.488108,
+                  50.439709
+                ],
+                [
+                  30.487929,
+                  50.43961
+                ],
+                [
+                  30.48713,
+                  50.439166
+                ],
+                [
+                  30.486627,
+                  50.43886
+                ],
+                [
+                  30.486565,
+                  50.438826
+                ],
+                [
+                  30.486514,
+                  50.438797
+                ],
+                [
+                  30.486478,
+                  50.43878
+                ],
+                [
+                  30.486417,
+                  50.438747
+                ],
+                [
+                  30.486316,
+                  50.438691
+                ],
+                [
+                  30.486238,
+                  50.438647
+                ],
+                [
+                  30.486576,
+                  50.438398
+                ]
+              ],
+              "source": "osrm-foot-route",
+              "title": "До першої зупинки",
+              "vehicle": null
+            },
+            {
+              "arrivalAt": "2026-11-18T06:42:00.000Z",
+              "availabilityStatus": "UNKNOWN",
+              "currency": "UAH",
+              "dataFreshnessSeconds": 3,
+              "departureAt": "2026-11-18T06:11:00.000Z",
+              "destination": {
+                "coordinates": [
+                  30.518198013305664,
+                  50.40970230102539
+                ],
+                "name": "вул. Ізюмська"
+              },
+              "distanceMeters": null,
+              "driver": null,
+              "durationSeconds": 1860,
+              "fareIncludedByPreviousSegment": false,
+              "fareProductId": "kyiv-communal-single-ride",
+              "fareSource": "city-tariff-registry",
+              "headsign": "вул. Ізюмська",
+              "id": "30a0d23e-0559-43e2-9271-0a3b43910d29",
+              "lastUpdatedAt": "2026-11-16T18:32:48.660Z",
+              "liveStatus": "SCHEDULED",
+              "mode": "BUS",
+              "offerId": null,
+              "origin": {
+                "coordinates": [
+                  30.486595153808594,
+                  50.43840789794922
+                ],
+                "name": "Півднний вокз"
+              },
+              "priceMinor": 3000,
+              "priceStatus": "ESTIMATED",
+              "providerId": "cd6398e5-3f1e-4b68-b954-0a826093e5e0",
+              "providerName": "Київпастранс — розклад (GTFS)",
+              "routeGeometry": [
+                [
+                  30.486595153808594,
+                  50.43840789794922
+                ],
+                [
+                  30.486845016479492,
+                  50.438236236572266
+                ],
+                [
+                  30.48491096496582,
+                  50.439571380615234
+                ],
+                [
+                  30.48447036743164,
+                  50.439598083496094
+                ],
+                [
+                  30.48423957824707,
+                  50.43939208984375
+                ],
+                [
+                  30.484386444091797,
+                  50.43914794921875
+                ],
+                [
+                  30.486730575561523,
+                  50.437416076660156
+                ],
+                [
+                  30.487741470336914,
+                  50.43694305419922
+                ],
+                [
+                  30.489561080932617,
+                  50.435447692871094
+                ],
+                [
+                  30.49013328552246,
+                  50.4348030090332
+                ],
+                [
+                  30.490238189697266,
+                  50.43439483642578
+                ],
+                [
+                  30.490123748779297,
+                  50.4341926574707
+                ],
+                [
+                  30.489627838134766,
+                  50.43370056152344
+                ],
+                [
+                  30.488574981689453,
+                  50.43291473388672
+                ],
+                [
+                  30.48769760131836,
+                  50.43073654174805
+                ],
+                [
+                  30.487455368041992,
+                  50.429351806640625
+                ],
+                [
+                  30.485454559326172,
+                  50.429542541503906
+                ],
+                [
+                  30.484756469726562,
+                  50.429534912109375
+                ],
+                [
+                  30.483789443969727,
+                  50.429412841796875
+                ],
+                [
+                  30.478042602539062,
+                  50.42817687988281
+                ],
+                [
+                  30.47566795349121,
+                  50.427406311035156
+                ],
+                [
+                  30.476333618164062,
+                  50.42636489868164
+                ],
+                [
+                  30.476829528808594,
+                  50.42552947998047
+                ],
+                [
+                  30.477102279663086,
+                  50.425106048583984
+                ],
+                [
+                  30.477447509765625,
+                  50.424720764160156
+                ],
+                [
+                  30.477943420410156,
+                  50.42434310913086
+                ],
+                [
+                  30.481096267700195,
+                  50.4229850769043
+                ],
+                [
+                  30.485326766967773,
+                  50.42117691040039
+                ],
+                [
+                  30.48637580871582,
+                  50.420745849609375
+                ],
+                [
+                  30.48771858215332,
+                  50.4205436706543
+                ],
+                [
+                  30.489992141723633,
+                  50.420719146728516
+                ],
+                [
+                  30.490882873535156,
+                  50.42039489746094
+                ],
+                [
+                  30.491355895996094,
+                  50.42021179199219
+                ],
+                [
+                  30.49216079711914,
+                  50.41990280151367
+                ],
+                [
+                  30.492807388305664,
+                  50.41957092285156
+                ],
+                [
+                  30.49325942993164,
+                  50.419368743896484
+                ],
+                [
+                  30.493370056152344,
+                  50.419158935546875
+                ],
+                [
+                  30.49273681640625,
+                  50.419002532958984
+                ],
+                [
+                  30.49097442626953,
+                  50.4185676574707
+                ],
+                [
+                  30.48993682861328,
+                  50.417579650878906
+                ],
+                [
+                  30.491661071777344,
+                  50.416805267333984
+                ],
+                [
+                  30.491193771362305,
+                  50.41632843017578
+                ],
+                [
+                  30.489927291870117,
+                  50.415077209472656
+                ],
+                [
+                  30.489763259887695,
+                  50.414791107177734
+                ],
+                [
+                  30.489734649658203,
+                  50.414512634277344
+                ],
+                [
+                  30.4901123046875,
+                  50.413944244384766
+                ],
+                [
+                  30.49027442932129,
+                  50.413753509521484
+                ],
+                [
+                  30.490760803222656,
+                  50.41350173950195
+                ],
+                [
+                  30.491079330444336,
+                  50.41336441040039
+                ],
+                [
+                  30.492109298706055,
+                  50.41324996948242
+                ],
+                [
+                  30.494997024536133,
+                  50.412872314453125
+                ],
+                [
+                  30.49773597717285,
+                  50.412532806396484
+                ],
+                [
+                  30.49941062927246,
+                  50.412322998046875
+                ],
+                [
+                  30.50107192993164,
+                  50.41236877441406
+                ],
+                [
+                  30.501787185668945,
+                  50.412322998046875
+                ],
+                [
+                  30.502424240112305,
+                  50.41229248046875
+                ],
+                [
+                  30.502716064453125,
+                  50.41219711303711
+                ],
+                [
+                  30.504291534423828,
+                  50.411598205566406
+                ],
+                [
+                  30.505517959594727,
+                  50.410945892333984
+                ],
+                [
+                  30.506669998168945,
+                  50.41048812866211
+                ],
+                [
+                  30.507158279418945,
+                  50.41047668457031
+                ],
+                [
+                  30.511659622192383,
+                  50.41192626953125
+                ],
+                [
+                  30.51442527770996,
+                  50.41255187988281
+                ],
+                [
+                  30.515439987182617,
+                  50.41282272338867
+                ],
+                [
+                  30.517269134521484,
+                  50.41074752807617
+                ],
+                [
+                  30.517494201660156,
+                  50.41050720214844
+                ],
+                [
+                  30.5188045501709,
+                  50.40900802612305
+                ],
+                [
+                  30.518198013305664,
+                  50.40970230102539
+                ]
+              ],
+              "routeId": "cd6398e5-3f1e-4b68-b954-0a826093e5e0:3_20",
+              "routeName": "12",
+              "scheduleSemantics": "published_departures",
+              "scheduledArrivalAt": "2026-11-18T06:42:00.000Z",
+              "scheduledDepartureAt": "2026-11-18T06:11:00.000Z",
+              "source": "gtfs-static",
+              "stops": [
+                {
+                  "arrivalAt": "2026-11-18T06:11:00.000Z",
+                  "coordinates": [
+                    30.486595153808594,
+                    50.43840789794922
+                  ],
+                  "departureAt": "2026-11-18T06:11:00.000Z",
+                  "dropOffType": 0,
+                  "id": "canonical-stop-1020",
+                  "name": "Півднний вокз",
+                  "pickupType": 0
+                },
+                {
+                  "arrivalAt": "2026-11-18T06:19:00.000Z",
+                  "coordinates": [
+                    30.476829528808594,
+                    50.42552947998047
+                  ],
+                  "departureAt": "2026-11-18T06:19:00.000Z",
+                  "dropOffType": 0,
+                  "id": "canonical-stop-653",
+                  "name": "вул. Олексіївська",
+                  "pickupType": 0
+                },
+                {
+                  "arrivalAt": "2026-11-18T06:30:00.000Z",
+                  "coordinates": [
+                    30.49273681640625,
+                    50.419002532958984
+                  ],
+                  "departureAt": "2026-11-18T06:30:00.000Z",
+                  "dropOffType": 0,
+                  "id": "canonical-stop-634",
+                  "name": "І-т цукр буряк",
+                  "pickupType": 0
+                },
+                {
+                  "arrivalAt": "2026-11-18T06:42:00.000Z",
+                  "coordinates": [
+                    30.518198013305664,
+                    50.40970230102539
+                  ],
+                  "departureAt": "2026-11-18T06:42:00.000Z",
+                  "dropOffType": 0,
+                  "id": "canonical-stop-45",
+                  "name": "вул. Ізюмська",
+                  "pickupType": 0
+                }
+              ],
+              "transportType": "bus",
+              "vehicle": null
+            },
+            {
+              "arrivalAt": "2026-11-18T06:46:32.000Z",
+              "availabilityStatus": "AVAILABLE",
+              "dataFreshnessSeconds": 0,
+              "departureAt": "2026-11-18T06:42:00.000Z",
+              "destination": {
+                "coordinates": [
+                  30.5168993,
+                  50.4113155
+                ],
+                "name": "Ізюмська вулиця, Київ"
+              },
+              "distanceMeters": 378,
+              "driver": null,
+              "durationSeconds": 272,
+              "id": "a2a47f98-8150-4d65-89fe-b44892a409f2",
+              "lastUpdatedAt": "2026-11-16T18:32:51.840Z",
+              "liveStatus": "UNVERIFIED",
+              "mode": "WALK",
+              "offerId": null,
+              "origin": {
+                "coordinates": [
+                  30.518198013305664,
+                  50.40970230102539
+                ],
+                "name": "вул. Ізюмська"
+              },
+              "priceMinor": null,
+              "priceStatus": "UNKNOWN",
+              "routeGeometry": [
+                [
+                  30.5182,
+                  50.409703
+                ],
+                [
+                  30.518775,
+                  50.409026
+                ],
+                [
+                  30.518835,
+                  50.409056
+                ],
+                [
+                  30.518327,
+                  50.409666
+                ],
+                [
+                  30.517587,
+                  50.410536
+                ],
+                [
+                  30.516899,
+                  50.411316
+                ]
+              ],
+              "source": "osrm-foot-route",
+              "title": "Від останньої зупинки",
+              "vehicle": null
+            }
+          ],
+          "offerId": null,
+          "origin": {
+            "coordinates": [
+              30.4907708,
+              50.4406219
+            ],
+            "name": "Вокзальна площа, Київ"
+          },
+          "priceStatus": "ESTIMATED",
+          "providerName": "Київпастранс — розклад (GTFS)",
+          "recommendedStrategies": [
+            "BALANCED",
+            "FASTEST",
+            "CHEAPEST"
+          ],
+          "reliabilityScore": null,
+          "requestedDepartureAt": "2026-11-18T06:00:00.000Z",
+          "score": 0.08,
+          "source": "gtfs-static",
+          "state": "PLANNED",
+          "strategy": "BALANCED",
+          "strategyRanks": {
+            "BALANCED": 1,
+            "CHEAPEST": 1,
+            "FASTEST": 1
+          },
+          "totalDurationSeconds": 2792,
+          "totalPriceMinor": 3000,
+          "transfers": 0,
+          "waitingSeconds": 317,
+          "walkingMeters": 855
+        },
+        {
+          "confirmedPriceMinor": null,
+          "currency": "UAH",
+          "destination": {
+            "coordinates": [
+              30.5168993,
+              50.4113155
+            ],
+            "name": "Ізюмська вулиця, Київ"
+          },
+          "estimatedPriceMaxMinor": 3000,
+          "estimatedPriceMinMinor": 3000,
+          "id": "31300732-82f0-49a3-8b38-ba4f9a89e1fc",
+          "legs": [
+            {
+              "arrivalAt": "2026-11-18T06:00:16.000Z",
+              "availabilityStatus": "AVAILABLE",
+              "dataFreshnessSeconds": 0,
+              "departureAt": "2026-11-18T06:00:00.000Z",
+              "destination": {
+                "coordinates": [
+                  30.49062728881836,
+                  50.44062042236328
+                ],
+                "name": "Залізничний вокзал"
+              },
+              "distanceMeters": 22,
+              "driver": null,
+              "durationSeconds": 16,
+              "id": "271f406d-9672-4ae9-9b61-94d19ab32d73",
+              "lastUpdatedAt": "2026-11-16T18:32:51.850Z",
+              "liveStatus": "UNVERIFIED",
+              "mode": "WALK",
+              "offerId": null,
+              "origin": {
+                "coordinates": [
+                  30.4907708,
+                  50.4406219
+                ],
+                "name": "Вокзальна площа, Київ"
+              },
+              "priceMinor": null,
+              "priceStatus": "UNKNOWN",
+              "routeGeometry": [
+                [
+                  30.490782,
+                  50.440617
+                ],
+                [
+                  30.490801,
+                  50.440632
+                ],
+                [
+                  30.490848,
+                  50.440665
+                ],
+                [
+                  30.490801,
+                  50.440659
+                ],
+                [
+                  30.490748,
+                  50.440657
+                ],
+                [
+                  30.490697,
+                  50.44066
+                ],
+                [
+                  30.490671,
+                  50.440663
+                ],
+                [
+                  30.49064,
+                  50.440666
+                ]
+              ],
+              "source": "osrm-foot-route",
+              "title": "До першої зупинки",
+              "vehicle": null
+            },
+            {
+              "arrivalAt": "2026-11-18T07:07:00.000Z",
+              "availabilityStatus": "UNKNOWN",
+              "currency": "UAH",
+              "dataFreshnessSeconds": 3,
+              "departureAt": "2026-11-18T06:37:00.000Z",
+              "destination": {
+                "coordinates": [
+                  30.51921272277832,
+                  50.4091682434082
+                ],
+                "name": "вул. Ізюмська"
+              },
+              "distanceMeters": null,
+              "driver": null,
+              "durationSeconds": 1800,
+              "fareIncludedByPreviousSegment": false,
+              "fareProductId": "kyiv-communal-single-ride",
+              "fareSource": "city-tariff-registry",
+              "headsign": "вул. Ізюмська",
+              "id": "25d28278-1806-4c11-b240-38679aeee82b",
+              "lastUpdatedAt": "2026-11-16T18:32:48.660Z",
+              "liveStatus": "SCHEDULED",
+              "mode": "BUS",
+              "offerId": null,
+              "origin": {
+                "coordinates": [
+                  30.49062728881836,
+                  50.44062042236328
+                ],
+                "name": "Залізничний вокзал"
+              },
+              "priceMinor": 3000,
+              "priceStatus": "ESTIMATED",
+              "providerId": "cd6398e5-3f1e-4b68-b954-0a826093e5e0",
+              "providerName": "Київпастранс — розклад (GTFS)",
+              "routeGeometry": [
+                [
+                  30.49062728881836,
+                  50.44062042236328
+                ],
+                [
+                  30.490713119506836,
+                  50.440616607666016
+                ],
+                [
+                  30.49112892150879,
+                  50.44082260131836
+                ],
+                [
+                  30.4919490814209,
+                  50.44149398803711
+                ],
+                [
+                  30.494901657104492,
+                  50.4427604675293
+                ],
+                [
+                  30.497907638549805,
+                  50.440032958984375
+                ],
+                [
+                  30.498109817504883,
+                  50.43987274169922
+                ],
+                [
+                  30.498119354248047,
+                  50.43986511230469
+                ],
+                [
+                  30.500816345214844,
+                  50.437686920166016
+                ],
+                [
+                  30.504867553710938,
+                  50.43471145629883
+                ],
+                [
+                  30.50544548034668,
+                  50.434574127197266
+                ],
+                [
+                  30.50860023498535,
+                  50.43403625488281
+                ],
+                [
+                  30.513330459594727,
+                  50.43390655517578
+                ],
+                [
+                  30.513334274291992,
+                  50.433570861816406
+                ],
+                [
+                  30.513351440429688,
+                  50.4317626953125
+                ],
+                [
+                  30.51338768005371,
+                  50.4305534362793
+                ],
+                [
+                  30.513465881347656,
+                  50.42793273925781
+                ],
+                [
+                  30.517004013061523,
+                  50.422481536865234
+                ],
+                [
+                  30.514936447143555,
+                  50.42181396484375
+                ],
+                [
+                  30.516843795776367,
+                  50.418697357177734
+                ],
+                [
+                  30.51406478881836,
+                  50.41755294799805
+                ],
+                [
+                  30.51171875,
+                  50.41684341430664
+                ],
+                [
+                  30.50973129272461,
+                  50.416290283203125
+                ],
+                [
+                  30.508907318115234,
+                  50.41611099243164
+                ],
+                [
+                  30.508378982543945,
+                  50.416019439697266
+                ],
+                [
+                  30.50821876525879,
+                  50.41608810424805
+                ],
+                [
+                  30.508108139038086,
+                  50.41609191894531
+                ],
+                [
+                  30.50800895690918,
+                  50.416046142578125
+                ],
+                [
+                  30.50802230834961,
+                  50.41593551635742
+                ],
+                [
+                  30.508174896240234,
+                  50.41587829589844
+                ],
+                [
+                  30.508285522460938,
+                  50.41587829589844
+                ],
+                [
+                  30.50895881652832,
+                  50.41602325439453
+                ],
+                [
+                  30.511802673339844,
+                  50.41674041748047
+                ],
+                [
+                  30.51423454284668,
+                  50.417396545410156
+                ],
+                [
+                  30.516761779785156,
+                  50.41511154174805
+                ],
+                [
+                  30.517541885375977,
+                  50.414337158203125
+                ],
+                [
+                  30.5175724029541,
+                  50.41401290893555
+                ],
+                [
+                  30.517229080200195,
+                  50.41374206542969
+                ],
+                [
+                  30.515243530273438,
+                  50.4129638671875
+                ],
+                [
+                  30.517099380493164,
+                  50.41087341308594
+                ],
+                [
+                  30.51750373840332,
+                  50.41044998168945
+                ],
+                [
+                  30.5181941986084,
+                  50.40974044799805
+                ],
+                [
+                  30.518522262573242,
+                  50.409420013427734
+                ],
+                [
+                  30.518896102905273,
+                  50.409061431884766
+                ],
+                [
+                  30.519142150878906,
+                  50.40909194946289
+                ],
+                [
+                  30.51921272277832,
+                  50.4091682434082
+                ]
+              ],
+              "routeId": "cd6398e5-3f1e-4b68-b954-0a826093e5e0:3_101",
+              "routeName": "5",
+              "scheduleSemantics": "published_departures",
+              "scheduledArrivalAt": "2026-11-18T07:07:00.000Z",
+              "scheduledDepartureAt": "2026-11-18T06:37:00.000Z",
+              "source": "gtfs-static",
+              "stops": [
+                {
+                  "arrivalAt": "2026-11-18T06:37:00.000Z",
+                  "coordinates": [
+                    30.49062728881836,
+                    50.44062042236328
+                  ],
+                  "departureAt": "2026-11-18T06:37:00.000Z",
+                  "dropOffType": 0,
+                  "id": "canonical-stop-79",
+                  "name": "Залізничний вокзал",
+                  "pickupType": 0
+                },
+                {
+                  "arrivalAt": "2026-11-18T06:41:00.000Z",
+                  "coordinates": [
+                    30.49825668334961,
+                    50.439754486083984
+                  ],
+                  "departureAt": "2026-11-18T06:41:00.000Z",
+                  "dropOffType": 0,
+                  "id": "canonical-stop-109",
+                  "name": "вул. Скоропадського",
+                  "pickupType": 0
+                },
+                {
+                  "arrivalAt": "2026-11-18T06:49:00.000Z",
+                  "coordinates": [
+                    30.513336181640625,
+                    50.43337631225586
+                  ],
+                  "departureAt": "2026-11-18T06:49:00.000Z",
+                  "dropOffType": 0,
+                  "id": "canonical-stop-333",
+                  "name": "вул. Жилянська",
+                  "pickupType": 0
+                },
+                {
+                  "arrivalAt": "2026-11-18T06:51:00.000Z",
+                  "coordinates": [
+                    30.513731002807617,
+                    50.42752456665039
+                  ],
+                  "departureAt": "2026-11-18T06:51:00.000Z",
+                  "dropOffType": 0,
+                  "id": "canonical-stop-243",
+                  "name": "вул. Федорова",
+                  "pickupType": 0
+                },
+                {
+                  "arrivalAt": "2026-11-18T06:59:00.000Z",
+                  "coordinates": [
+                    30.50895881652832,
+                    50.41602325439453
+                  ],
+                  "departureAt": "2026-11-18T06:59:00.000Z",
+                  "dropOffType": 0,
+                  "id": "canonical-stop-593",
+                  "name": "вул. Байкова",
+                  "pickupType": 0
+                },
+                {
+                  "arrivalAt": "2026-11-18T07:07:00.000Z",
+                  "coordinates": [
+                    30.51921272277832,
+                    50.4091682434082
+                  ],
+                  "departureAt": "2026-11-18T07:07:00.000Z",
+                  "dropOffType": 0,
+                  "id": "canonical-stop-842",
+                  "name": "вул. Ізюмська",
+                  "pickupType": 0
+                }
+              ],
+              "transportType": "bus",
+              "vehicle": null
+            },
+            {
+              "arrivalAt": "2026-11-18T07:10:47.000Z",
+              "availabilityStatus": "AVAILABLE",
+              "dataFreshnessSeconds": 0,
+              "departureAt": "2026-11-18T07:07:00.000Z",
+              "destination": {
+                "coordinates": [
+                  30.5168993,
+                  50.4113155
+                ],
+                "name": "Ізюмська вулиця, Київ"
+              },
+              "distanceMeters": 315,
+              "driver": null,
+              "durationSeconds": 227,
+              "id": "0a5ee5da-077f-46d2-a6fb-983c20e7f5cf",
+              "lastUpdatedAt": "2026-11-16T18:32:51.855Z",
+              "liveStatus": "UNVERIFIED",
+              "mode": "WALK",
+              "offerId": null,
+              "origin": {
+                "coordinates": [
+                  30.51921272277832,
+                  50.4091682434082
+                ],
+                "name": "вул. Ізюмська"
+              },
+              "priceMinor": null,
+              "priceStatus": "UNKNOWN",
+              "routeGeometry": [
+                [
+                  30.519233,
+                  50.409114
+                ],
+                [
+                  30.51906,
+                  50.409088
+                ],
+                [
+                  30.518992,
+                  50.409101
+                ],
+                [
+                  30.518948,
+                  50.409111
+                ],
+                [
+                  30.518923,
+                  50.409121
+                ],
+                [
+                  30.518852,
+                  50.409165
+                ],
+                [
+                  30.518425,
+                  50.409701
+                ],
+                [
+                  30.518327,
+                  50.409666
+                ],
+                [
+                  30.517587,
+                  50.410536
+                ],
+                [
+                  30.516899,
+                  50.411316
+                ]
+              ],
+              "source": "osrm-foot-route",
+              "title": "Від останньої зупинки",
+              "vehicle": null
+            }
+          ],
+          "offerId": null,
+          "origin": {
+            "coordinates": [
+              30.4907708,
+              50.4406219
+            ],
+            "name": "Вокзальна площа, Київ"
+          },
+          "priceStatus": "ESTIMATED",
+          "providerName": "Київпастранс — розклад (GTFS)",
+          "recommendedStrategies": [
+            "BALANCED",
+            "FASTEST",
+            "CHEAPEST"
+          ],
+          "reliabilityScore": null,
+          "requestedDepartureAt": "2026-11-18T06:00:00.000Z",
+          "score": 0.48,
+          "source": "gtfs-static",
+          "state": "PLANNED",
+          "strategy": "BALANCED",
+          "strategyRanks": {
+            "BALANCED": 2,
+            "CHEAPEST": 2,
+            "FASTEST": 2
+          },
+          "totalDurationSeconds": 4247,
+          "totalPriceMinor": 3000,
+          "transfers": 0,
+          "waitingSeconds": 2204,
+          "walkingMeters": 337
+        }
+      ],
+      "paretoCount": 2,
+      "partial": true,
+      "partialReasons": [
+        "candidate_generation_truncated",
+        "provider_error"
+      ],
+      "providerErrors": [
+        "Частину варіантів відхилено: фактичний час або відстань пішохідного шляху не дозволяє здійснити маршрут.",
+        "Пішохідний маршрутизатор обмежив пошук 32 маршрутами; частину альтернатив не перевірено."
+      ],
+      "requestedStrategy": "BALANCED",
+      "resultSamplingTruncated": true,
+      "resultsTruncated": true,
+      "returnedCount": 2,
+      "unsupportedPreferences": []
+    }
+  },
+  "runtimeAfter": {
+    "data": {
+      "apiContract": "v1",
+      "buildId": "local-e9934abbd8fc-dirty-20261116T154848Z",
+      "builtAt": "2026-11-16T15:48:48.000Z",
+      "commitSha": "e9934abbd8fc973177de8d7f47548739758a1b74",
+      "environment": "development",
+      "instanceId": "08e52ab1-e2f9-4a44-b6a6-ed2a72965aaf",
+      "service": "MarshGO-Server",
+      "serviceVersion": "1.0.0",
+      "sourceState": "dirty"
+    }
+  },
+  "runtimeBefore": {
+    "data": {
+      "apiContract": "v1",
+      "buildId": "local-e9934abbd8fc-dirty-20261116T154848Z",
+      "builtAt": "2026-11-16T15:48:48.000Z",
+      "commitSha": "e9934abbd8fc973177de8d7f47548739758a1b74",
+      "environment": "development",
+      "instanceId": "08e52ab1-e2f9-4a44-b6a6-ed2a72965aaf",
+      "service": "MarshGO-Server",
+      "serviceVersion": "1.0.0",
+      "sourceState": "dirty"
+    }
+  },
+  "status": "complete"
+}

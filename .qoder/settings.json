@@ -1,0 +1,37 @@
+{
+  "ui.language": "uk",
+  "autoMemoryEnabled": true,
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "bash \"${QODER_PROJECT_DIR:-.}/.qoder/hooks/guard-destructive-bash.sh\"" },
+          { "type": "command", "command": "bash \"${QODER_PROJECT_DIR:-.}/.qoder/hooks/guard-protected-branch.sh\"" }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          { "type": "command", "command": "bash \"${QODER_PROJECT_DIR:-.}/.qoder/hooks/guard-secrets.sh\"" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          { "type": "command", "command": "bash \"${QODER_PROJECT_DIR:-.}/.qoder/hooks/post-edit-site-lint.sh\"" }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "bash \"${QODER_PROJECT_DIR:-.}/.qoder/hooks/log-failing-bash.sh\"" }
+        ]
+      }
+    ]
+  }
+}

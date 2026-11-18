@@ -1,0 +1,31 @@
+R08 Kyiv→Lviv inter-oblast multimodal control — details AX (Qoder in-app browser, https://marshgo-dima.shares.zrok.io)
+Captured 2026-11-14T22:33Z; card 2 of 8 (BALANCED/Оптимальний); departure requested 2026-11-15T09:00, all 12 modes, Без пересадок unchecked.
+
+uid=50_1 RootWebArea url="…/journeys/search?mode=planner&…&departure=2026-11-15T09%3A00&strategy=BALANCED"
+  uid=50_3 region "Київ-Пасажирський — площа Ринок"
+    uid=50_4 heading "Київ-Пасажирський — площа Ринок" level=1
+    uid=50_5 image "Карта маршруту MARSHGO"
+    uid=50_8 button "Назад до результатів"
+    uid=50_11 button "Шари карти"
+    uid=50_12 region "Деталі маршруту"
+      uid=50_13 button "Згорнути деталі маршруту" expanded keyshortcuts="ArrowUp ArrowDown Home End"
+      uid=50_15 button "Поділитися маршрутом"; uid=50_16 button "Зберегти маршрут" pressed=false
+      uid=50_17 "Київ-Пасажирський"; uid=50_18 "площа Ринок"
+      uid=50_19 "11:28"; uid=50_20 "19:00"; uid=50_21 "10 год 0 хв"; uid=50_22 "1 пересадка"; uid=50_23 "Ціна уточнюється"
+      uid=50_24 list "Етапи маршруту": Поїзд 6 год 58 хв (pressed=true) / Пішки 2 хв / Автобус 12 хв / Пішки 4 хв
+      uid=50_29 "Очікування ·" uid=50_30 "2 год 28 хв"
+      uid=50_31 segment "Поїзд 715; Київ-Пасажирський до Львів-Головний; РОЗКЛАД" pressed=true
+        stops expanded: Київ-Пасажирський 11:28 / Вінниця 13:51 / Хмельницький 15:27 / Тернопіль 16:52 / Львів-Головний 18:26
+      uid=50_38 segment "Пішки; Львів-Головний до Залізничний вокзал; ОРІЄНТОВНО; До А29"
+      uid=50_39 "Очікування ·" uid=50_40 "16 хв"
+      uid=50_41 segment "Автобус А29; Залізничний вокзал до Театр ляльок; РОЗКЛАД" (stops collapsed)
+      uid=50_43 segment "Пішки; Театр ляльок до площа Ринок; ОРІЄНТОВНО; До фінішу"
+      uid=50_44 button "Розпочати навігацію"; uid=50_45 button "Показати маршрут на карті"
+  uid=50_46 navigation: Головна / Пошук / + / Поїздки / Профіль
+
+Observations:
+- Correct inter-oblast composition: UZ rail №715 with real intermediate stop times (Вінниця/Хмельницький/Тернопіль) + Lviv urban bus А29 last-mile + two short walks (2/4 хв), transfer wait 16 хв labelled.
+- Requested 09:00 departure honoured as search anchor; actual train 11:28 with explicit «Очікування · 2 год 28 хв» — honest, not fabricated earlier departure.
+- Rail and bus segments labelled РОЗКЛАД (scheduled), walks ОРІЄНТОВНО; fare «Ціна уточнюється» (unknown, not zero); Cheapest disabled on results.
+- Walk distance IS rendered visually («2 хв · 191 м», within transfer cap 400 m) but the segment AX label omits metres — minor a11y/AX parity note.
+- Follow-up: card1 screenshot final-browser-r08-egress.png confirms3.3km/40min. No cap violation: Server disk e9934abb index.ts:3360–3362 overrides default1000m with5000m for intercity OD>30km. Expanded А29 stops show18:44–18:56, temporally consistent with rail18:26 + walk2 + wait16 + bus12 + walk4 = finish19:00. Rendered schedule is not proof of dated live service.

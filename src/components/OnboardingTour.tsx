@@ -9,9 +9,9 @@ import {
   Zap,
   Bookmark,
   Car,
-  HelpCircle,
-  Compass,
-  MapPin,
+
+
+
   ChevronRight
 } from 'lucide-react';
 
@@ -99,7 +99,6 @@ interface OnboardingTourProps {
 export const OnboardingTour: React.FC<OnboardingTourProps> = ({
   isOpen,
   onClose,
-  onNavigateHome,
   onNavigateDemandNew
 }) => {
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
@@ -163,14 +162,18 @@ export const OnboardingTour: React.FC<OnboardingTourProps> = ({
   const handleDismiss = () => {
     try {
       localStorage.setItem('mg_onboarding_completed', 'true');
-    } catch {}
+    } catch {
+      // The tour remains dismissible when browser storage is unavailable.
+    }
     onClose();
   };
 
   const handleComplete = () => {
     try {
       localStorage.setItem('mg_onboarding_completed', 'true');
-    } catch {}
+    } catch {
+      // Completion is in-memory for this visit when browser storage is unavailable.
+    }
     onClose();
   };
 
