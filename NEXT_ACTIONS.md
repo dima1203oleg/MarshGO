@@ -6216,3 +6216,11 @@ At 20:19 EET root Capacitor `npm ci` has completed (100 packages, 1 second; 3 mo
 2. Next recall step is data, not code: a licensed coach/rail feed for Житомир, Миколаїв, Херсон, Черкаси, Чернігів, Суми (return direction), Краматорськ and Крим. Re-measure the 702-pair matrix after any new feed — do not edit routing heuristics to fake coverage.
 3. Optional measured work, only if a slot is free: penalty of the 36 h retry on the slowest routed corridors (max 55.5 s) — cache warm-up or a lower first-pass budget for dense city feeds may cut it without losing pairs.
 4. Browser/p95 evidence for the ported branch is still tied to the older preview build on `:7788`; re-run the browser harness against a preview built from PR #199 when the Site tree stops being dirty.
+
+## 2026-11-19 — feed discovery closed the "find everything online" question
+
+Measured inventory: `docs/FEED_DISCOVERY_2026-11-19.md` + `docs/evidence/feed-discovery-2026-11-19/report.json`, produced by `MarshGO-Server/tools/feed-discovery/probe-ukraine-feeds.mjs` (commit `4dd7e77`).
+
+- 15 Ukrainian sources found and downloaded. 5 usable, 2 usable only with a rolling-day calendar (УЗ, Івано-Франківськ), 3 licence-blocked (Рівне, Біла Церква, Малин), 2 need an official ApiKey (Одеса, Буча), 2 stale (inbus.ua stub, Чорноморськ 2019), 1 dead (Київський метрополітен ESRI, both hosts).
+- Unblock list, in order of coverage gained: (1) Одеса ApiKey via omr.gov.ua transport department; (2) офіційний фід Укрзалізниці; (3) договір на міжміські автобуси; (4) договір з Malyn (OwnNet license); (5) Dozor-міста — лише після того, як розпорядник почне публікувати календар довший за один день.
+- 16 з 27 обласних центрів не мають жодного публічного GTFS. Це не вирішується кодом маршрутизації.
