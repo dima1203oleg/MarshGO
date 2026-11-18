@@ -1,0 +1,9325 @@
+{
+ "generatedAt": "2026-11-18T17:07:55.373Z",
+ "departureProbe": "2026-11-20T08:00:00+02:00",
+ "pairs": 702,
+ "withRoutes": 147,
+ "baselineWithRoutes": 124,
+ "errors": 0,
+ "rows": [
+  {
+   "from": "kyiv-city",
+   "to": "kyiv-obl",
+   "fromName": "Київ",
+   "toName": "Київська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 6157,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kyiv-city",
+   "to": "vinnytsia",
+   "fromName": "Київ",
+   "toName": "Вінницька",
+   "status": "ok",
+   "journeys": 7,
+   "responseMs": 5277,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TROLLEYBUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kyiv-city",
+   "to": "volyn",
+   "fromName": "Київ",
+   "toName": "Волинська",
+   "status": "ok",
+   "journeys": 7,
+   "responseMs": 12999,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kyiv-city",
+   "to": "dnipro",
+   "fromName": "Київ",
+   "toName": "Дніпропетровська",
+   "status": "ok",
+   "journeys": 7,
+   "responseMs": 11735,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kyiv-city",
+   "to": "donetsk",
+   "fromName": "Київ",
+   "toName": "Донецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 10797,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kyiv-city",
+   "to": "zhytomyr",
+   "fromName": "Київ",
+   "toName": "Житомирська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 3904,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kyiv-city",
+   "to": "zakarpattia",
+   "fromName": "Київ",
+   "toName": "Закарпатська",
+   "status": "ok",
+   "journeys": 8,
+   "responseMs": 7598,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)",
+    "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS) + Ужгородська міська рада — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TROLLEYBUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kyiv-city",
+   "to": "zaporizhzhia",
+   "fromName": "Київ",
+   "toName": "Запорізька",
+   "status": "ok",
+   "journeys": 7,
+   "responseMs": 4277,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kyiv-city",
+   "to": "ivano-frankivsk",
+   "fromName": "Київ",
+   "toName": "Івано-Франківська",
+   "status": "ok",
+   "journeys": 6,
+   "responseMs": 11083,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kyiv-city",
+   "to": "kirovohrad",
+   "fromName": "Київ",
+   "toName": "Кіровоградська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 10676,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kyiv-city",
+   "to": "luhansk",
+   "fromName": "Київ",
+   "toName": "Луганська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 20301,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kyiv-city",
+   "to": "lviv",
+   "fromName": "Київ",
+   "toName": "Львівська",
+   "status": "ok",
+   "journeys": 2,
+   "responseMs": 16748,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kyiv-city",
+   "to": "mykolaiv",
+   "fromName": "Київ",
+   "toName": "Миколаївська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 12944,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kyiv-city",
+   "to": "odesa",
+   "fromName": "Київ",
+   "toName": "Одеська",
+   "status": "ok",
+   "journeys": 8,
+   "responseMs": 10415,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TROLLEYBUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kyiv-city",
+   "to": "poltava",
+   "fromName": "Київ",
+   "toName": "Полтавська",
+   "status": "ok",
+   "journeys": 4,
+   "responseMs": 6753,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kyiv-city",
+   "to": "rivne",
+   "fromName": "Київ",
+   "toName": "Рівненська",
+   "status": "ok",
+   "journeys": 7,
+   "responseMs": 13020,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kyiv-city",
+   "to": "sumy",
+   "fromName": "Київ",
+   "toName": "Сумська",
+   "status": "ok",
+   "journeys": 7,
+   "responseMs": 9934,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kyiv-city",
+   "to": "ternopil",
+   "fromName": "Київ",
+   "toName": "Тернопільська",
+   "status": "ok",
+   "journeys": 7,
+   "responseMs": 8808,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TROLLEYBUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kyiv-city",
+   "to": "kharkiv",
+   "fromName": "Київ",
+   "toName": "Харківська",
+   "status": "ok",
+   "journeys": 6,
+   "responseMs": 8948,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TROLLEYBUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kyiv-city",
+   "to": "kherson",
+   "fromName": "Київ",
+   "toName": "Херсонська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 7711,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kyiv-city",
+   "to": "khmelnytskyi",
+   "fromName": "Київ",
+   "toName": "Хмельницька",
+   "status": "ok",
+   "journeys": 7,
+   "responseMs": 5265,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TROLLEYBUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kyiv-city",
+   "to": "cherkasy",
+   "fromName": "Київ",
+   "toName": "Черкаська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 2382,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kyiv-city",
+   "to": "chernivtsi",
+   "fromName": "Київ",
+   "toName": "Чернівецька",
+   "status": "ok",
+   "journeys": 7,
+   "responseMs": 4020,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Київпастранс — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kyiv-city",
+   "to": "chernihiv",
+   "fromName": "Київ",
+   "toName": "Чернігівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 510,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kyiv-city",
+   "to": "crimea",
+   "fromName": "Київ",
+   "toName": "АР Крим",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 3754,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kyiv-city",
+   "to": "sevastopol",
+   "fromName": "Київ",
+   "toName": "Севастополь",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 3340,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kyiv-obl",
+   "to": "kyiv-city",
+   "fromName": "Київська",
+   "toName": "Київ",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1125,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kyiv-obl",
+   "to": "vinnytsia",
+   "fromName": "Київська",
+   "toName": "Вінницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 870,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kyiv-obl",
+   "to": "volyn",
+   "fromName": "Київська",
+   "toName": "Волинська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1183,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kyiv-obl",
+   "to": "dnipro",
+   "fromName": "Київська",
+   "toName": "Дніпропетровська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 594,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kyiv-obl",
+   "to": "donetsk",
+   "fromName": "Київська",
+   "toName": "Донецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 335,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kyiv-obl",
+   "to": "zhytomyr",
+   "fromName": "Київська",
+   "toName": "Житомирська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 183,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kyiv-obl",
+   "to": "zakarpattia",
+   "fromName": "Київська",
+   "toName": "Закарпатська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 1723,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kyiv-obl",
+   "to": "zaporizhzhia",
+   "fromName": "Київська",
+   "toName": "Запорізька",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 1725,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kyiv-obl",
+   "to": "ivano-frankivsk",
+   "fromName": "Київська",
+   "toName": "Івано-Франківська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 2083,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kyiv-obl",
+   "to": "kirovohrad",
+   "fromName": "Київська",
+   "toName": "Кіровоградська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 142,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kyiv-obl",
+   "to": "luhansk",
+   "fromName": "Київська",
+   "toName": "Луганська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 256,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kyiv-obl",
+   "to": "lviv",
+   "fromName": "Київська",
+   "toName": "Львівська",
+   "status": "ok",
+   "journeys": 10,
+   "responseMs": 9110,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TRAM"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kyiv-obl",
+   "to": "mykolaiv",
+   "fromName": "Київська",
+   "toName": "Миколаївська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 8790,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kyiv-obl",
+   "to": "odesa",
+   "fromName": "Київська",
+   "toName": "Одеська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 8625,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kyiv-obl",
+   "to": "poltava",
+   "fromName": "Київська",
+   "toName": "Полтавська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 415,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kyiv-obl",
+   "to": "rivne",
+   "fromName": "Київська",
+   "toName": "Рівненська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 265,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kyiv-obl",
+   "to": "sumy",
+   "fromName": "Київська",
+   "toName": "Сумська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 971,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kyiv-obl",
+   "to": "ternopil",
+   "fromName": "Київська",
+   "toName": "Тернопільська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 903,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kyiv-obl",
+   "to": "kharkiv",
+   "fromName": "Київська",
+   "toName": "Харківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 882,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kyiv-obl",
+   "to": "kherson",
+   "fromName": "Київська",
+   "toName": "Херсонська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 418,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kyiv-obl",
+   "to": "khmelnytskyi",
+   "fromName": "Київська",
+   "toName": "Хмельницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 417,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kyiv-obl",
+   "to": "cherkasy",
+   "fromName": "Київська",
+   "toName": "Черкаська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 289,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kyiv-obl",
+   "to": "chernivtsi",
+   "fromName": "Київська",
+   "toName": "Чернівецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 320,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kyiv-obl",
+   "to": "chernihiv",
+   "fromName": "Київська",
+   "toName": "Чернігівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 318,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kyiv-obl",
+   "to": "crimea",
+   "fromName": "Київська",
+   "toName": "АР Крим",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 319,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kyiv-obl",
+   "to": "sevastopol",
+   "fromName": "Київська",
+   "toName": "Севастополь",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 3445,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "vinnytsia",
+   "to": "kyiv-city",
+   "fromName": "Вінницька",
+   "toName": "Київ",
+   "status": "ok",
+   "journeys": 6,
+   "responseMs": 3724,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS) + Київпастранс — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TROLLEYBUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "vinnytsia",
+   "to": "kyiv-obl",
+   "fromName": "Вінницька",
+   "toName": "Київська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 89,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "vinnytsia",
+   "to": "volyn",
+   "fromName": "Вінницька",
+   "toName": "Волинська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 3353,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "vinnytsia",
+   "to": "dnipro",
+   "fromName": "Вінницька",
+   "toName": "Дніпропетровська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 139,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "vinnytsia",
+   "to": "donetsk",
+   "fromName": "Вінницька",
+   "toName": "Донецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 237,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "vinnytsia",
+   "to": "zhytomyr",
+   "fromName": "Вінницька",
+   "toName": "Житомирська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 2330,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "vinnytsia",
+   "to": "zakarpattia",
+   "fromName": "Вінницька",
+   "toName": "Закарпатська",
+   "status": "ok",
+   "journeys": 3,
+   "responseMs": 2401,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS) + Ужгородська міська рада — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "vinnytsia",
+   "to": "zaporizhzhia",
+   "fromName": "Вінницька",
+   "toName": "Запорізька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 2306,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "vinnytsia",
+   "to": "ivano-frankivsk",
+   "fromName": "Вінницька",
+   "toName": "Івано-Франківська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 413,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "vinnytsia",
+   "to": "kirovohrad",
+   "fromName": "Вінницька",
+   "toName": "Кіровоградська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 285,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "vinnytsia",
+   "to": "luhansk",
+   "fromName": "Вінницька",
+   "toName": "Луганська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 606,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "vinnytsia",
+   "to": "lviv",
+   "fromName": "Вінницька",
+   "toName": "Львівська",
+   "status": "ok",
+   "journeys": 6,
+   "responseMs": 9046,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TRAM"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "vinnytsia",
+   "to": "mykolaiv",
+   "fromName": "Вінницька",
+   "toName": "Миколаївська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 8813,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "vinnytsia",
+   "to": "odesa",
+   "fromName": "Вінницька",
+   "toName": "Одеська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 8471,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "vinnytsia",
+   "to": "poltava",
+   "fromName": "Вінницька",
+   "toName": "Полтавська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 197,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "vinnytsia",
+   "to": "rivne",
+   "fromName": "Вінницька",
+   "toName": "Рівненська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 167,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "vinnytsia",
+   "to": "sumy",
+   "fromName": "Вінницька",
+   "toName": "Сумська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 541,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "vinnytsia",
+   "to": "ternopil",
+   "fromName": "Вінницька",
+   "toName": "Тернопільська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 540,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "vinnytsia",
+   "to": "kharkiv",
+   "fromName": "Вінницька",
+   "toName": "Харківська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 515,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "vinnytsia",
+   "to": "kherson",
+   "fromName": "Вінницька",
+   "toName": "Херсонська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 105,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "vinnytsia",
+   "to": "khmelnytskyi",
+   "fromName": "Вінницька",
+   "toName": "Хмельницька",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 546,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "vinnytsia",
+   "to": "cherkasy",
+   "fromName": "Вінницька",
+   "toName": "Черкаська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 261,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "vinnytsia",
+   "to": "chernivtsi",
+   "fromName": "Вінницька",
+   "toName": "Чернівецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 227,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "vinnytsia",
+   "to": "chernihiv",
+   "fromName": "Вінницька",
+   "toName": "Чернігівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 286,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "vinnytsia",
+   "to": "crimea",
+   "fromName": "Вінницька",
+   "toName": "АР Крим",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 222,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "vinnytsia",
+   "to": "sevastopol",
+   "fromName": "Вінницька",
+   "toName": "Севастополь",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 206,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "volyn",
+   "to": "kyiv-city",
+   "fromName": "Волинська",
+   "toName": "Київ",
+   "status": "ok",
+   "journeys": 6,
+   "responseMs": 1579,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS) + Київпастранс — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TROLLEYBUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "volyn",
+   "to": "kyiv-obl",
+   "fromName": "Волинська",
+   "toName": "Київська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 2037,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "volyn",
+   "to": "vinnytsia",
+   "fromName": "Волинська",
+   "toName": "Вінницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1294,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "volyn",
+   "to": "dnipro",
+   "fromName": "Волинська",
+   "toName": "Дніпропетровська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 545,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "volyn",
+   "to": "donetsk",
+   "fromName": "Волинська",
+   "toName": "Донецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 464,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "volyn",
+   "to": "zhytomyr",
+   "fromName": "Волинська",
+   "toName": "Житомирська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 7129,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "volyn",
+   "to": "zakarpattia",
+   "fromName": "Волинська",
+   "toName": "Закарпатська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 7126,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "volyn",
+   "to": "zaporizhzhia",
+   "fromName": "Волинська",
+   "toName": "Запорізька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 7126,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "volyn",
+   "to": "ivano-frankivsk",
+   "fromName": "Волинська",
+   "toName": "Івано-Франківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 135,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "volyn",
+   "to": "kirovohrad",
+   "fromName": "Волинська",
+   "toName": "Кіровоградська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 443,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "volyn",
+   "to": "luhansk",
+   "fromName": "Волинська",
+   "toName": "Луганська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 7169,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "volyn",
+   "to": "lviv",
+   "fromName": "Волинська",
+   "toName": "Львівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 7036,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "volyn",
+   "to": "mykolaiv",
+   "fromName": "Волинська",
+   "toName": "Миколаївська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 6738,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "volyn",
+   "to": "odesa",
+   "fromName": "Волинська",
+   "toName": "Одеська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1615,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "volyn",
+   "to": "poltava",
+   "fromName": "Волинська",
+   "toName": "Полтавська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 2802,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "volyn",
+   "to": "rivne",
+   "fromName": "Волинська",
+   "toName": "Рівненська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 124,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "volyn",
+   "to": "sumy",
+   "fromName": "Волинська",
+   "toName": "Сумська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 3056,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_AT_08_00"
+  },
+  {
+   "from": "volyn",
+   "to": "ternopil",
+   "fromName": "Волинська",
+   "toName": "Тернопільська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1580,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "volyn",
+   "to": "kharkiv",
+   "fromName": "Волинська",
+   "toName": "Харківська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 1234,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "volyn",
+   "to": "kherson",
+   "fromName": "Волинська",
+   "toName": "Херсонська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 708,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "volyn",
+   "to": "khmelnytskyi",
+   "fromName": "Волинська",
+   "toName": "Хмельницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 549,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "volyn",
+   "to": "cherkasy",
+   "fromName": "Волинська",
+   "toName": "Черкаська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 246,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "volyn",
+   "to": "chernivtsi",
+   "fromName": "Волинська",
+   "toName": "Чернівецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 136,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "volyn",
+   "to": "chernihiv",
+   "fromName": "Волинська",
+   "toName": "Чернігівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 311,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "volyn",
+   "to": "crimea",
+   "fromName": "Волинська",
+   "toName": "АР Крим",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 265,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "volyn",
+   "to": "sevastopol",
+   "fromName": "Волинська",
+   "toName": "Севастополь",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 264,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "dnipro",
+   "to": "kyiv-city",
+   "fromName": "Дніпропетровська",
+   "toName": "Київ",
+   "status": "ok",
+   "journeys": 9,
+   "responseMs": 1841,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS) + Київпастранс — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TROLLEYBUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "dnipro",
+   "to": "kyiv-obl",
+   "fromName": "Дніпропетровська",
+   "toName": "Київська",
+   "status": "ok",
+   "journeys": 2,
+   "responseMs": 2340,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "dnipro",
+   "to": "vinnytsia",
+   "fromName": "Дніпропетровська",
+   "toName": "Вінницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 2320,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_AT_08_00"
+  },
+  {
+   "from": "dnipro",
+   "to": "volyn",
+   "fromName": "Дніпропетровська",
+   "toName": "Волинська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 477,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "dnipro",
+   "to": "donetsk",
+   "fromName": "Дніпропетровська",
+   "toName": "Донецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 455,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "dnipro",
+   "to": "zhytomyr",
+   "fromName": "Дніпропетровська",
+   "toName": "Житомирська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 452,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "dnipro",
+   "to": "zakarpattia",
+   "fromName": "Дніпропетровська",
+   "toName": "Закарпатська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 1181,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "dnipro",
+   "to": "zaporizhzhia",
+   "fromName": "Дніпропетровська",
+   "toName": "Запорізька",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 748,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "dnipro",
+   "to": "ivano-frankivsk",
+   "fromName": "Дніпропетровська",
+   "toName": "Івано-Франківська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 746,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "dnipro",
+   "to": "kirovohrad",
+   "fromName": "Дніпропетровська",
+   "toName": "Кіровоградська",
+   "status": "ok",
+   "journeys": 4,
+   "responseMs": 492,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "dnipro",
+   "to": "luhansk",
+   "fromName": "Дніпропетровська",
+   "toName": "Луганська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 455,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "dnipro",
+   "to": "lviv",
+   "fromName": "Дніпропетровська",
+   "toName": "Львівська",
+   "status": "ok",
+   "journeys": 12,
+   "responseMs": 8336,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TRAM"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "dnipro",
+   "to": "mykolaiv",
+   "fromName": "Дніпропетровська",
+   "toName": "Миколаївська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 7403,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "dnipro",
+   "to": "odesa",
+   "fromName": "Дніпропетровська",
+   "toName": "Одеська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 7370,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "dnipro",
+   "to": "poltava",
+   "fromName": "Дніпропетровська",
+   "toName": "Полтавська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 270,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "dnipro",
+   "to": "rivne",
+   "fromName": "Дніпропетровська",
+   "toName": "Рівненська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 1240,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "dnipro",
+   "to": "sumy",
+   "fromName": "Дніпропетровська",
+   "toName": "Сумська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 517,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "dnipro",
+   "to": "ternopil",
+   "fromName": "Дніпропетровська",
+   "toName": "Тернопільська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 736,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "dnipro",
+   "to": "kharkiv",
+   "fromName": "Дніпропетровська",
+   "toName": "Харківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 451,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "dnipro",
+   "to": "kherson",
+   "fromName": "Дніпропетровська",
+   "toName": "Херсонська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 157,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "dnipro",
+   "to": "khmelnytskyi",
+   "fromName": "Дніпропетровська",
+   "toName": "Хмельницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 475,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_AT_08_00"
+  },
+  {
+   "from": "dnipro",
+   "to": "cherkasy",
+   "fromName": "Дніпропетровська",
+   "toName": "Черкаська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 335,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "dnipro",
+   "to": "chernivtsi",
+   "fromName": "Дніпропетровська",
+   "toName": "Чернівецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 701,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "dnipro",
+   "to": "chernihiv",
+   "fromName": "Дніпропетровська",
+   "toName": "Чернігівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 516,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "dnipro",
+   "to": "crimea",
+   "fromName": "Дніпропетровська",
+   "toName": "АР Крим",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 382,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "dnipro",
+   "to": "sevastopol",
+   "fromName": "Дніпропетровська",
+   "toName": "Севастополь",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 161,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "donetsk",
+   "to": "kyiv-city",
+   "fromName": "Донецька",
+   "toName": "Київ",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 619,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "donetsk",
+   "to": "kyiv-obl",
+   "fromName": "Донецька",
+   "toName": "Київська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 617,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "donetsk",
+   "to": "vinnytsia",
+   "fromName": "Донецька",
+   "toName": "Вінницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 456,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "donetsk",
+   "to": "volyn",
+   "fromName": "Донецька",
+   "toName": "Волинська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 667,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "donetsk",
+   "to": "dnipro",
+   "fromName": "Донецька",
+   "toName": "Дніпропетровська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 665,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "donetsk",
+   "to": "zhytomyr",
+   "fromName": "Донецька",
+   "toName": "Житомирська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 666,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "donetsk",
+   "to": "zakarpattia",
+   "fromName": "Донецька",
+   "toName": "Закарпатська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 364,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "donetsk",
+   "to": "zaporizhzhia",
+   "fromName": "Донецька",
+   "toName": "Запорізька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 169,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "donetsk",
+   "to": "ivano-frankivsk",
+   "fromName": "Донецька",
+   "toName": "Івано-Франківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 367,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "donetsk",
+   "to": "kirovohrad",
+   "fromName": "Донецька",
+   "toName": "Кіровоградська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 198,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "donetsk",
+   "to": "luhansk",
+   "fromName": "Донецька",
+   "toName": "Луганська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 21,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "donetsk",
+   "to": "lviv",
+   "fromName": "Донецька",
+   "toName": "Львівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 922,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "donetsk",
+   "to": "mykolaiv",
+   "fromName": "Донецька",
+   "toName": "Миколаївська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 919,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "donetsk",
+   "to": "odesa",
+   "fromName": "Донецька",
+   "toName": "Одеська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 905,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "donetsk",
+   "to": "poltava",
+   "fromName": "Донецька",
+   "toName": "Полтавська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 19,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "donetsk",
+   "to": "rivne",
+   "fromName": "Донецька",
+   "toName": "Рівненська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 150,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "donetsk",
+   "to": "sumy",
+   "fromName": "Донецька",
+   "toName": "Сумська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 20,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "donetsk",
+   "to": "ternopil",
+   "fromName": "Донецька",
+   "toName": "Тернопільська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 132,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "donetsk",
+   "to": "kharkiv",
+   "fromName": "Донецька",
+   "toName": "Харківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 129,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "donetsk",
+   "to": "kherson",
+   "fromName": "Донецька",
+   "toName": "Херсонська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 14,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "donetsk",
+   "to": "khmelnytskyi",
+   "fromName": "Донецька",
+   "toName": "Хмельницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 14,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "donetsk",
+   "to": "cherkasy",
+   "fromName": "Донецька",
+   "toName": "Черкаська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 14,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "donetsk",
+   "to": "chernivtsi",
+   "fromName": "Донецька",
+   "toName": "Чернівецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 13,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "donetsk",
+   "to": "chernihiv",
+   "fromName": "Донецька",
+   "toName": "Чернігівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 14,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "donetsk",
+   "to": "crimea",
+   "fromName": "Донецька",
+   "toName": "АР Крим",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 14,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "donetsk",
+   "to": "sevastopol",
+   "fromName": "Донецька",
+   "toName": "Севастополь",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 12,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zhytomyr",
+   "to": "kyiv-city",
+   "fromName": "Житомирська",
+   "toName": "Київ",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 138,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zhytomyr",
+   "to": "kyiv-obl",
+   "fromName": "Житомирська",
+   "toName": "Київська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 137,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zhytomyr",
+   "to": "vinnytsia",
+   "fromName": "Житомирська",
+   "toName": "Вінницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 128,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zhytomyr",
+   "to": "volyn",
+   "fromName": "Житомирська",
+   "toName": "Волинська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 10,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zhytomyr",
+   "to": "dnipro",
+   "fromName": "Житомирська",
+   "toName": "Дніпропетровська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 17,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zhytomyr",
+   "to": "donetsk",
+   "fromName": "Житомирська",
+   "toName": "Донецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 17,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zhytomyr",
+   "to": "zakarpattia",
+   "fromName": "Житомирська",
+   "toName": "Закарпатська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 475,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zhytomyr",
+   "to": "zaporizhzhia",
+   "fromName": "Житомирська",
+   "toName": "Запорізька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 470,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zhytomyr",
+   "to": "ivano-frankivsk",
+   "fromName": "Житомирська",
+   "toName": "Івано-Франківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 469,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zhytomyr",
+   "to": "kirovohrad",
+   "fromName": "Житомирська",
+   "toName": "Кіровоградська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 663,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zhytomyr",
+   "to": "luhansk",
+   "fromName": "Житомирська",
+   "toName": "Луганська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 688,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zhytomyr",
+   "to": "lviv",
+   "fromName": "Житомирська",
+   "toName": "Львівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 683,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zhytomyr",
+   "to": "mykolaiv",
+   "fromName": "Житомирська",
+   "toName": "Миколаївська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 101,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zhytomyr",
+   "to": "odesa",
+   "fromName": "Житомирська",
+   "toName": "Одеська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 82,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zhytomyr",
+   "to": "poltava",
+   "fromName": "Житомирська",
+   "toName": "Полтавська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 78,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zhytomyr",
+   "to": "rivne",
+   "fromName": "Житомирська",
+   "toName": "Рівненська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 21,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zhytomyr",
+   "to": "sumy",
+   "fromName": "Житомирська",
+   "toName": "Сумська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 19,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zhytomyr",
+   "to": "ternopil",
+   "fromName": "Житомирська",
+   "toName": "Тернопільська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 19,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zhytomyr",
+   "to": "kharkiv",
+   "fromName": "Житомирська",
+   "toName": "Харківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 27,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zhytomyr",
+   "to": "kherson",
+   "fromName": "Житомирська",
+   "toName": "Херсонська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 29,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zhytomyr",
+   "to": "khmelnytskyi",
+   "fromName": "Житомирська",
+   "toName": "Хмельницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 21,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zhytomyr",
+   "to": "cherkasy",
+   "fromName": "Житомирська",
+   "toName": "Черкаська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 24,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zhytomyr",
+   "to": "chernivtsi",
+   "fromName": "Житомирська",
+   "toName": "Чернівецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 18,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zhytomyr",
+   "to": "chernihiv",
+   "fromName": "Житомирська",
+   "toName": "Чернігівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 21,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zhytomyr",
+   "to": "crimea",
+   "fromName": "Житомирська",
+   "toName": "АР Крим",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 18,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zhytomyr",
+   "to": "sevastopol",
+   "fromName": "Житомирська",
+   "toName": "Севастополь",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 17,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zakarpattia",
+   "to": "kyiv-city",
+   "fromName": "Закарпатська",
+   "toName": "Київ",
+   "status": "ok",
+   "journeys": 12,
+   "responseMs": 6715,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Ужгородська міська рада — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS) + Київпастранс — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "zakarpattia",
+   "to": "kyiv-obl",
+   "fromName": "Закарпатська",
+   "toName": "Київська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 25680,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_AT_08_00"
+  },
+  {
+   "from": "zakarpattia",
+   "to": "vinnytsia",
+   "fromName": "Закарпатська",
+   "toName": "Вінницька",
+   "status": "ok",
+   "journeys": 8,
+   "responseMs": 11854,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Ужгородська міська рада — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "zakarpattia",
+   "to": "volyn",
+   "fromName": "Закарпатська",
+   "toName": "Волинська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 18963,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "zakarpattia",
+   "to": "dnipro",
+   "fromName": "Закарпатська",
+   "toName": "Дніпропетровська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 13819,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "zakarpattia",
+   "to": "donetsk",
+   "fromName": "Закарпатська",
+   "toName": "Донецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 2309,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zakarpattia",
+   "to": "zhytomyr",
+   "fromName": "Закарпатська",
+   "toName": "Житомирська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 2384,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zakarpattia",
+   "to": "zaporizhzhia",
+   "fromName": "Закарпатська",
+   "toName": "Запорізька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 2307,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "zakarpattia",
+   "to": "ivano-frankivsk",
+   "fromName": "Закарпатська",
+   "toName": "Івано-Франківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 3039,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "zakarpattia",
+   "to": "kirovohrad",
+   "fromName": "Закарпатська",
+   "toName": "Кіровоградська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 3040,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "zakarpattia",
+   "to": "luhansk",
+   "fromName": "Закарпатська",
+   "toName": "Луганська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 2965,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zakarpattia",
+   "to": "lviv",
+   "fromName": "Закарпатська",
+   "toName": "Львівська",
+   "status": "ok",
+   "journeys": 10,
+   "responseMs": 13366,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)",
+    "Ужгородська міська рада — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "TRAM",
+    "BUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "zakarpattia",
+   "to": "mykolaiv",
+   "fromName": "Закарпатська",
+   "toName": "Миколаївська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 13187,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zakarpattia",
+   "to": "odesa",
+   "fromName": "Закарпатська",
+   "toName": "Одеська",
+   "status": "ok",
+   "journeys": 5,
+   "responseMs": 2630,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Ужгородська міська рада — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "zakarpattia",
+   "to": "poltava",
+   "fromName": "Закарпатська",
+   "toName": "Полтавська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 25206,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "zakarpattia",
+   "to": "rivne",
+   "fromName": "Закарпатська",
+   "toName": "Рівненська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 14632,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "zakarpattia",
+   "to": "sumy",
+   "fromName": "Закарпатська",
+   "toName": "Сумська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 14460,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_AT_08_00"
+  },
+  {
+   "from": "zakarpattia",
+   "to": "ternopil",
+   "fromName": "Закарпатська",
+   "toName": "Тернопільська",
+   "status": "ok",
+   "journeys": 6,
+   "responseMs": 5823,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Ужгородська міська рада — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "zakarpattia",
+   "to": "kharkiv",
+   "fromName": "Закарпатська",
+   "toName": "Харківська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 14637,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "zakarpattia",
+   "to": "kherson",
+   "fromName": "Закарпатська",
+   "toName": "Херсонська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 9176,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zakarpattia",
+   "to": "khmelnytskyi",
+   "fromName": "Закарпатська",
+   "toName": "Хмельницька",
+   "status": "ok",
+   "journeys": 6,
+   "responseMs": 8959,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Ужгородська міська рада — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "zakarpattia",
+   "to": "cherkasy",
+   "fromName": "Закарпатська",
+   "toName": "Черкаська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 5411,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zakarpattia",
+   "to": "chernivtsi",
+   "fromName": "Закарпатська",
+   "toName": "Чернівецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1736,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "zakarpattia",
+   "to": "chernihiv",
+   "fromName": "Закарпатська",
+   "toName": "Чернігівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 6202,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zakarpattia",
+   "to": "crimea",
+   "fromName": "Закарпатська",
+   "toName": "АР Крим",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 6057,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zakarpattia",
+   "to": "sevastopol",
+   "fromName": "Закарпатська",
+   "toName": "Севастополь",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 4430,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zaporizhzhia",
+   "to": "kyiv-city",
+   "fromName": "Запорізька",
+   "toName": "Київ",
+   "status": "ok",
+   "journeys": 12,
+   "responseMs": 14336,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS) + Київпастранс — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TROLLEYBUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "zaporizhzhia",
+   "to": "kyiv-obl",
+   "fromName": "Запорізька",
+   "toName": "Київська",
+   "status": "ok",
+   "journeys": 2,
+   "responseMs": 9358,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "zaporizhzhia",
+   "to": "vinnytsia",
+   "fromName": "Запорізька",
+   "toName": "Вінницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 8206,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "zaporizhzhia",
+   "to": "volyn",
+   "fromName": "Запорізька",
+   "toName": "Волинська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1027,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "zaporizhzhia",
+   "to": "dnipro",
+   "fromName": "Запорізька",
+   "toName": "Дніпропетровська",
+   "status": "ok",
+   "journeys": 2,
+   "responseMs": 4318,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "zaporizhzhia",
+   "to": "donetsk",
+   "fromName": "Запорізька",
+   "toName": "Донецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 3211,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zaporizhzhia",
+   "to": "zhytomyr",
+   "fromName": "Запорізька",
+   "toName": "Житомирська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 538,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zaporizhzhia",
+   "to": "zakarpattia",
+   "fromName": "Запорізька",
+   "toName": "Закарпатська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 7696,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "zaporizhzhia",
+   "to": "ivano-frankivsk",
+   "fromName": "Запорізька",
+   "toName": "Івано-Франківська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 7357,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "zaporizhzhia",
+   "to": "kirovohrad",
+   "fromName": "Запорізька",
+   "toName": "Кіровоградська",
+   "status": "ok",
+   "journeys": 2,
+   "responseMs": 6666,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "zaporizhzhia",
+   "to": "luhansk",
+   "fromName": "Запорізька",
+   "toName": "Луганська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 856,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zaporizhzhia",
+   "to": "lviv",
+   "fromName": "Запорізька",
+   "toName": "Львівська",
+   "status": "ok",
+   "journeys": 10,
+   "responseMs": 38343,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TRAM"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "zaporizhzhia",
+   "to": "mykolaiv",
+   "fromName": "Запорізька",
+   "toName": "Миколаївська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 37418,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zaporizhzhia",
+   "to": "odesa",
+   "fromName": "Запорізька",
+   "toName": "Одеська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 36730,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "zaporizhzhia",
+   "to": "poltava",
+   "fromName": "Запорізька",
+   "toName": "Полтавська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 240,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "zaporizhzhia",
+   "to": "rivne",
+   "fromName": "Запорізька",
+   "toName": "Рівненська",
+   "status": "ok",
+   "journeys": 9,
+   "responseMs": 2459,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "zaporizhzhia",
+   "to": "sumy",
+   "fromName": "Запорізька",
+   "toName": "Сумська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 272,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "zaporizhzhia",
+   "to": "ternopil",
+   "fromName": "Запорізька",
+   "toName": "Тернопільська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 815,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "zaporizhzhia",
+   "to": "kharkiv",
+   "fromName": "Запорізька",
+   "toName": "Харківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 652,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "zaporizhzhia",
+   "to": "kherson",
+   "fromName": "Запорізька",
+   "toName": "Херсонська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 349,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zaporizhzhia",
+   "to": "khmelnytskyi",
+   "fromName": "Запорізька",
+   "toName": "Хмельницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 493,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "zaporizhzhia",
+   "to": "cherkasy",
+   "fromName": "Запорізька",
+   "toName": "Черкаська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 337,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zaporizhzhia",
+   "to": "chernivtsi",
+   "fromName": "Запорізька",
+   "toName": "Чернівецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 368,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "zaporizhzhia",
+   "to": "chernihiv",
+   "fromName": "Запорізька",
+   "toName": "Чернігівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 362,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zaporizhzhia",
+   "to": "crimea",
+   "fromName": "Запорізька",
+   "toName": "АР Крим",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1008,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "zaporizhzhia",
+   "to": "sevastopol",
+   "fromName": "Запорізька",
+   "toName": "Севастополь",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1012,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "ivano-frankivsk",
+   "to": "kyiv-city",
+   "fromName": "Івано-Франківська",
+   "toName": "Київ",
+   "status": "ok",
+   "journeys": 7,
+   "responseMs": 3748,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS) + Київпастранс — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TROLLEYBUS",
+    "TRAM"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "ivano-frankivsk",
+   "to": "kyiv-obl",
+   "fromName": "Івано-Франківська",
+   "toName": "Київська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 3321,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "ivano-frankivsk",
+   "to": "vinnytsia",
+   "fromName": "Івано-Франківська",
+   "toName": "Вінницька",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 2493,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "ivano-frankivsk",
+   "to": "volyn",
+   "fromName": "Івано-Франківська",
+   "toName": "Волинська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 794,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "ivano-frankivsk",
+   "to": "dnipro",
+   "fromName": "Івано-Франківська",
+   "toName": "Дніпропетровська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 612,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "ivano-frankivsk",
+   "to": "donetsk",
+   "fromName": "Івано-Франківська",
+   "toName": "Донецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 156,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "ivano-frankivsk",
+   "to": "zhytomyr",
+   "fromName": "Івано-Франківська",
+   "toName": "Житомирська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 196,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "ivano-frankivsk",
+   "to": "zakarpattia",
+   "fromName": "Івано-Франківська",
+   "toName": "Закарпатська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1506,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "ivano-frankivsk",
+   "to": "zaporizhzhia",
+   "fromName": "Івано-Франківська",
+   "toName": "Запорізька",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 1922,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "ivano-frankivsk",
+   "to": "kirovohrad",
+   "fromName": "Івано-Франківська",
+   "toName": "Кіровоградська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1818,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "ivano-frankivsk",
+   "to": "luhansk",
+   "fromName": "Івано-Франківська",
+   "toName": "Луганська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 381,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "ivano-frankivsk",
+   "to": "lviv",
+   "fromName": "Івано-Франківська",
+   "toName": "Львівська",
+   "status": "ok",
+   "journeys": 8,
+   "responseMs": 12265,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TRAM"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "ivano-frankivsk",
+   "to": "mykolaiv",
+   "fromName": "Івано-Франківська",
+   "toName": "Миколаївська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 11874,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "ivano-frankivsk",
+   "to": "odesa",
+   "fromName": "Івано-Франківська",
+   "toName": "Одеська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 11861,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "ivano-frankivsk",
+   "to": "poltava",
+   "fromName": "Івано-Франківська",
+   "toName": "Полтавська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 781,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "ivano-frankivsk",
+   "to": "rivne",
+   "fromName": "Івано-Франківська",
+   "toName": "Рівненська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 517,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "ivano-frankivsk",
+   "to": "sumy",
+   "fromName": "Івано-Франківська",
+   "toName": "Сумська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 3990,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_AT_08_00"
+  },
+  {
+   "from": "ivano-frankivsk",
+   "to": "ternopil",
+   "fromName": "Івано-Франківська",
+   "toName": "Тернопільська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 3865,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "ivano-frankivsk",
+   "to": "kharkiv",
+   "fromName": "Івано-Франківська",
+   "toName": "Харківська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 3632,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "ivano-frankivsk",
+   "to": "kherson",
+   "fromName": "Івано-Франківська",
+   "toName": "Херсонська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 233,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "ivano-frankivsk",
+   "to": "khmelnytskyi",
+   "fromName": "Івано-Франківська",
+   "toName": "Хмельницька",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 392,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "ivano-frankivsk",
+   "to": "cherkasy",
+   "fromName": "Івано-Франківська",
+   "toName": "Черкаська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 306,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "ivano-frankivsk",
+   "to": "chernivtsi",
+   "fromName": "Івано-Франківська",
+   "toName": "Чернівецька",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 187,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "ivano-frankivsk",
+   "to": "chernihiv",
+   "fromName": "Івано-Франківська",
+   "toName": "Чернігівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 542,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "ivano-frankivsk",
+   "to": "crimea",
+   "fromName": "Івано-Франківська",
+   "toName": "АР Крим",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 465,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "ivano-frankivsk",
+   "to": "sevastopol",
+   "fromName": "Івано-Франківська",
+   "toName": "Севастополь",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 446,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kirovohrad",
+   "to": "kyiv-city",
+   "fromName": "Кіровоградська",
+   "toName": "Київ",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1547,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kirovohrad",
+   "to": "kyiv-obl",
+   "fromName": "Кіровоградська",
+   "toName": "Київська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1760,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kirovohrad",
+   "to": "vinnytsia",
+   "fromName": "Кіровоградська",
+   "toName": "Вінницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1551,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kirovohrad",
+   "to": "volyn",
+   "fromName": "Кіровоградська",
+   "toName": "Волинська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1276,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kirovohrad",
+   "to": "dnipro",
+   "fromName": "Кіровоградська",
+   "toName": "Дніпропетровська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 1307,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kirovohrad",
+   "to": "donetsk",
+   "fromName": "Кіровоградська",
+   "toName": "Донецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 288,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kirovohrad",
+   "to": "zhytomyr",
+   "fromName": "Кіровоградська",
+   "toName": "Житомирська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 774,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kirovohrad",
+   "to": "zakarpattia",
+   "fromName": "Кіровоградська",
+   "toName": "Закарпатська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1322,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kirovohrad",
+   "to": "zaporizhzhia",
+   "fromName": "Кіровоградська",
+   "toName": "Запорізька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1174,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_AT_08_00"
+  },
+  {
+   "from": "kirovohrad",
+   "to": "ivano-frankivsk",
+   "fromName": "Кіровоградська",
+   "toName": "Івано-Франківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1511,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kirovohrad",
+   "to": "luhansk",
+   "fromName": "Кіровоградська",
+   "toName": "Луганська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 366,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kirovohrad",
+   "to": "lviv",
+   "fromName": "Кіровоградська",
+   "toName": "Львівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 9214,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_AT_08_00"
+  },
+  {
+   "from": "kirovohrad",
+   "to": "mykolaiv",
+   "fromName": "Кіровоградська",
+   "toName": "Миколаївська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 8983,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kirovohrad",
+   "to": "odesa",
+   "fromName": "Кіровоградська",
+   "toName": "Одеська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 8990,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kirovohrad",
+   "to": "poltava",
+   "fromName": "Кіровоградська",
+   "toName": "Полтавська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 701,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kirovohrad",
+   "to": "rivne",
+   "fromName": "Кіровоградська",
+   "toName": "Рівненська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 885,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kirovohrad",
+   "to": "sumy",
+   "fromName": "Кіровоградська",
+   "toName": "Сумська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 714,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kirovohrad",
+   "to": "ternopil",
+   "fromName": "Кіровоградська",
+   "toName": "Тернопільська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 778,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kirovohrad",
+   "to": "kharkiv",
+   "fromName": "Кіровоградська",
+   "toName": "Харківська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 919,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kirovohrad",
+   "to": "kherson",
+   "fromName": "Кіровоградська",
+   "toName": "Херсонська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 316,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kirovohrad",
+   "to": "khmelnytskyi",
+   "fromName": "Кіровоградська",
+   "toName": "Хмельницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 435,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kirovohrad",
+   "to": "cherkasy",
+   "fromName": "Кіровоградська",
+   "toName": "Черкаська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 351,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kirovohrad",
+   "to": "chernivtsi",
+   "fromName": "Кіровоградська",
+   "toName": "Чернівецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 370,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kirovohrad",
+   "to": "chernihiv",
+   "fromName": "Кіровоградська",
+   "toName": "Чернігівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 901,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kirovohrad",
+   "to": "crimea",
+   "fromName": "Кіровоградська",
+   "toName": "АР Крим",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 698,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kirovohrad",
+   "to": "sevastopol",
+   "fromName": "Кіровоградська",
+   "toName": "Севастополь",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1956,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "luhansk",
+   "to": "kyiv-city",
+   "fromName": "Луганська",
+   "toName": "Київ",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1425,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "luhansk",
+   "to": "kyiv-obl",
+   "fromName": "Луганська",
+   "toName": "Київська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1423,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "luhansk",
+   "to": "vinnytsia",
+   "fromName": "Луганська",
+   "toName": "Вінницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 313,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "luhansk",
+   "to": "volyn",
+   "fromName": "Луганська",
+   "toName": "Волинська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 427,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "luhansk",
+   "to": "dnipro",
+   "fromName": "Луганська",
+   "toName": "Дніпропетровська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 425,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "luhansk",
+   "to": "donetsk",
+   "fromName": "Луганська",
+   "toName": "Донецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 277,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "luhansk",
+   "to": "zhytomyr",
+   "fromName": "Луганська",
+   "toName": "Житомирська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 771,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "luhansk",
+   "to": "zakarpattia",
+   "fromName": "Луганська",
+   "toName": "Закарпатська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 771,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "luhansk",
+   "to": "zaporizhzhia",
+   "fromName": "Луганська",
+   "toName": "Запорізька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 608,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "luhansk",
+   "to": "ivano-frankivsk",
+   "fromName": "Луганська",
+   "toName": "Івано-Франківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 394,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "luhansk",
+   "to": "kirovohrad",
+   "fromName": "Луганська",
+   "toName": "Кіровоградська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 207,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "luhansk",
+   "to": "lviv",
+   "fromName": "Луганська",
+   "toName": "Львівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 611,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "luhansk",
+   "to": "mykolaiv",
+   "fromName": "Луганська",
+   "toName": "Миколаївська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 403,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "luhansk",
+   "to": "odesa",
+   "fromName": "Луганська",
+   "toName": "Одеська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 602,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "luhansk",
+   "to": "poltava",
+   "fromName": "Луганська",
+   "toName": "Полтавська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 381,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "luhansk",
+   "to": "rivne",
+   "fromName": "Луганська",
+   "toName": "Рівненська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 535,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "luhansk",
+   "to": "sumy",
+   "fromName": "Луганська",
+   "toName": "Сумська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 390,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "luhansk",
+   "to": "ternopil",
+   "fromName": "Луганська",
+   "toName": "Тернопільська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 387,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "luhansk",
+   "to": "kharkiv",
+   "fromName": "Луганська",
+   "toName": "Харківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 980,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "luhansk",
+   "to": "kherson",
+   "fromName": "Луганська",
+   "toName": "Херсонська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 747,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "luhansk",
+   "to": "khmelnytskyi",
+   "fromName": "Луганська",
+   "toName": "Хмельницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 745,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "luhansk",
+   "to": "cherkasy",
+   "fromName": "Луганська",
+   "toName": "Черкаська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 325,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "luhansk",
+   "to": "chernivtsi",
+   "fromName": "Луганська",
+   "toName": "Чернівецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 483,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "luhansk",
+   "to": "chernihiv",
+   "fromName": "Луганська",
+   "toName": "Чернігівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 486,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "luhansk",
+   "to": "crimea",
+   "fromName": "Луганська",
+   "toName": "АР Крим",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 508,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "luhansk",
+   "to": "sevastopol",
+   "fromName": "Луганська",
+   "toName": "Севастополь",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 348,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "lviv",
+   "to": "kyiv-city",
+   "fromName": "Львівська",
+   "toName": "Київ",
+   "status": "ok",
+   "journeys": 9,
+   "responseMs": 17799,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Львівавтодор — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS) + Київпастранс — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "TRAM",
+    "BUS",
+    "TROLLEYBUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "lviv",
+   "to": "kyiv-obl",
+   "fromName": "Львівська",
+   "toName": "Київська",
+   "status": "ok",
+   "journeys": 5,
+   "responseMs": 43070,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Львівавтодор — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "TRAM"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "lviv",
+   "to": "vinnytsia",
+   "fromName": "Львівська",
+   "toName": "Вінницька",
+   "status": "ok",
+   "journeys": 7,
+   "responseMs": 30486,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Львівавтодор — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "TRAM"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "lviv",
+   "to": "volyn",
+   "fromName": "Львівська",
+   "toName": "Волинська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 35549,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "lviv",
+   "to": "dnipro",
+   "fromName": "Львівська",
+   "toName": "Дніпропетровська",
+   "status": "ok",
+   "journeys": 5,
+   "responseMs": 38076,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Львівавтодор — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "TRAM"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "lviv",
+   "to": "donetsk",
+   "fromName": "Львівська",
+   "toName": "Донецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 26387,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "lviv",
+   "to": "zhytomyr",
+   "fromName": "Львівська",
+   "toName": "Житомирська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 28917,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "lviv",
+   "to": "zakarpattia",
+   "fromName": "Львівська",
+   "toName": "Закарпатська",
+   "status": "ok",
+   "journeys": 11,
+   "responseMs": 13650,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Львівавтодор — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)",
+    "Львівавтодор — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS) + Ужгородська міська рада — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "TRAM",
+    "BUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "lviv",
+   "to": "zaporizhzhia",
+   "fromName": "Львівська",
+   "toName": "Запорізька",
+   "status": "ok",
+   "journeys": 3,
+   "responseMs": 39395,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "lviv",
+   "to": "ivano-frankivsk",
+   "fromName": "Львівська",
+   "toName": "Івано-Франківська",
+   "status": "ok",
+   "journeys": 5,
+   "responseMs": 18435,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Львівавтодор — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "TRAM"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "lviv",
+   "to": "kirovohrad",
+   "fromName": "Львівська",
+   "toName": "Кіровоградська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 26708,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_AT_08_00"
+  },
+  {
+   "from": "lviv",
+   "to": "luhansk",
+   "fromName": "Львівська",
+   "toName": "Луганська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 8716,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "lviv",
+   "to": "mykolaiv",
+   "fromName": "Львівська",
+   "toName": "Миколаївська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 19636,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "lviv",
+   "to": "odesa",
+   "fromName": "Львівська",
+   "toName": "Одеська",
+   "status": "ok",
+   "journeys": 9,
+   "responseMs": 9418,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Львівавтодор — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "TRAM"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "lviv",
+   "to": "poltava",
+   "fromName": "Львівська",
+   "toName": "Полтавська",
+   "status": "ok",
+   "journeys": 7,
+   "responseMs": 19557,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Львівавтодор — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "TRAM"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "lviv",
+   "to": "rivne",
+   "fromName": "Львівська",
+   "toName": "Рівненська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 18148,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "lviv",
+   "to": "sumy",
+   "fromName": "Львівська",
+   "toName": "Сумська",
+   "status": "ok",
+   "journeys": 7,
+   "responseMs": 20953,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Львівавтодор — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "TRAM"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "lviv",
+   "to": "ternopil",
+   "fromName": "Львівська",
+   "toName": "Тернопільська",
+   "status": "ok",
+   "journeys": 10,
+   "responseMs": 34526,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Львівавтодор — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "TRAM"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "lviv",
+   "to": "kharkiv",
+   "fromName": "Львівська",
+   "toName": "Харківська",
+   "status": "ok",
+   "journeys": 5,
+   "responseMs": 55786,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Львівавтодор — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "TRAM"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "lviv",
+   "to": "kherson",
+   "fromName": "Львівська",
+   "toName": "Херсонська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 57527,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "lviv",
+   "to": "khmelnytskyi",
+   "fromName": "Львівська",
+   "toName": "Хмельницька",
+   "status": "ok",
+   "journeys": 9,
+   "responseMs": 44069,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Львівавтодор — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "TRAM"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "lviv",
+   "to": "cherkasy",
+   "fromName": "Львівська",
+   "toName": "Черкаська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 14768,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "lviv",
+   "to": "chernivtsi",
+   "fromName": "Львівська",
+   "toName": "Чернівецька",
+   "status": "ok",
+   "journeys": 5,
+   "responseMs": 14828,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Львівавтодор — розклад (GTFS) + Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "TRAM"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "lviv",
+   "to": "chernihiv",
+   "fromName": "Львівська",
+   "toName": "Чернігівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 14613,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "lviv",
+   "to": "crimea",
+   "fromName": "Львівська",
+   "toName": "АР Крим",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 14484,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "lviv",
+   "to": "sevastopol",
+   "fromName": "Львівська",
+   "toName": "Севастополь",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 745,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "mykolaiv",
+   "to": "kyiv-city",
+   "fromName": "Миколаївська",
+   "toName": "Київ",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 654,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "mykolaiv",
+   "to": "kyiv-obl",
+   "fromName": "Миколаївська",
+   "toName": "Київська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 561,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "mykolaiv",
+   "to": "vinnytsia",
+   "fromName": "Миколаївська",
+   "toName": "Вінницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 419,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "mykolaiv",
+   "to": "volyn",
+   "fromName": "Миколаївська",
+   "toName": "Волинська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 283,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "mykolaiv",
+   "to": "dnipro",
+   "fromName": "Миколаївська",
+   "toName": "Дніпропетровська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 332,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "mykolaiv",
+   "to": "donetsk",
+   "fromName": "Миколаївська",
+   "toName": "Донецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 276,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "mykolaiv",
+   "to": "zhytomyr",
+   "fromName": "Миколаївська",
+   "toName": "Житомирська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 221,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "mykolaiv",
+   "to": "zakarpattia",
+   "fromName": "Миколаївська",
+   "toName": "Закарпатська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 300,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "mykolaiv",
+   "to": "zaporizhzhia",
+   "fromName": "Миколаївська",
+   "toName": "Запорізька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 294,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "mykolaiv",
+   "to": "ivano-frankivsk",
+   "fromName": "Миколаївська",
+   "toName": "Івано-Франківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 428,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "mykolaiv",
+   "to": "kirovohrad",
+   "fromName": "Миколаївська",
+   "toName": "Кіровоградська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 345,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "mykolaiv",
+   "to": "luhansk",
+   "fromName": "Миколаївська",
+   "toName": "Луганська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 340,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "mykolaiv",
+   "to": "lviv",
+   "fromName": "Миколаївська",
+   "toName": "Львівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1617,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "mykolaiv",
+   "to": "odesa",
+   "fromName": "Миколаївська",
+   "toName": "Одеська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1038,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "mykolaiv",
+   "to": "poltava",
+   "fromName": "Миколаївська",
+   "toName": "Полтавська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1482,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "mykolaiv",
+   "to": "rivne",
+   "fromName": "Миколаївська",
+   "toName": "Рівненська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 580,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "mykolaiv",
+   "to": "sumy",
+   "fromName": "Миколаївська",
+   "toName": "Сумська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 190,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "mykolaiv",
+   "to": "ternopil",
+   "fromName": "Миколаївська",
+   "toName": "Тернопільська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 441,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "mykolaiv",
+   "to": "kharkiv",
+   "fromName": "Миколаївська",
+   "toName": "Харківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 439,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "mykolaiv",
+   "to": "kherson",
+   "fromName": "Миколаївська",
+   "toName": "Херсонська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 389,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "mykolaiv",
+   "to": "khmelnytskyi",
+   "fromName": "Миколаївська",
+   "toName": "Хмельницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 218,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "mykolaiv",
+   "to": "cherkasy",
+   "fromName": "Миколаївська",
+   "toName": "Черкаська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 343,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "mykolaiv",
+   "to": "chernivtsi",
+   "fromName": "Миколаївська",
+   "toName": "Чернівецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 303,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "mykolaiv",
+   "to": "chernihiv",
+   "fromName": "Миколаївська",
+   "toName": "Чернігівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 708,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "mykolaiv",
+   "to": "crimea",
+   "fromName": "Миколаївська",
+   "toName": "АР Крим",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 582,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "mykolaiv",
+   "to": "sevastopol",
+   "fromName": "Миколаївська",
+   "toName": "Севастополь",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 493,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "odesa",
+   "to": "kyiv-city",
+   "fromName": "Одеська",
+   "toName": "Київ",
+   "status": "ok",
+   "journeys": 5,
+   "responseMs": 1437,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS) + Київпастранс — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TROLLEYBUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "odesa",
+   "to": "kyiv-obl",
+   "fromName": "Одеська",
+   "toName": "Київська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1380,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "odesa",
+   "to": "vinnytsia",
+   "fromName": "Одеська",
+   "toName": "Вінницька",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 155,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "odesa",
+   "to": "volyn",
+   "fromName": "Одеська",
+   "toName": "Волинська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1877,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "odesa",
+   "to": "dnipro",
+   "fromName": "Одеська",
+   "toName": "Дніпропетровська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 652,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "odesa",
+   "to": "donetsk",
+   "fromName": "Одеська",
+   "toName": "Донецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 597,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "odesa",
+   "to": "zhytomyr",
+   "fromName": "Одеська",
+   "toName": "Житомирська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 91,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "odesa",
+   "to": "zakarpattia",
+   "fromName": "Одеська",
+   "toName": "Закарпатська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 928,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "odesa",
+   "to": "zaporizhzhia",
+   "fromName": "Одеська",
+   "toName": "Запорізька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 834,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "odesa",
+   "to": "ivano-frankivsk",
+   "fromName": "Одеська",
+   "toName": "Івано-Франківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1044,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "odesa",
+   "to": "kirovohrad",
+   "fromName": "Одеська",
+   "toName": "Кіровоградська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 483,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "odesa",
+   "to": "luhansk",
+   "fromName": "Одеська",
+   "toName": "Луганська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 384,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "odesa",
+   "to": "lviv",
+   "fromName": "Одеська",
+   "toName": "Львівська",
+   "status": "ok",
+   "journeys": 2,
+   "responseMs": 6475,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "odesa",
+   "to": "mykolaiv",
+   "fromName": "Одеська",
+   "toName": "Миколаївська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 6135,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "odesa",
+   "to": "poltava",
+   "fromName": "Одеська",
+   "toName": "Полтавська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 6287,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "odesa",
+   "to": "rivne",
+   "fromName": "Одеська",
+   "toName": "Рівненська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 138,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "odesa",
+   "to": "sumy",
+   "fromName": "Одеська",
+   "toName": "Сумська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 146,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "odesa",
+   "to": "ternopil",
+   "fromName": "Одеська",
+   "toName": "Тернопільська",
+   "status": "ok",
+   "journeys": 2,
+   "responseMs": 508,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "odesa",
+   "to": "kharkiv",
+   "fromName": "Одеська",
+   "toName": "Харківська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 506,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "odesa",
+   "to": "kherson",
+   "fromName": "Одеська",
+   "toName": "Херсонська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 368,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "odesa",
+   "to": "khmelnytskyi",
+   "fromName": "Одеська",
+   "toName": "Хмельницька",
+   "status": "ok",
+   "journeys": 2,
+   "responseMs": 522,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "odesa",
+   "to": "cherkasy",
+   "fromName": "Одеська",
+   "toName": "Черкаська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 346,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "odesa",
+   "to": "chernivtsi",
+   "fromName": "Одеська",
+   "toName": "Чернівецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 344,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "odesa",
+   "to": "chernihiv",
+   "fromName": "Одеська",
+   "toName": "Чернігівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 3666,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "odesa",
+   "to": "crimea",
+   "fromName": "Одеська",
+   "toName": "АР Крим",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 165,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "odesa",
+   "to": "sevastopol",
+   "fromName": "Одеська",
+   "toName": "Севастополь",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 3481,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "poltava",
+   "to": "kyiv-city",
+   "fromName": "Полтавська",
+   "toName": "Київ",
+   "status": "ok",
+   "journeys": 6,
+   "responseMs": 3732,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS) + Київпастранс — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TROLLEYBUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "poltava",
+   "to": "kyiv-obl",
+   "fromName": "Полтавська",
+   "toName": "Київська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 3719,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "poltava",
+   "to": "vinnytsia",
+   "fromName": "Полтавська",
+   "toName": "Вінницька",
+   "status": "ok",
+   "journeys": 8,
+   "responseMs": 629,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "poltava",
+   "to": "volyn",
+   "fromName": "Полтавська",
+   "toName": "Волинська",
+   "status": "ok",
+   "journeys": 6,
+   "responseMs": 3786,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "poltava",
+   "to": "dnipro",
+   "fromName": "Полтавська",
+   "toName": "Дніпропетровська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 3070,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "poltava",
+   "to": "donetsk",
+   "fromName": "Полтавська",
+   "toName": "Донецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 239,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "poltava",
+   "to": "zhytomyr",
+   "fromName": "Полтавська",
+   "toName": "Житомирська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 239,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "poltava",
+   "to": "zakarpattia",
+   "fromName": "Полтавська",
+   "toName": "Закарпатська",
+   "status": "ok",
+   "journeys": 9,
+   "responseMs": 2527,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS) + Ужгородська міська рада — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "poltava",
+   "to": "zaporizhzhia",
+   "fromName": "Полтавська",
+   "toName": "Запорізька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 2043,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "poltava",
+   "to": "ivano-frankivsk",
+   "fromName": "Полтавська",
+   "toName": "Івано-Франківська",
+   "status": "ok",
+   "journeys": 2,
+   "responseMs": 2240,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "poltava",
+   "to": "kirovohrad",
+   "fromName": "Полтавська",
+   "toName": "Кіровоградська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 285,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "poltava",
+   "to": "luhansk",
+   "fromName": "Полтавська",
+   "toName": "Луганська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 144,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "poltava",
+   "to": "lviv",
+   "fromName": "Полтавська",
+   "toName": "Львівська",
+   "status": "ok",
+   "journeys": 14,
+   "responseMs": 9466,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "TRAM",
+    "BUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "poltava",
+   "to": "mykolaiv",
+   "fromName": "Полтавська",
+   "toName": "Миколаївська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 9108,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "poltava",
+   "to": "odesa",
+   "fromName": "Полтавська",
+   "toName": "Одеська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 9067,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "poltava",
+   "to": "rivne",
+   "fromName": "Полтавська",
+   "toName": "Рівненська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 4430,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "poltava",
+   "to": "sumy",
+   "fromName": "Полтавська",
+   "toName": "Сумська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 4379,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "poltava",
+   "to": "ternopil",
+   "fromName": "Полтавська",
+   "toName": "Тернопільська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 4217,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "poltava",
+   "to": "kharkiv",
+   "fromName": "Полтавська",
+   "toName": "Харківська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 506,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "poltava",
+   "to": "kherson",
+   "fromName": "Полтавська",
+   "toName": "Херсонська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 463,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "poltava",
+   "to": "khmelnytskyi",
+   "fromName": "Полтавська",
+   "toName": "Хмельницька",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 624,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "poltava",
+   "to": "cherkasy",
+   "fromName": "Полтавська",
+   "toName": "Черкаська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 159,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "poltava",
+   "to": "chernivtsi",
+   "fromName": "Полтавська",
+   "toName": "Чернівецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 255,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "poltava",
+   "to": "chernihiv",
+   "fromName": "Полтавська",
+   "toName": "Чернігівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 359,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "poltava",
+   "to": "crimea",
+   "fromName": "Полтавська",
+   "toName": "АР Крим",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 357,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "poltava",
+   "to": "sevastopol",
+   "fromName": "Полтавська",
+   "toName": "Севастополь",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 402,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "rivne",
+   "to": "kyiv-city",
+   "fromName": "Рівненська",
+   "toName": "Київ",
+   "status": "ok",
+   "journeys": 15,
+   "responseMs": 4447,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS) + Київпастранс — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TROLLEYBUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "rivne",
+   "to": "kyiv-obl",
+   "fromName": "Рівненська",
+   "toName": "Київська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 3549,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "rivne",
+   "to": "vinnytsia",
+   "fromName": "Рівненська",
+   "toName": "Вінницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 3395,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "rivne",
+   "to": "volyn",
+   "fromName": "Рівненська",
+   "toName": "Волинська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 362,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "rivne",
+   "to": "dnipro",
+   "fromName": "Рівненська",
+   "toName": "Дніпропетровська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 706,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "rivne",
+   "to": "donetsk",
+   "fromName": "Рівненська",
+   "toName": "Донецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 328,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "rivne",
+   "to": "zhytomyr",
+   "fromName": "Рівненська",
+   "toName": "Житомирська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 77,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "rivne",
+   "to": "zakarpattia",
+   "fromName": "Рівненська",
+   "toName": "Закарпатська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 9193,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "rivne",
+   "to": "zaporizhzhia",
+   "fromName": "Рівненська",
+   "toName": "Запорізька",
+   "status": "ok",
+   "journeys": 3,
+   "responseMs": 9227,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "rivne",
+   "to": "ivano-frankivsk",
+   "fromName": "Рівненська",
+   "toName": "Івано-Франківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 8993,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "rivne",
+   "to": "kirovohrad",
+   "fromName": "Рівненська",
+   "toName": "Кіровоградська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 7214,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "rivne",
+   "to": "luhansk",
+   "fromName": "Рівненська",
+   "toName": "Луганська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 7217,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "rivne",
+   "to": "lviv",
+   "fromName": "Рівненська",
+   "toName": "Львівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 7128,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "rivne",
+   "to": "mykolaiv",
+   "fromName": "Рівненська",
+   "toName": "Миколаївська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 2512,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "rivne",
+   "to": "odesa",
+   "fromName": "Рівненська",
+   "toName": "Одеська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 2508,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "rivne",
+   "to": "poltava",
+   "fromName": "Рівненська",
+   "toName": "Полтавська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 2514,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "rivne",
+   "to": "sumy",
+   "fromName": "Рівненська",
+   "toName": "Сумська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 4312,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "rivne",
+   "to": "ternopil",
+   "fromName": "Рівненська",
+   "toName": "Тернопільська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 54,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "rivne",
+   "to": "kharkiv",
+   "fromName": "Рівненська",
+   "toName": "Харківська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 4866,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "rivne",
+   "to": "kherson",
+   "fromName": "Рівненська",
+   "toName": "Херсонська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 4806,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "rivne",
+   "to": "khmelnytskyi",
+   "fromName": "Рівненська",
+   "toName": "Хмельницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 545,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "rivne",
+   "to": "cherkasy",
+   "fromName": "Рівненська",
+   "toName": "Черкаська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 147,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "rivne",
+   "to": "chernivtsi",
+   "fromName": "Рівненська",
+   "toName": "Чернівецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 60,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "rivne",
+   "to": "chernihiv",
+   "fromName": "Рівненська",
+   "toName": "Чернігівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 202,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "rivne",
+   "to": "crimea",
+   "fromName": "Рівненська",
+   "toName": "АР Крим",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 236,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "rivne",
+   "to": "sevastopol",
+   "fromName": "Рівненська",
+   "toName": "Севастополь",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 228,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sumy",
+   "to": "kyiv-city",
+   "fromName": "Сумська",
+   "toName": "Київ",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1454,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "sumy",
+   "to": "kyiv-obl",
+   "fromName": "Сумська",
+   "toName": "Київська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1482,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "sumy",
+   "to": "vinnytsia",
+   "fromName": "Сумська",
+   "toName": "Вінницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1495,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "sumy",
+   "to": "volyn",
+   "fromName": "Сумська",
+   "toName": "Волинська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1467,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "sumy",
+   "to": "dnipro",
+   "fromName": "Сумська",
+   "toName": "Дніпропетровська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1360,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "sumy",
+   "to": "donetsk",
+   "fromName": "Сумська",
+   "toName": "Донецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1271,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sumy",
+   "to": "zhytomyr",
+   "fromName": "Сумська",
+   "toName": "Житомирська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1398,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sumy",
+   "to": "zakarpattia",
+   "fromName": "Сумська",
+   "toName": "Закарпатська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1478,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "sumy",
+   "to": "zaporizhzhia",
+   "fromName": "Сумська",
+   "toName": "Запорізька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1396,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "sumy",
+   "to": "ivano-frankivsk",
+   "fromName": "Сумська",
+   "toName": "Івано-Франківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1312,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "sumy",
+   "to": "kirovohrad",
+   "fromName": "Сумська",
+   "toName": "Кіровоградська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1069,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "sumy",
+   "to": "luhansk",
+   "fromName": "Сумська",
+   "toName": "Луганська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1229,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sumy",
+   "to": "lviv",
+   "fromName": "Сумська",
+   "toName": "Львівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 9100,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "sumy",
+   "to": "mykolaiv",
+   "fromName": "Сумська",
+   "toName": "Миколаївська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 8855,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sumy",
+   "to": "odesa",
+   "fromName": "Сумська",
+   "toName": "Одеська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 8858,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "sumy",
+   "to": "poltava",
+   "fromName": "Сумська",
+   "toName": "Полтавська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 2046,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "sumy",
+   "to": "rivne",
+   "fromName": "Сумська",
+   "toName": "Рівненська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 2236,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "sumy",
+   "to": "ternopil",
+   "fromName": "Сумська",
+   "toName": "Тернопільська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 2233,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "sumy",
+   "to": "kharkiv",
+   "fromName": "Сумська",
+   "toName": "Харківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 344,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "sumy",
+   "to": "kherson",
+   "fromName": "Сумська",
+   "toName": "Херсонська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1440,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sumy",
+   "to": "khmelnytskyi",
+   "fromName": "Сумська",
+   "toName": "Хмельницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1440,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "sumy",
+   "to": "cherkasy",
+   "fromName": "Сумська",
+   "toName": "Черкаська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1286,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sumy",
+   "to": "chernivtsi",
+   "fromName": "Сумська",
+   "toName": "Чернівецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 361,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "sumy",
+   "to": "chernihiv",
+   "fromName": "Сумська",
+   "toName": "Чернігівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 242,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sumy",
+   "to": "crimea",
+   "fromName": "Сумська",
+   "toName": "АР Крим",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 240,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sumy",
+   "to": "sevastopol",
+   "fromName": "Сумська",
+   "toName": "Севастополь",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 2492,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "ternopil",
+   "to": "kyiv-city",
+   "fromName": "Тернопільська",
+   "toName": "Київ",
+   "status": "ok",
+   "journeys": 6,
+   "responseMs": 2586,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS) + Київпастранс — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TROLLEYBUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "ternopil",
+   "to": "kyiv-obl",
+   "fromName": "Тернопільська",
+   "toName": "Київська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 2839,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "ternopil",
+   "to": "vinnytsia",
+   "fromName": "Тернопільська",
+   "toName": "Вінницька",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 477,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "ternopil",
+   "to": "volyn",
+   "fromName": "Тернопільська",
+   "toName": "Волинська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 371,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "ternopil",
+   "to": "dnipro",
+   "fromName": "Тернопільська",
+   "toName": "Дніпропетровська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 271,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "ternopil",
+   "to": "donetsk",
+   "fromName": "Тернопільська",
+   "toName": "Донецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 270,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "ternopil",
+   "to": "zhytomyr",
+   "fromName": "Тернопільська",
+   "toName": "Житомирська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 75,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "ternopil",
+   "to": "zakarpattia",
+   "fromName": "Тернопільська",
+   "toName": "Закарпатська",
+   "status": "ok",
+   "journeys": 9,
+   "responseMs": 4053,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS) + Ужгородська міська рада — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "ternopil",
+   "to": "zaporizhzhia",
+   "fromName": "Тернопільська",
+   "toName": "Запорізька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 3461,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "ternopil",
+   "to": "ivano-frankivsk",
+   "fromName": "Тернопільська",
+   "toName": "Івано-Франківська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 3484,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "ternopil",
+   "to": "kirovohrad",
+   "fromName": "Тернопільська",
+   "toName": "Кіровоградська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 305,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "ternopil",
+   "to": "luhansk",
+   "fromName": "Тернопільська",
+   "toName": "Луганська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 277,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "ternopil",
+   "to": "lviv",
+   "fromName": "Тернопільська",
+   "toName": "Львівська",
+   "status": "ok",
+   "journeys": 5,
+   "responseMs": 6560,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TRAM"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "ternopil",
+   "to": "mykolaiv",
+   "fromName": "Тернопільська",
+   "toName": "Миколаївська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 6364,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "ternopil",
+   "to": "odesa",
+   "fromName": "Тернопільська",
+   "toName": "Одеська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 6278,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "ternopil",
+   "to": "poltava",
+   "fromName": "Тернопільська",
+   "toName": "Полтавська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 197,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "ternopil",
+   "to": "rivne",
+   "fromName": "Тернопільська",
+   "toName": "Рівненська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 170,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "ternopil",
+   "to": "sumy",
+   "fromName": "Тернопільська",
+   "toName": "Сумська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 2311,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "ternopil",
+   "to": "kharkiv",
+   "fromName": "Тернопільська",
+   "toName": "Харківська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 2401,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "ternopil",
+   "to": "kherson",
+   "fromName": "Тернопільська",
+   "toName": "Херсонська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 2629,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "ternopil",
+   "to": "khmelnytskyi",
+   "fromName": "Тернопільська",
+   "toName": "Хмельницька",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 337,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "ternopil",
+   "to": "cherkasy",
+   "fromName": "Тернопільська",
+   "toName": "Черкаська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 233,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "ternopil",
+   "to": "chernivtsi",
+   "fromName": "Тернопільська",
+   "toName": "Чернівецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 618,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "ternopil",
+   "to": "chernihiv",
+   "fromName": "Тернопільська",
+   "toName": "Чернігівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 618,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "ternopil",
+   "to": "crimea",
+   "fromName": "Тернопільська",
+   "toName": "АР Крим",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 607,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "ternopil",
+   "to": "sevastopol",
+   "fromName": "Тернопільська",
+   "toName": "Севастополь",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 2091,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kharkiv",
+   "to": "kyiv-city",
+   "fromName": "Харківська",
+   "toName": "Київ",
+   "status": "ok",
+   "journeys": 8,
+   "responseMs": 2153,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS) + Київпастранс — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TROLLEYBUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kharkiv",
+   "to": "kyiv-obl",
+   "fromName": "Харківська",
+   "toName": "Київська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 2091,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kharkiv",
+   "to": "vinnytsia",
+   "fromName": "Харківська",
+   "toName": "Вінницька",
+   "status": "ok",
+   "journeys": 5,
+   "responseMs": 214,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kharkiv",
+   "to": "volyn",
+   "fromName": "Харківська",
+   "toName": "Волинська",
+   "status": "ok",
+   "journeys": 4,
+   "responseMs": 3179,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kharkiv",
+   "to": "dnipro",
+   "fromName": "Харківська",
+   "toName": "Дніпропетровська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 3026,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kharkiv",
+   "to": "donetsk",
+   "fromName": "Харківська",
+   "toName": "Донецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 2877,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kharkiv",
+   "to": "zhytomyr",
+   "fromName": "Харківська",
+   "toName": "Житомирська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 879,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kharkiv",
+   "to": "zakarpattia",
+   "fromName": "Харківська",
+   "toName": "Закарпатська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 1090,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kharkiv",
+   "to": "zaporizhzhia",
+   "fromName": "Харківська",
+   "toName": "Запорізька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 913,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kharkiv",
+   "to": "ivano-frankivsk",
+   "fromName": "Харківська",
+   "toName": "Івано-Франківська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 615,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kharkiv",
+   "to": "kirovohrad",
+   "fromName": "Харківська",
+   "toName": "Кіровоградська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 492,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kharkiv",
+   "to": "luhansk",
+   "fromName": "Харківська",
+   "toName": "Луганська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 393,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kharkiv",
+   "to": "lviv",
+   "fromName": "Харківська",
+   "toName": "Львівська",
+   "status": "ok",
+   "journeys": 13,
+   "responseMs": 8179,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TRAM"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kharkiv",
+   "to": "mykolaiv",
+   "fromName": "Харківська",
+   "toName": "Миколаївська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 8023,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kharkiv",
+   "to": "odesa",
+   "fromName": "Харківська",
+   "toName": "Одеська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 8042,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kharkiv",
+   "to": "poltava",
+   "fromName": "Харківська",
+   "toName": "Полтавська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 497,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kharkiv",
+   "to": "rivne",
+   "fromName": "Харківська",
+   "toName": "Рівненська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 3129,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kharkiv",
+   "to": "sumy",
+   "fromName": "Харківська",
+   "toName": "Сумська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 2985,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kharkiv",
+   "to": "ternopil",
+   "fromName": "Харківська",
+   "toName": "Тернопільська",
+   "status": "ok",
+   "journeys": 4,
+   "responseMs": 2797,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kharkiv",
+   "to": "kherson",
+   "fromName": "Харківська",
+   "toName": "Херсонська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 139,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kharkiv",
+   "to": "khmelnytskyi",
+   "fromName": "Харківська",
+   "toName": "Хмельницька",
+   "status": "ok",
+   "journeys": 4,
+   "responseMs": 1007,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "kharkiv",
+   "to": "cherkasy",
+   "fromName": "Харківська",
+   "toName": "Черкаська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 401,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kharkiv",
+   "to": "chernivtsi",
+   "fromName": "Харківська",
+   "toName": "Чернівецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 468,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "kharkiv",
+   "to": "chernihiv",
+   "fromName": "Харківська",
+   "toName": "Чернігівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 212,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kharkiv",
+   "to": "crimea",
+   "fromName": "Харківська",
+   "toName": "АР Крим",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 246,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kharkiv",
+   "to": "sevastopol",
+   "fromName": "Харківська",
+   "toName": "Севастополь",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 248,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kherson",
+   "to": "kyiv-city",
+   "fromName": "Херсонська",
+   "toName": "Київ",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 487,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kherson",
+   "to": "kyiv-obl",
+   "fromName": "Херсонська",
+   "toName": "Київська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 365,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kherson",
+   "to": "vinnytsia",
+   "fromName": "Херсонська",
+   "toName": "Вінницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 340,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kherson",
+   "to": "volyn",
+   "fromName": "Херсонська",
+   "toName": "Волинська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 339,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kherson",
+   "to": "dnipro",
+   "fromName": "Херсонська",
+   "toName": "Дніпропетровська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 337,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kherson",
+   "to": "donetsk",
+   "fromName": "Херсонська",
+   "toName": "Донецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 339,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kherson",
+   "to": "zhytomyr",
+   "fromName": "Херсонська",
+   "toName": "Житомирська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 372,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kherson",
+   "to": "zakarpattia",
+   "fromName": "Херсонська",
+   "toName": "Закарпатська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 384,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kherson",
+   "to": "zaporizhzhia",
+   "fromName": "Херсонська",
+   "toName": "Запорізька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 379,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kherson",
+   "to": "ivano-frankivsk",
+   "fromName": "Херсонська",
+   "toName": "Івано-Франківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 449,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kherson",
+   "to": "kirovohrad",
+   "fromName": "Херсонська",
+   "toName": "Кіровоградська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 441,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kherson",
+   "to": "luhansk",
+   "fromName": "Херсонська",
+   "toName": "Луганська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 437,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kherson",
+   "to": "lviv",
+   "fromName": "Херсонська",
+   "toName": "Львівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1340,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kherson",
+   "to": "mykolaiv",
+   "fromName": "Херсонська",
+   "toName": "Миколаївська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1339,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kherson",
+   "to": "odesa",
+   "fromName": "Херсонська",
+   "toName": "Одеська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1337,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kherson",
+   "to": "poltava",
+   "fromName": "Херсонська",
+   "toName": "Полтавська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 342,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kherson",
+   "to": "rivne",
+   "fromName": "Херсонська",
+   "toName": "Рівненська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 339,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kherson",
+   "to": "sumy",
+   "fromName": "Херсонська",
+   "toName": "Сумська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 340,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kherson",
+   "to": "ternopil",
+   "fromName": "Херсонська",
+   "toName": "Тернопільська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 321,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kherson",
+   "to": "kharkiv",
+   "fromName": "Херсонська",
+   "toName": "Харківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 319,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kherson",
+   "to": "khmelnytskyi",
+   "fromName": "Херсонська",
+   "toName": "Хмельницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 319,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kherson",
+   "to": "cherkasy",
+   "fromName": "Херсонська",
+   "toName": "Черкаська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 415,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kherson",
+   "to": "chernivtsi",
+   "fromName": "Херсонська",
+   "toName": "Чернівецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 139,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kherson",
+   "to": "chernihiv",
+   "fromName": "Херсонська",
+   "toName": "Чернігівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 414,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kherson",
+   "to": "crimea",
+   "fromName": "Херсонська",
+   "toName": "АР Крим",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 398,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "kherson",
+   "to": "sevastopol",
+   "fromName": "Херсонська",
+   "toName": "Севастополь",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 248,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "khmelnytskyi",
+   "to": "kyiv-city",
+   "fromName": "Хмельницька",
+   "toName": "Київ",
+   "status": "ok",
+   "journeys": 6,
+   "responseMs": 2670,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS) + Київпастранс — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TROLLEYBUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "khmelnytskyi",
+   "to": "kyiv-obl",
+   "fromName": "Хмельницька",
+   "toName": "Київська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 2267,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "khmelnytskyi",
+   "to": "vinnytsia",
+   "fromName": "Хмельницька",
+   "toName": "Вінницька",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 2195,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "khmelnytskyi",
+   "to": "volyn",
+   "fromName": "Хмельницька",
+   "toName": "Волинська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 54,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "khmelnytskyi",
+   "to": "dnipro",
+   "fromName": "Хмельницька",
+   "toName": "Дніпропетровська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 201,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "khmelnytskyi",
+   "to": "donetsk",
+   "fromName": "Хмельницька",
+   "toName": "Донецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 200,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "khmelnytskyi",
+   "to": "zhytomyr",
+   "fromName": "Хмельницька",
+   "toName": "Житомирська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1594,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "khmelnytskyi",
+   "to": "zakarpattia",
+   "fromName": "Хмельницька",
+   "toName": "Закарпатська",
+   "status": "ok",
+   "journeys": 9,
+   "responseMs": 1984,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS) + Ужгородська міська рада — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "khmelnytskyi",
+   "to": "zaporizhzhia",
+   "fromName": "Хмельницька",
+   "toName": "Запорізька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1668,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "khmelnytskyi",
+   "to": "ivano-frankivsk",
+   "fromName": "Хмельницька",
+   "toName": "Івано-Франківська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 273,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "khmelnytskyi",
+   "to": "kirovohrad",
+   "fromName": "Хмельницька",
+   "toName": "Кіровоградська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 163,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "khmelnytskyi",
+   "to": "luhansk",
+   "fromName": "Хмельницька",
+   "toName": "Луганська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 95,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "khmelnytskyi",
+   "to": "lviv",
+   "fromName": "Хмельницька",
+   "toName": "Львівська",
+   "status": "ok",
+   "journeys": 5,
+   "responseMs": 7562,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TRAM"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "khmelnytskyi",
+   "to": "mykolaiv",
+   "fromName": "Хмельницька",
+   "toName": "Миколаївська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 7365,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "khmelnytskyi",
+   "to": "odesa",
+   "fromName": "Хмельницька",
+   "toName": "Одеська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 7364,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "khmelnytskyi",
+   "to": "poltava",
+   "fromName": "Хмельницька",
+   "toName": "Полтавська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 111,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "khmelnytskyi",
+   "to": "rivne",
+   "fromName": "Хмельницька",
+   "toName": "Рівненська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 74,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "khmelnytskyi",
+   "to": "sumy",
+   "fromName": "Хмельницька",
+   "toName": "Сумська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 2654,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "khmelnytskyi",
+   "to": "ternopil",
+   "fromName": "Хмельницька",
+   "toName": "Тернопільська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 2679,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "khmelnytskyi",
+   "to": "kharkiv",
+   "fromName": "Хмельницька",
+   "toName": "Харківська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 2741,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "khmelnytskyi",
+   "to": "kherson",
+   "fromName": "Хмельницька",
+   "toName": "Херсонська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 77,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "khmelnytskyi",
+   "to": "cherkasy",
+   "fromName": "Хмельницька",
+   "toName": "Черкаська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 51,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "khmelnytskyi",
+   "to": "chernivtsi",
+   "fromName": "Хмельницька",
+   "toName": "Чернівецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 13,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "khmelnytskyi",
+   "to": "chernihiv",
+   "fromName": "Хмельницька",
+   "toName": "Чернігівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 16,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "khmelnytskyi",
+   "to": "crimea",
+   "fromName": "Хмельницька",
+   "toName": "АР Крим",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 14,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "khmelnytskyi",
+   "to": "sevastopol",
+   "fromName": "Хмельницька",
+   "toName": "Севастополь",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 12,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "cherkasy",
+   "to": "kyiv-city",
+   "fromName": "Черкаська",
+   "toName": "Київ",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 25,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "cherkasy",
+   "to": "kyiv-obl",
+   "fromName": "Черкаська",
+   "toName": "Київська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 19,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "cherkasy",
+   "to": "vinnytsia",
+   "fromName": "Черкаська",
+   "toName": "Вінницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 17,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "cherkasy",
+   "to": "volyn",
+   "fromName": "Черкаська",
+   "toName": "Волинська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 35,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "cherkasy",
+   "to": "dnipro",
+   "fromName": "Черкаська",
+   "toName": "Дніпропетровська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 37,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "cherkasy",
+   "to": "donetsk",
+   "fromName": "Черкаська",
+   "toName": "Донецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 35,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "cherkasy",
+   "to": "zhytomyr",
+   "fromName": "Черкаська",
+   "toName": "Житомирська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 17,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "cherkasy",
+   "to": "zakarpattia",
+   "fromName": "Черкаська",
+   "toName": "Закарпатська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1584,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "cherkasy",
+   "to": "zaporizhzhia",
+   "fromName": "Черкаська",
+   "toName": "Запорізька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 17,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "cherkasy",
+   "to": "ivano-frankivsk",
+   "fromName": "Черкаська",
+   "toName": "Івано-Франківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1567,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "cherkasy",
+   "to": "kirovohrad",
+   "fromName": "Черкаська",
+   "toName": "Кіровоградська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1567,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "cherkasy",
+   "to": "luhansk",
+   "fromName": "Черкаська",
+   "toName": "Луганська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 332,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "cherkasy",
+   "to": "lviv",
+   "fromName": "Черкаська",
+   "toName": "Львівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 424,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "cherkasy",
+   "to": "mykolaiv",
+   "fromName": "Черкаська",
+   "toName": "Миколаївська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 330,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "cherkasy",
+   "to": "odesa",
+   "fromName": "Черкаська",
+   "toName": "Одеська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 374,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "cherkasy",
+   "to": "poltava",
+   "fromName": "Черкаська",
+   "toName": "Полтавська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 230,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "cherkasy",
+   "to": "rivne",
+   "fromName": "Черкаська",
+   "toName": "Рівненська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1036,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "cherkasy",
+   "to": "sumy",
+   "fromName": "Черкаська",
+   "toName": "Сумська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 576,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "cherkasy",
+   "to": "ternopil",
+   "fromName": "Черкаська",
+   "toName": "Тернопільська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 755,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "cherkasy",
+   "to": "kharkiv",
+   "fromName": "Черкаська",
+   "toName": "Харківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 321,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "cherkasy",
+   "to": "kherson",
+   "fromName": "Черкаська",
+   "toName": "Херсонська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 227,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "cherkasy",
+   "to": "khmelnytskyi",
+   "fromName": "Черкаська",
+   "toName": "Хмельницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 226,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "cherkasy",
+   "to": "chernivtsi",
+   "fromName": "Черкаська",
+   "toName": "Чернівецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 322,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "cherkasy",
+   "to": "chernihiv",
+   "fromName": "Черкаська",
+   "toName": "Чернігівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 351,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "cherkasy",
+   "to": "crimea",
+   "fromName": "Черкаська",
+   "toName": "АР Крим",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 351,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "cherkasy",
+   "to": "sevastopol",
+   "fromName": "Черкаська",
+   "toName": "Севастополь",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 380,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernivtsi",
+   "to": "kyiv-city",
+   "fromName": "Чернівецька",
+   "toName": "Київ",
+   "status": "ok",
+   "journeys": 3,
+   "responseMs": 1841,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS) + Київпастранс — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TROLLEYBUS"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "chernivtsi",
+   "to": "kyiv-obl",
+   "fromName": "Чернівецька",
+   "toName": "Київська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1471,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "chernivtsi",
+   "to": "vinnytsia",
+   "fromName": "Чернівецька",
+   "toName": "Вінницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1348,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "chernivtsi",
+   "to": "volyn",
+   "fromName": "Чернівецька",
+   "toName": "Волинська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 102,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "chernivtsi",
+   "to": "dnipro",
+   "fromName": "Чернівецька",
+   "toName": "Дніпропетровська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 209,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "chernivtsi",
+   "to": "donetsk",
+   "fromName": "Чернівецька",
+   "toName": "Донецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 209,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernivtsi",
+   "to": "zhytomyr",
+   "fromName": "Чернівецька",
+   "toName": "Житомирська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 148,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernivtsi",
+   "to": "zakarpattia",
+   "fromName": "Чернівецька",
+   "toName": "Закарпатська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 777,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "chernivtsi",
+   "to": "zaporizhzhia",
+   "fromName": "Чернівецька",
+   "toName": "Запорізька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 878,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "chernivtsi",
+   "to": "ivano-frankivsk",
+   "fromName": "Чернівецька",
+   "toName": "Івано-Франківська",
+   "status": "ok",
+   "journeys": 1,
+   "responseMs": 1054,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "chernivtsi",
+   "to": "kirovohrad",
+   "fromName": "Чернівецька",
+   "toName": "Кіровоградська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 246,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "chernivtsi",
+   "to": "luhansk",
+   "fromName": "Чернівецька",
+   "toName": "Луганська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 186,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernivtsi",
+   "to": "lviv",
+   "fromName": "Чернівецька",
+   "toName": "Львівська",
+   "status": "ok",
+   "journeys": 9,
+   "responseMs": 7965,
+   "providers": [
+    "Укрзалізниця — розклад поїздів (GTFS)",
+    "Укрзалізниця — розклад поїздів (GTFS) + Львівавтодор — розклад (GTFS)"
+   ],
+   "modes": [
+    "WALK",
+    "RAIL",
+    "BUS",
+    "TRAM"
+   ],
+   "reason": "VERIFIED_ROUTE"
+  },
+  {
+   "from": "chernivtsi",
+   "to": "mykolaiv",
+   "fromName": "Чернівецька",
+   "toName": "Миколаївська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 7633,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernivtsi",
+   "to": "odesa",
+   "fromName": "Чернівецька",
+   "toName": "Одеська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 7636,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "chernivtsi",
+   "to": "poltava",
+   "fromName": "Чернівецька",
+   "toName": "Полтавська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 174,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "chernivtsi",
+   "to": "rivne",
+   "fromName": "Чернівецька",
+   "toName": "Рівненська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 72,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "chernivtsi",
+   "to": "sumy",
+   "fromName": "Чернівецька",
+   "toName": "Сумська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 530,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "chernivtsi",
+   "to": "ternopil",
+   "fromName": "Чернівецька",
+   "toName": "Тернопільська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 341,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "chernivtsi",
+   "to": "kharkiv",
+   "fromName": "Чернівецька",
+   "toName": "Харківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 568,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "chernivtsi",
+   "to": "kherson",
+   "fromName": "Чернівецька",
+   "toName": "Херсонська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 295,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernivtsi",
+   "to": "khmelnytskyi",
+   "fromName": "Чернівецька",
+   "toName": "Хмельницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 271,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_SERVICE_ANY_PROBED_TIME"
+  },
+  {
+   "from": "chernivtsi",
+   "to": "cherkasy",
+   "fromName": "Чернівецька",
+   "toName": "Черкаська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 165,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernivtsi",
+   "to": "chernihiv",
+   "fromName": "Чернівецька",
+   "toName": "Чернігівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 256,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernivtsi",
+   "to": "crimea",
+   "fromName": "Чернівецька",
+   "toName": "АР Крим",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 306,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernivtsi",
+   "to": "sevastopol",
+   "fromName": "Чернівецька",
+   "toName": "Севастополь",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 299,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernihiv",
+   "to": "kyiv-city",
+   "fromName": "Чернігівська",
+   "toName": "Київ",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 413,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernihiv",
+   "to": "kyiv-obl",
+   "fromName": "Чернігівська",
+   "toName": "Київська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 384,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernihiv",
+   "to": "vinnytsia",
+   "fromName": "Чернігівська",
+   "toName": "Вінницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 293,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernihiv",
+   "to": "volyn",
+   "fromName": "Чернігівська",
+   "toName": "Волинська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 170,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernihiv",
+   "to": "dnipro",
+   "fromName": "Чернігівська",
+   "toName": "Дніпропетровська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 323,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernihiv",
+   "to": "donetsk",
+   "fromName": "Чернігівська",
+   "toName": "Донецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 321,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernihiv",
+   "to": "zhytomyr",
+   "fromName": "Чернігівська",
+   "toName": "Житомирська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 322,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernihiv",
+   "to": "zakarpattia",
+   "fromName": "Чернігівська",
+   "toName": "Закарпатська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 882,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernihiv",
+   "to": "zaporizhzhia",
+   "fromName": "Чернігівська",
+   "toName": "Запорізька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 881,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernihiv",
+   "to": "ivano-frankivsk",
+   "fromName": "Чернігівська",
+   "toName": "Івано-Франківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 795,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernihiv",
+   "to": "kirovohrad",
+   "fromName": "Чернігівська",
+   "toName": "Кіровоградська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1843,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernihiv",
+   "to": "luhansk",
+   "fromName": "Чернігівська",
+   "toName": "Луганська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1842,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernihiv",
+   "to": "lviv",
+   "fromName": "Чернігівська",
+   "toName": "Львівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1841,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernihiv",
+   "to": "mykolaiv",
+   "fromName": "Чернігівська",
+   "toName": "Миколаївська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 428,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernihiv",
+   "to": "odesa",
+   "fromName": "Чернігівська",
+   "toName": "Одеська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 536,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernihiv",
+   "to": "poltava",
+   "fromName": "Чернігівська",
+   "toName": "Полтавська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 428,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernihiv",
+   "to": "rivne",
+   "fromName": "Чернігівська",
+   "toName": "Рівненська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 305,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernihiv",
+   "to": "sumy",
+   "fromName": "Чернігівська",
+   "toName": "Сумська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 306,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernihiv",
+   "to": "ternopil",
+   "fromName": "Чернігівська",
+   "toName": "Тернопільська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 283,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernihiv",
+   "to": "kharkiv",
+   "fromName": "Чернігівська",
+   "toName": "Харківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 210,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernihiv",
+   "to": "kherson",
+   "fromName": "Чернігівська",
+   "toName": "Херсонська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 408,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernihiv",
+   "to": "khmelnytskyi",
+   "fromName": "Чернігівська",
+   "toName": "Хмельницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 322,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernihiv",
+   "to": "cherkasy",
+   "fromName": "Чернігівська",
+   "toName": "Черкаська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 324,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernihiv",
+   "to": "chernivtsi",
+   "fromName": "Чернігівська",
+   "toName": "Чернівецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 325,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernihiv",
+   "to": "crimea",
+   "fromName": "Чернігівська",
+   "toName": "АР Крим",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 324,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "chernihiv",
+   "to": "sevastopol",
+   "fromName": "Чернігівська",
+   "toName": "Севастополь",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 318,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "crimea",
+   "to": "kyiv-city",
+   "fromName": "АР Крим",
+   "toName": "Київ",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 415,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "crimea",
+   "to": "kyiv-obl",
+   "fromName": "АР Крим",
+   "toName": "Київська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 415,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "crimea",
+   "to": "vinnytsia",
+   "fromName": "АР Крим",
+   "toName": "Вінницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 295,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "crimea",
+   "to": "volyn",
+   "fromName": "АР Крим",
+   "toName": "Волинська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 83,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "crimea",
+   "to": "dnipro",
+   "fromName": "АР Крим",
+   "toName": "Дніпропетровська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 341,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "crimea",
+   "to": "donetsk",
+   "fromName": "АР Крим",
+   "toName": "Донецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 342,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "crimea",
+   "to": "zhytomyr",
+   "fromName": "АР Крим",
+   "toName": "Житомирська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 588,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "crimea",
+   "to": "zakarpattia",
+   "fromName": "АР Крим",
+   "toName": "Закарпатська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 327,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "crimea",
+   "to": "zaporizhzhia",
+   "fromName": "АР Крим",
+   "toName": "Запорізька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 329,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "crimea",
+   "to": "ivano-frankivsk",
+   "fromName": "АР Крим",
+   "toName": "Івано-Франківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 644,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "crimea",
+   "to": "kirovohrad",
+   "fromName": "АР Крим",
+   "toName": "Кіровоградська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 643,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "crimea",
+   "to": "luhansk",
+   "fromName": "АР Крим",
+   "toName": "Луганська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 170,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "crimea",
+   "to": "lviv",
+   "fromName": "АР Крим",
+   "toName": "Львівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 559,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "crimea",
+   "to": "mykolaiv",
+   "fromName": "АР Крим",
+   "toName": "Миколаївська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 525,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "crimea",
+   "to": "odesa",
+   "fromName": "АР Крим",
+   "toName": "Одеська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 208,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "crimea",
+   "to": "poltava",
+   "fromName": "АР Крим",
+   "toName": "Полтавська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 286,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "crimea",
+   "to": "rivne",
+   "fromName": "АР Крим",
+   "toName": "Рівненська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 397,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "crimea",
+   "to": "sumy",
+   "fromName": "АР Крим",
+   "toName": "Сумська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 350,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "crimea",
+   "to": "ternopil",
+   "fromName": "АР Крим",
+   "toName": "Тернопільська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 395,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "crimea",
+   "to": "kharkiv",
+   "fromName": "АР Крим",
+   "toName": "Харківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 316,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "crimea",
+   "to": "kherson",
+   "fromName": "АР Крим",
+   "toName": "Херсонська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 342,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "crimea",
+   "to": "khmelnytskyi",
+   "fromName": "АР Крим",
+   "toName": "Хмельницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 353,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "crimea",
+   "to": "cherkasy",
+   "fromName": "АР Крим",
+   "toName": "Черкаська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 353,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "crimea",
+   "to": "chernivtsi",
+   "fromName": "АР Крим",
+   "toName": "Чернівецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 299,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "crimea",
+   "to": "chernihiv",
+   "fromName": "АР Крим",
+   "toName": "Чернігівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 336,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "crimea",
+   "to": "sevastopol",
+   "fromName": "АР Крим",
+   "toName": "Севастополь",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 217,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sevastopol",
+   "to": "kyiv-city",
+   "fromName": "Севастополь",
+   "toName": "Київ",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 538,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sevastopol",
+   "to": "kyiv-obl",
+   "fromName": "Севастополь",
+   "toName": "Київська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 409,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sevastopol",
+   "to": "vinnytsia",
+   "fromName": "Севастополь",
+   "toName": "Вінницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 291,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sevastopol",
+   "to": "volyn",
+   "fromName": "Севастополь",
+   "toName": "Волинська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 223,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sevastopol",
+   "to": "dnipro",
+   "fromName": "Севастополь",
+   "toName": "Дніпропетровська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 224,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sevastopol",
+   "to": "donetsk",
+   "fromName": "Севастополь",
+   "toName": "Донецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 372,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sevastopol",
+   "to": "zhytomyr",
+   "fromName": "Севастополь",
+   "toName": "Житомирська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 490,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sevastopol",
+   "to": "zakarpattia",
+   "fromName": "Севастополь",
+   "toName": "Закарпатська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 490,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sevastopol",
+   "to": "zaporizhzhia",
+   "fromName": "Севастополь",
+   "toName": "Запорізька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 340,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sevastopol",
+   "to": "ivano-frankivsk",
+   "fromName": "Севастополь",
+   "toName": "Івано-Франківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 708,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sevastopol",
+   "to": "kirovohrad",
+   "fromName": "Севастополь",
+   "toName": "Кіровоградська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 274,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sevastopol",
+   "to": "luhansk",
+   "fromName": "Севастополь",
+   "toName": "Луганська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 274,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sevastopol",
+   "to": "lviv",
+   "fromName": "Севастополь",
+   "toName": "Львівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 1395,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sevastopol",
+   "to": "mykolaiv",
+   "fromName": "Севастополь",
+   "toName": "Миколаївська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 435,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sevastopol",
+   "to": "odesa",
+   "fromName": "Севастополь",
+   "toName": "Одеська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 959,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sevastopol",
+   "to": "poltava",
+   "fromName": "Севастополь",
+   "toName": "Полтавська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 959,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sevastopol",
+   "to": "rivne",
+   "fromName": "Севастополь",
+   "toName": "Рівненська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 523,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sevastopol",
+   "to": "sumy",
+   "fromName": "Севастополь",
+   "toName": "Сумська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 523,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sevastopol",
+   "to": "ternopil",
+   "fromName": "Севастополь",
+   "toName": "Тернопільська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 526,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sevastopol",
+   "to": "kharkiv",
+   "fromName": "Севастополь",
+   "toName": "Харківська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 527,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sevastopol",
+   "to": "kherson",
+   "fromName": "Севастополь",
+   "toName": "Херсонська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 525,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sevastopol",
+   "to": "khmelnytskyi",
+   "fromName": "Севастополь",
+   "toName": "Хмельницька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 525,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sevastopol",
+   "to": "cherkasy",
+   "fromName": "Севастополь",
+   "toName": "Черкаська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 654,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sevastopol",
+   "to": "chernivtsi",
+   "fromName": "Севастополь",
+   "toName": "Чернівецька",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 652,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sevastopol",
+   "to": "chernihiv",
+   "fromName": "Севастополь",
+   "toName": "Чернігівська",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 652,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  },
+  {
+   "from": "sevastopol",
+   "to": "crimea",
+   "fromName": "Севастополь",
+   "toName": "АР Крим",
+   "status": "ok",
+   "journeys": 0,
+   "responseMs": 527,
+   "providers": [],
+   "modes": [],
+   "reason": "NO_RAIL_STOP_IN_FEED"
+  }
+ ]
+}
