@@ -1,0 +1,464 @@
+{
+ "generatedAt": "2026-11-18T22:42:23.240Z",
+ "probeDate": "2026-11-18",
+ "candidates": [
+  {
+   "id": "uz-rail",
+   "city": "Україна",
+   "name": "Укрзалізниця (OSM-derived, ODbL)",
+   "url": "https://jbb.ghsq.de/gtfs/ua-ukrzaliznytsya.gtfs.zip",
+   "license": "ODbL 1.0",
+   "commercialUse": true,
+   "checkedAt": "2026-11-18T22:42:23.240Z",
+   "status": "parsed",
+   "verdict": "USABLE_WITH_DAILY_RESYNC",
+   "reasons": [
+    "вікно послуг коротше за 7 днів — фід зламається без щоденного пересинку"
+   ],
+   "httpStatus": 200,
+   "bytes": 5758058,
+   "sha256": "c753015c1c9802b44da438442279ff3ee931c208f7db54d054b95fe72d596566",
+   "files": 9,
+   "missingFiles": [],
+   "stops": 167,
+   "routes": 115,
+   "trips": 115,
+   "stopTimeRows": 1192,
+   "routeTypes": [
+    "102",
+    "106"
+   ],
+   "serviceWindow": {
+    "firstStart": "20260904",
+    "lastEnd": "20271211",
+    "windows": 11844
+   },
+   "coversProbeDate": true,
+   "coversNextSevenDays": false,
+   "feedPublisher": "Unknown data:text/plain,"
+  },
+  {
+   "id": "kyiv-pastrans",
+   "city": "Київ",
+   "name": "Київпастранс (офіційний, CC BY 4.0)",
+   "url": "http://193.23.225.211:8002/export-gtfs-static",
+   "license": "CC BY 4.0 (data.gov.ua)",
+   "commercialUse": true,
+   "checkedAt": "2026-11-18T22:42:30.814Z",
+   "status": "parsed",
+   "verdict": "USABLE",
+   "reasons": [],
+   "httpStatus": 200,
+   "bytes": 1409049,
+   "sha256": "bb43e0032941b5228b36b1cba454407c57226e33eabf3d253083d452aebf372c",
+   "files": 9,
+   "missingFiles": [],
+   "stops": 1822,
+   "routes": 205,
+   "trips": 28535,
+   "stopTimeRows": 119679,
+   "routeTypes": [
+    "0",
+    "11",
+    "3"
+   ],
+   "serviceWindow": {
+    "firstStart": "20260101",
+    "lastEnd": "20991231",
+    "windows": 1476
+   },
+   "coversProbeDate": true,
+   "coversNextSevenDays": true,
+   "feedPublisher": "Комунальне підприємство \"Київпастранс\" https://kpt.kyiv.ua/"
+  },
+  {
+   "id": "kyiv-jbb",
+   "city": "Київ",
+   "name": "Київпастранс (jbb mirror)",
+   "url": "https://jbb.ghsq.de/gtfs/ua-kyiv.gtfs.zip",
+   "license": "CC BY 4.0",
+   "commercialUse": true,
+   "checkedAt": "2026-11-18T22:42:31.848Z",
+   "status": "parsed",
+   "verdict": "USABLE",
+   "reasons": [],
+   "httpStatus": 200,
+   "bytes": 1416208,
+   "sha256": "b8b2f3e5f891c4637cb1c05e4f16aa49cb49235c281125e3667eb39e5de94924",
+   "files": 9,
+   "missingFiles": [],
+   "stops": 1824,
+   "routes": 205,
+   "trips": 28738,
+   "stopTimeRows": 120595,
+   "routeTypes": [
+    "0",
+    "11",
+    "3"
+   ],
+   "serviceWindow": {
+    "firstStart": "20260101",
+    "lastEnd": "20991231",
+    "windows": 1491
+   },
+   "coversProbeDate": true,
+   "coversNextSevenDays": true,
+   "feedPublisher": "Комунальне підприємство \"Київпастранс\" https://kpt.kyiv.ua/"
+  },
+  {
+   "id": "lviv",
+   "city": "Львів",
+   "name": "Львівавтодор (CC BY 4.0)",
+   "url": "https://track.ua-gis.com/gtfs/lviv/static.zip",
+   "license": "CC BY 4.0",
+   "commercialUse": true,
+   "checkedAt": "2026-11-18T22:42:36.725Z",
+   "status": "parsed",
+   "verdict": "USABLE",
+   "reasons": [],
+   "httpStatus": 200,
+   "bytes": 4218146,
+   "sha256": "e754dbdb6a9ee3f0d77de836fc3e4c386104089d8c0e40071a90ac0b4aeb061c",
+   "files": 10,
+   "missingFiles": [],
+   "stops": 1064,
+   "routes": 72,
+   "trips": 15606,
+   "stopTimeRows": 421884,
+   "routeTypes": [
+    "0",
+    "3"
+   ],
+   "serviceWindow": {
+    "firstStart": "20261118",
+    "lastEnd": "20271112",
+    "windows": 10
+   },
+   "coversProbeDate": true,
+   "coversNextSevenDays": true,
+   "feedPublisher": "Львівавтодор https://www.facebook.com/Lvivavtodor/"
+  },
+  {
+   "id": "stryi",
+   "city": "Стрий",
+   "name": "Стрийська міська рада (CC BY 4.0)",
+   "url": "https://track.ua-gis.com/gtfs/stryi/static.zip",
+   "license": "CC BY 4.0",
+   "commercialUse": true,
+   "checkedAt": "2026-11-18T22:42:40.496Z",
+   "status": "parsed",
+   "verdict": "USABLE",
+   "reasons": [],
+   "httpStatus": 200,
+   "bytes": 472084,
+   "sha256": "faa970af89959f5d5f544ad4523d1d49646bf5f2828f71c544896892a779c850",
+   "files": 10,
+   "missingFiles": [],
+   "stops": 292,
+   "routes": 34,
+   "trips": 1061,
+   "stopTimeRows": 13874,
+   "routeTypes": [
+    "3"
+   ],
+   "serviceWindow": {
+    "firstStart": "20261118",
+    "lastEnd": "20271121",
+    "windows": 7
+   },
+   "coversProbeDate": true,
+   "coversNextSevenDays": true,
+   "feedPublisher": "Стрийське ОТГ"
+  },
+  {
+   "id": "uzhhorod",
+   "city": "Ужгород",
+   "name": "Ужгородська міська рада (CC BY 4.0)",
+   "url": "https://track.ua-gis.com/gtfs/uzhhorod/static.zip",
+   "license": "CC BY 4.0",
+   "commercialUse": true,
+   "checkedAt": "2026-11-18T22:42:41.013Z",
+   "status": "parsed",
+   "verdict": "USABLE",
+   "reasons": [],
+   "httpStatus": 200,
+   "bytes": 525409,
+   "sha256": "2448c83e9055463e6870d687c476d23609e54d6b197c355e2c69f6afb0f744d2",
+   "files": 10,
+   "missingFiles": [],
+   "stops": 215,
+   "routes": 18,
+   "trips": 2376,
+   "stopTimeRows": 46460,
+   "routeTypes": [
+    "3"
+   ],
+   "serviceWindow": {
+    "firstStart": "20261118",
+    "lastEnd": "20290731",
+    "windows": 5
+   },
+   "coversProbeDate": true,
+   "coversNextSevenDays": true,
+   "feedPublisher": "Ужгородська міська рада http://rada-uzhgorod.gov.ua"
+  },
+  {
+   "id": "ivano-frankivsk",
+   "city": "Івано-Франківськ",
+   "name": "Івано-Франківськ (Dozor, CC BY 4.0)",
+   "url": "https://city.dozor.tech/iv-frankivsk/gtfs/static.zip",
+   "license": "CC BY 4.0 (data.gov.ua)",
+   "commercialUse": true,
+   "checkedAt": "2026-11-18T22:42:41.487Z",
+   "status": "parsed",
+   "verdict": "USABLE_WITH_DAILY_RESYNC",
+   "reasons": [
+    "вікно послуг коротше за 7 днів — фід зламається без щоденного пересинку"
+   ],
+   "httpStatus": 200,
+   "bytes": 163464,
+   "sha256": "5b9b87268002e3f7f50a2056e20da78502c241d91086d2853b529e48ff178326",
+   "files": 6,
+   "missingFiles": [],
+   "stops": 360,
+   "routes": 31,
+   "trips": 2061,
+   "stopTimeRows": 41519,
+   "routeTypes": [
+    "11",
+    "3"
+   ],
+   "serviceWindow": {
+    "firstStart": "20261118",
+    "lastEnd": "20261118",
+    "windows": 1
+   },
+   "coversProbeDate": true,
+   "coversNextSevenDays": false,
+   "feedPublisher": null
+  },
+  {
+   "id": "rivne-dozor",
+   "city": "Рівне",
+   "name": "Рівне (Dozor)",
+   "url": "https://city.dozor.tech/rivne/gtfs/static.zip",
+   "license": "не заявлена у фіді",
+   "commercialUse": false,
+   "checkedAt": "2026-11-18T22:42:42.057Z",
+   "status": "parsed",
+   "verdict": "LICENSE_REQUIRED",
+   "reasons": [
+    "вікно послуг коротше за 7 днів — фід зламається без щоденного пересинку"
+   ],
+   "httpStatus": 200,
+   "bytes": 43357,
+   "sha256": "107a5df0ecc8e368d2bb908bd031d237bfbc37e1084040d8e7e0139163911ed0",
+   "files": 6,
+   "missingFiles": [],
+   "stops": 82,
+   "routes": 3,
+   "trips": 604,
+   "stopTimeRows": 11099,
+   "routeTypes": [
+    "3"
+   ],
+   "serviceWindow": {
+    "firstStart": "20261118",
+    "lastEnd": "20261118",
+    "windows": 1
+   },
+   "coversProbeDate": true,
+   "coversNextSevenDays": false,
+   "feedPublisher": null
+  },
+  {
+   "id": "bila-cerkva-dozor",
+   "city": "Біла Церква",
+   "name": "Біла Церква (Dozor)",
+   "url": "https://city.dozor.tech/bila-cerkva/gtfs/static.zip",
+   "license": "не заявлена у фіді",
+   "commercialUse": false,
+   "checkedAt": "2026-11-18T22:42:42.200Z",
+   "status": "parsed",
+   "verdict": "LICENSE_REQUIRED",
+   "reasons": [
+    "вікно послуг коротше за 7 днів — фід зламається без щоденного пересинку"
+   ],
+   "httpStatus": 200,
+   "bytes": 28401,
+   "sha256": "83e1cf0fac32f3cb2eec669002decc0a562eb5e2bbd5dfde256f3b771b76f5cd",
+   "files": 6,
+   "missingFiles": [],
+   "stops": 342,
+   "routes": 18,
+   "trips": 188,
+   "stopTimeRows": 5419,
+   "routeTypes": [
+    "3"
+   ],
+   "serviceWindow": {
+    "firstStart": "20261118",
+    "lastEnd": "20261118",
+    "windows": 1
+   },
+   "coversProbeDate": true,
+   "coversNextSevenDays": false,
+   "feedPublisher": null
+  },
+  {
+   "id": "odesa-x24",
+   "city": "Одеса",
+   "name": "Одеса (офіційний, x24 API key)",
+   "url": "https://gw.x24.digital/api/od-all/gtfs/v1/download/static",
+   "license": "портал open data ОМР",
+   "commercialUse": true,
+   "requiresKey": true,
+   "checkedAt": "2026-11-18T22:42:42.342Z",
+   "status": "unreachable",
+   "verdict": "NEEDS_API_KEY",
+   "reasons": [
+    "HTTP 401"
+   ],
+   "httpStatus": 401
+  },
+  {
+   "id": "bucha-x24",
+   "city": "Буча",
+   "name": "Буча (x24 API key)",
+   "url": "https://gw.x24.digital/api/bu/gtfs/v1/download/static",
+   "license": "невідома",
+   "commercialUse": false,
+   "requiresKey": true,
+   "checkedAt": "2026-11-18T22:42:42.724Z",
+   "status": "unreachable",
+   "verdict": "NEEDS_API_KEY",
+   "reasons": [
+    "HTTP 401"
+   ],
+   "httpStatus": 401
+  },
+  {
+   "id": "inbus",
+   "city": "Україна",
+   "name": "inbus.ua (міжміські автобуси)",
+   "url": "https://gtfs.fsn1.your-objectstorage.com/feeds/gtfs.zip",
+   "license": "не заявлена",
+   "commercialUse": false,
+   "checkedAt": "2026-11-18T22:42:42.766Z",
+   "status": "parsed",
+   "verdict": "STALE",
+   "reasons": [
+    "розклад не покриває 2026-11-18 (вікно 20250301…20250731)"
+   ],
+   "httpStatus": 200,
+   "bytes": 4483,
+   "sha256": "6a6d6cec071fadcb4415a2153d9d68dfb74ff288166d957b985dd822a161f1fe",
+   "files": 7,
+   "missingFiles": [],
+   "stops": 2,
+   "routes": 1,
+   "trips": 45,
+   "stopTimeRows": 90,
+   "routeTypes": [
+    "3"
+   ],
+   "serviceWindow": {
+    "firstStart": "20250301",
+    "lastEnd": "20250731",
+    "windows": 1
+   },
+   "coversProbeDate": false,
+   "coversNextSevenDays": false,
+   "feedPublisher": "InBus https://inbus.ua"
+  },
+  {
+   "id": "malyn",
+   "city": "Малин",
+   "name": "Малин (OwnNet Source License 1.1)",
+   "url": "https://malin.kiev.ua/transport/gtfs.zip",
+   "license": "OwnNet Source License 1.1 (потрібен договір)",
+   "commercialUse": false,
+   "checkedAt": "2026-11-18T22:42:43.049Z",
+   "status": "parsed",
+   "verdict": "LICENSE_REQUIRED",
+   "reasons": [],
+   "httpStatus": 200,
+   "bytes": 40905,
+   "sha256": "11164c8f8e432aa92b4b5d521a78206c451ab0523ddfd6f856d0aedc40d1bb9d",
+   "files": 10,
+   "missingFiles": [],
+   "stops": 98,
+   "routes": 9,
+   "trips": 250,
+   "stopTimeRows": 4423,
+   "routeTypes": [
+    "3"
+   ],
+   "serviceWindow": {
+    "firstStart": "20240101",
+    "lastEnd": "20271231",
+    "windows": 2
+   },
+   "coversProbeDate": true,
+   "coversNextSevenDays": true,
+   "feedPublisher": "malin.kiev.ua (Technologies LLC) https://malin.kiev.ua/"
+  },
+  {
+   "id": "chornomorsk",
+   "city": "Чорноморськ",
+   "name": "Чорноморськ (архів 2019, CC BY 4.0)",
+   "url": "https://data.gov.ua/dataset/032c23f0-dbe5-4b63-8c1f-03218758ae60/resource/d997fdbf-7a25-487b-ad47-ee5541d552be/download/chornomorsk-2019-09-05-10-24-50.zip",
+   "license": "CC BY 4.0",
+   "commercialUse": true,
+   "checkedAt": "2026-11-18T22:42:43.864Z",
+   "status": "parsed",
+   "verdict": "STALE",
+   "reasons": [
+    "розклад не покриває 2026-11-18 (вікно 20190905…20200905)"
+   ],
+   "httpStatus": 200,
+   "bytes": 68862,
+   "sha256": "ed0b43b6c33c36e4a9aa0b49474ef7d08dd0e559f4476fdaec0866d7c39424d3",
+   "files": 14,
+   "missingFiles": [],
+   "stops": 152,
+   "routes": 6,
+   "trips": 16,
+   "stopTimeRows": 406,
+   "routeTypes": [
+    "3"
+   ],
+   "serviceWindow": {
+    "firstStart": "20190905",
+    "lastEnd": "20200905",
+    "windows": 2
+   },
+   "coversProbeDate": false,
+   "coversNextSevenDays": false,
+   "feedPublisher": "EasyWay https://www.eway.in.ua"
+  },
+  {
+   "id": "kyiv-metro-stage",
+   "city": "Київ",
+   "name": "Київський метрополітен (ESRI API, stage)",
+   "url": "https://gisserver-stage.kyivcity.gov.ua/mayno/rest/services/KYIV_API/transport_public/MapServer/5/query?where=1%3D1&outFields=*&f=json",
+   "license": "CC BY 4.0",
+   "commercialUse": true,
+   "notGtfs": true,
+   "checkedAt": "2026-11-18T22:42:44.202Z",
+   "status": "unreachable",
+   "verdict": "DEAD",
+   "reasons": [
+    "TypeError"
+   ]
+  }
+ ],
+ "tally": {
+  "USABLE_WITH_DAILY_RESYNC": 2,
+  "USABLE": 5,
+  "LICENSE_REQUIRED": 3,
+  "NEEDS_API_KEY": 2,
+  "STALE": 2,
+  "DEAD": 1
+ }
+}
